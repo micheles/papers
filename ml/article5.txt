@@ -1,0 +1,44 @@
+Records
+-----------------------
+
+The first level of grouping in ML is the record level: a record
+roughly correspond to a *struct* in the C programming language and can
+contain any kind of first class value. The record itself a first class value,
+i.e. it can be passed to and returned from functions. I will give a few
+examples of usage.
+
+A record factory::
+
+ - fun makeArticle {title:string, author:string} = {title, author};
+ val makeArticle :  {author : string, title : string} -> {author : string, title : string} = _fn
+
+An example record::
+
+ - val article = makeArticle {title="Functional Programming", author="M. Simionato"};
+ val article : {author : string, title : string} =
+   {author = "M. Simionato", title = "Functional Programming"}
+
+Extracting fields from a record::
+
+ - #title article;
+ val it : string = "Functional Programming"
+ - #author article;
+ val it : string = "M. Simionato"
+
+A record containing functions::
+
+ - val a = {makeArticle, printArticle = fn {title, author} => print (title^" "^author ^"\n") };
+ - #printArticle a article;
+ Functional Programming M. Simionato
+
+Notice that the order of the fields is not specified and that there is no
+concept of subrecord; for instance two records of kind 
+``{title:string, author:string, publicationDate:string}``  and 
+``{title:string, author:string}``
+are considered completely different record types, the second one is not a subtype of 
+the first one and you cannot substitute one with the other, possibly with default
+values. Also, records are purely static and resolved at compile time: if you need
+something more dynamic, you should use a map, not a record. Finally, records
+are functional, i.e. immutable: there is no way to change the value of a field,
+you must create an entirely new record with a different value if you want to
+simulate a record update. 

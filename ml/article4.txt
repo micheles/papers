@@ -1,0 +1,453 @@
+Functional Programming For Dynamic Programmers - Part 4
+=======================================================
+
+:author: Michele Simionato
+:date: November 2007
+
+This is the fourth of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers, i.e. 
+for programmers with a background in dynamically typed languages, such as Perl, 
+Python, Ruby, or languages in the Lisp family. The approch is eminently practical
+and example-based; the main goal is to see if we can stole some good idea from
+statically typed languages. In order to be concrete, I will consider languages
+in the ML family, because they are pretty nice and much easier to understand
+that Haskell.
+
+Functors
+------------------------------------------------------
+
+As we saw in the previous article, structures are not first class objects and 
+they cannot be passed to and returned from regular functions.
+To circumvent this restriction, the authors of ML invented
+the concept of *functor*, which is basically a *sui generis* function
+taking structures in input and to returning structures in output. Functors
+are not-first-class objects themselves and therefore they require a specific
+declaration, such as the following::
+
+- functor Wrap(SimpleIO:SIMPLE_IO) = struct
+    val inputAll = SimpleIO.inputAll
+    output = SimpleIO.output
+    fun fileIn manage fname = let
+        val file = openIn fname
+    in
+         manage file finally closeIn file
+    end
+    fun fileOut manage fname = let
+        val file = openOut fname
+    in
+         manage file finally closeOut file
+    end
+ end
+
+The functor here is important, since it shows how it is possible to write
+generic code in SML. In this case, I have just written a library which is
+able to wrap *any* structure matching the ``SimpleIO`` interface, and I have
+avoided a potentially infinite code duplication.
+The specification of which specific structure to use will be the job of the client
+code, not of the library author; in particular a particular user of the library
+may be interested in specializing it both for ``TextIO`` and ``BinIO``
+by writing:
+
+- structure T = Wrap(TextIO)
+- structure B = Wrap(BinIO)
+
+The operation of specializing a functor is also called *functor instantiation*;
+since it happens in a structure declaration it is performed by the compiler
+*at compile time*. The advantage is that the compiler can generate different optimized
+code for  the structures``T`` and ``B`` in the *client* program.
+
+do print (IO.fileIn IO.inputAll "three-lines.txt")
+
+The Standard ML type system
+-------------------------------------------------------------------
+
+We have already seen many builtin types, such integers, strings, lists, etc.
+The type system of SML is extensible, and the user can define new types in terms
+of primitive types.
+
+In SML any value has a type, but types itself are not values, i.e. they are
+not first class values. That means that passing the name of a type to the
+prompt gives an error::
+
+  - string;
+  1.0-1.6: unknown value or constructor `string'
+
+Just as structures, types live in a separated namespace. The lack of
+first class types also means the lack of metaclasses which are common
+in dynamic languages such as Smalltalk, Lisp, Perl, Python, Ruby,
+etc. Besides, SML types are not classes in any OO sense of the term,
+you cannot introspect them, there are no methods, and no inheritance;
+so, the first step in order to learn the SML type system is to forget
+everything you know about OOP ;) Having said that, you can certainly
+program in an OO style in ML, using closures as we saw in our previous
+essay, or using functors as we will show in the next paragraph; the
+point here is that you don't use types for OOP, types are used
+for pattern matching.
+
+Pattern matching in turn (among many other things) can be used to implement 
+runtime type dispatching. For instance, suppose, you want to define an utility
+function casting integer to strings. The first thing to do is to define an
+int_or_string datatype with two constructors INT and STR:
+
+- datatype int_or_string = INT of int | STR of string;
+
+
+Now it is possible to implement the casting function via pattern
+matching on the constructors
+
+ - fun valueToString (INT x) = Int.toString x
+     | valueToString (STR x) = x;
+ val valueToString : int_or_string -> string = _fn
+
+Let me check that it works:
+
+ - valueToString (INT 1);
+ val it : string = "1"
+ - valueToString (STR "1");
+ val it : string = "1"
+
+With this trick it is possible to emulate C++-style function overloading.
+
+In particular he may define composite types, like the following::
+
+ - datatype string_int = STRING_INT of string * int;
+ datatype string_int = STRING_INT of string * int
+ -
+
+The uppercase identifier is called the constructors of the datatype, and can
+be used to make concrete instances of the type::
+
+ - STRING_INT("hello",  1);
+ val it : string_int = STRING_INT ("hello", 1)
+ -
+
+Notice is that the type itself is not a first class value::
+
+ - string_int;
+ 1.0-1.10: unknown value or constructor `string_int'
+ +
+
+where the constructor is a first class value, being simply a function::
+
+ - STRING_INT;
+ val it  : string * int -> string_int = _fn
+
+It is also possible to define polymorphic types, where the constructor can
+accept any type as argument. For instance, suppose we want to define a generic 
+container type::
+
+ - datatype 'a container = CONTAINER of 'a;
+ datatype 'a container = CONTAINER of 'a
+ - 
+
+#- CONTAINER 
+
+
+
+a *named_function* type corresponding
+to a pair *(function, name)*, where *function* can be of any functions, whereas 
+*name* is a string. 
+We can do it as follows::
+
+ - datatype ('a, 'b) named_function = NAMED_FUNCTION of ('a->'b) * string;
+ datatype ('a, 'b) named_function = NAMED_FUNCTION of ('a -> 'b) * string
+ -
+
+*named_function* is a parametric type with parameter 'a (to be read *alpha*),
+which corresponds to a generic type, and NAMED_FUNCTION is its associated 
+constructor::
+
+ - NAMED_FUNCTION;
+ val it : ('a -> 'b) * string -> ('a, 'b) named_function = _fn
+ -
+
+In other words, NAMED_FUNCTION is a function converting a pair (value, name),
+where *value* can be of any type, into a *named_function* parametric type.
+Here is an example::
+
+ - NAMED_FUNCTION (fn x=>2*x, "double");
+  (* giving a  name to the function x=>2*x *)
+ val it = NAMED_FUNCTION (fn,"double") : (int,int) named_function
+ -
+
+Finally, let me notice that SML also allows to define enumeration
+types, like the following one::
+
+ - datatype color = RED|GREEN|BLUE;
+ datatype color = BLUE | GREEN | RED
+ -
+
+but for
+enumeration types the name is rather improper, since they are just values::
+
+ - RED;
+ val it : color = RED
+ -
+
+..
+
+ - GREEN;
+ val it : color = GREEN
+ -
+..
+
+ - BLUE;
+ val it : color = BLUE
+ -
+
+Polymorphism
+-------------------
+
+ -  functor Sequence(ListOrVector:) = funct
+     end
+
+
+Two examples of simple structures in the standard library as List and Vector;
+they act as modules with a mostly compatible interface, providing functions
+to manipulate lists and vectors respectively. Since SML is a functional language,
+both lists and vectors are immutable. Here are a few examples of usage::
+
+ - val lst = [0,1,2];
+ val lst : int list = [0, 1, 2]
+ - val vec = #[0,1,2];
+ val vec : int vector = #[0, 1, 2]
+
+ - List.length(lst);
+ val it : int = 3
+ - Vector.length(vec);
+ val it : int = 3
+
+ -List.sub(lst, 1) (*) take the second element of the list
+ val it : int = 1
+ -Vector.sub(vec, 1) (*) take the second element of the vector
+ val it : int = 1
+
+signature HAS_LENGTH = sig
+  val length: 
+functor(F:HAS_LENGTH):
+  
+polyLength(List)
+
+
+Lists
+---------------------------------------------------
+
+Lists are the most common data structures in functional languages (they formed
+the core of Lisp at its beginning) and there are many facilities to manage them and
+to iterate over them. For instance, in the first article of this series, I showed the
+``app`` builtin, to apply a function over the elements of a list; there is also
+a ``map`` builtin to build a new list from an old one::
+
+ - val doubles = map (fn x => 2*x) [1,2,3];
+ val doubles : int list = [2, 4, 6]
+
+and a ``filter`` function to extract the sublist of elements satisfying a given predicate::
+
+ - fun isEven n = n mod 2 = 0;
+ - val even = List.filter isEven [1,2,3];
+ val even : int list = [2]
+
+Moreover, you can append lists with the ``@`` operator::
+
+ - [1] @ [2] @ [3,4];
+ val it : int list = [1, 2, 3, 4]
+
+There are other standard facilities and you can look at the documentation
+http://www.standardml.org/Basis/list.html to find them all.
+
+ML lists are linked lists in the same sense of Lisp or Scheme [#]_, however they 
+are immutable. Just as in Scheme [#]_, where
+
+  ``(list 1 2)``
+
+is a shortcut for
+
+ ``(cons 1 (cons 2 '()))``
+
+in ML
+
+  ``[1, 2]``
+
+is a shortcut for
+
+ ``1::2::[]``
+
+and ``::`` is the *cons* operator (short for constructor).
+
+
+.. [#] Python lists are actually arrays, not lists
+
+.. [#] If you don't know Scheme, 
+
+   [1, 2] (ML) => [1,[2,[]]] (Python)
+
+
+
+It is also possible to apply a binary operator to a list, via the ``foldl`` and ``foldr``
+functions::
+
+ - val sum = foldl op+ 0 [1,2,3];
+ val sum : int = 6
+
+
+fun enum n = lazy n :: enum (n+1)
+
+(for instance, a log file); how can we process it? The simplest possibility is
+to convert it into a lazy list of lines, with the following code::
+
+ fun textFileToList filename = let
+     val file = TextIO.openIn filename
+     fun lazy readLines () =
+         case TextIO.inputLine file 
+               handle ex => (TextIO.closeIn file; raise ex)
+          of NONE => (TextIO.closeIn file; [])
+           | SOME line => line :: readLines ()
+ in
+     readLines ()
+ end
+
+
+A smarter line counter
+-----------------------------------------------------------
+
+ - val countLines = length o textFileToList 
+
+
+
+
+Python extended generators in Alice
+---------------------------------------------------------
+
+def consumer():
+  result = []
+   while True:
+     inp = yield
+     if inp = END:
+       return result 
+
+functor consumer(val ch: channel):
+   while true do let
+      val inp = Channel.gexst ch
+      if inp = END:
+
+
+In particular, what's the equivalent of the simple
+Python one-liner ``for item in container: print item``?  The answer is
+that there is no equivalent. The Python one-liner is completely
+polymorphic, since it works for any kind of container and it is able
+to print any kind of object. However, SML is a statically typed
+language, and you must give to the compiler some information about the
+types: it cannot predict the future, nor the type of the container and
+the types of the items.  Here I will show how you can loop on
+homogenous containers, i.e . containers where the items are all
+instances of the same type;
+
+
+ fun writeln (tostring, value)  =
+    print(format (tostring o text "\n") value);
+
+
+-  app (fn item => writeln(int, item)) [1,2,3];
+1
+2
+3
+
+fun sum lst = foldl op+ 0 lst
+
+The thing to remember is that functions associate to the **right**, so
+
+  ``a -> b -> c``
+
+means
+
+  ``a -> (b -> c)``
+
+whereas type constructor associates to the **left**, so 
+
+  ``int ref list``
+
+means
+
+   ``(int ref) list``
+
+
+Timers
+--------------------
+
+fun timedFn f a = let
+  val ct = Timer.startRealTimer ()
+  val result = f a
+in
+  (result, Timer.checkRealTimer (ct))
+end
+
+
+ - structure A = struct
+     type 'a aggr 
+     fun length(a: 'a aggr) = 1
+     fun sub(a: 'a aggr, i :int) = 1
+   end;
+ signature AGGREGATE_TYPE =
+   sig
+      type 'a aggr 
+      val length : 'a aggr -> int
+      val sub : 'a aggr * int -> int
+   end
+ -
+
+ok
+
+"Hello World", part II
+-------------------------------------------------
+
+On the other hand, print2 cannot accept anything different than strings::
+
+ - print2("the answer is ", 42);
+ 1.0-1.28: mismatch on application: expression type
+    string * int
+ does not match function's argument type
+    string * string
+ because type
+    int
+ does not unify with
+    string
+
+To print a string and a number, we should define another function::
+
+ - fun print_string_int(s, i)=(print s; print (Int.toString(i)));
+ val print_string_int : string * int -> unit = _fn
+ - print_string_int("The answer is ", 42);
+ The answer is 42val it : unit = ()
+
+This is clearly unpractical, since we can't define an infinite number
+of ``print`` functions to be able to print all the potentially
+infinite types we can have in our programs.  Fortunately there are
+utility library for converting objects in strings (even if not
+standard :-(). SML/NJ has the library FormatComb, to be used as
+follows (from now on, for concision sake, I will omit to write down
+the full output of the REPL)::
+
+ - open FormatComb;
+ - print (format (text "The value is " o int o text ".") 42);
+ The value is 42
+
+The syntax looks strange (especially the "o" operator) and if you
+forget the parenthesis you will get funny error messages. To
+understand what is going on, you will need to master SML to a much
+more advanced level than this first paper is meant to, so you will
+have to wait for "Hello World, Part II" ;) Here I will content myself
+to notice that the format utility requires you to specify the types of
+the arguments. SML is a *typeful* language: the compiler must know the
+types of all your variables *before running the program*.  In a
+dynamic language, instead, the types can be introspected at runtime
+and there is no need to specify them. This is most of the times an
+advantage, however, it also leads to type errors that cannot occur in
+a statically typed language such as SML (also called *type safe*
+languages). Moreover, SML compilers may perform optimization which are
+impossible in a dynamic language (but this is of lesser relevance,
+since any user of dynamic languages will use C libraries if speed is
+an issue).
+
+----
+
+

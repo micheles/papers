@@ -1,0 +1,324 @@
+Functional Programming For Dynamic Programmers - Part 2
+=======================================================
+
+:author: Michele Simionato
+:date: 10 November 2007
+
+This is the second of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers, i.e. 
+for programmers with a background in dynamically typed languages, such as Perl, 
+Python, Ruby, or languages in the Lisp family. The approch is eminently practical
+and example-based; the main goal is to see if we can stole some good idea from
+statically typed languages. In order to be concrete, I will consider languages
+in the ML family, because they are pretty nice and much easier to understand
+that Haskell.
+
+Loops
+----------------------------------------------------
+
+Perhaps the most common construct in imperative programming is the *for* loop;
+in spite of that, *for* loops are usually missing in functional languages. In this
+section I will explain and the way to work around this omission.
+To start with a practical example, suppose we want to define a function
+to count the number of lines in a text file, something akin to the following
+Python code [#]_::
+
+ def countLines(fname):
+     counter = 0
+     with file(fname) as f:
+          for line in f:
+              counter += 1
+     return counter
+
+.. [#] We are using here the ``with`` statement, available in Python 2.5 by
+        importing it from the future: ``from __future__ import with_statement``.
+
+How can we implement it without a *for* loop? 
+One solution is to cheat and to use a *while* loop, which exists in SML::
+
+ fun countLines fname = let
+      val counter = ref 0
+      val inp = TextIO.openIn fname
+ in
+      while not (TextIO.endOfStream inp) do  
+          (TextIO.inputLine inp; counter := !counter + 1) 
+      finally TextIO.closeIn inp;  
+      !counter
+ end
+
+Some explanation about ML references is in order here.
+ML does not allow to mutate a variable directly (as a matter of fact
+most types in ML are immutable); if you want to increment an integer,
+you must wrap it into a reference object, and you must mutate the
+reference. Some simple experiment at the prompt should give you
+the gist of what references are.
+
+Put the integer 0 into a memory location and returns a reference to it::
+
+ - val counter = ref 0; 
+ val counter : int ref = ref 0
+
+Return the value in the location pointed by the reference::
+
+ - !counter; 
+ val it : int = 0
+
+Put in that location the value 0+1; return the empty tuple::
+
+ - counter := !counter + 1;
+ val it : unit = ()
+
+Return the new value of the counter::
+
+ - !counter
+ val it : int = 1
+
+From this explanation, it should be obvious what ``countLines`` does;
+the implementation works, but it is very ugly and strongly discouraged.  I
+show it here, to prove that SML can be used in an imperative way, not
+to suggest to code in this way.   However, it may be 
+not obvious to re-implement ``countLines`` without mutation, unless
+you have already coded in functional languages.
+
+There is a standard tecnique to solve this kind of problem, i.e. the conversion of an
+imperative loop into a functional recursion: *the accumulator tecnique*.
+
+The accumulator is the mutating parameter in the imperative loop, in this case, the 
+counter. The accumulator tecnique consists in rewriting the loop
+as a recursive function, promoting the accumulator to the rank of additional
+parameter in the function signature::
+
+ - fun countLines' (file, counter) = 
+       case TextIO.inputLine file
+         of NONE => counter
+          | SOME line => countLines'(file, counter + 1);
+ val countLines' : TextIO.instream * int -> int = _fn
+
+As you see, ``countLines'`` is a recursive function calling itself
+with an incremented counter, until the file is read completely, then
+it returns the final value of the accumulator.  You can then rewrite the
+original function as
+
+::
+
+ - fun countLines (fname) = let
+        val file = TextIO.openIn fname
+    in
+         countLines' (file, 0) 
+         finally TextIO.closeIn file
+    end;
+ val countLines : string -> int = _fn
+
+Recursion and accumulators are ubiquitous in functional programming, so the
+time spent understanding this example is worth it. I will close this paragraph
+by noting that the accumulator tecnique is also used to convert non-tail-call
+recursive functions like the good old factorial::
+
+ - fun fact 0 = 1
+        | fact n = n*fact (n-1);
+
+into a tail-call recursive function, i.e. a function returning either a value without 
+making a recursive call, or directly the result of a recursive call::
+
+ - fun fact n = fact' (n, 1) 
+    and fact' (0, acc) = acc
+        | fact' (n, acc) = fact' (n-1,  acc*n);
+
+Here I have use the ``and`` syntax to define two or more conceptually connected
+functions in a single step.
+
+Tail-call recursive functions are equivalent to imperative loops, in this case to
+the Python code::
+
+  def fact(n):
+         acc = 1
+         while n > 0:
+              acc = acc*n
+              n = n-1
+         return acc
+
+Internally, the compiler of functional languages are able to translate tail-call
+recursive functions back to imperative loops, so that the implementation is
+very efficient. In a language like Python instead, which is not a truly functional
+language, it is possible to write::
+
+ def fact(n, acc):
+       if n == 0: 
+             return acc
+       else: 
+             return fact(n-1, acc*n)
+     
+but this function is not converted into a loop, you will have a loss of performance
+and you will incur in the recursion limit if try to compute the factorial of a
+large enough integer (say 1000) [#]_ .
+
+.. [#] Notice that Python does not make tail call optimization *on
+        purpose*, essentially for two reasons: 1) the language has a
+        philosophy of preferring iteration over recursion; 2) keeping the
+        recursive calls in the stack gives more informative tracebacks and
+        helps debugging. Since I am at that, let me notice that Python error
+        reporting and debugging features are infinitely superior to the ones
+        of any SML or Scheme implementation I have seen. This is not because
+        of lack of tail call optimization, it is because as a general
+        philosophy Python does not care about speed but cares about
+        programmer; moreover, despite the fact that SML
+        and Scheme are twice as old as Python, a lot more of work went into
+        Python than in SML/Scheme for what concerns practical issues.
+
+Higher order functions
+---------------------------------------------------------
+
+Just as recursion is pervasive in functional programming, so are
+higher order functions. You may judge how much functional is a language
+by measuring how good is the support for recursion and for higher order
+functions. In this respect, ML shines since it has a particularly elegant syntax to 
+define higher order functions i.e. functions returning functions.
+
+.. higher order functions: http://en.wikipedia.org/wiki/Higher_order_functions
+
+The canonical example of higher order function is the adder::
+
+ -  fun adder n = fn x => x+n;
+ val adder : int -> int -> int = _fn
+
+The notation ``fn x => x+n`` denotes what is usually called a lambda
+function, according to the Lisp tradition; in this example it means
+that the ``adder`` returns a function which adds *n* to any integer
+number; for instance::
+
+ - val add1 = adder 1; (* adds 1 to any number *)
+ val add1 : int -> int = _fn
+ -  add1 1;
+ val it : int = 2
+
+Notice that ML use the notation  ``int -> int -> int`` to denote the type of
+the adder, which should be read as
+
+    ``int -> (int -> int)`` 
+
+i.e. *the arrow associates on the right* and should be interpreted as
+"the adder is a function taking an *int* and returning a function *int->int*".
+On the other hand, *function application associates on the left* and
+`` adder 1 2`` should be read as
+
+   ``(adder 1) 2``
+
+An equivalent, but cleaner notation for the adder is
+
+::
+
+ -  fun adder n x = x+n;
+ val adder : int -> int -> int = _fn
+
+Notice the difference betwen ``adder(n, x)``, denoting a function of
+two arguments, and ``adder n x`` denoting an higher order function,
+so that ``adder n`` is a function itself. 
+
+The ``adder`` is a simple example,
+but it does not make justice to the usefulness of higher order functions.
+To give a practical example, we may consider the problem of avoiding
+the boilerplate when opening/closing a file. Lisp use for that a few
+macros (``with-input-from-file``, ``with-output-to-file``) whereas
+Python use a special syntax (the ``with`` statement); in ML it is quite
+natural to define a higher order function such as the following::
+
+ - fun ` manage fname = let
+        val file = TextIO.openIn fname
+    in
+         manage file
+         finally TextIO.closeIn file
+    end;
+  val ` : (TextIO.instream -> 'a) -> string -> 'a = _fn
+
+Here ````` is just an identifier for the higher order function; I could have used
+for it a longer name, such as 
+``higherOrderFunctionAddingAutomaticOpenCloseFunctionality``, but I am lazy,
+and also I wanted to show that in ML one has a considerable freedom in the choice
+of valid identifiers. The action of  `````  is clear: it takes a function which operates
+on TextIO.stream objects (i.e. text files) and converts it into a function that
+operates on strings (i.e. file names) and has opening/closing functionality
+embedded. The type of the return value is not specified at this stage, and
+this is indicated by the notation *'a* (to be read alpha), which denotes a
+generic type.
+Using ````` the ``fileToString`` function defined in the first
+article of this series could be written as simply as::
+
+ - val fileToString = `TextIO.inputAll;
+ val fileToString : string -> string = _fn
+
+whereas ``countLines`` could be written as::
+
+ - val countLines = `(fn file => countLines'(file, 0))
+ val countLines : string -> int = _fn
+
+You should begin to appreciate the power of higher order functions, now ;)
+An evident weakness of the approach used here, is that it works only
+for text files (actually only for files opened for input; we would need to
+define a different higher order function for files opened for output); 
+if we wanted to wrap binary files, we would need
+to define an equivalent higher order function using the ``BinIO`` library
+instead of ``TextIO``; then, if we wanted to use it for sockets, we would need
+to define yet another higher order function; in general there
+are infinite resources which can be opened and closed, and we could define
+an infinite number of higher order functions doing all the same thing.
+This is bad; fortunately this potentially infinite code duplication can be solved 
+using functors, but you will have to wait for the next articles to see how to do it ;)
+
+Higher order functions can also be used to implement poor man's object
+systems; consider for instance this example::
+
+ class Counter(object):
+    def __init__(self, initial_value):
+         self.initial_value = self.value = 0
+    def incr(self):
+         self.value += 1
+    def show(self):
+         print "The value is %d" % self.value 
+    def reset(self):
+         self.value = self.initial_value
+
+We can get the same effect via a stateful higher order function (a.k.a. a closure)::
+
+ exception MissingMethod
+
+ fun makeCounter initialValue = let
+    val value = ref initialValue
+ in 
+     fn "reset" => value := initialValue
+      | "show" => (print The value is "; print (Int.toString (!value)); print "\n")
+      | "incr" => value := !value + 1
+      | _ => raise MissingMethod
+ end
+
+ val counter = makeCounter 0;
+
+ do counter "incr";
+ do counter "show"; (* The value is 1 *)
+ do counter "reset";
+ do counter "show"; (* The value is 0 *)
+
+This example also shows the usage of pattern matching and of exceptions.
+
+You can rewrite it in a functional way as follows:
+
+----
+
+*The venerable master Qc Na was walking with his student, Anton.  Hoping to
+prompt the master into a discussion, Anton said "Master, I have heard that
+objects are a very good thing - is this true?"  Qc Na looked pityingly at
+his student and replied, "Foolish pupil - objects are merely a poor man's
+closures."*
+
+*Chastised, Anton took his leave from his master and returned to his cell,
+intent on studying closures.  He carefully read the entire "Lambda: The
+Ultimate..." series of papers and its cousins, and implemented a small
+Scheme interpreter with a closure-based object system.  He learned much, and
+looked forward to informing his master of his progress.*
+
+*On his next walk with Qc Na, Anton attempted to impress his master by
+saying "Master, I have diligently studied the matter, and now understand
+that objects are truly a poor man's closures."  Qc Na responded by hitting
+Anton with his stick, saying "When will you learn? Closures are a poor man's
+object."  At that moment, Anton became enlightened.*
+
+      -- Anton van Straaten
