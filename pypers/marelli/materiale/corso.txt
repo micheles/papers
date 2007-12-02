@@ -1,0 +1,1851 @@
+Corso Python Magneti Marelli 
+===================================
+
+:Tenuto: 19-23 Settembre 2005 
+
+:Autore: Michele Simionato 
+ 
+:E-mail: michele.simionato@gmail.com
+
+*Queste dispense sono un compendio informale e molto sintetico di quanto 
+svolto durante il corso. Esse non si pongono in nessun modo come un testo 
+sistematico di programmazione in Python. Il loro scopo principale è quello 
+di tenere traccia, per quanto possibile, di quanto si è detto. Lo
+scopo secondario è quello di invogliare i partecipanti e tutti
+gli eventuali lettori ad affrontare gli argomenti qui trattati per forza
+di cose in maniera abbozzata, in maniera più sistematica andando a
+consultare le fonti più adatte alla bisogna, siano essi libri di testo,
+la documentazione ufficiale, newsgroups, siti Web dedicati e, in ultima 
+instanza, il codice sorgente stesso, l'unico riferimento definitivo.*
+
+.. contents::
+
+I messaggi fondamentali del corso
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Studiare paga*
+---------------
+
+Grazie alla sua macchina del tempo, Guido ha risolto i problemi
+che vi stanno affliggendo ora dieci anni fa, e sono già nel linguaggio
+e nella libreria standard. Per esempìo avete scoperto di avere a 
+disposizione:
+
+- le stringhe di documentazione per darvi la documentazione automatica
+  del codice tramite strumenti quali pydoc ed altri;
+- il try ... finally per garantirvi un "gracefull exit" del vostro
+  programma, anche in presenza di eccezioni inaspettate;
+- i metodi setUp e tearDown di unittest.TestCase, che vi permettono
+  di inizializzare e di pulire propriamente l'ambiente per ogni test;
+- sia unittest che doctest vi permetto di gestire le eccezioni (nel
+  senso di gestire le eccezioni "buone", quelle che vi aspettate);
+- call e Popen in subprocess per aprire processi, kill per ucciderli
+  (usando win32api.TerminateProcess);
+- twisted vi gestisce la comunicazione tra processi e tutte le eccezioni
+  senza problemi
+
+Una settimana di studio oggi può risparmiarvi mesi di frustrazioni
+domani. Sfruttare le risorse disponibili, quali tutorial, howto,
+libri, documentazione, siti Web (come il Python cookbook) e soprattutto
+i newsgroups. Ma prima di postare su di un newsgroup leggetevi "How to
+ask smart questions" e ricordatevi sempre che "Google is you friend".
+
+*Disaccoppiamento* e *KISS*
+----------------------------
+
+Se potere, scomponete l'applicazione in componenti separati e testateli
+separatamente. Scegliete architetture che vi permettono di disaccoppiare
+i problemi. Se potere fare le cose semplici, fatele semplici.
+Abbiate un core minimale che faccia poco, ma che siate sicuri che
+funzioni. Non complicatevi la vita.
+
+*Non nascondete gli errori sotto il tappeto*
+--------------------------------------------
+
+Non trappate l'inaspettato, è una ricetta sicura per avere rogne.
+Usate lo *sviluppo incrementale*, cioè verificate il funzionamento del 
+programma SUBITO, e fissate l'errore SUBITO. Non debuggate mai 
+a posteriori, se potete evitarlo, ma scrivete codice testato fin da subito.
+Abbiate una bella suite di test automatici di installazione, per accorgervi
+da subito se c'è un problema quando installate il software su di un'altra
+macchina.
+
+
+Modulo 1: Strumenti di introspezione, sviluppo e debugging
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*In questo modulo discuterò gli strumenti da me utilizzati per sviluppare
+in Python sotto Windows. Parlerò di Cygwin come ambiente di lavoro,
+di Python e di IPython come interpreti interattivi, di Idle e di PythonWin
+come IDE, di pydoc e minidoc come tools di introspezione. Inoltre discuterò
+alcune utili librerie e frameworks per Python (Numeric, matplotlib, gnuplot,
+etc.).*
+
+Strumenti di introspezione e come ottenere aiuto
+-------------------------------------------------
+
++ **Help in linea:**
+  Ottimo
+
++ **Pydoc:**
+  Standard, può essere usato dalla riga di comando.
+  ``pydoc -g`` oppure ``python -mpydoc -g``
+  vi dà la versione grafica, con funzionalità di search.
+
++ **Help di ActiveState:**
+  Eccezionale, contiene anche libri di testo, FAQs e how-tos.
+
++ **Google:**
+  Di tutto, di più.
+
++ **Newsgroups:**
+  Risolvono i vostri problemi per voi, e gratis.
+
+Ambienti di sviluppo
+--------------------
+
++ **Cygwin:**
+  Emulatore Unix sotto Windows. Vi permette di lavorare dalla riga di
+  comando comodamente. Evitate di perdere tempo a cliccare a destra e
+  a manca e avete una stabilità maggiore di quella di un ambiente
+  grafico. 
+
++ **Idle:**
+  Ambiente di sviluppo per Python che viene con la distribuzione standard.
+  Un pò povero, con qualche difetto, ma semplice e portabile ovunque.
+
++ **PythonWin:**
+  Ambiente di sviluppo per Python che viene con la distribuzione ActiveState
+  per Windows. Più sofisticato di Idle e più integrato con Windows. Ha dei
+  pro e dei contro.
+
++ **WingIDE, Eric/Qt Designer, Komodo, Boa Constructor:**
+  Ambienti di sviluppo di cui esiste una versione commerciale. In generale
+  hanno un look più professionale e sono utili se uno deve dare interfacce
+  grafiche. WingIDE ha il debugger migliore, a quanto ho sentito.
+
++ **Emacs o Vi:**
+  Un Real Programmer (TM) vi dirà che al mondo esistono due soli editor:
+  Emacs e Vi. Tutto il resto è spazzatura. Emacs e Vi girano bene sotto
+  Windows, ma funzionano al meglio sotto Unix.
+
+Strumenti di debugging
+------------------------------------------------
+
+- **print:** è la soluzione usata dai migliori programmatori Python;
+- **pdb:** sembra il debugger dei poveri, ma è standard e funziona;
+- **mille altri debuggers**, compreso un nuovissimo winpdb dall'autore
+  del pdb, da valutare;
+- **programmazione test-driven:** con questa metodologia la stragrande
+  maggioranza dei bugs vengono individuati subito, non appena il
+  codice viene scritto, e vi troverete ad usare il debuggere dieci
+  volte di meno di quanto fate ora.
+
+Strumenti utili per l'utenza scientifica/ingegneristica
+------------------------------------------------------------------
+
+- **Numeric e/o Numarray:**
+  Tutto quello che serve per far conti con le matrici. Numarray è il
+  successore di Numeric, con compatibilità al 99%.
+
+- **matplotlib:**
+  Il meglio per plottare grafici 2D. Richiede Numeric/Numarray.
+
+- **ipython:**
+  Il miglior interprete interattivo per Python. Eccezionali capacità
+  di introspezione e di debugging (è integrato con il Python debugger
+  pdb della libreria standard).
+
+Modulo 2: Programmazione di base in Python
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*In questo modulo si ripasseranno molto brevemente le basi di Python e 
+si discuteranno le soluzioni al questionario di ammissione. Lo scopo
+più che altro è quello di conoscersi e di chiarire il livello medio
+dei partecipanti e coprire eventuali buchi nella preparazione di base.*
+
+Le soluzioni agli esercizi sono riportate nell'ultimo capitolo. Durante le
+correzioni mi sono accordi di vari buchi nella programmazione
+di base in Python che si è cercato di riempire.
+
+Encoding
+----------------------------------
+ 
+[Illustrato al corso 1] In versioni recenti di Python (dalla 2.3) 
+se il vostro script contiene dei caratteri accentati (anche nei commenti) 
+ottenete un warning tipo questo::
+
+  sys:1: DeprecationWarning: Non-ASCII character '\xe0' in file x.py 
+  on line 1, but no encoding declared; see 
+  http://www.python.org/peps/pep-0263.html for details
+
+La soluzione e' aggiungere in testa al vostro programma una dichiarazione
+tipo questa::
+
+  #-*- encoding: latin-1 -*-
+
+(usate latin-15 se il vostro programma contiene il simbolo dell'Euro).
+
+
+Pathnames
+-----------------------------
+
+Sfortunatamente Windows usa la backslash come separatore dei pathnames;
+la backslash e' anche il carattere di escaping, quindi ci sono
+problemi:
+
+>>> print 'documenti\nonna' # \n interpretato come newline
+documenti
+onna
+
+La soluzione e' usare raw strings:
+
+>>> print r'documenti\nonna'
+documenti\nonna
+
+Alternativamente, in versioni recenti di Windows,  avreste potuto usare 
+anche "/" come separatore:
+
+>>> import os
+>>> os.path.exists(r'C:\Python24\python.exe')
+True
+>>> os.path.exists(r'C:/Python24/python.exe')
+True
+
+Insiemi
+-----------------------------------------
+
+In Python 2.3 gli insiemi sono stati aggiunti come un nuovo tipo di dati
+nel modulo sets (by Alex Martelli); in Python 2.4 gli insiemi sono diventati 
+un tipo builtin.
+
+>>> s = set('pippo') 
+>>> s
+set(['i', 'p', 'o'])
+>>> 'i' in s
+True
+>>> 'p' in s
+True
+>>> 'o' in s
+True
+>>> 'z' in s
+False
+
+E' possibile calcolare l'unione e l'intersezione di insiemi:
+
+>>> t = set('aglio')
+>>> s | t
+set(['a', 'g', 'i', 'l', 'o', 'p'])
+>>> s & t
+set(['i', 'o'])
+
+Il modo compatibile con il passato per usare i sets nello stesso modo nella
+2.3 e nella 2.4 è il seguente::
+
+ try: 
+     set: 
+ except NameError: 
+     from sets import Set as set
+
+Guardare la documentazione standard per saperne di più.
+
+Differenza tra mutabili e immutabili
+---------------------------------------
+
+Questa è una causa comune di confusione in Python:
+
+>>> a = 1 # i numeri sono immutabili
+>>> b = a
+>>> a += 1
+>>> a
+2
+>>> b
+1
+
+>>> a = [1] # le liste sono mutabili
+>>> b = a
+>>> a += [1]
+>>> a
+[1, 1]
+>>> b
+[1, 1]
+
+getattr e setattr
+-------------------------------------------
+
+[Svolto al corso 1] ``getattr`` e ``setattr`` servono per richiamare e 
+settare metodi il cui nome viene determinato dinamicamente::
+
+  #<getattr_ex.py>
+
+  class C(object):
+      def m1(self):
+          print "chiamato m1"
+      def m2(self):
+          print "chiamato m2"
+
+  if __name__ == "__main__":
+      c = C()
+      method = raw_input("Che metodo devo chiamare? [m1 o m2] ")
+      getattr(c, method)()
+
+  #</getattr_ex.py>
+
+*Non usate exec quando getattr basterebbe!*
+
+>>> method = 'm1'
+>>> exec 'c.%s()' % method # funziona ma è brutto
+chiamato m1
+>>> getattr(c, method)() # il modo giusto
+chiamato m1
+
+Per ``setattr`` vedere la documentazione.
+
+Gestione dei processi
+-----------------------
+
+Come far partire un processo in parallelo::
+
+  import subprocess
+
+  PLAYER ="mplay32"
+
+  def play_song(song):
+    subprocess.Popen([PLAYER, "/play", "/close", song]) # NON BLOCCA!
+    print "Partito"
+
+
+  if __name__ == "__main__":
+    play_song("c:/Documents and Settings/micheles/Desktop/Music/1. "
+              "Theme from Harry's Game.mp3")
+
+
+``subprocess.call`` fa partire il processo e blocca il programma fintanto 
+che il processo non è terminato. Ho anche fatto vedere cosa succede
+se uno dei processi solleva qualche eccezione inaspettata ma viene chiuso 
+correttamente grazie al try .. finally::
+
+  #<main.py>
+
+  "Chiama due processi proc1a.py e proc1b.py"
+  
+  import subprocess
+  
+  CMD_a = ["python", "-c", "import proc1a; proc1a.main()"]
+  CMD_b = ["python", "-c", "import proc1b; proc1b.main()"]
+  
+  if __name__ == "__main__":
+      p_a = subprocess.Popen(CMD_a)
+      p_b = subprocess.Popen(CMD_b)
+  
+  #</main.py>
+  
+Processo 1a::
+
+  #<proc1a.py>
+  
+  import time
+  
+  def main():
+      for i in range(10):
+          print "hello"
+          time.sleep(1)
+  
+  if __name__ == "__main__":
+      main()
+  
+  #</proc1a.py>
+  
+Processo 1b::
+
+  #<proc1b.py>
+
+  #-*- encoding: latin-1 -*-
+  import time, sys
+  
+  def main():
+      try:
+          f = file("proc1b.py")
+          for i in range(10):
+              print "world"
+              if i == 5:
+                  raise RuntimeError("Ahia!")
+              time.sleep(1)
+      finally:
+          f.close()
+          print "Il file è stato chiuso correttamente."
+  
+  if __name__ == "__main__":
+      main()
+
+  #</proc1b.py>
+  
+Ho anche illustrato brevemente come si possono gestire i processi da
+Twisted::
+
+  #<proc2a.py>
+
+  "Un processo che genera numeri casuali e li salva nel file data.txt"
+  
+  import random
+  
+  def main():
+      ro = random.Random()
+      out = file("data.txt", "w")
+      for number in ro.sample(range(1000), 100):
+          print >> out, number
+      out.close()
+      print "Dati salvati sul file 'data.txt'"
+      
+  if __name__ == "__main__":
+      main()
+  
+  #</proc2a.py>
+  
+  #<proc2b.py>
+  
+  "Un processo che genera l'istogramma histo.png dai dati in data.txt"
+  
+  from pylab import hist, savefig
+  
+  def main():
+      hist([int(n) for n in file("dat.txt")], 10)
+      savefig("histo.png")
+      print "Istogramma salvato sul file 'histo.png'"
+  
+  if __name__ == "__main__":
+      main()
+  
+  #</proc2b.py>
+  
+  #<twisted_main.py>
+
+  "Il main che chiama proc2a.py e proc2b.py nell'ordine e gestisce gli errori"
+
+  import webbrowser, sys
+  if sys.platform == "win32":
+      from twisted.internet import win32eventreactor
+      win32eventreactor.install()
+  
+  from twisted.internet.utils import getProcessOutput
+  from twisted.internet import reactor
+  
+  def scrivi_messaggio(err):
+      print err.getErrorMessage()
+      reactor.stop()
+      import pdb; pdb.set_trace() # fa partire il debugger in caso di errore
+  
+  def visualizza_histo(out_di_genera_histo):
+      print out_di_genera_histo
+      webbrowser.open("histo.png")
+  
+  def genera_histo(out_di_genera_dati):
+      print out_di_genera_dati
+      getProcessOutput(sys.executable, (r"c:\corso\processi\proc2b.py",)) \
+                      .addCallback(visualizza_histo) \
+                      .addErrback(scrivi_messaggio)
+      
+  def genera_dati():
+      getProcessOutput(sys.executable, (r"c:\corso\processi\proc2a.py",)) \
+                       .addCallback(genera_histo) \
+                       .addErrback(scrivi_messaggio)
+  
+  if __name__ == "__main__":
+      reactor.callLater(0, genera_dati) # call "genera_dati" after 0 seconds
+      reactor.run()
+      
+  #</twisted_main.py>
+
+In questo esempio ho usato ``sys.executable``, che contiene il nome
+completo dell'eseguibile Python (per esempio ``C:\Python24\python.exe``)
+con cui il programma principale è stato lanciato. Questo assicura che 
+i processi secondari vengano lanciati con quella versione di Python
+(utile se avete installato contemporaneamente piu' versioni di Python
+e ci possono essere dei dubbi, oppure se il path non e' settato 
+correttamente e l'eseguibile Python non viene trovato).
+
+A volte, nonostante tutta la buona volontà, i processi vanno fuori
+controllo. E' possibile ammazzarli brutalmente, con una funzione
+``kill`` come la seguente::
+
+  import os
+  
+  try: # we are on Windows
+      import win32api
+      def kill(pid, *unix_compatibility_dummy_args):
+          handle = win32api.OpenProcess(1, False, pid) # open handle to kill
+          win32api.TerminateProcess(handle, -1)
+          win32api.CloseHandle(handle)
+      os.kill = kill # fix os
+  except ImportError: # we are on Unix
+      pass
+
+In questo modo di fare, il modulo 'os' della libreria standard viene
+fissato automaticamente, aggiungendogli una funzione 'kill' che è
+mancante nell'ambiente Windows ma che può facilmente essere implementata
+usando le win32api (che non vengono con la distribuzione standard ma sono
+incluse con la distribuzione dell'ActiveState).
+                         
+Naturalmente cambiare moduli della libreria standard al volo NON È
+CONSIGLIATO, ma è sempre meglio che modificare a mano il codice
+sorgente e mantenere una propria versione modificata.
+
+Iteratori e generatori
+----------------------------
+
+Un iterabile è un qualunque oggetto su cui si può iterare con un
+ciclo "for"; un iteratore è un oggetto con un metodo .next().
+Il modo più comune per definire iteratori è tramite un generatore,
+cioè una "funzione" con uno "yield":
+
+>>> def gen123():
+...     yield 1
+...     yield 2
+...     yield 3
+...
+>>> it = gen123()
+>>> it.next()
+1
+>>> it.next()
+2
+>>> it.next()
+3
+>>> it.next()
+Traceback (most recent call last):
+  File '<stdin>', line 1, in ?
+StopIteration
+
+Un ciclo "for" internamente converte l'iterabile in un iteratore,
+chiama il metodo ".next()" successivamente e trappa l'eccezione StopIteration,
+uscendo dal loop quando non c'è più nulla su cui iterare:
+
+>>> it = gen123()
+>>> for i in it: print i
+...
+1
+2
+3
+
+Modulo 3. Tipici errori di programmazione e gestione delle eccezioni
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Si discuteranno buoni e cattivi esempi di programmazione presi da software 
+reale scritto alla Magneti Marelli.  Si discuteranno alcune tecniche
+per interpretare i tracebacks di Python e per identificare l'origine dei
+problemi.*
+
+L'errore più tipico con le eccezioni
+--------------------------------------
+
+Bisogna assolutamente evitare codice come il seguente::
+
+  try:
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+      bla-bla
+  except:
+      bla-bla
+  
+Nel blocco ``try`` dev'esserci la cosa più semplice possibile, per 
+limitare i tipi di eccezione che possono nascere. Inoltre l'except nudo
+e' orribile perchè trappa qualunque cosa, anche quello che non vorreste.
+La cosa giusta da fare è del tipo::
+
+  try:
+      bla-bla
+  except MyException, e: # sempre specificare l'eccezione aspettata
+      print e
+  except OtherException,e:
+      print e
+  ...
+
+Non trappate l'inaspettato, altrimenti non capirete mai qual è stata
+l'origine di un problema.
+
+Il try .. finally è una grande idea
+----------------------------------------------------------------
+
+Molto spesso quello che volete non è tanto il try .. except, quanto il
+try .. finally: il vantaggio del try .. finally è che 
+*non vi nasconde l'eccezione* e nello stesso tempo vi *garantisce che quello 
+che deve essere chiuso correttamente venga chiuso correttamente* in ogni caso.
+C'è un eccezione a questa regola: se ammazzate un processo di brutto con un
+kill, il try .. finally non può salvarvi. Il try .. finally vi
+salva per tutte le eccezioni Python, compreso il CTRL-C  (KeyboardInterrupt) 
+e il sys.exit() (SystemExit).
+
+>>> try:
+...     raise RuntimeError("Ahia")
+... finally:
+...     print "Io vengo eseguito SEMPRE, anche se c'è un'eccezione!"
+...
+Io vengo eseguito SEMPRE, anche se c'e' un'eccezione!
+Traceback (most recent call last):
+  File '<stdin>', line 2, in ?
+RuntimeError: Ahia
+
+Uso di assert
+--------------
+
+Per asserire che una condizione è verificata con certezza:
+
+>>> def div2(x):
+...     assert isinstance(x, int), '%s non è un numero intero' % x
+...     return x/2
+...
+>>> div2(14)
+7
+>>> div2(14.0)
+Traceback (most recent call last):
+  File '<stdin>', line 1, in ?
+  File '<stdin>', line 2, in div2
+AssertionError: 14.0 non è un numero intero
+
+Tipicamente si usa in "sanity checks", per essere sicuri che un parametro
+sia esattamente quello che ci si aspetta, in casi di eccezioni gravi; se 
+l'assert non è rispettato, tutto il programma deve bloccarsi.
+
+Non usate exec
+----------------------------
+
+'exec' è un costrutto pericolosissimo che va riservato solo a chi sa
+cosa sta facendo. Spesso e volentieri si usa soltanto per ignoranza
+dell'esistenza di una soluzione migliore.
+
+Esempio::
+
+   exec file("myscript.py").read()
+
+è UN ERRORE GRAVE per vari motivi.
+
+In primo luogo, in caso di eccezioni sollevate in 'myscript.py' 
+perdete informazione su dove si trova l'errore (cioè nel file "myscript.py") 
+e rendete impossibile la vita al debugger; in secondo luogo, sporcate il 
+namespace del vostro programma in maniera potenzialmente pericolosa. La cosa 
+giusta da fare è::
+
+  dic = {}
+  execfile("myscript.py", dic)
+
+che non perde informazioni e non sporca il namespace, perchè i nomi
+definiti in myscript.py verranno confinati nel dizionario. Leggetevi
+la documentazione di 'execfilè per saperne di più.
+
+Come far partire pdb automaticamente in caso di eccezioni inaspettate
+-----------------------------------------------------------------------
+
+[Illustrato al corso 1]
+
+::
+
+  #<exc_debug.py>
+  
+  # recipe in the Python cookbook first edition, chapter 14.5
+  
+  import sys
+  
+  def info(type, value, tb):
+      if hasattr(sys, 'ps1') or not sys.stderr.isatty() or \
+             type == SyntaxError:
+          # we are in interactive mode or we don't have a tty-like
+          # device, so we call the default hook
+          sys.__excepthook__(type, value, tb)
+      else:
+          import traceback, pdb
+          # we are NOT in interactive mode, print the exception...
+          traceback.print_exception(type, value, tb)
+          print
+          # ...then start the debugger in post-mortem mode.
+          pdb.pm()
+  
+  sys.excepthook = info
+  
+  #</exc_debug.py>
+  
+Se un programma importa ``exc_debug``, il Python debugger partirà 
+automaticamente in caso di eccezioni non trappate. Per esempio eseguire
+
+::
+
+  #<example.py>
+  import exc_debug
+  a = 1
+  b = 0
+  a/b
+  #</example.py>
+
+fa partire il debugger::
+
+  $ python example.py
+  Traceback (most recent call last):
+    File "example.py", line 4, in ?
+      a/b
+  ZeroDivisionError: integer division or modulo by zero
+  
+  > /mnt/hda2/cygwin/home/micheles/md/pypers/marelli/materiale/example.py(4)?()
+  -> a/b
+  (Pdb) print a
+  1
+  (Pdb) print b
+  0
+  Pdb) !b = 1 # cambia il valore di b
+  (Pdb) print a/b
+  1
+
+Date ``help pdb`` dall'interno del debugger per avere informazioni sul suo
+funzionamento.
+ 
+Eccezioni e threads
+-------------------------
+
+Un'eccezione non trappata blocca soltanto il thread in cui si è verificata,
+NON tutto il programma::
+
+  #<esempio1.py>
+
+  import threading, time, sys
+  
+  def print_hello():
+      for i in range(10):
+          print "hello"
+          if i == 5:
+              raise RuntimeError("Problema a runtime")
+          time.sleep(1)
+          
+  def print_world():
+      for i in range(10):
+          print "world"
+          time.sleep(1)
+  
+  threading.Thread(target=print_hello).start()
+  threading.Thread(target=print_world).start()
+
+  #</esempio1.py>
+
+dà come output::
+
+  $ python esempio1.py
+  hello
+  world
+  hello
+  world
+  hello
+  world
+  hello
+  world
+  hello
+  world
+  hello
+  world
+  Exception in thread Thread-1:
+  Traceback (most recent call last):
+    File "/usr/lib/python2.4/threading.py", line 442, in __bootstrap
+      self.run()
+    File "/usr/lib/python2.4/threading.py", line 422, in run
+      self.__target(*self.__args, **self.__kwargs)
+    File "esempio1.py", line 7, in print_hello
+      raise RuntimeError("Problema a runtime")
+  RuntimeError: Problema a runtime
+  
+  world
+  world
+  world
+  world
+  
+Quindi uno è costretto a implementare un meccanismo di controllo, tipo
+il seguente::
+
+  import threading, time, sys
+  
+  END = False
+  
+  def print_hello():
+      global END
+      i = 0
+      while not END:
+          i += 1
+          print "hello"
+          if i == 5:
+              try:
+                  raise RuntimeError("Problema a runtime")
+              except RuntimeError, e:
+                  END = True
+          time.sleep(1)
+  
+  def print_world():
+      i = 0
+      while not END:
+          print "world"
+          time.sleep(1)
+  
+  threading.Thread(target=print_hello).start()
+  threading.Thread(target=print_world).start()
+  
+Questa è una soluzione artigianale, che usa una variabile globale, sfruttando
+il fatto che le variabili globali sono condivise fra tutti i thread (questo
+può anche causare danni, se non si sta attenti).
+
+La strada consigliata per comunicare fra threads è quella di usare una coda
+[esempio svolto al corso 1]::
+
+  "Esempio di due threads comunicanti tramite una queue."
+
+  import time, threading, Tkinter, Queue
+  
+  queue = Queue.Queue()
+  
+  def print_hello():
+      for i in range(10):
+          try:
+              messaggio = queue.get_nowait()
+          except Queue.Empty:
+              pass
+          else:
+              if messaggio == "terminate": break
+          print "%s, hello" % i
+          time.sleep(1)
+  
+  def print_world():
+      for i in range(10):
+          print "%s, world" % i
+          if i == 5:
+              queue.put("terminate") # manda il messaggio di terminazione
+              root.quit()
+              raise RuntimeError("Errore nel thread print_world!")
+          time.sleep(1)
+  
+  root = Tkinter.Tk()
+  
+  for func in print_hello, print_world:
+      th = threading.Thread(target=func)
+      th.start()
+  
+  root.mainloop()
+  
+Questo esempio fa anche vedere che chiudere la finestrella grafica NON
+uccide i threads che stanno girando.
+
+I meccanismi di controllo per bloccare i thread sono notoriamente fragili
+e piccoli errori possono farvi grossi danni. 
+
+Debuggare i threads è notoriamente un macello. 
+
+L'unica soluzione vera è evitare i threads quando è possibile.
+
+Modulo 4. Sviluppo orientato ai test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Come scrivere software con tecnologie agili, con lo scopo di ridurre e
+tenere sotto controllo i bugs. Discussione di doctest, py.test e unittest.
+Esempi di programmazione test driven.*
+
+Consigli di carattere generale
+-------------------------------
+
+- testate SUBITO, non debuggate dopo (ad ogni una riga di codice che si
+  scrive, si testa che funzioni e che non distrugga quello che funzionava
+  prima).
+
+- scrivete software in maniera che sia testabile (per esempio create
+  sempre anche una versione non-grafica di un programma grafico, perchè
+  la versione testuale si testa **molto** più facilmente).
+
+- non abbiate paura a scrivervi un vostro ambiente di test personalizzato.
+
+- tenete conto che unittest e doctest esistono e possono aiutarvi infinitamente
+  nel gestire i vostri test.
+
+Usare unittest
+------------------------------------------------------
+
+Tipicamente con unittest si divide la libreria da testare::
+
+  #<isnumber.py>
+  
+  def is_number(arg):
+      "Verifica se la stringa arg è un numero valido"
+      try:
+          float(arg)
+      except ValueError:
+          return False
+      else:
+          return True
+  
+  #</isnumber.py>
+  
+dal file di test, che convenzionalmente ha un nome che inizia per "test"::
+
+  #<test_isnumber.py>
+  
+  import unittest
+  
+  from isnumber import is_number
+  
+  class TestIsNumber(unittest.TestCase):
+  
+      def setUp(self):
+          print "sto inizializzando"
+          
+      # test positivi
+      def test_1(self):
+          "Testa che '1' è un numero buono."
+          self.assertTrue(is_number("1"))
+      def test_2(self):
+          "Testa che '1.3' è un numero buono."
+          self.assertTrue(is_number("1.3"))
+      def test_3(self):
+          "Testa che '+1.3' è un numero buono."
+          self.assertTrue(is_number("+1.3"))
+      def test_4(self):
+          "Testa che '-1.3' è un numero buono."
+          self.assertTrue(is_number("-1.3"))
+  
+      # test negativi
+      def test_5(self):
+          "Testa che '1-.3' non è un numero buono."
+          self.assertFalse(is_number("1-.3"))
+      def test_6(self):
+          "Testa che 'à non è un numero buono."
+          self.assertFalse(is_number("a"))
+      def test_7(self):
+          "Testa che '42' è un numero buono."
+          self.assertTrue(is_number("42"))
+      
+      def tearDown(self):
+          print "Sto chiudendo quello che c'è da chiudere"
+  
+  if __name__ == "__main__":
+      unittest.main()
+  
+  #</test_isnumber.py>
+
+Eseguire i tests con l'opzione verbose da::
+
+  $ python test_isnumber.py -v
+  Testa che '1' è un numero buono. ... sto inizializzando
+  Sto chiudendo quello che c'è da chiudere
+  ok
+  Testa che '1.3' è un numero buono. ... sto inizializzando
+  Sto chiudendo quello che c'è da chiudere
+  ok
+  Testa che '+1.3' è un numero buono. ... sto inizializzando
+  Sto chiudendo quello che c'è da chiudere
+  ok
+  Testa che '-1.3' è un numero buono. ... sto inizializzando
+  Sto chiudendo quello che c'è da chiudere
+  ok
+  Testa che '1-.3' non è un numero buono. ... sto inizializzando
+  Sto chiudendo quello che c'è da chiudere
+  ok
+  Testa che 'à non è un numero buono. ... sto inizializzando
+  Sto chiudendo quello che c'è da chiudere
+  ok
+  Testa che '42' è un numero buono. ... sto inizializzando
+  Sto chiudendo quello che c'è da chiudere
+  ok
+  
+  ----------------------------------------------------------------------
+  Ran 7 tests in 0.001s
+  
+  OK
+  
+Questo mostra che i metodi ``setUp`` e ``tearDown`` vengono chiamati
+*per ogni test*, quindi tutti i test si svolgono in un ambiente pulito.
+
+E' normale avere un file di test più lungo della libreria da testare.
+
+E' possibile specificare le eccezioni aspettate::
+
+  #<test_exc.py>
+
+  import unittest
+  
+  def divide(a, b):
+      return a/b
+  
+  class TestIsNumber(unittest.TestCase):
+      def test_1(self):
+          "Divide 4/2"
+          self.assertEqual(divide(4,2), 2)
+      def test_2(self):
+          "Divide 4/0"
+          self.assertRaises(ZeroDivisionError, divide, 4, 0)
+  
+  
+  if __name__ == "__main__":
+      unittest.main()
+  
+  #</test_exc.py>
+
+  $ python test_exc.py -v    
+  Divide 4/2 ... ok
+  Divide 4/0 ... ok
+  
+  ----------------------------------------------------------------------
+  Ran 2 tests in 0.001s
+  
+  OK
+  
+Usare doctest
+-----------------------------------
+
+L'uso più semplice, eseguire i doctest che si trovano nelle stringhe
+di documentazione di un modulo::
+
+  #<esempio_banale.py>
+  
+  def sum12():
+      """Questa funzione ritorna la somma di 1 + 2::
+      >>> sum12()
+      3"""
+      return 1+2
+  
+  if __name__ == "__main__":
+      import doctest; doctest.testmod()
+  
+  #</esempio_banale.py>
+  
+Ecco come eseguire i tests con l'opzione verbose::
+  
+  $ python esempio_banale.py -v
+  Trying:
+      sum12()
+  Expecting:
+      3
+  ok
+  1 items had no tests:
+      __main__
+  1 items passed all tests:
+     1 tests in __main__.sum12
+  1 tests in 2 items.
+  1 passed and 0 failed.
+  Test passed.
+  
+Eseguire i doctest che si trovano in un file di testo separato (nuova
+funzionalità di Python 2.4)::
+
+  #<doctest_runner.py>
+
+  import doctest
+
+  if __name__== "__main__":
+      doctest.testfile("test_isnumber.txt")
+
+  #</doctest_runner.py>
+
+
+Contenuto di 'test_isnumber.txt'::
+
+  Questa è la documentazione della funzione isnumber
+  ====================================================
+  
+  Esempi di uso:
+  
+  >>> from isnumber import is_number
+  >>> is_number("1")
+  True
+  >>> is_number("1.3")
+  True
+  >>> is_number("+1.3")
+  True
+  >>> is_number("-1.3")
+  True
+  >>> is_number("1-.3")
+  False
+  >>> is_number("a")
+  False
+  >>> is_number("42")
+  True
+  >>> 1/0
+  Traceback (most recent call last):
+    kkkkdjjfkf
+  ZeroDivisionError: integer division or modulo by zero
+
+Eseguire i tests::
+
+  $ python doctest_runner.py -v
+  Trying:
+      from isnumber import is_number
+  Expecting nothing
+  ok
+  Trying:
+      is_number("1")
+  Expecting:
+      True
+  ok
+  Trying:
+      is_number("1.3")
+  Expecting:
+      True
+  ok
+  Trying:
+      is_number("+1.3")
+  Expecting:
+      True
+  ok
+  Trying:
+      is_number("-1.3")
+  Expecting:
+      True
+  ok
+  Trying:
+      is_number("1-.3")
+  Expecting:
+      False
+  ok
+  Trying:
+      is_number("a")
+  Expecting:
+      False
+  ok
+  Trying:
+      is_number("42")
+  Expecting:
+      True
+  ok
+  Trying:
+      1/0
+  Expecting:
+      Traceback (most recent call last):
+        kkkkdjjfkf
+      ZeroDivisionError: integer division or modulo by zero
+  ok
+  1 items passed all tests:
+     9 tests in test_isnumber.txt
+  9 tests in 1 items.
+  9 passed and 0 failed.
+  Test passed.
+  
+Confrontare la leggibilità di ``test_isnumber.txt`` con la leggibilità
+di ``test_isnumber.py``, basato su unittest. Leggetevi il mio seminario su
+doctest (in allegato) per convincervi che doctest è il migliore. Anche perchè 
+i doctest possono essere convertiti in unittest automaticamente, a partire
+da Python 2.4
+
+Per convertire i test contenuti in 'mymodulè da doctest a unittest::
+
+  import doctest, unittest, mymodule
+  
+  if __name__== "__main__":
+      suite = doctest.DocTestSuite(mymodule)
+      unittest.TextTestRunner(verbosity=2).run(suite)
+
+E' anche possibile contenere i tests contenuti in un file di
+tipo testo da doctest a unittest, vedere la documentazione.  
+
+Correntemente, doctest non ha un meccanismo predefinito corrispondente
+ai metodi ``setUp`` e ``tearDown`` di unittest, ma potete impostarlo a mano.
+
+
+Un esempio di programma sviluppato in maniera incrementale
+----------------------------------------------------------
+
+Il seguente esempio svolto al corso intendeva dimostrare:
+
+1. Come si sviluppa un programma in maniera incrementale (ad ogni nuova riga di
+   codice si fa una verifica immediata del funzionamento dell'insieme);
+2. Come si fanno scelte architetturali in maniera tale da assicurare la
+   testabilità del prodotto finale in maniera semplice ed automatica; 
+3. Come sfruttare la libreria standard di Python al meglio, usando il
+   modulo cmd;
+4. Come dividere il codice in metodi pubblici, metodi di utilità e 
+   metodi di debugging;
+5. Come assicurarsi che il programma venga chiuso propriamente, anche
+   nel caso di eccezioni impreviste e imprevedibili;
+
+::
+
+ # -*- encoding: latin-1 -*-
+ import os, cmd, subprocess, lib, time # lib fissa os.kill
+ from pywintypes import error as WindowsProcessDidNotStartCorrectly
+ 
+ MUSICDIR = "C:/Documents and Settings/micheles/Desktop/Music"
+ 
+ def play_song(name):
+     po = subprocess.Popen(["mplay32", "/play", "/close", name])
+     return po.pid
+ 
+ class InterpreteDiComandi(cmd.Cmd):
+     cwd = MUSICDIR
+     prompt = "Player> "
+     def preloop(self):
+         self.process_list = []
+         os.chdir(MUSICDIR)
+         
+     def do_play(self, arg):
+         "Suona una canzone"
+         if not arg:
+             print "Per favore scrivi il nome di una canzone!"
+         else:
+             self.process_list.append(play_song(arg))
+         
+     def do_quit(self, dummy):
+         "Esce dall'interprete."
+         return True
+ 
+     def safe_kill(self, pid):
+         try:
+             os.kill(pid)
+         except WindowsProcessDidNotStartCorrectly, e:
+             print e
+ 
+     def do_kill(self, arg):
+         "Uccide il player"
+         try:
+             pid = self.process_list.pop()
+         except IndexError:
+             print "Hai già ucciso tutti i processi!"
+         else:
+             self.safe_kill(pid)
+            
+     def postloop(self):
+         for pid in self.process_list:
+             self.safe_kill(pid)
+         print "Ho ucciso tutto!"
+         os.chdir(os.path.dirname(os.path.abspath(__file__)))
+ 
+     # metodi che possono essere utili per il debugging
+     def do_print_dir(self, arg):
+         "Comando utile per il debugging"
+         print self.cwd
+ 
+     def do_raise_exc(self, dummy):
+         raise RuntimeError("Tanto per vedere che succede")
+ 
+     def do_sleep(self, arg):
+         "utile per vedere quello che i test automatici stanno facendo"
+         time.sleep(int(arg))
+         
+ i = InterpreteDiComandi()
+ 
+ try:
+     i.cmdloop()
+ finally: # assicura la chiusura anche in caso di eccezione
+     i.postloop() 
+
+Nel caso regolare (senza eccezioni impreviste) .postloop è chiamato 2 volte,
+ma questo non fa danno.
+
+Questo potrebbe essere il codice corrispondente ad un test automatico::
+
+ $ more test_player.cmd
+ play
+ sleep 2
+ play 2. Croi Croga.mp
+ sleep 2
+ play 2. Croi Croga.mp3
+ sleep 2
+ kill
+ sleep 2
+ quit
+
+(la prima canzone non esiste, in modo da poter vedere come viene segnalato
+l'errore) che verrebbe eseguito così::
+
+ $ python player.py < test_player.cmd
+
+Modulo 5: Design, documentazione e manutenzione di librarie 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Pratiche di programmazione "in the large". Moduli, packages, strumenti di
+documentazione e di installazione. Applicazioni pratiche di principi generali
+quali disaccoppiamento, modularità, non duplicazione del codice.*
+
+La filosofia del Python
+---------------------------------------
+
+>>> import this
+The Zen of Python, by Tim Peters
+Beautiful is better than ugly.
+Explicit is better than implicit.
+Simple is better than complex.
+Complex is better than complicated.
+Flat is better than nested.
+Sparse is better than dense.
+Readability counts.
+Special cases aren't special enough to break the rules.
+Although practicality beats purity.
+Errors should never pass silently.
+Unless explicitly silenced.
+In the face of ambiguity, refuse the temptation to guess.
+There should be one-- and preferably only one --obvious way to do it.
+Although that way may not be obvious at first unless you are Dutch.
+Now is better than never.
+Although never is often better than *right* now.
+If the implementation is hard to explain, it's a bad idea.
+If the implementation is easy to explain, it may be a good idea.
+Namespaces are one honking great idea -- let's do more of those!
+
+Principio del disaccoppiamento
+-------------------------------------
+
+Questo è il principio guida di tutta la programmazione e non solo, tutto
+il resto nasce di conseguenza. 
+
+Il principio dice: **cercate di disaccoppiare il più possibile 
+le componenti del vostro sistema**. 
+
+*Un componente si dice disaccoppiato se 
+può essere rimosso o sostituito senza danneggiare il resto del sistema.*
+
+Per esempio:
+
+- disaccoppiare l'ambiente di sviluppo dall'ambiente di esecuzione (è più 
+  sicuro lanciare un programma dalla riga di comando che dall' IDE; un
+  debugger disaccoppiato come pdb è più sicuro di un debugger integrato
+  come quello di PythoWin, un editor vero è più sicuro dell'editor dell'
+  IDE, etc.)
+
+- disaccoppiare l'interfaccia grafica: il programma deve poter funzionare
+  senza di essa, o sostituendo il GUI toolkit con un altro.
+
+- i threads vi accoppiano tutto, se uno va male può bloccare tutti gli
+  altri: evitateli se potete.
+
+- l'ereditarietà vi accoppia il parente al figlio (per sapere quello che
+  fa il figlio bisogna andare a vedere quello che fanno il padre, il nonno,
+  il bisnonno, il trisavolo, etc.). Evitatela se potete.
+
+- la modularità è un modo concreto per applicare il principio del
+  disaccoppiamento al codice: funzioni che logicamente vanno insieme,
+  vanno messe in un modulo comune, funzioni separate vanno separate.
+  Se c'è un problema nel modulo X, questo non deve interferire con
+  il modulo Y (almeno in un mondo ideale). La modularità rende anche
+  più semplice rimpiazzare un modulo sbagliato o vecchio con uno
+  corretto o più recente.
+
+- la non-duplicazione del codice è una conseguenza della modularità:
+  avendo raggruppato le funzioni di uso generale in un modulo comune,
+  si acquista in concisione, semplicità, leggibilità, debuggabilità,
+  si evita di correggere lo stesso errore più volte, e in generale tutto 
+  diviene più facile da mantenere.
+  
+Principio del KISS 
+--------------------------------------
+
+*Keep it simple, stupid*. In Italiano: *non facciamoci del male*.
+
+Se potete fare le cose in maniera semplice, fatele in maniera semplice.
+
+Chiedetevi sempre se una cosa vi serve veramente oppure no.
+
+Importanza di avere un prototipo
+------------------------------------------
+
+Non c'è nulla di più sbagliato che partire scrivendosi l'architettura di 
+un progetto complesso sulla carta. Si parte sempre scrivendo un prototipo,
+*testato sul campo di battaglia*, che magari ha l'1% delle funzionalità 
+che vi interessano, ma che *funziona*. A quel punto è possibile decidere
+l'architettura e il prototipo diventerà il core e la parte più testata
+e sicura della vostra applicazione.
+
+Il prototipo/core deve *rimuovere tutto l'inessenziale*. Più povero è,
+meglio è.
+
+
+Moduli e packages
+-------------------------------------------
+
+Qualunque file Python può essere visto come un modulo. Un package invece,
+è una directory contente un file ``__init__.py`` che contiene il codice di
+inizializzazione (``__init__.py`` può benissimo essere vuoto, oppure può 
+consistere solo di 'import' dei moduli di quel package).
+
+Importare un package non importa automaticamente tutti i suoi moduli,
+a meno che questo non sia detto esplicitamente nell' ``__init__.py``.
+
+I package possono essere nidificati senza limite.
+
+Le variabili globali di un modulo sono locali a quel modulo, quindi
+non c'è mai il rischio di fare danni (a meno che un modulo non importi
+esplicitamente una variabile corrispondente ad un oggetto mutabile e
+la cambi esplicitamente).
+
+E' possibile mettere un package nel Python path automaticamente per
+tutti gli utenti listando il nome del package in un file ``.pth`` nella
+directory site-packages (vedere la documentazione di distutils).
+
+
+Come si documenta una libreria Python
+-------------------------------------------------
+
+Python è un linguaggio "self-documenting" grazie alle doctrings.
+Usatele. In più guardate come è documentato un progetto Python
+tipico (io suggerisco di guardare a *docutils*) e copiate le convenzioni
+usate lì. Ci sono dei file standard come il README.txt, l'HISTORY.txt,
+il BUGS.txt, una directory docs, una directory test, un file setup.py,
+etc.
+
+Tenete presente che grazie a *doctest* potete inserire dei test automatici
+all'interno della vostra documentazione.
+
+Modulo 6: Domande estemporanee
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Risponderò alle domande dell'audience, anche al di fuori dal programma,
+se di interesse generale*.
+
+Come funziona 'import'
+---------------------------------
+
+Se un modulo è già stato importato e chiamate 'import' una seconda
+volta, il modulo NON viene importato due volte. Questo può essere
+un problema nell'interprete interattivo. Se importate un modulo,
+poi lo modificate e lo importate di nuovo, vi resterà in memoria
+la copia *vecchia*, quella non modificata. La soluzione è usare
+'reload', che vi importerà veramente la nuova versione.
+
+Come funziona '__del__'
+---------------------------------------------
+
+>>> a = 1
+>>> del a
+
+vi cancella il nome dal namespace:
+
+>>> a
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+NameError: name 'a' is not defined
+
+Tuttavia l'oggetto cui si riferisce *non viene cancellato immediatamente*.
+Verrà cancellato dal garbage collector *quando serve*, ma soltanto
+*se non vi sono altre referenze* all'oggetto da qualche altra parte.
+Inoltre per oggetti C, dovrete definirvi un metodo ``__del__`` custom
+che ha accesso all'oggetto a livello C. Tenete anche conto che tipicamente 
+il debugger tiene referenze agli oggetti aggiuntive, quindi in modalità
+di debugger i problemi con oggetti non cancellati peggiorano.
+
+Ecco un esempio di un metodo ``__del__`` custom piuttosto banale:
+
+>>> class C(object):
+...     def __del__(self):
+...             print 'Hai usato del'
+...
+>>> c = C()
+>>> del c
+Hai usato del
+
+Il metodo ``__del__`` viene chiamato automaticamente all'uscita 
+dall'interprete:
+
+>>> class C(object):
+...     def __del__(self):
+...             print 'Hai usato del'
+...
+>>> c = C()
+>>> <CTRL-Z> per uscire dall'interprete
+Hai usato del
+
+In principio, all'uscita del programma Python 
+*dovrebbe chiamare ``__del__`` automaticamente anche se vi sono eccezioni*::
+
+  #<del_with_exc.py>
+
+  class C(object):
+      def __del__(self):
+          print "Hai chiamato del"
+
+  c = C()
+  raise RuntimeError("Ahi ahi!")
+
+  #</del_with_exc.py>
+
+  $ python del_with_exc.py
+  Traceback (most recent call last):
+    File "del_with_exc.py", line 6, in ?
+      raise RuntimeError("Ahi ahi!")
+  RuntimeError: Ahi ahi!
+  Hai chiamato del
+
+Tuttavia per oggetti ``C`` ed eccezioni le cose possono essere delicate ed
+è sempre meglio chiamare ``del`` *esplicitamente*, magari in un 
+``try .. finally``.
+
+Che differenza c'è fra variabili di classe e di istanza
+---------------------------------------------------------
+
+Questo esempio dovrebbe chiarire la differenza:
+
+>>> class C(object):
+...     pippo = 'sono una variabile di classe'
+...     def __init__(self):
+...             self.poppi = 'sono una variabile di istanza'
+...
+
+Le variabili di classe sono le stesse per tutte le istanze:
+
+>>> c1 = C()
+>>> c2 = C()
+>>> c1.pippo
+'sono una variabile di classe'
+>>> c2.pippo
+'sono una variabile di classe'
+
+Se cambio una variabile di classe, cambia per tutte le istanze, anche
+per quelle che sono state create *prima* del cambiamento:
+
+>>> C.pippo = 'adesso la cambio'
+>>> c1.pippo
+'adesso la cambio'
+>>> c2.pippo
+'adesso la cambio'
+
+Lo stesso vale per i metodi, che non sono altro che variabili di classe.
+
+Le variabili di istanza invece sono indipendenti:
+
+>>> c1.poppi
+'sono una variabile di instanza'
+>>> c2.poppi
+'sono una variabile di instanza'
+>>> c1.poppi = 'cambio la variabile dell'istanza c1'
+>>> c1.poppi
+'cambio la variabile dell'istanza c1'
+>>> c2.poppi # questa rimane quella che era prima
+'sono una variabile di instanza'
+
+Che cosa sono i metodi che iniziano con "__"
+------------------------------------------------
+
+Sono metodi protetti. Sono utili per evitare rogne con l'ereditarietà.
+Per capire il problema dò un esempio semplice qui di seguito.
+
+Normalmente l'ereditarietà accoppia il padre con il figlio, nel senso che 
+il figlio può sovrascrivere i metodi del padre, e i metodi del padre andranno 
+automaticamente a chiamare i metodi del figlio::
+
+  class B(object): # padre
+      def __init__(self):
+          self.hello()
+      def hello(self):
+          print "hello!"
+  
+  class C(B): # figlio
+      def hello(self):
+          print "cucu!"
+  
+  b = B() # stampa 'hello!'
+  c = C() # stampa 'cucu!'
+  
+In questo esempio l'__init__ del padre chiama l'hello del figlio. Tuttavia,
+a volte uno vuole essere sicuro che l'__init__ del padre chiami l'hello
+del padre, e non quello del figlio (sempre per via del principio del 
+disaccoppiamento). Per questo ci sono i *metodi protetti*::
+  
+  class B(object):
+      def __init__(self): # call the '__hello' method in THIS class
+          self.__hello()
+      def __hello(self):
+          print "hello!"
+  
+  class C(B):
+      def __hello(self): # won't be called by B.__init__
+          print "cucu!"
+  
+  b = B() # stampa 'hello!'
+  c = C() # stampe 'hello!'
+  
+
+I metodi protetti di tipo ``__<nome metodo>`` non vanno confusi con i metodi
+privati di tipo ``_<nome metodo>`` (un solo underscore):
+
+1. i metodi privati non andrebbero chiamati mai, se non sapendo al 100% quello
+   che si sta facendo, e solo in caso di errori nel design della libreria che 
+   si sta utilizzando;
+
+2. i metodi protetti possono essere chiamati con tranquillità. Proprio
+   perchè sono protetti, c'è la garanzia che sovrascrivendoli nella 
+   sottoclasse non si va ad alterare il comportamento ereditato dal padre 
+   (nel nostro esempio l'``__init__`` del padre continuerà a chiamare il
+   proprio ``__hello``, non l'``__hello`` del figlio). D'altra parte i 
+   metodi definiti nel figlio vedranno solo l'``__hello`` del figlio e 
+   non quello del padre.
+
+3. i metodi protetti non possono essere chiamati accidentalmente, perchè
+   per esempio ``c.__hello()`` non funziona. Tuttavia è possibile chiamarli,
+   quindi non sono veramente privati: nel nostro esempio è possibile
+   chiamare
+
+   ``c._B__hello`` (``__hello`` del padre) oppure
+   ``c._C__hello`` (``__hello`` del figlio)
+   
+   Siccome bisogna specificare il nome della classe dove il metodo è definito
+   non c'è il rischio di sbagliarsi (a meno di non essere masochisti e di
+   non dare lo stesso nome al padre e al figlio).
+
+I metodi protetti vengono usati raramente. Vedere "Python in a Nutshell"
+per maggiori informazioni sul loro uso.
+
+Soluzioni al questionario di ammissione
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+Scrivere un programma che testa se una stringa rappresenta un numero
+---------------------------------------------------------------------
+
+Soluzione standard (vedere anche il tutorial di Python)::
+
+  try:
+      int(x)
+  except ValueError:
+      print "This is not a number!"
+
+Soluzione usando tkSimpleDialog::
+
+  from tkSimpleDialog import askfloat
+  askfloat("Enter a number", "Number:")
+  
+Scrivere un programma che lista tutti i files nella directory corrente
+------------------------------------------------------------------------
+
+::
+
+  for f in os.listdir("."):
+      print f
+    
+Listare tutti i files nelle sottodirectories ricorsivamente
+-------------------------------------------------------------
+
+::
+
+  for cwd, dirs, files in os.walk("."):
+      for f in files:
+          print f
+
+Calcolare lo spazio occupato da tutti i files di tipo .txt in una directory
+----------------------------------------------------------------------------
+
+[Soluzione svolta al corso 1]
+
+::
+
+ import os
+
+ def get_text_files(d):
+     for cwd, dirs, files in os.walk(d):
+         for f in files:
+             if f.lower().endswith(".txt"):
+                 fullname = os.path.join(cwd, f)
+                 size = os.path.getsize(fullname)
+                 yield fullname, size
+
+ from operator import itemgetter
+ print sum(map(itemgetter(1), get_text_files(".")))
+
+Listare i files a seconda delle dimensioni
+-------------------------------------------
+
+::
+
+ print sorted(get_text_files("."), key=itemgetter(1))
+
+Scrivere un test per verificate che una directory sia vuota
+--------------------------------------------------------------
+
+::
+
+ def is_empty(d):
+   if os.listdir(d): return False
+   else:  return True
+  
+Sarebbe ridondante scrivere  
+
+::
+
+  if os.listdir(d) != []: 
+   
+
+perchè la lista vuota ha già di per sè un valore booleano "False".
+
+Aprire una finestrella contenente la scritta "hello, world!"
+-------------------------------------------------------------
+
+[In maniera portabile]
+
+Soluzione più semplice::
+
+  # hellotk.pyw
+  from tkMessageBox import showinfo
+  showinfo(message="hello")
+
+Soluzione alternativa::
+
+  # hellotk.pyw
+  import Tkinter as t
+  root = t.Tk()
+  l = t.Label(text="hello")
+  l.pack()
+  root.mainloop()
+
+Guardatevi sull'help di ActiveState la differenza tra l'estensione ``.py``
+e l'estensione ``.pyw`` (dovrebbe essere nelle FAQ).
+
+Scaricare la pagina Web http://www.example.com da Internet
+----------------------------------------------------------------
+
+>>> from urllib2 import urlopen
+>>> print urlopen('http://www.example.com').read()
+
+Stampare a schermo una tavola delle moltiplicazioni
+---------------------------------------------------------
+
+Soluzione senza generatori::
+
+  #<maketable.py>
+
+  # non graphic
+  N = 10
+  for i in range(1, N+1):
+      for j in range(1, N+1):
+          print "%4d" % (i*j),
+      print
+  
+  # HTML
+  def maketable(iterable, N):
+      iterable = iter(iterable)
+      print "<table border='1'>"
+      stop = False
+      while not stop:
+          print "<tr>"
+          for j in range(1, N+1):
+              try: 
+                  print "<td>%s</td>" % iterable.next(),
+              except StopIteration:
+                  print "<td></td>"
+                  stop = True
+          print "</tr>"
+      print "</table>"
+  
+  import tempfile, webbrowser, os, sys
+  
+  def showtable(iterable, N): 
+      stdout = sys.stdout # shows how to redirect stdout correctly
+      fd, name = tempfile.mkstemp(suffix=".html")
+      sys.stdout = os.fdopen(fd, "w")
+      maketable(iterable, N)
+      webbrowser.open(name)
+      sys.stdout = stdout
+  
+  showtable((i*j for j in range(1, N+1) for i in range(1, N+1)), N)
+
+  #</maketable.py>
+
+Soluzione usando i generatori, non HTML::
+
+  #<gentable.py>
+
+  def gentable(N):
+    for i in range(1, N+1):
+        for j in range(1, N+1):
+            yield i*j
+
+  def printtable(lst, N):
+    for i, el in enumerate(lst):
+        print "%4d" % el,
+        if (i+1) % 10 == 0:
+            print
+
+  if __name__ == "__main__":
+    printtable(gentable(10), 10)
+
+  #</gentable.py>
+
+Trovare tutte le immagini .jpg nel vostro hard disk e mostrarle a schermo in formato ridotto
+--------------------------------------------------------------------------------------------
+
+Soluzione svolta al corso 1::
+
+  import os, webbrowser
+  
+  def gentableHTML(iterable, N):
+      iterator = iter(iterable)
+      yield "<HTML>"
+      yield "<BODY>"
+      yield "<TABLE border='1'>"
+      for i in range(N):
+          yield "<TR>"
+          for j in range(N):
+              yield '<TD><img src="%s" width="50", height="50"></TD>\n' % \
+                    iterator.next()
+          yield "</TR>\n"
+      yield "</TABLE>"
+      yield "</BODY>"
+      yield "</HTML>"
+  
+  # generatore di file names
+  def get_files_with_ext(ext_set, d):
+      """
+      ext_set is a set of valid extensions.
+      """
+      assert isinstance(ext_set, set), "%r is not a set!" % ext_set
+      for cwd, dirs, files in os.walk(d):
+          for f in files:
+              name, ext = os.path.splitext(f)
+              fullname = os.path.join(cwd, f)
+              if ext.lower() in ext_set and os.path.getsize(fullname):
+                  yield fullname
+  
+  if __name__ == "__main__":
+      # genera il file e lo mostra
+      images = file("images.html", "w")
+      for el in gentableHTML(get_files_with_ext(set([".png"]), 
+                        "C:\\Documents and Settings"), 15):
+          print >> images, el,
+      images.close()
+      webbrowser.open("images.html")
+  
+Soluzione più sofisticata, per darvi qualcosa su cui pensare::
+
+  #<maketable.py>
+  
+  def get_files_with_ext(ext, d):
+      """
+      ext can be a string or a set of strings; for instance
+      get_files_with_ext(".png") or get_files_with_ext(set(".png", ".gif"))
+      """
+      if not isinstance(ext, set):
+          ext_set = set([ext])
+      for cwd, dirs, files in os.walk(d):
+          for f in files:
+              name, ext = os.path.splitext(f)
+              if ext.lower() in ext_set:
+                  yield os.path.join(cwd, f)
+  
+  class Picture(object):
+      """An example of the utility of __str__"""
+      def __init__(self, pathname):
+          self.pathname = pathname
+          self.name = os.path.basename(pathname)
+      def __str__(self):
+          return "<img src=%r width=100>" % self.pathname
+      
+  if sys.platform == 'win32': 
+      drive = "C:\\"
+  else: 
+      drive = "/"
+  showtable(map(Picture, get_files_with_ext(".jpg", drive)), N)
+  
+  #</maketable.py>
+  

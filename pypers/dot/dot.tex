@@ -1,0 +1,460 @@
+\documentclass[10pt,english]{article}
+\usepackage{babel}
+\usepackage{shortvrb}
+\usepackage[latin1]{inputenc}
+\usepackage{tabularx}
+\usepackage{longtable}
+\setlength{\extrarowheight}{2pt}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage[a4paper]{geometry}
+%% generator Docutils: http://docutils.sourceforge.net/
+\newlength{\admonitionwidth}
+\setlength{\admonitionwidth}{0.9\textwidth}
+\newlength{\docinfowidth}
+\setlength{\docinfowidth}{0.9\textwidth}
+\newlength{\locallinewidth}
+\newcommand{\optionlistlabel}[1]{\bf #1 \hfill}
+\newenvironment{optionlist}[1]
+{\begin{list}{}
+  {\setlength{\labelwidth}{#1}
+   \setlength{\rightmargin}{1cm}
+   \setlength{\leftmargin}{\rightmargin}
+   \addtolength{\leftmargin}{\labelwidth}
+   \addtolength{\leftmargin}{\labelsep}
+   \renewcommand{\makelabel}{\optionlistlabel}}
+}{\end{list}}
+% begin: floats for footnotes tweaking.
+\setlength{\floatsep}{0.5em}
+\setlength{\textfloatsep}{\fill}
+\addtolength{\textfloatsep}{3em}
+\renewcommand{\textfraction}{0.5}
+\renewcommand{\topfraction}{0.5}
+\renewcommand{\bottomfraction}{0.5}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+% end floats for footnotes
+% some commands, that could be overwritten in the style file.
+\newcommand{\rubric}[1]{\subsection*{~\hfill {\it #1} \hfill ~}}
+\newcommand{\titlereference}[1]{\textsl{#1}}
+% end of "some commands"
+\input{style.tex}
+\title{Drawing graphs the easy way: an introduction to dot}
+\author{}
+\date{}
+\hypersetup{
+pdftitle={Drawing graphs the easy way: an introduction to dot}
+}
+\raggedbottom
+\begin{document}
+\maketitle
+
+
+\setlength{\locallinewidth}{\linewidth}
+
+
+%___________________________________________________________________________
+
+\hypertarget{got-a-graphing-problem}{}
+\pdfbookmark[0]{Got a graphing problem?}{got-a-graphing-problem}
+\section*{Got a graphing problem?}
+
+You must give a presentation tomorrow and you haven't prepared any
+figure yet; you must document your last project and you need to plot
+your most hairy class hierarchies;  you are asked to provide ten slightly 
+different variations of the same picture; you are pathologically unable to put 
+your finger on a mouse and drawing anything more complex that a square ...
+in all these cases,  dont' worry! \texttt{dot} comes at the rescue and 
+can save your day!
+
+
+%___________________________________________________________________________
+
+\hypertarget{what-is-dot}{}
+\pdfbookmark[0]{What is dot?}{what-is-dot}
+\section*{What is \texttt{dot}?}
+
+\texttt{dot} is a tool to generate nice-looking diagrams with a minimum of
+effort. \texttt{dot} is distributed as a part of \texttt{GraphViz}, an
+Open Source project developed at AT{\&}T and released under a MIT licence.
+It is a high quality and mature product, with very good 
+documentation and support, available on all major platforms, 
+including Unix/Linux, Windows and Mac. There is an official home-page and 
+a supporting mailing list.
+
+
+%___________________________________________________________________________
+
+\hypertarget{what-can-i-do-with-dot}{}
+\pdfbookmark[0]{What can I do with dot ?}{what-can-i-do-with-dot}
+\section*{What can I do with \texttt{dot} ?}
+
+First of all, let me make clear that \texttt{dot} is not just another paint program, 
+nor a vector graphics program. \texttt{dot} is a scriptable batch-oriented graphing 
+tool;  it is to vector drawing programs as \texttt{LaTex} is to word processors.
+If you want to have control on every single pixel in your diagram,
+or if you are an artistic person who likes to draw free hand, then \texttt{dot} 
+is not for you. \texttt{dot} is a tool for the lazy developer, the one who wants
+the job done with the minimum effort and without caring too much about the details.
+
+Since \texttt{dot} is not a WYSIWYG tool - even if it comes together with a WYSIWYG tool, 
+\texttt{dotty} - it is not intended to be used interactively: 
+its strength is the ability to \emph{programmatically} generate diagrams. To fullfill
+this aim, \texttt{dot} uses a simple but powerful graph description language. You 
+just give (very high level) instructions to \texttt{dot} and it will draw the diagrams 
+for you, taking into account all the low level details. Whereas the user 
+has a faily large choice of customization 
+options and can control the final output in many ways, it is not at all easy 
+to force \texttt{dot} to do \emph{exactly} what one wants.
+
+Expecting that would mean to fight with the tool. 
+You should think of \texttt{dot} as a kind of smart boy, 
+who likes to do things his own way and who is very good at it, but becomes 
+nervous if the master tries to put too much pressure on him. 
+The right attitude with \texttt{dot} (just as with Latex) is to trust it and 
+let it to do the job.
+At the end, when \texttt{dot} has finished its part, the user can always 
+refine the graph by hand, by using \texttt{dotty}, the interactive editor 
+of \texttt{dot} diagrams which comes with GraphViz and has the ability to read 
+and generate \texttt{dot} code.
+But in most cases, the user is not expected to do anything manually,
+since \texttt{dot} works pretty well. The right way to go is to customize
+\texttt{dot} options, then the user can programmatically generate one or
+one hundred diagrams with the least effort.
+
+\texttt{dot} is especially useful in repetitive and automatic tasks, since
+it is not difficult to generate \texttt{dot} code.
+For instance, \texttt{dot} comes very handy in the area of automatic documentation 
+of code. This kind of jobs can be down with UML tools, but \texttt{dot} has an 
+advantage over them in terms of easy of use, flat learning curve and 
+flexibility. On top of that, \texttt{dot} is very fast, since it is written in C
+and can generate very complicated diagrams in fractions of second.
+
+
+%___________________________________________________________________________
+
+\hypertarget{hello-world-from-dot}{}
+\pdfbookmark[0]{Hello World from dot}{hello-world-from-dot}
+\section*{Hello World from \texttt{dot}}
+
+\texttt{dot} code has a C-ish syntax and it is quite readable even from somebody
+who has not read the manual. For instance, this \texttt{dot} script:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{graph~hello{\{}}\\
+\mbox{}\\
+\mbox{//~Comment:~Hello~World~from~``dot``}\\
+\mbox{//~a~graph~with~a~single~node~Node1}\\
+\mbox{}\\
+\mbox{Node1~[label="Hello,~World!"]}\\
+\mbox{}\\
+\mbox{{\}}}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+
+generates the following picture:
+\begin{figure}
+
+\includegraphics{fig1.ps}
+\end{figure}
+
+Having saved this code in a file called \texttt{hello.dot}, the graph can be 
+generated and shown on the screen with a simple one-liner:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{{\$}~dot~hello.dot~-Tps~|~gv~-}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+
+The \texttt{-Tps} option generates postscript
+code, which is then piped to the ghostview utility. Notice that 
+I am running my examples on a Linux machine with ghostview installed, 
+but \texttt{dot} works equally well under Windows, so you may trivially 
+adapt the examples.
+
+If the user is satisfied with the output, it can save it into a file:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{{\$}~dot~hello.dot~-Tps~-o~hello.ps}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+
+Most probably the user may want to tweak with the options,
+for instance adding colors and changing the font size. 
+This is not difficult:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{graph~hello2{\{}}\\
+\mbox{}\\
+\mbox{//~Hello~World~with~nice~colors~and~big~fonts}\\
+\mbox{}\\
+\mbox{Node1~[label="Hello,~World!",~color=Blue,~fontcolor=Red,}\\
+\mbox{~~~~fontsize=24,~shape=box]}\\
+\mbox{~}\\
+\mbox{{\}}}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+
+This draws a blue square with a red label:
+\begin{figure}
+
+\includegraphics{fig2.ps}
+\end{figure}
+
+All X-Window colors and fonts are available.
+
+\texttt{dot} is quite tolerant: the language is case insensitive and 
+quoting the options (color=``Blue'', shape=``box'') will work too. 
+Moreover, in order to make happy C fans, semicolons can be used 
+to terminate statements and they will simply be ignored.
+
+
+%___________________________________________________________________________
+
+\hypertarget{basic-concepts-of-dot}{}
+\pdfbookmark[0]{Basic concepts of dot}{basic-concepts-of-dot}
+\section*{Basic concepts of \texttt{dot}}
+
+A generic \texttt{dot} graph is composed by nodes and edges.
+Our \texttt{hello.dot} example contains a single node and no edges.
+Edges enter in the game when there are relationships between nodes,
+for instance hierarchical relationships as in this example:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{digraph~simple{\_}hierarchy{\{}}\\
+\mbox{}\\
+\mbox{B~[label="The~boss"]~~~~~~//~node~B}\\
+\mbox{E~[label="The~employee"]~~//~node~E}\\
+\mbox{}\\
+\mbox{B->E~[label="commands",~fontcolor=darkgreen]~//~edge~B->E}\\
+\mbox{}\\
+\mbox{{\}}}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+\begin{figure}
+
+\includegraphics{fig3.ps}
+\end{figure}
+
+\texttt{dot} is especially good at drawing directed graph such this, where
+there is a natural direction (notice that GraphViz  also includes the \texttt{neato}
+tool, which is quite similar to \texttt{dot} and is especially targeted to 
+undirected graphs). 
+In this example the direction is from the boss, who commands, 
+to the employee, who obeys. Of course in \texttt{dot} one has the freedom 
+to revert social hierarchies ;):
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{digraph~revolution{\{}}\\
+\mbox{}\\
+\mbox{B~[label="The~boss"]~~~~~~//~node~B}\\
+\mbox{E~[label="The~employee"]~~//~node~E}\\
+\mbox{}\\
+\mbox{B->E~[label="commands",~dir=back,~fontcolor=red]~~}\\
+\mbox{//~revert~arrow~direction~}\\
+\mbox{}\\
+\mbox{{\}}}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+\begin{figure}
+
+\includegraphics{fig4.ps}
+\end{figure}
+
+Sometimes, one wants to put on the same level things of the
+same importance; this can be done with the rank option, as
+in the following example, which describes a hierarchy with a boss,
+two employees of the same rank, John and Jack, and a lower
+rank employee Al who depends from John:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{digraph~hierarchy{\{}}\\
+\mbox{}\\
+\mbox{nodesep=1.0~//~increases~the~separation~between~nodes}\\
+\mbox{}\\
+\mbox{node~[color=Red,fontname=Courier]}\\
+\mbox{edge~[color=Blue,~style=dashed]~//setup~options}\\
+\mbox{}\\
+\mbox{Boss->{\{}~John~Jack{\}}~//~the~boss~has~two~employees}\\
+\mbox{}\\
+\mbox{{\{}rank=same;~John~Jack{\}}~//they~have~the~same~rank}\\
+\mbox{}\\
+\mbox{John~->~Al~//~John~has~a~subordinate~}\\
+\mbox{}\\
+\mbox{John->Jack~[dir=both]~//~but~still~is~on~the~same~level~as~Jack}\\
+\mbox{{\}}}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+\begin{figure}
+
+\includegraphics{fig5.ps}
+\end{figure}
+
+This example shows a nifty feature of \texttt{dot}: if the user forgets
+to give it explicit labels, it will use the name of the nodes as
+default labels. The default colors and style can be set for nodes and 
+edges respectively. It is also possible to control the separation 
+between (all) nodes by tuning the \texttt{nodesep} option.
+We leave for our readers to see what happens without the rank option
+(hint: you get a very ugly graph).
+
+\texttt{dot} is quite sophisticated and 
+there are dozen of options which are deeply discussed in the excellent 
+documentation. In particular, the man page (\texttt{man dot}) is especially 
+useful and well done. The documentation also explain how to draw
+graphs containing subgraphs. However those are advanced features which
+are outside the scope of a brief presentation.
+
+Here we will discuss another feature instead: the ability to generate output 
+in different formats.
+Depending on the requirements, different formats can be more or
+less suitable. For the purpose of generating printed documentation, 
+the postscript format is quite handy. On the other hand, if the documentation
+has to be converted in html format and put on a Web page, a png
+format can be handy. It is quite trivial to get it:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{{\$}~dot~hello.dot~-Tpng~-o~hello.ps}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+
+There are \emph{many} others available formats, including all the common ones
+such as gif, jpg, wbmp, fig and more exotic ones.
+
+
+%___________________________________________________________________________
+
+\hypertarget{generating-dot-code}{}
+\pdfbookmark[0]{Generating dot code}{generating-dot-code}
+\section*{Generating \texttt{dot} code}
+
+\texttt{dot} is not a real programming language, nevertheless it is pretty easy
+to interface \texttt{dot} with a real programming language.  Bindings for 
+many programming languages - including Java, Perl and Python - are already
+available. A more lightweight alternative is just to generate the \texttt{dot} code
+from your preferred language. 
+Doing so allows the user to completely automatize the graph generation. 
+Here I will give a simple Python example using this technique.
+
+This example script shows how to draw Python class hierarchies 
+with the least effort; it may help you in documenting your code.
+
+Here is the script:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{{\#}~dot.py~}\\
+\mbox{}\\
+\mbox{"Require~Python~2.3~(or~2.2.~with~from~{\_}{\_}future{\_}{\_}~import~generators)"}\\
+\mbox{}\\
+\mbox{def~dotcode(cls):}\\
+\mbox{~~~~setup='node~[color=Green,fontcolor=Blue,fontname=Courier]{\textbackslash}n'}\\
+\mbox{~~~~name='hierarchy{\_}of{\_}{\%}s'~{\%}~cls.{\_}{\_}name{\_}{\_}}\\
+\mbox{~~~~code='{\textbackslash}n'.join(codegenerator(cls))}\\
+\mbox{~~~~return~"digraph~{\%}s{\{}{\textbackslash}n{\textbackslash}n{\%}s{\textbackslash}n{\%}s{\textbackslash}n{\}}"~{\%}~(name,~setup,~code)}\\
+\mbox{}\\
+\mbox{def~codegenerator(cls):}\\
+\mbox{~~~~"Returns~a~line~of~dot~code~at~each~iteration."}\\
+\mbox{~~~~{\#}~works~for~new~style~classes;~see~my~Cookbook}\\
+\mbox{~~~~{\#}~recipe~for~a~more~general~solution}\\
+\mbox{~~~~for~c~in~cls.{\_}{\_}mro{\_}{\_}:}\\
+\mbox{~~~~~~~~bases=c.{\_}{\_}bases{\_}{\_}}\\
+\mbox{~~~~~~~~if~bases:~{\#}~generate~edges~parent~->~child}\\
+\mbox{~~~~~~~~~~~~yield~''.join(['~{\%}s~->~{\%}s{\textbackslash}n'~{\%}~(~b.{\_}{\_}name{\_}{\_},c.{\_}{\_}name{\_}{\_})}\\
+\mbox{~~~~~~~~~~~~~~~~~~~~~~~~~~~for~b~in~bases])}\\
+\mbox{~~~~~~~~if~len(bases)~>~1:~{\#}~put~all~parents~on~the~same~level}\\
+\mbox{~~~~~~~~~~~~yield~"~{\{}rank=same;~{\%}s{\}}{\textbackslash}n"~{\%}~''.join(}\\
+\mbox{~~~~~~~~~~~~~~~~['{\%}s~'~{\%}~b.{\_}{\_}name{\_}{\_}~for~b~in~bases])}\\
+\mbox{}\\
+\mbox{if~{\_}{\_}name{\_}{\_}=="{\_}{\_}main{\_}{\_}":~}\\
+\mbox{~~~~{\#}~returns~the~dot~code~generating~a~simple~diamond~hierarchy}\\
+\mbox{~~~~class~A(object):~pass}\\
+\mbox{~~~~class~B(A):~pass}\\
+\mbox{~~~~class~C(A):~pass}\\
+\mbox{~~~~class~D(B,C):~pass}\\
+\mbox{~~~~print~dotcode(D)}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+
+The function \texttt{dotcode} takes a class and returns the \texttt{dot} source
+code needed to plot the genealogical tree of that class.  
+The source code is generated by \texttt{codegenerator}, which traverses the list
+of the ancestors of the class (a.k.a. the Method Resolution Order of
+the class) and determines the edges and the nodes of the hierarchy. 
+\texttt{codegenerator} is a generator which returns an iterator yielding 
+a line of \texttt{dot} code at each iteration. Generators are a cool 
+recent addition to Python; they come particularly handy for the purpose
+of generating text or source code.
+
+The output of the script is the following self-explanatory \texttt{dot} code:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{digraph~hierarchy{\_}of{\_}D{\{}}\\
+\mbox{}\\
+\mbox{node~[color=Green,fontcolor=Blue,font=Courier]}\\
+\mbox{}\\
+\mbox{~B~->~D}\\
+\mbox{~C~->~D}\\
+\mbox{}\\
+\mbox{~{\{}rank=same;~B~C~{\}}}\\
+\mbox{}\\
+\mbox{~A~->~B}\\
+\mbox{}\\
+\mbox{~A~->~C}\\
+\mbox{}\\
+\mbox{~object~->~A}\\
+\mbox{}\\
+\mbox{{\}}}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+
+Now the simple one-liner:
+\begin{quote}
+\begin{ttfamily}\begin{flushleft}
+\mbox{{\$}~python~dot.py|dot~-Tpng~-o~x.ps}
+\end{flushleft}\end{ttfamily}
+\end{quote}
+
+generates the following picture:
+\begin{figure}
+
+\includegraphics{fig6.ps}
+\end{figure}
+
+
+%___________________________________________________________________________
+
+\hypertarget{references}{}
+\pdfbookmark[0]{References}{references}
+\section*{References}
+
+You may download \texttt{dot} and the others tool coming with GraphViz at the
+official home-page of the project:
+
+\href{http://www.graphviz.org}{http://www.graphviz.org}
+
+You will also find plenty of documentation and links to the mailing list.
+
+Perl and Python bindings are available here
+
+\href{http://theoryx5.uwinnipeg.ca/CPAN/data/GraphViz/GraphViz.html}{http://theoryx5.uwinnipeg.ca/CPAN/data/GraphViz/GraphViz.html}
+
+(Perl bindings, thanks to Leon Brocard)
+
+and here
+
+\href{http://www.cs.brown.edu/~er/software/}{http://www.cs.brown.edu/{\textasciitilde}er/software/}
+
+(Python bindings, thanks to Manos Renieris).
+
+The script \texttt{dot.py} I presented in this article is rather minimalistic. 
+This is on purpose. A much more sophisticated version with additional 
+examples is discussed in my Python Cookbook recipe
+
+\href{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/213898}{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/213898}
+
+\end{document}
+

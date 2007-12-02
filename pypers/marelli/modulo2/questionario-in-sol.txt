@@ -1,0 +1,139 @@
+# -*- coding: latin1 -*-
+Soluzioni al questionario
+======================================================================
+
+1. Scrivere un programma che testa se una stringa rappresenta un numero.
+
+try:
+    int(x)
+except ValueError:
+    print "This is not a number!"
+
+from tkSimpleDialog import askfloat
+askfloat("Enter a number", "Number:")
+  
+2. Scrivere un programma che lista tutti i files nella directory corrente.
+
+for f in os.listdir("."):
+    print f
+    
+3. Come al punto 2, ma il programma deve anche listare tutti i files nelle
+   sottodirectories ricorsivamente.
+
+for cwd, dirs, files in os.walk("."):
+    for f in files:
+        print f
+        
+4. Calcolare lo spazio occupato da tutti i files di tipo .txt contenuti in
+   una directory.
+
+import os
+
+def get_text_files(d):
+    for cwd, dirs, files in os.walk(d):
+        for f in files:
+            if f.lower().endswith(".txt"):
+                fullname = os.path.join(cwd, f)
+                size = os.path.getsize(fullname)
+                yield fullname, size
+
+from operator import itemgetter
+print sum(map(itemgetter(1), get_text_files(".")))
+
+5. Listare i files a seconda delle dimensioni (dal più piccolo al più grande, 
+in bytes).
+
+print sorted(get_text_files("."), key=itemgetter(1))
+
+6. Scrivere un test per verificate che una directory sia vuota.
+
+def is_empty(d):
+  if os.listdir(d): return False
+  else:  return True
+    
+7. Aprire una finestrella contenente la scritta "hello, world!".
+
+# hellotk.pyw
+import Tkinter as t
+root = t.Tk()
+l = t.Label(text="hello")
+l.pack()
+root.mainloop()
+
+# alternativamente
+from tkMessageBox import showinfo
+showinfo(message="hello")
+
+8. Scaricare la pagina Web http://www.example.com da Internet usando Python.
+
+>>> from urllib2 import urlopen
+>>> print urlopen("http://www.example.com").read()
+
+9. Stampare a schermo una tavola delle moltiplicazioni.
+
+  #<maketable.py>
+
+  # non graphic
+  N = 10
+  for i in range(1, N+1):
+      for j in range(1, N+1):
+          print "%4d" % (i*j),
+      print
+  
+  # HTML
+  def maketable(iterable, N):
+      iterable = iter(iterable)
+      print "<table border='1'>"
+      stop = False
+      while not stop:
+          print "<tr>"
+          for j in range(1, N+1):
+              try: 
+                  print "<td>%s</td>" % iterable.next(),
+              except StopIteration:
+                  print "<td></td>"
+                  stop = True
+          print "</tr>"
+      print "</table>"
+  
+  import tempfile, webbrowser, os, sys
+  
+  def showtable(iterable, N):
+      stdout = sys.stdout
+      fd, name = tempfile.mkstemp(suffix=".html")
+      sys.stdout = os.fdopen(fd, "w")
+      maketable(iterable, N)
+      webbrowser.open(name)
+      sys.stdout = stdout
+  
+  showtable((i*j for j in range(1, N+1) for i in range(1, N+1)), N)
+
+  #</maketable.py>
+  
+10. Trovare tutte le immagini .jpg nel vostro hard disk e mostrarle a schermo
+    in formato ridotto (thumbnails).
+
+  #<maketable.py>
+  
+  def get_files_with_ext(ext_set, d):
+      if not isinstance(ext_set, set):
+          ext_set = set([ext_set])
+      for cwd, dirs, files in os.walk(d):
+          for f in files:
+              name, ext = os.path.splitext(f)
+              if ext.lower() in ext_set:
+                  yield os.path.join(cwd, f)
+  
+  class Picture(object):
+      def __init__(self, pathname):
+          self.pathname = pathname
+          self.name = os.path.basename(pathname)
+      def __str__(self):
+          return "<img src=%r width=100>" % self.pathname
+      
+  if sys.platform == 'win32': drive = "C:\\"
+  else: drive = "/"
+  showtable(map(Picture, get_files_with_ext(".jpg", drive)), N)
+  
+  #</maketable.py>
+  

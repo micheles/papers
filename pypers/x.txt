@@ -1,0 +1,213 @@
+
+ .. 
+
+             M_A     M_B
+              : \   / :
+              :  \ /  :
+              A  M_C  B
+               \  :  /
+                \ : /
+                  C
+
+  co_firstlineno : int(x[, base]) -> integer
+
+  Convert a string or number to an integer, if possible.  A floating point
+  argument will be truncated towards zero (this does not include a string
+  representation of a floating point number!)  When converting a string, use
+  the optional base.  It is an error to supply a base when converting a
+  non-string. If the argument is outside the integer range a long object
+  will be returned instead.
+
+  co_code : str(object) -> string
+
+  Return a nice string representation of the object.
+  If the argument is a string, the return value is the same object.
+
+  co_freevars : tuple() -> an empty tuple
+  tuple(sequence) -> tuple initialized from sequence's items
+
+  If the argument is a tuple, the return value is the same object.
+
+  co_consts : tuple() -> an empty tuple
+  tuple(sequence) -> tuple initialized from sequence's items
+
+  If the argument is a tuple, the return value is the same object.
+
+  co_name : str(object) -> string
+
+  Return a nice string representation of the object.
+  If the argument is a string, the return value is the same object.
+
+  co_filename : str(object) -> string
+
+  Return a nice string representation of the object.
+  If the argument is a string, the return value is the same object.
+
+  co_lnotab : str(object) -> string
+
+  Return a nice string representation of the object.
+  If the argument is a string, the return value is the same object.
+
+  co_flags : int(x[, base]) -> integer
+
+  Convert a string or number to an integer, if possible.  A floating point
+  argument will be truncated towards zero (this does not include a string
+  representation of a floating point number!)  When converting a string, use
+  the optional base.  It is an error to supply a base when converting a
+  non-string. If the argument is outside the integer range a long object
+  will be returned instead.
+
+  co_nlocals : int(x[, base]) -> integer
+
+  Convert a string or number to an integer, if possible.  A floating point
+  argument will be truncated towards zero (this does not include a string
+  representation of a floating point number!)  When converting a string, use
+  the optional base.  It is an error to supply a base when converting a
+  non-string. If the argument is outside the integer range a long object
+  will be returned instead.
+
+  co_stacksize : int(x[, base]) -> integer
+
+  Convert a string or number to an integer, if possible.  A floating point
+  argument will be truncated towards zero (this does not include a string
+  representation of a floating point number!)  When converting a string, use
+  the optional base.  It is an error to supply a base when converting a
+  non-string. If the argument is outside the integer range a long object
+  will be returned instead.
+
+  co_argcount : int(x[, base]) -> integer
+
+  Convert a string or number to an integer, if possible.  A floating point
+  argument will be truncated towards zero (this does not include a string
+  representation of a floating point number!)  When converting a string, use
+  the optional base.  It is an error to supply a base when converting a
+  non-string. If the argument is outside the integer range a long object
+  will be returned instead.
+
+  co_cellvars : tuple() -> an empty tuple
+  tuple(sequence) -> tuple initialized from sequence's items
+
+  If the argument is a tuple, the return value is the same object.
+
+  co_varnames : tuple() -> an empty tuple
+  tuple(sequence) -> tuple initialized from sequence's items
+
+  If the argument is a tuple, the return value is the same object.
+
+  co_names : tuple() -> an empty tuple
+  tuple(sequence) -> tuple initialized from sequence's items
+
+  If the argument is a tuple, the return value is the same object.
+
+
+  class Class(type):
+      """Non-cooperative metaclass acting as a class factory. It accepts 
+      various kinds of objects and metaobjects as input (dictionaries, modules,
+      classes etc). It automatically converts functions to static methods if 
+      the input object is not a class. If the first argument is a named object,
+      the name of the created class is obtained by propending an underscore."""
+
+      defaultname="InstanceOfClass" 
+      defaultbases=() 
+      defaultdic={}
+
+      def __new__(meta, *args):
+          metas=meta.__bases__[:-1]
+          name=meta.defaultname 
+          bases=meta.defaultbases
+          dic=meta.defaultdic
+          # parse the arguments
+          if not args:
+              pass # do nothing
+          elif len(args)==1:
+              first=args[0]
+              if isinstance(first,str): # is a name 
+                  name=first
+              elif hasattr(first,'__name__'): # has a name
+                  name=first.__name__+'_'
+              if isinstance(first,tuple): # is a tuple
+                  bases+=first
+              elif hasattr(first,'__bases__'): # is a class
+                  bases+=first.__bases__
+                  metas=type(first)+metas
+              if isinstance(first,dict): # is a dict
+                  dic.update(first)
+              elif hasattr(first,"__dict__"): # has a dict
+                  dic.update(first.__dict__)
+          elif len(args)==2: # must be name,dic
+              name,dic=args
+          elif len(args)==3: # must be name,bases,dic
+              name,bases,dic=args
+          if not bases: # creating a class from a non-class
+              condition=lambda name,attr: inspect.isfunction(attr)
+              wrapdic(dic,staticmethod,condition)
+          cls=child(*bases,**{'name':name,'dic':dic,'metas':metas})
+          cls.__class__=meta; return cls
+ 
+  class ClsFactory(object):
+    "Bracket-callable non-cooperative class acting as a metaclass factory"
+    class __metaclass__(type):
+        def __getitem__(cls,*meta):
+            meta+=(Class,) # base metaclasses
+            name=''.join([m.__name__ for m in meta])
+            return type(name,meta,{}) 
+
+  #<oopp.py>
+
+  class ClsFactory(object):
+      """Bracket callable non-cooperative class acting as a factory of class 
+      factories.
+
+      ClsFactory instances are class factories accepting 0,1,2 or 3 arguments. 
+    . It automatically converts functions to static methods 
+      if the input object is not a class. If an explicit name is not passed
+      the name of the created class is obtained by adding an underscore to 
+      the name of the original object."""
+
+      class __metaclass__(type):
+          "Makes ClsFactory and its children bracket callable"
+          def __getitem__(cls,metas):
+              "Sets the default metaclass and returns a ClsFactory object" 
+              ClsFactory=cls() # a callable ClsFactory object
+              ClsFactory.metas=metas
+              return ClsFactory
+
+      # customizable default attributes
+      name="CreatedFromClsFactory"    
+      bases=()        
+      dict={}
+
+      def __call__(self, *args):
+          """Generates a new class using self.meta and avoiding conflicts.
+          The first metaobject can be a dictionary, an object with a
+          dictionary (except a class), or a simple name."""
+          if len(args)==1:
+              arg0=args[0]
+              if isinstance(arg0,str): # is a name 
+                  self.name=arg0
+              elif hasattr(arg0,'__name__'): # has a name
+                  self.name=arg0.__name__+'_'
+              self.setbasesdic(arg0)
+          elif len(args)==2: 
+              self.name=args[0] # must be a name
+              assert isinstance(name,str)
+              self.setbasesdic(args[1])
+          elif len(args)==3: # must be name,bases,dic
+              self.name,self.bases,self,dic=args
+          if len(args)<3  and not self.bases: # creating class from a non-class
+              condition=lambda name,attr: inspect.isfunction(attr)
+              wrapdic(self.dic,staticmethod,condition)
+          return child(*bases,**vars(self))
+
+      def setbasesdic(self,obj):
+          if isinstance(obj,tuple): # is a tuple
+              self.bases+=obj
+          elif hasattr(obj,'__bases__'): # is a class
+              self.bases+=obj.__bases__
+          if isinstance(obj,dict): # is a dict
+              self.dic.update(obj)
+          elif hasattr(obj,"__dict__"): # has a dict
+               self.dic.update(obj.__dict__)
+
+
+  #</oopp.py>

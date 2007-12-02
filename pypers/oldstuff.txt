@@ -1,0 +1,752 @@
+A few useful classes
+--------------------------------------------------------------------------
+
+::
+  
+  #<oopp.py>
+  
+  class DevNull(object):
+      """This class fakes a null file. For instance 
+      "print >> DevNull, obj" trows away the object, 
+      i.e. nothing is written at all.""" 
+      write=staticmethod(lambda text:None) # do nothing
+
+  #</oopp.py>
+
+
+Let me conclude, now, with a discussion of when it is appropriate
+to use the dynamical features of Python to enhance instance objects.
+The answer is: more or less never.
+
+-----------------------------------------------------------------------
+
+  class SuperAware(type,Customizable):
+      """Instances of SuperAware inherit a private attribute __sup
+      which provide a handy way to call cooperative methods."""
+      # DOES NOT WORK WITH NEW, calls (super).__new__, not (super.__new__)
+      sup=super # default, customizable
+      def __init__(cls,*args):
+          setattr(cls,'_%s__sup' % cls.__name__,cls.sup(cls))
+          super(SuperAware,cls).__init__(*args) # usual cooperative call
+
+
+Notice that this trick comes from Guido himself (in his essay on
+"Type/class unification")
+
+Let me show how ``SuperAware`` can be used in practice. 
+
+A common requirement for a class is the ability to count the number of its
+instances. This is a quite easy problem: it is enough to increments a counter 
+each time an instance of that class is initialized. However, this idea can
+be implemented in the wrong way. i.e. naively one could implement
+counting capabilities in a class without such capabilities by modifying the
+``__init__`` method explicitly in the original source code. 
+A better alternative is to follow the bottom-up approach and to implement 
+the counting 
+feature in a separate mix-in class: then the feature can be added to the
+original class via multiple inheritance, without touching the source.
+Moreover, the counter class becomes a reusable components that can be
+useful for other problems, too. In order to use the mix-in approach, the 
+``__init__`` method of the counter class must me cooperative. The 
+SuperAware metaclass provides some syntactic sugar for this job:
+
+ ::
+
+  #<oopp.py>
+
+  #  class WithCounter(object):
+  #      """Mixin class counting the total number of its instances and storing 
+  #         it in the class attribute count."""
+
+  #      __metaclass__=SuperAware
+  #      count=1 # class attribute (or static attribute in C++/Java terminology)
+  
+  #      def __init__(self,*args,**kw): 
+  #          self.__sup.__init__(*args,**kw) # anonymous cooperative call
+  #          type(self).counter+=1 # increments the class attribute
+
+  #  class WithCounter(object):
+  #      """Mixin class counting the total number of its instances and storing 
+  #         it in the class attribute count."""
+
+  #      count=1 # class attribute (or static attribute in C++/Java terminology)
+
+  #      def __init__(self,*args,**kw):  
+  #          super(WithCounter,self).__init__(*args,**kw) 
+  #          # anonymous cooperative call
+  #          type(self).counter+=1 # increments the class attribute
+
+Overcoming the limitations of ``super``
+---------------------------------------------------------------------------
+
+Working with complicated class hierarchies is a typical are for 
+metaprogramming techniques. As we saw in the previous chapter, the
+typical mechanism for dealing with methods in complicated hierarchies
+is trough cooperative ``super`` calls.
+
+In the following sections, I will implement an 'Ancestor' 
+class, to provide a replacement and enhancement of ``super``. 
+'Ancestor' objects are instantiated as ``Ancestor(cls,obj,degree)``, 
+where 'cls' is a class, 'obj' and instance of a subclass of 'cls', and
+'degree' is a positive integer number, describing the degree of parentship
+of the ancestor class with the original class 'cls', with respect
+to the MRO of 'obj'.
+
+
+Let me show how Ancestor will be used, first. The real implementation of
+'Ancestor' will be postponed of a few paragraphs, since it requires the
+understanding of attribute descriptors. But it is important to have clear 
+which are the features we expect from 'Ancestor' objects (one could write 
+a test suite first).
+
+  >>> from oopp import Ancestor, ExampleBaseClass
+  >>> class C(ExampleBaseClass): pass
+  ...
+  >>> Ancestor(C,C(),1).m()
+  'regular method'
+  >>> Ancestor(C,C(),1).s()
+  'staticmethod'
+  >>> Ancestor(C,C(),1).c()
+  'classmethod'
+
+Thus ``Ancestor`` objects work like ``super`` objects in the cases in which
+``super`` works; moreover ``Ancestor`` objects do not have the shortcmomings
+of ``super`` objects: 
+
+  >>> Ancestor(C,C(),1).p
+  'property'
+  >>> Ancestor(C,C(),1).__name__ 
+  'ExampleBaseClass'
+
+In addition, one can retry the farthest ancestors:
+
+  >>> Ancestor(C,C(),1).cls
+  <class 'oopp.ExampleBaseClass'>
+  >>> Ancestor(C,C(),2).cls
+  <type 'object'>
+
+Of course, one cannot go to far away:
+
+  >>> Ancestor(C,C(),3).cls #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+    File "oopp.py", line 199, in __new__
+      raise AncestorError("%s is not an ancestor of degree %s of %s"
+  oopp.AncestorError: C is not an ancestor of degree 3 of C
+
+It is interesting to show what happens for the ``__init__`` method:
+
+  >>> Ancestor(C,C(),1).__init__
+  <function __init__ at 0x81b1514>
+
+  >>> Ancestor(C,C(),1).cls.__init__
+  <built-in method __init__ of type object at 0x80e6280>
+
+Having specified the behavior of 'Ancestor', now we have only to
+implement it ;)
+
+Implementation of the Ancestor class
+--------------------------------------------------------------------------
+
+Having understood how objects are created in Python 2.2, we may now
+provide the code for the implementation of 'Ancestor'.
+
+ ::
+
+  #<oopp.py>
+  
+  class AncestorError(Exception): 
+      """Cannot find an ancestor of degree %s of %s with respect to the
+         MRO of %s"""
+
+  class Ancestor(AvoidDuplication):
+      """Given a class klass, an instance obj of a subclass of klass, 
+      and the degree of parentship (degree=1 for the direct superclass), 
+      returns an Ancestor object with an ancestor attribute corresponding 
+      to the ancestor class."""
+
+      def __new__(cls, klass, obj, degree):
+          'cls.instance is inherited from AvoidDuplication'
+          super(Ancestor,cls).__new__(cls,klass,obj) #makes cls.instance
+          if cls.isnew:
+              cls.obj=obj
+              cls.cls=klass
+              if inspect.isclass(obj): mro=list(obj.__mro__)
+              else: mro=list(obj.__class__.__mro__)
+              #mro=obj.__class__.mro()
+              try:
+                  cls.instance.cls=mro[mro.index(klass)+degree]
+              except:
+                  raise AncestorError(AncestorError.__doc__
+                         % (degree, klass, obj.__class__.__name__)) 
+          return cls.instance
+
+      def __getattr__(self,attr):
+          a=getattr(self.cls,attr) #only routines have a __get__ method
+          if inspect.ismethod(a):
+              if inspect.isclass(a.im_self): #class method attached to self.cls
+                  b=a.__get__(self.cls,self.cls)
+              else: #normal method attached to self.obj
+                  b=a.__get__(self.obj,self.cls) 
+          elif inspect.isfunction(a):
+              b=a #do nothing to functions and staticmethods
+          else:
+              try:
+                  b=a.__get__(self.obj,self.cls) #properties
+              except AttributeError:
+                  b=a #do nothing to simple attributes
+          return b
+  
+  #</oopp.py>
+
+Here is an example of application to our paleoanthropology hierarchy:
+
+  >>> from oopp import Ancestor, HomoSapiensSapiens
+  >>> modernman = HomoSapiensSapiens()
+  >>> Ancestor(HomoSapiensSapiens,modernman,1).cls
+  <class 'oopp.HomoSapiens'>
+  >>> Ancestor(HomoSapiensSapiens,modernman,2).cls
+  <class 'oopp.HomoHabilis'>
+  >>> Ancestor(HomoSapiensSapiens,modernman,3).cls
+  <class 'oopp.Homo'>
+
+One (possibile) issue of the Ancestor class in this form, is that it gives 
+access to bound methods only; I leave as an exercise for the reader to 
+generalize the class in such a way to give access to unbound methods too, 
+i.e. mimicking more closely the behavior of ``super``.
+
+The same behaviour is seen, even more clearly, for Ancestor objects:
+
+  >>> from oopp import *
+  >>> Ancestor(Clock,SingleClock(),1).cls #.
+  <class 'oopp.Singleton'>
+  >>> Ancestor(Clock,Clock(),1).cls 
+  <type 'object'
+
+Metaclass-aided inheritance
+----------------------------------------------------------------------------
+
+In chapters 4 and 5, we discussed the concept of cooperative
+methods and we implemented the idea via the ``super`` call mechanism,
+later improved by using ``Ancestor`` objects.
+While theoretically nice, the ``Ancestor`` mechanism is still
+syntactically ugly,  since we have to explicitly give to ``Ancestor`` 
+the name of the class where ``Ancestor`` is invoked.
+This is redundant and annoying, especially because changing the name
+of that class in the sources would require modifying all the ``Ancestor`` calls
+(of course one could use alias for the class name, but this is a workaround,
+not a solution). Metaclasses allow to improved the
+situation quite a lot. In this section I show a solution based on a
+trick discussed by Guido in his essay.
+
+The trick is to use private variables: private variables contain the
+name of the class in which they are defined (trough the mangling mechanism).
+This information can therefore be passed to ``ancestor`` without having
+to pass the class name explicitly. This idea can be implemented in a
+metaclass such as the following:
+
+ ::
+
+  #<oopp.py>
+
+  class AncestorAware(type):
+      def __init__(cls, *args, **kw):
+          setattr(cls,"_%s__ancestor" % cls.__name__,
+                  lambda self,degree=1: Ancestor(cls,self,degree))
+
+  class AncestorHomo(Homo): 
+      __metaclass__ = AncestorAware
+      __action=""
+      def can(self):
+          self.__ancestor().can()
+          print self.__action
+
+  #</oopp.py>
+
+
+Notice that we have defined the class ``AncestorHomo``, which enhances 
+the features provided by Homo trough the metaclass ``AncestorAware``.
+
+Now, if we use the private method ``__ancestor`` inside one of the ancestor 
+classes, it will be read as ``_<ancestor-name>__ancestor`, i.e. as 
+``ancestor(<ancestor>)``: therefore the parent of the ancestor can be
+called without providing explicitly its name. Here is the final script:
+
+ ::
+
+  #<paleoanthropology2.py>
+
+  import oopp
+
+  class HomoErectus(oopp.AncestorHomo):
+      __action=" - walk"
+      def can(self):
+          self.__ancestor().can()
+          print self.__action
+
+
+  class HomoHabilis(HomoErectus):
+     __action=" - make tools"
+     def can(self):
+         self.__ancestor().can()
+         print self.__action
+
+
+  class HomoSapiens(HomoHabilis):
+      __action=" - make abstractions"
+      def can(self):
+          self.__ancestor().can()
+          print self.__action
+
+        
+  class HomoSapiensSapiens(HomoSapiens):
+      __action=" - make art"
+      def can(self):
+          self.__ancestor().can()
+          print self.__action
+
+  modernman=HomoSapiensSapiens()
+  modernman.can()
+
+  #</paleoanthropology2.py>
+
+The output is:
+
+ ::
+
+  HomoSapiensSapiens can:
+   - walk
+   - make tools
+   - make abstractions
+   - make art
+
+Finally, we are done! Now the hierarchy is elegant and easily 
+extensible/modifiable. For instance, it is obvious how to insert 
+a new element in the
+hierarchy, as for example HomoErectus between Homo and HomoHabilis.
+It is enough to add the class
+
+ ::
+
+  class HomoErectus(Homo):
+      def can(self):
+          ancestor(HomoErectus,self).can()
+          print " - walk"
+
+and to change the first line of the class HomoHabilis, making it
+inheriting from HomoErectus instead of HomoHabilis.
+
+
+Let me check that 'HomoSapiensSapiens' now inherits from HomoErectus
+and therefore can walk:
+
+  >>> from oopp import HomoSapiensSapiens
+  >>> HomoSapiensSapiens().can()
+
+
+Sometimes the features provided by metaclasses can be emulated trough
+inheritance: however using metaclasses is *not* the same than using
+inheritance. Let me point out the differences trough some example.
+
+.. [#] The present notation for attribute descriptors such as staticmethods
+       and classmethods is rather ugly: however, this will probably change 
+       in the future (probably in Python 2.4).
+
+  class SuperAware(type,Customizable):
+      """Instances of SuperAware inherit a private attribute __sup
+      which provide a handy way to call cooperative methods."""
+      # DOES NOT WORK WITH NEW, calls (super).__new__, not (super.__new__)
+      sup=super # default, customizable
+      def __init__(cls,*args):
+          setattr(cls,'_%s__sup' % cls.__name__,cls.sup(cls))
+          super(SuperAware,cls).__init__(*args) # usual cooperative call
+
+
+Notice that this trick comes from Guido himself (in his essay on
+"Type/class unification")
+
+Let me show how ``SuperAware`` can be used in practice. 
+
+A common requirement for a class is the ability to count the number of its
+instances. This is a quite easy problem: it is enough to increments a counter 
+each time an instance of that class is initialized. However, this idea can
+be implemented in the wrong way. i.e. naively one could implement
+counting capabilities in a class without such capabilities by modifying the
+``__init__`` method explicitly in the original source code. 
+A better alternative is to follow the bottom-up approach and to implement 
+the counting 
+feature in a separate mix-in class: then the feature can be added to the
+original class via multiple inheritance, without touching the source.
+Moreover, the counter class becomes a reusable components that can be
+useful for other problems, too. In order to use the mix-in approach, the 
+``__init__`` method of the counter class must me cooperative. The 
+SuperAware metaclass provides some syntactic sugar for this job:
+
+ ::
+
+  #<oopp.py>
+
+  #  class WithCounter(object):
+  #      """Mixin class counting the total number of its instances and storing 
+  #         it in the class attribute count."""
+
+  #      __metaclass__=SuperAware
+  #      count=1 # class attribute (or static attribute in C++/Java terminology)
+  
+  #      def __init__(self,*args,**kw): 
+  #          self.__sup.__init__(*args,**kw) # anonymous cooperative call
+  #          type(self).counter+=1 # increments the class attribute
+
+  #  class WithCounter(object):
+  #      """Mixin class counting the total number of its instances and storing 
+  #         it in the class attribute count."""
+
+  #      count=1 # class attribute (or static attribute in C++/Java terminology)
+
+  #      def __init__(self,*args,**kw):  
+  #          super(WithCounter,self).__init__(*args,**kw) 
+  #          # anonymous cooperative call
+  #          type(self).counter+=1 # increments the class attribute
+
+Therefore the approach is nice, but it has the disadvantage that *all* methods
+are traced (or timed), whereas it would be preferable to have the
+capability of passing to the metaclass the explicit list of the methods we
+want to trace (or to time). This can be done quite elegantly with 
+a fair amount of metaclass magic, i.e. with a meta-metaclass
+"WithWrappingCapabilities':
+
+ ::
+
+  #<oopp.py>
+
+  class WithWrappingCapabilities(type):
+      # This is a meta-metaclass!
+      """Instances of WithWrappingCapabilities are metaclasses with
+         wrapping capabilities."""
+
+      wrapper=lambda x: x # default, identity function wrapper 
+      # to be overridden in the instances of WithWrappingCapabilities
+
+      def __init__(meta,*args): # __init__ of the meta-metaclass
+
+          def init(cls,*args):  # __init__ of the metaclass
+              """Wraps the methods of the class with the given wrapper,
+              depending on the arguments passed to the metaclass""" 
+  
+              super(meta,cls).__init__(*args) # cooperative call
+              # in case the metaclass has to be multiple inherited
+             
+              wrapper=vars(meta)['wrapper']
+              
+              wraplist=getattr(meta,'wraplist','ALL')
+              if wraplist=='ALL':
+                  condition=lambda k,v: True # wrap all
+              else:
+                  condition=lambda k,v: k in wraplist
+              wrap(cls,wrapper,condition)
+             
+          meta.__init__=init
+          
+  #</oopp.py>
+
+This solves the problem of passing parameters to 'Traced' and 'Timed':
+
+ ::
+
+  #<oopp.py>
+
+  class Traced(Reflective):
+      """Metaclass providing tracing capabilities to the methods in 
+      square brackets"""
+      __metaclass__=ClsFactory[WithWrappingCapabilities]
+      wrapper=tracedmethod
+      wrapper.logfile=sys.stdout
+      wraplist=['ALL']
+
+  class Timed(Reflective):
+      """Metaclass providing timing capabilities to the methods in 
+      square brackets"""
+      __metaclass__=ClsFactory[WithWrappingCapabilities]
+      wrapper=timedmethod
+      wrapper.logfile=sys.stdout
+      wraplist=['ALL']
+
+  #class Remembering(Reflective):
+  #    """Metaclass providing memory capabilities to the methods in 
+  #    square brackets"""
+  #    __metaclass__=ClsFactory[WithWrappingCapabilities]
+  #    wrapper=withmemory
+
+  #</oopp.py>
+
+Let me give a toy example of wrong design.
+
+Both Java and C++ have Abstract Base Classes, i.e. classes that cannot 
+be instantiated; it is pretty easy to emulate them in Python, by overriding 
+the ``__new__`` staticmethod in such a way to forbids object creation:
+
+ ::
+
+  #<oopp.py>
+
+  class Beautiful(NonInstantiable,PrettyPrinted):
+      "An example of wrong mix-in class"
+      formatstring="%s is beautiful"
+
+  #</oopp.py>
+
+The class 'Beautiful' here, describes an abstract property without specific 
+realization. is intended to be used as a mix-in class: classes derived from 
+'Beautiful', will inherits a nice string representation.
+However, I made a design mistake in this hierarchy, since 'Prince' inherits
+from 'Beautiful' which is 'NonInstantiable' and therefore has become 
+non-instantiable too. This means that I cannot print instances of
+'Prince' as I originally intended. Python dynamism allows me to 
+correct my mistake
+
+ ::
+
+  #<beautifulprince.py>
+
+  from oopp import *
+
+  class Prince(Beautiful): pass
+      #non-instantiable, uncorrect class 
+      #Prince.__new__ is inherited from NonInstantiable.__new__
+ 
+  Prince.__new__=object.__new__ 
+  #overrides Beautiful.__new__  and fixes the mistake
+
+  try: b=Beautiful()
+  except NonInstantiableError,e: print e 
+  charles=Prince()
+  charles.formatstring="Not much for an instance of class %s"
+  print "---\nHow beautiful is Prince charles?\n",charles
+
+  #</beautifulprince.py>
+
+Output:
+
+ ::
+
+  <class '__main__.Beautiful'> cannot be instantiated
+
+  ---
+  How beautiful is Prince charles ?
+  Not much for an instance of class Prince
+
+From this short script we learn (in addition to the fact that
+Prince Charles is not especially beautiful) that:
+
+1. the class 'NonInstantiable' cannot be instantiated since instantiation 
+   involves calling the ``__new__`` method which raises an exception.
+
+2. the class 'Beautiful' cannot be instantiated since it inherits from
+   class NonInstantiable;
+
+3. the class 'Prince' can be instantiated since its ``__new__`` method (that
+   would be the ``NonInstantiable.__new__``) is redefined to be the standard
+   ``object.__new__`` method;
+
+Improving the ``super`` mechanism
+-----------------------------------------------------------------------------
+
+The most typical problem in multiple inheritance hierarchies is name clashing
+due to unwanted overriding. The problem of conflicting methods can be avoided
+by making them cooperative, i.e. by using the ``super`` mechanism. However,
+as I discussed in the previous chapter, the built-in super has problems
+of its own. Therefore, I will discuss here how the ``super`` mechanism can be
+improved.
+
+I show here a solution based on a custom attribute descriptor called
+'Super(C,S)' that calls ``ancestor(C,S)`` via an internal function 
+``_super(C,S,methname)``.
+
+ ::
+
+  #<oopp.py>
+
+  def _super(C,S,methname):
+      """Internal function invoking ancestor. Returns an attribute 
+      descriptor object."""
+      if methname=='__name__': # special case
+          meth=ancestor(C,S)[1].__name__
+      else:
+          for c in ancestor(C,S)[1:]:
+              meth=c.__dict__.get(methname)
+              if meth: break # if found
+      if not meth: raise AttributeError,methname # not found 
+      return convert2descriptor(meth) # if needed
+
+  class Super(object):
+      """Invoked as Super(cls,obj).meth returns the supermethod of
+      cls with respect to the MRO of obj. If obj is a subclass of cls,
+      it returns the unbound supermethod of obj; otherwise, if obj is an
+      instance of some subclass of cls, it returns the obj-bound method."""
+      def __init__(self,cls,obj):
+          self.cls=cls
+          self.obj=obj
+      def __getattribute__(self,name):
+          obj=object.__getattribute__(self,'obj')
+          cls=object.__getattribute__(self,'cls')
+          if hasattr(obj,'__bases__') and issubclass(obj,cls):
+              # if obj is a subclass, return unbound method
+              return _super(cls,obj,name).__get__(None,obj)
+          else: # if obj is an instance, return bound method
+              S=type(obj)
+              return _super(cls,S,name).__get__(obj,S)
+
+  #</oopp.py>
+
+This code also show one can redefine ``__getattribute__`` properly,
+i.e. invoking ``object.__getattribute__`` inside ``__getattribute__`` 
+and *not* using the built-in function ``getattr``. The reason is
+that ``getattr(self,attr)`` works by calling ``self.__getattribute__(attr)`` 
+and this would induce an infinite recursion.
+
+
+Let me show few examples of usage with my paleonthropologycal hierarchy.
+First of all, I introduce a modern man:
+
+  >>> from oopp import *
+  >>> man=HomoSapiensSapiens()
+
+A modern man can do plenty of things:
+
+  >>> man.can()
+  <HomoSapiensSapiens> can:
+   - make tools
+   - make abstractions
+   - make art
+
+Let me show that ``Super(cls,subcls)`` returns an unbound method
+
+  >>> Super(HomoSapiens,HomoSapiensSapiens).can
+  <unbound method HomoSapiensSapiens.can>
+
+whereas ``Super(cls,instance)`` returns a bound method:
+
+  >>> Super(HomoSapiens,man).can
+  <bound method HomoSapiensSapiens.can of 
+  <oopp.HomoSapiensSapiens object at 0x4017506c>>
+
+Both are methods of 'HomoHabilis'
+
+  >>> ancestor(HomoSapiens,HomoSapiensSapiens)[1]
+  <class 'oopp.HomoHabilis'>
+
+therefore
+
+  >>> Super(HomoSapiens,HomoSapiensSapiens).can(man)
+  <HomoSapiensSapiens> can:
+   - make tools
+  >>> Super(HomoSapiens,man).can()
+  <HomoSapiensSapiens> can:
+   - make tools
+
+Notice that the current implementation works subtly with the ``__class__``
+attribute:
+
+  >>> Super(HomoSapiens,man).__class__, type(Super(HomoSapiens,man))
+  (<class 'oopp.HomoSapiensSapiens'>, <class 'oopp.Super'>)
+  >>> Super(HomoSapiens,HomoSapiensSapiens).__class__, 
+  ... type(Super(HomoSapiens,HomoSapiensSapiens))
+  (<attribute '__class__' of 'object' objects>, <class 'oopp.Super'>)
+
+Let me show now how it works with properties:
+
+  >>> class C(ExampleBaseClass): pass
+  >>> c=C()
+  >>> Super(C,C).p
+  <property object at 0x401c766c>
+  >>> Super(C,c).p
+  'property'
+
+Moreover it works with '__name__':
+
+  >>> Super(C,c).__name__
+  'ExampleBaseClass'
+  >>> Super(C,C).__name__
+  'ExampleBaseClass'
+
+In the case of ``__new__`` and ``__init__``, even if ``Super`` is 
+less efficient than
+the ``super`` built-in, one pays the price only once, at the object
+creation time, which is supposed to be a less frequent operation than
+a normal method call. 
+
+--------------------------------------------------------------------------:
+
+  #<oopp.py>
+
+  def child(*bases,**options):
+      """Class factory avoiding metatype conflicts: if the base classes have 
+      metaclasses conflicting within themselves or with the given metaclass, 
+      it automatically generates a compatible metaclass and instantiate the 
+      child class from it. The recognized keywords in the option dictionary
+      are name, dic and meta."""
+      name=options.get('name',''.join([b.__name__ for b in bases])+'_')
+      dic=options.get('dic',{})
+      metas=options.get('metas',(type,))
+      return _generatemetaclass(bases,metas)(name,bases,dic)
+
+  #</oopp.py>
+
+Here is an example of usage:
+
+  >>> C=child(A,B)
+  >>> print C,type(C)
+  <class 'oopp.AB_'> <class 'oopp._M_AM_B'>
+
+  class ClsFactory(BracketCallable):
+      """Bracket callable non-cooperative class acting as 
+      a factory of class factories.
+
+      ClsFactory instances are class factories accepting 0,1,2 or 3 arguments. 
+    . They automatically converts functions to static methods 
+      if the input object is not a class. If an explicit name is not passed
+      the name of the created class is obtained by adding an underscore to 
+      the name of the original object."""
+      
+      returnclass=False # ClsFactory[X] returns an *instance* of ClsFactory
+
+      def __call__(self, *args):
+          """Generates a new class using self.meta and avoiding conflicts.
+          The first metaobject can be a dictionary, an object with a
+          dictionary (except a class), or a simple name."""
+          
+          # default attributes
+          self.name="CreatedWithClsFactory"    
+          self.bases=()
+          self.dic={}
+          self.metas=self.bracket_args
+
+          if len(args)==1:
+              arg=args[0]
+              if isinstance(arg,str): # is a name 
+                  self.name=arg
+              elif hasattr(arg,'__name__'): # has a name
+                  self.name=arg.__name__+'_'
+              self.setbasesdic(arg)
+          elif len(args)==2: 
+              self.name=args[0] 
+              assert isinstance(self.name,str) # must be a name
+              self.setbasesdic(args[1])
+          elif len(args)==3: # must be name,bases,dic
+              self.name=args[0]
+              self.bases+=args[1]
+              self.dic.update(args[2])
+          if len(args)<3 and not self.bases: # creating class from a non-class
+              for k,v in self.dic.iteritems():
+                  if isfunction(v): self.dic[k]=staticmethod(v)
+          return child(*self.bases,**vars(self))
+
+      def setbasesdic(self,obj):
+          if isinstance(obj,tuple): # is a tuple
+              self.bases+=obj
+          elif hasattr(obj,'__bases__'): # is a class
+              self.bases+=obj.__bases__
+          if isinstance(obj,dict): # is a dict
+              self.dic.update(obj)
+          elif hasattr(obj,"__dict__"): # has a dict
+              self.dic.update(obj.__dict__)

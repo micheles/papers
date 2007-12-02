@@ -1,0 +1,717 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.7: http://docutils.sourceforge.net/" />
+<title>Lecture 3: Magic (i.e. decorators and metaclasses)</title>
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="lecture-3-magic-i-e-decorators-and-metaclasses">
+<h1 class="title">Lecture 3: Magic (i.e. decorators and metaclasses)</h1>
+<div class="section" id="part-i-decorators">
+<h1><a name="part-i-decorators">Part I: decorators</a></h1>
+<p>Decorators are just sugar: their functionality was already in the language</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; def s(): pass
+&gt;&gt;&gt; s = staticmethod(s)
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; &#64;staticmethod
+... def s(): pass
+...
+</pre>
+<p>However sugar <em>does</em> matter.</p>
+<div class="section" id="a-typical-decorator-traced">
+<h2><a name="a-typical-decorator-traced">A typical decorator: traced</a></h2>
+<pre class="literal-block">
+#&lt;traced.py&gt;
+
+def traced(func):
+    def tracedfunc(*args, **kw):
+        print &quot;calling %s.%s&quot; % (func.__module__, func.__name__)
+        return func(*args, **kw)
+    tracedfunc.__name__ = func.__name__
+    return tracedfunc
+
+&#64;traced
+def f(): pass
+
+#&lt;/traced.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from traced import f
+&gt;&gt;&gt; f()
+calling traced.f
+</pre>
+</div>
+<div class="section" id="a-decorator-factory-timed">
+<h2><a name="a-decorator-factory-timed">A decorator factory: Timed</a></h2>
+<pre class="literal-block">
+#&lt;timed.py&gt;
+
+import sys, time
+
+class Timed(object):
+    &quot;&quot;&quot;Decorator factory: each decorator object wraps a function and 
+    executes it many times (default 100 times).
+    The average time spent in one iteration, expressed in milliseconds, 
+    is stored in the attributes wrappedfunc.time and wrappedfunc.clocktime,
+    and displayed into a log file which defaults to stdout.
+    &quot;&quot;&quot;
+    def __init__(self, repeat=100, logfile=sys.stdout):
+        self.repeat = repeat
+        self.logfile = logfile
+    def __call__(self, func):
+        def wrappedfunc(*args, **kw):
+            fullname = &quot;%s.%s ...&quot; % (func.__module__, func.func_name)
+            print &gt;&gt; self.logfile, 'Executing %s' % fullname.ljust(30),
+            time1 = time.time()
+            clocktime1 = time.clock()
+            for i in xrange(self.repeat):
+                res = func(*args,**kw) # executes func self.repeat times
+            time2 = time.time()
+            clocktime2 = time.clock()
+            wrappedfunc.time = 1000*(time2-time1)/self.repeat
+            wrappedfunc.clocktime = 1000*(clocktime2 - clocktime1)/self.repeat
+            print &gt;&gt; self.logfile, \
+                  'Real time: %s ms;' % self.rounding(wrappedfunc.time),
+            print &gt;&gt; self.logfile, \
+                  'Clock time: %s ms' % self.rounding(wrappedfunc.clocktime)
+            return res
+        wrappedfunc.func_name = func.func_name
+        wrappedfunc.__module__ = func.__module__
+        return wrappedfunc
+    &#64;staticmethod
+    def rounding(float_):
+        &quot;Three digits rounding for small numbers, 1 digit rounding otherwise.&quot;
+        if float_ &lt; 10.:
+            return &quot;%5.3f&quot; % float_
+        else:
+            return &quot;%5.1f&quot; % float_
+   
+#&lt;/timed.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from timed import Timed
+&gt;&gt;&gt; from random import sample
+&gt;&gt;&gt; example_ls = sample(xrange(1000000), 1000)
+&gt;&gt;&gt; &#64;Timed()
+... def list_sort(ls):
+...     ls.sort()
+... 
+&gt;&gt;&gt; list_sort(example_ls) #doctest: +ELLIPSIS
+Executing __main__.list_sort ... Real time: 0... ms; Clock time: 0... ms
+</pre>
+</div>
+<div class="section" id="towards-decorator-patterns">
+<h2><a name="towards-decorator-patterns">Towards decorator patterns</a></h2>
+<pre class="literal-block">
+#&lt;traced_function2.py&gt;
+
+from decorators import decorator
+
+def trace(f, *args, **kw):
+    print &quot;calling %s with args %s, %s&quot; % (f.func_name, args, kw) 
+    return f(*args, **kw)
+
+traced_function = decorator(trace)
+
+&#64;traced_function
+def f1(x):
+    pass
+
+&#64;traced_function
+def f2(x, y):
+    pass
+
+#&lt;/traced_function2.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from traced_function2 import traced_function, f1, f2
+&gt;&gt;&gt; f1(1)
+calling f1 with args (1,), {}
+&gt;&gt;&gt; f2(1,2)
+calling f2 with args (1, 2), {}
+</pre>
+<p>works with pydoc:</p>
+<pre class="literal-block">
+$ pydoc2.4 traced_function2.f2  
+Help on function f1 in traced_function2:
+
+traced_function2.f1 = f1(x)
+
+$ pydoc2.4 traced_function2.f2  
+Help on function f2 in traced_function2:
+
+traced_function2.f2 = f2(x, y)
+</pre>
+<p>Here is the source code:</p>
+<pre class="literal-block">
+#&lt;decorators.py&gt;
+
+import inspect
+
+def _signature_gen(func, rm_defaults=False):
+    argnames, varargs, varkwargs, defaults = inspect.getargspec(func)
+    argdefs = defaults or ()
+    n_args = func.func_code.co_argcount
+    n_default_args = len(argdefs)
+    n_non_default_args = n_args - n_default_args    
+    non_default_names = argnames[:n_non_default_args]
+    default_names = argnames[n_non_default_args:]
+    for name in non_default_names:
+        yield &quot;%s&quot; % name
+    for i, name in enumerate(default_names):
+        if rm_defaults:
+            yield name
+        else:
+            yield &quot;%s = arg[%s]&quot; % (name, i) 
+    if varargs:
+        yield &quot;*%s&quot; % varargs
+    if varkwargs:
+        yield &quot;**%s&quot; % varkwargs
+
+def _decorate(func, caller):
+    signature = &quot;, &quot;.join(_signature_gen(func))
+    variables = &quot;, &quot;.join(_signature_gen(func, rm_defaults=True))   
+    lambda_src = &quot;lambda %s: call(func, %s)&quot; % (signature, variables)
+    evaldict = dict(func=func, call=caller, arg=func.func_defaults or ())
+    dec_func = eval(lambda_src, evaldict)
+    dec_func.__name__ = func.__name__
+    dec_func.__doc__ = func.__doc__
+    dec_func.__dict__ = func.__dict__ # copy if you want to avoid sharing
+    return dec_func
+
+class decorator(object):
+    &quot;&quot;&quot;General purpose decorator factory, taking a caller function as
+    input. A caller function is any function like this:
+
+    def caller(func, *args, **kw):
+        # do something
+        return func(*args, **kw)
+    &quot;&quot;&quot;
+    def __init__(self, caller):
+        self.caller = caller
+    def __call__(self, func):
+        return _decorate(func, self.caller)
+
+#&lt;/decorators.py&gt;
+</pre>
+<p>The possibilities of this pattern are endless:</p>
+<pre class="literal-block">
+#&lt;deferred.py&gt;
+
+import threading
+from decorators import decorator
+
+def deferred(nsec):
+    def inner_deferred(func, *args, **kw):
+        return threading.Timer(nsec, func, args, kw).start()
+    return decorator(inner_deferred)
+
+&#64;deferred(2)
+def hello():
+    print &quot;hello&quot;
+
+#&lt;deferred.py&gt;
+</pre>
+<p>Show an example of an experimental decorator based web framework
+(doctester_frontend).</p>
+</div>
+</div>
+<div class="section" id="part-ii-metaclasses">
+<h1><a name="part-ii-metaclasses">Part II: metaclasses</a></h1>
+<p>Metaclasses are there! Consider this example from a recent post on c.l.py:</p>
+<pre class="literal-block">
+#&lt;BaseClass.py&gt;
+
+class BaseClass(object):
+   &quot;Do something&quot;
+
+#&lt;/BaseClass.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; import BaseClass # instead of 'from BaseClass import BaseClass'
+&gt;&gt;&gt; class C(BaseClass): pass
+...
+Traceback (most recent call last):
+  ...
+TypeError: Error when calling the metaclass bases
+    module.__init__() takes at most 2 arguments (3 given)
+</pre>
+<p>The reason for the error is that class <tt class="docutils literal"><span class="pre">C(BaseClass):</span> <span class="pre">pass</span></tt> is
+actually calling the <tt class="docutils literal"><span class="pre">type</span></tt> metaclass with three arguments:</p>
+<pre class="literal-block">
+C = type(&quot;C&quot;, (BaseClass,), {})
+</pre>
+<p><tt class="docutils literal"><span class="pre">type.__new__</span></tt> tries to use <tt class="docutils literal"><span class="pre">type(BaseClass)</span></tt> as metaclass,
+but since BaseClass here is a module,  and <tt class="docutils literal"><span class="pre">ModuleType</span></tt> is not
+a metaclass, it cannot work. The error message reflects a conflict with 
+the signature of ModuleType which requires two parameters and not three.</p>
+<p>So even if you don't use them, you may want to know they exist.</p>
+<div class="section" id="rejuvenating-old-style-classes">
+<h2><a name="rejuvenating-old-style-classes">Rejuvenating old-style classes</a></h2>
+<pre class="doctest-block">
+&gt;&gt;&gt; class Old: pass
+&gt;&gt;&gt; print type(Old)
+&lt;type 'classobj'&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; __metaclass__ = type # to rejuvenate class
+&gt;&gt;&gt; class NotOld: pass
+...
+&gt;&gt;&gt; print NotOld.__class__
+&lt;type 'type'&gt;
+</pre>
+</div>
+<div class="section" id="a-typical-metaclass-example-metatracer">
+<h2><a name="a-typical-metaclass-example-metatracer">A typical metaclass example: MetaTracer</a></h2>
+<pre class="literal-block">
+#&lt;metatracer.py&gt;
+import inspect
+
+def trace(meth, cls):
+    def traced(*args, **kw):
+        modname = meth.__module__ or cls.__module__
+        print &quot;calling %s.%s.%s&quot; % (modname, cls.__name__, meth.__name__)
+        return meth(*args, **kw)
+    traced.__name__ = meth.__name__
+    return traced
+
+class MetaTracer(type):            
+    def __init__(cls, name, bases, dic):
+        super(MetaTracer, cls).__init__(name, bases, dic)
+        for k, v in dic.iteritems():
+            if inspect.isfunction(v):
+                setattr(cls, k, trace(v, cls))
+
+#&lt;/metatracer.py&gt;
+</pre>
+<p>Usage: exploring classes in the standard library</p>
+<pre class="literal-block">
+#&lt;dictmixin.py&gt;
+
+from metatracer import MetaTracer
+from UserDict import DictMixin
+
+class TracedDM(DictMixin, object):
+    __metaclass__ = MetaTracer
+    def __getitem__(self, item):
+        return item
+    def keys(self): 
+        return [1,2,3]
+
+#&lt;/dictmixin.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from dictmixin import TracedDM
+&gt;&gt;&gt; print TracedDM()
+calling dictmixin.TracedDM.keys
+calling dictmixin.TracedDM.__getitem__
+calling dictmixin.TracedDM.__getitem__
+calling dictmixin.TracedDM.__getitem__
+{1: 1, 2: 2, 3: 3}
+</pre>
+</div>
+<div class="section" id="real-life-example-check-overriding">
+<h2><a name="real-life-example-check-overriding">Real life example: check overriding</a></h2>
+<pre class="literal-block">
+#&lt;check_overriding.py&gt;
+
+class Base(object):
+    a = 0
+
+class CheckOverriding(type):
+    &quot;Prints a message if we are overriding a name.&quot;
+    def __new__(mcl, name, bases, dic):
+        for name, val in dic.iteritems():
+            if name.startswith(&quot;__&quot;) and name.endswith(&quot;__&quot;): 
+                continue # ignore special names
+            a_base_has_name = True in (hasattr(base, name) for base in bases)
+            if a_base_has_name:
+                print &quot;AlreadyDefinedNameWarning: &quot; + name
+        return super(CheckOverriding, mcl).__new__(mcl, name, bases, dic)
+
+class MyClass(Base):
+    __metaclass__ = CheckOverriding
+    a = 1
+
+class ChildClass(MyClass):
+    a = 2
+</pre>
+<p>#&lt;/check_overriding.py&gt;</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; import check_overriding
+AlreadyDefinedNameWarning: a
+AlreadyDefinedNameWarning: a
+</pre>
+</div>
+<div class="section" id="logfile">
+<h2><a name="logfile">LogFile</a></h2>
+<pre class="literal-block">
+#&lt;logfile.py&gt;
+
+import subprocess
+
+def memoize(func):
+    memoize_dic = {}
+    def wrapped_func(*args):
+        if args in memoize_dic:
+            return memoize_dic[args]
+        else:
+            result = func(*args)
+            memoize_dic[args] = result
+            return result
+    wrapped_func.__name__ = func.__name__
+    wrapped_func.__doc__ = func.__doc__
+    wrapped_func.__dict__ = func.__dict__
+    return wrapped_func
+
+class Memoize(type): # Singleton is a special case of Memoize
+    &#64;memoize
+    def __call__(cls, *args):
+        return super(Memoize, cls).__call__(*args)
+
+class LogFile(file):
+    &quot;&quot;&quot;Open a file for append.&quot;&quot;&quot;
+    __metaclass__ = Memoize
+    def __init__(self, name = &quot;/tmp/err.log&quot;):
+        self.viewer_cmd = 'xterm -e less'.split()
+        super(LogFile, self).__init__(name, &quot;a&quot;)
+
+    def display(self, *ls):
+        &quot;Use 'less' to display the log file in a separate xterm.&quot;
+        print &gt;&gt; self, &quot;\n&quot;.join(map(str, ls)); self.flush()
+        subprocess.call(self.viewer_cmd + [self.name])
+
+    def reset(self):
+        &quot;Erase the log file.&quot;
+        print &gt;&gt; file(self.name, &quot;w&quot;)
+
+if __name__ == &quot;__main__&quot;: # test
+    print &gt;&gt; LogFile(), &quot;hello&quot;
+    print &gt;&gt; LogFile(), &quot;world&quot;
+    LogFile().display()
+
+#&lt;/logfile.py&gt;
+
+$ python logfile.py
+</pre>
+</div>
+<div class="section" id="cooperative-hierarchies">
+<h2><a name="cooperative-hierarchies">Cooperative hierarchies</a></h2>
+<pre class="literal-block">
+#&lt;cooperative_init.py&gt;
+
+&quot;&quot;&quot;Given a hierarchy, makes __init__ cooperative.
+The only change needed is to add a line
+
+   __metaclass__ = CooperativeInit
+
+to the base class of your hierarchy.&quot;&quot;&quot;
+
+from decorators import decorator 
+
+def make_cooperative_init(cls, name, bases, dic):
+
+    def call_cooperatively(__init__, self, *args, **kw):
+        super(cls, self).__init__(*args, **kw)
+        __init__(self, *args, **kw)
+
+    __init__ = cls.__dict__.get(&quot;__init__&quot;)
+    if __init__:
+        cls.__init__ = decorator(call_cooperatively)(__init__)
+
+class CooperativeInit(type):
+    __init__ = make_cooperative_init
+
+class Base:
+    __metaclass__ = CooperativeInit
+    def __init__(self):
+        print &quot;B.__init__&quot;
+
+class C1(Base):
+    def __init__(self):
+        print &quot;C1.__init__&quot;
+
+class C2(Base):
+   def __init__(self):
+       print &quot;C2.__init__&quot;
+
+class D(C1, C2):
+    def __init__(self):
+        print &quot;D.__init__&quot;
+
+#&lt;/cooperative_init.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from cooperative_init import D
+&gt;&gt;&gt; d = D()
+B.__init__
+C2.__init__
+C1.__init__
+D.__init__
+</pre>
+</div>
+<div class="section" id="metaclass-enhanced-modules">
+<h2><a name="metaclass-enhanced-modules">Metaclass-enhanced modules</a></h2>
+<pre class="literal-block">
+#&lt;import_with_metaclass.py&gt;
+&quot;&quot;&quot;
+``import_with_metaclass(metaclass, modulepath)`` generates
+a new module from and old module, by enhancing all of its classes.
+This is not perfect, but it should give you a start.&quot;&quot;&quot;
+
+import os, sys, inspect, types
+
+def import_with_metaclass(metaclass, modulepath):
+    modname = os.path.basename(modulepath)[:-3] # simplistic
+    mod = types.ModuleType(modname)
+    locs = dict(
+        __module__ = modname,
+        __file__ = modulepath,
+        __metaclass__ = metaclass,
+        object = metaclass(&quot;object&quot;, (), {}))
+    execfile(modulepath, locs)
+    for k, v in locs.iteritems():
+        setattr(mod, k, v) 
+    return mod
+</pre>
+<p>#&lt;/import_with_metaclass.py&gt;</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from import_with_metaclass import import_with_metaclass
+&gt;&gt;&gt; from tracer import MetaTracer
+&gt;&gt;&gt; traced_optparse = import_with_metaclass(MetaTracer, 
+...     &quot;/usr/lib/python2.4/optparse.py&quot;)
+&gt;&gt;&gt; op = traced_optparse.OptionParser()
+calling __main__.OptionParser.__init__
+calling __main__.OptionContainer.__init__
+calling __main__.OptionParser._create_option_list
+calling __main__.OptionContainer._create_option_mappings
+calling __main__.OptionContainer.set_conflict_handler
+calling __main__.OptionContainer.set_description
+calling __main__.OptionParser.set_usage
+calling __main__.IndentedHelpFormatter.__init__
+calling __main__.HelpFormatter.__init__
+calling __main__.HelpFormatter.set_parser
+calling __main__.OptionParser._populate_option_list
+calling __main__.OptionParser._add_help_option
+calling __main__.OptionContainer.add_option
+calling __main__.Option.__init__
+calling __main__.Option._check_opt_strings
+calling __main__.Option._set_opt_strings
+calling __main__.Option._set_attrs
+calling __main__.OptionContainer._check_conflict
+calling __main__.OptionParser._init_parsing_state
+</pre>
+</div>
+<div class="section" id="magic-properties">
+<h2><a name="magic-properties">Magic properties</a></h2>
+<pre class="literal-block">
+#&lt;magicprop.py&gt;
+
+class MagicProperties(type):
+    def __init__(cls, name, bases, dic):
+        prop_names = set(name[3:] for name in dic
+                         if name.startswith(&quot;get&quot;)
+                         or name.startswith(&quot;set&quot;))
+        for name in prop_names:
+            getter = getattr(cls, &quot;get&quot; + name, None)
+            setter = getattr(cls, &quot;set&quot; + name, None)
+            setattr(cls, name, property(getter, setter))
+
+class Base(object):
+    __metaclass__ = MagicProperties
+    def getx(self):
+        return self._x
+    def setx(self, value):
+        self._x = value
+
+class Child(Base):
+    def getx(self):
+        print &quot;getting x&quot;
+        return super(Child, self).getx() 
+    def setx(self, value):
+        print &quot;setting x&quot;
+        super(Child, self).setx(value) 
+
+#&lt;/magicprop.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from magicprop import Child
+&gt;&gt;&gt; c = Child()
+&gt;&gt;&gt; c.x = 1
+setting x
+&gt;&gt;&gt; print c.x
+getting x
+1
+</pre>
+</div>
+<div class="section" id="hack-evil-properties">
+<h2><a name="hack-evil-properties">Hack: evil properties</a></h2>
+<pre class="literal-block">
+#&lt;evilprop.py&gt;
+
+def convert2property(name, bases, d):
+    return property(d.get('get'), d.get('set'),
+                    d.get('del'),d.get('__doc__'))
+
+class C(object):
+    class x:
+        &quot;&quot;&quot;An evil test property&quot;&quot;&quot;
+        __metaclass__ = convert2property
+        def get(self):
+            print 'Getting %s' % self._x
+            return self._x
+        def set(self, value):
+            self._x = value
+            print 'Setting to', value
+
+#&lt;/evilprop.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from evilprop import C
+&gt;&gt;&gt; c = C()
+&gt;&gt;&gt; c.x = 5
+Setting to 5
+&gt;&gt;&gt; c.x
+Getting 5
+5
+&gt;&gt;&gt; print C.x.__doc__
+An evil test property
+</pre>
+</div>
+<div class="section" id="why-i-suggest-not-to-use-metaclasses-in-production-code">
+<h2><a name="why-i-suggest-not-to-use-metaclasses-in-production-code">Why I suggest <em>not</em> to use metaclasses in production code</a></h2>
+<blockquote>
+<ul class="simple">
+<li>there are very few good use case for metaclasses in production code
+(i.e. 99% of time you don't need them)</li>
+<li>they put a cognitive burden on the developer;</li>
+<li>a design without metaclasses is less magic and likely more robust;</li>
+<li>a design with metaclasses makes it difficult to use other metaclasses 
+for debugging.</li>
+</ul>
+</blockquote>
+<p>As far as I know, string.Template is the only metaclass-enhanced class
+in the standard library; the metaclass is used to give the possibility to
+change the defaults:</p>
+<pre class="literal-block">
+delimiter = '$'
+idpattern = r'[_a-z][_a-z0-9]*'
+</pre>
+<p>in subclasses of Template.</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from string import Template
+&gt;&gt;&gt; from tracer import MetaTracer
+&gt;&gt;&gt; class TracedTemplate(Template):
+...     __metaclass__ = MetaTracer
+...
+Traceback (most recent call last):
+  ...
+TypeError: Error when calling the metaclass bases
+    metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+</pre>
+<p>Solution: use a consistent metaclass</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class GoodMeta(MetaTracer, type(Template)): pass
+...
+&gt;&gt;&gt; class TracedTemplate(Template):
+...     __metaclass__ = GoodMeta
+</pre>
+</div>
+<div class="section" id="is-there-an-automatic-way-of-solving-the-conflict">
+<h2><a name="is-there-an-automatic-way-of-solving-the-conflict">Is there an automatic way of solving the conflict?</a></h2>
+<p>Yes, but you really need to be a metaclass wizard.</p>
+<p><a class="reference" href="http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/204197">http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/204197</a></p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from noconflict import classmaker
+&gt;&gt;&gt; class TracedTemplate(Template):
+...     __metaclass__ = classmaker((MetaTracer,))
+&gt;&gt;&gt; print type(TracedTemplate)
+&lt;class 'noconflict._MetaTracer_TemplateMetaclass'&gt;
+</pre>
+<pre class="literal-block">
+#&lt;noconflict.py&gt;
+
+import inspect, types, __builtin__
+from skip_redundant import skip_redundant
+
+memoized_metaclasses_map = {}
+
+# utility function
+def remove_redundant(metaclasses):
+   skipset = set([types.ClassType])
+   for meta in metaclasses: # determines the metaclasses to be skipped
+       skipset.update(inspect.getmro(meta)[1:])
+   return tuple(skip_redundant(metaclasses, skipset))
+
+##################################################################
+## now the core of the module: two mutually recursive functions ##
+##################################################################
+
+def get_noconflict_metaclass(bases, left_metas, right_metas):
+    &quot;&quot;&quot;Not intended to be used outside of this module, unless you know
+    what you are doing.&quot;&quot;&quot;
+    # make tuple of needed metaclasses in specified priority order
+    metas = left_metas + tuple(map(type, bases)) + right_metas
+    needed_metas = remove_redundant(metas)
+
+    # return existing confict-solving meta, if any
+    if needed_metas in memoized_metaclasses_map:
+      return memoized_metaclasses_map[needed_metas]
+    # nope: compute, memoize and return needed conflict-solving meta
+    elif not needed_metas:         # wee, a trivial case, happy us
+        meta = type
+    elif len(needed_metas) == 1: # another trivial case
+       meta = needed_metas[0]
+    # check for recursion, can happen i.e. for Zope ExtensionClasses
+    elif needed_metas == bases: 
+        raise TypeError(&quot;Incompatible root metatypes&quot;, needed_metas)
+    else: # gotta work ...
+        metaname = '_' + ''.join([m.__name__ for m in needed_metas])
+        meta = classmaker()(metaname, needed_metas, {})
+    memoized_metaclasses_map[needed_metas] = meta
+    return meta
+
+def classmaker(left_metas=(), right_metas=()):
+   def make_class(name, bases, adict):
+       metaclass = get_noconflict_metaclass(bases, left_metas, right_metas)
+       return metaclass(name, bases, adict)
+   return make_class
+
+#################################################################
+## and now a conflict-safe replacement for 'type'              ## 
+#################################################################
+
+__type__=__builtin__.type # the aboriginal 'type'
+# left available in case you decide to rebind __builtin__.type
+
+class safetype(__type__):
+    # this is REALLY DEEP MAGIC
+    &quot;&quot;&quot;Overrides the ``__new__`` method of the ``type`` metaclass, making the
+    generation of classes conflict-proof.&quot;&quot;&quot;
+    def __new__(mcl, *args):
+        nargs = len(args)
+        if nargs == 1: # works as __builtin__.type
+            return __type__(args[0]) 
+        elif nargs == 3: # creates the class using the appropriate metaclass
+            n, b, d = args # name, bases and dictionary
+            meta = get_noconflict_metaclass(b, (mcl,), ()) 
+            if meta is mcl: # meta is trivial, dispatch to the default __new__
+                return super(safetype, mcl).__new__(mcl, n, b, d)
+            else: # non-trivial metaclass, dispatch to the right __new__
+                # (it will take a second round) # print mcl, meta
+                return super(mcl, meta).__new__(meta, n, b, d)
+        else:
+            raise TypeError('%s() takes 1 or 3 arguments' % mcl.__name__)
+
+#&lt;/noconflict.py&gt;
+</pre>
+</div>
+</div>
+</div>
+</body>
+</html>

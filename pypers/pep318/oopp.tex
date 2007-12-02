@@ -1,0 +1,573 @@
+\documentclass[10pt,english]{article}
+\usepackage{babel}
+\usepackage{shortvrb}
+\usepackage[latin1]{inputenc}
+\usepackage{tabularx}
+\usepackage{longtable}
+\setlength{\extrarowheight}{2pt}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage[a4paper,margin=2cm,nohead]{geometry}
+%% generator Docutils: http://docutils.sourceforge.net/
+\newlength{\admonitionwidth}
+\setlength{\admonitionwidth}{0.9\textwidth}
+\newlength{\docinfowidth}
+\setlength{\docinfowidth}{0.9\textwidth}
+\newcommand{\optionlistlabel}[1]{\bf #1 \hfill}
+\newenvironment{optionlist}[1]
+{\begin{list}{}
+  {\setlength{\labelwidth}{#1}
+   \setlength{\rightmargin}{1cm}
+   \setlength{\leftmargin}{\rightmargin}
+   \addtolength{\leftmargin}{\labelwidth}
+   \addtolength{\leftmargin}{\labelsep}
+   \renewcommand{\makelabel}{\optionlistlabel}}
+}{\end{list}}
+% begin: floats for footnotes tweaking.
+\setlength{\floatsep}{0.5em}
+\setlength{\textfloatsep}{\fill}
+\addtolength{\textfloatsep}{3em}
+\renewcommand{\textfraction}{0.5}
+\renewcommand{\topfraction}{0.5}
+\renewcommand{\bottomfraction}{0.5}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+% end floats for footnotes
+% some commands, that could be overwritten in the style file.
+\newcommand{\rubric}[1]{\subsection*{~\hfill {\it #1} \hfill ~}}
+% end of "some commands"
+\input{/mnt/exp/MyDocs/pypers/style.tex}
+\title{Documentation of the oopp module}
+\author{}
+\date{}
+\hypersetup{
+pdftitle={Documentation of the oopp module}
+}
+\raggedbottom
+\begin{document}
+\maketitle
+
+
+
+%___________________________________________________________________________
+
+\hypertarget{documented-metaclasses}{}
+\section*{Documented metaclasses}
+\pdfbookmark[0]{Documented metaclasses}{documented-metaclasses}
+
+\texttt{Final(type): {\#} better derived from WithCounter,typ}
+\begin{quote}
+
+Instances of Final cannot be derived
+\end{quote}
+
+\texttt{AutoWrapped(type)}
+\begin{quote}
+
+Metaclass that looks at the methods declared in the attributes 
+builtinlist and wraplist of its instances and wraps them with
+autowrappedmethod.
+\end{quote}
+
+\texttt{Wrapped(Customizable,type)}
+\begin{quote}
+
+A customizable metaclass to wrap methods with a given wrapper and
+a given condition
+\begin{quote}
+
+\texttt{Reflective(type)}
+\begin{quote}
+
+Cooperative metaclass that defines the private variable {\_}{\_}this in
+its instances. {\_}{\_}this contains a reference to the class, therefore
+it allows anonymous cooperative super calls in the class.
+\end{quote}
+
+\texttt{wrappedmethod(Customizable)}
+\begin{quote}
+
+Customizable method factory intended for derivation.
+The wrapper method is overridden in the children.
+\end{quote}
+\end{quote}
+\end{quote}
+
+\texttt{Cooperative(BracketCallable,type)}
+\begin{quote}
+
+Bracket-callable metaclass implementing cooperative methods. Works
+well for plain methods returning None, such as {\_}{\_}init{\_}{\_}
+
+\texttt{coop{\_}method(cls,name,method): {\#} method can be Non}
+\begin{quote}
+
+Calls both the superclass method and the class method (if the 
+class has an explicit method). Implemented via a closure
+\end{quote}
+\end{quote}
+
+\texttt{Logged(WithLogger,Reflective)}
+\begin{quote}
+
+Metaclass that reuses the features provided by WithLogger. 
+In particular the classes created by Logged are Reflective, 
+PrettyPrinted and Customizable.
+\end{quote}
+
+\texttt{MagicallyTransformed(type)}
+\begin{quote}
+
+Metaclass changing the formatstring of its instances
+\end{quote}
+
+\texttt{Printable(PrettyPrinted,type)}
+\begin{quote}
+
+Apparently does nothing, but actually makes PrettyPrinted acting as
+a metaclass.
+\end{quote}
+
+
+%___________________________________________________________________________
+
+\hypertarget{documented-classes}{}
+\section*{Documented classes}
+\pdfbookmark[0]{Documented classes}{documented-classes}
+
+\texttt{convert2descriptor(object)}
+\begin{quote}
+
+To all practical means, this class acts as a function that, given an
+object, adds to it a {\_}{\_}get{\_}{\_} method if it is not already there. The 
+added {\_}{\_}get{\_}{\_} method is trivial and simply returns the original object, 
+independently from obj and cls.
+
+\texttt{{\_}{\_}get{\_}{\_}(self,obj,cls=None)}
+\begin{quote}
+
+Returns self.a independently from obj and cls
+\end{quote}
+\end{quote}
+
+\texttt{Object(object)}
+\begin{quote}
+
+A convenient Object class
+\end{quote}
+
+\texttt{GeometricFigure(object): {\#}an example of object factor}
+\begin{quote}
+
+This class allows to define geometric figures according to their
+equation in the cartesian plane. It will be extended later.
+
+\texttt{{\_}{\_}init{\_}{\_}(self,equation,**parameters)}
+\begin{quote}
+
+Specify the cartesian equation of the object and its parameters
+\end{quote}
+\end{quote}
+
+\texttt{UglyDuckling(PrettyPrinted)}
+\begin{quote}
+
+A plain, regular class
+\end{quote}
+
+\texttt{autowrappedmethod(wrappedmethod)}
+\begin{quote}
+
+Makes the method returning cls instances, by wrapping its
+output with cls
+\end{quote}
+
+\texttt{Clock(object)}
+\begin{quote}
+
+Clock with a staticmethod
+\end{quote}
+
+\texttt{AccessError(object)}
+\begin{quote}
+
+Descriptor raising an AttributeError when the attribute is 
+accessed
+\end{quote}
+
+\texttt{Frozen(object)}
+\begin{quote}
+
+Subclasses of Frozen are frozen, i.e. it is impossibile to add
+new attributes to them and their instances
+\end{quote}
+
+\texttt{Timer(Clock)}
+\begin{quote}
+
+Inherits the get{\_}time staticmethod from Clock
+\end{quote}
+
+\texttt{Vector(list)}
+\begin{quote}
+
+Implements finite dimensional vectors as lists. Can be instantiated
+as Vector([a,b,c,..]) or as Vector(a,b,c ..)
+\end{quote}
+
+\texttt{Singleton(WithCounter)}
+\begin{quote}
+
+If you inherit from me, you can only have one instance
+\end{quote}
+
+\texttt{Homo(PrettyPrinted)}
+\begin{quote}
+
+Defines the method 'can', which is intended to be overriden 
+in the children classes, and inherits '{\_}{\_}str{\_}{\_}' from PrettyPrinted,
+ensuring a nice printing representation for all children.
+\end{quote}
+
+\texttt{kwdict(dict)}
+\begin{quote}
+
+Keyword dictionary base class
+
+\texttt{pretty(dic)}
+\begin{quote}
+
+Returns a nice string representation for the dictionary
+\end{quote}
+\end{quote}
+
+\texttt{WithLogger(WithCounter,PrettyPrinted)}
+\begin{quote}
+
+WithLogger inherits from WithCounter the 'count' class attribute; 
+moreover it inherits '{\_}{\_}str{\_}{\_}' from PrettyPrinted
+\end{quote}
+
+\texttt{Get(object)}
+\begin{quote}
+
+Invoked as Get(cls)(xxx) where xxx = staticmethod, classmethod,
+property, plainmethod, plaindata, returns the corresponding 
+attributes as a keyword dictionary. It works by internally calling 
+the routine inspect.classify{\_}class{\_}attrs. Notice that special data
+attributes are not retrieved (this is by design).
+\end{quote}
+
+\texttt{Makeobj(object)}
+\begin{quote}
+
+A factory of object factories. Makeobj(cls) returns instances
+of cls
+\end{quote}
+
+\texttt{ExampleBaseClass(PrettyPrinted)}
+\begin{quote}
+
+Contains a regular method 'm', a staticmethod 's', a classmethod 
+'c', a property 'p' and a data attribute 'd'.
+\end{quote}
+
+\texttt{TransformedUglyDuckling(PrettyPrinted)}
+\begin{quote}
+
+A class metamagically modified
+\end{quote}
+
+\texttt{Customizable(object)}
+\begin{quote}
+
+Classes inhering from 'Customizable' have a 'with' method acting as
+an object modifier and 'With' classmethod acting as a class factory
+\end{quote}
+
+\texttt{WithMultiCounter(WithCounter)}
+\begin{quote}
+
+Each time a new subclass is derived, the counter is reset
+\end{quote}
+
+\texttt{BracketCallable(object)}
+\begin{quote}
+
+Any subclass C(BracketCallable) can be called with the syntax C[t], 
+where t is a tuple of arguments stored in bracket{\_}args;  returns the 
+class or an instance of it, depending on the flag 'returnclass'.
+\end{quote}
+
+\texttt{ClsFactory(BracketCallable)}
+\begin{quote}
+\begin{description}
+%[visit_definition_list_item]
+\item[Bracket callable non-cooperative class acting as :]
+%[visit_definition]
+
+a factory of class factories.
+ClsFactory instances are class factories accepting 0,1,2 or 3 arguments.
+
+%[depart_definition]
+%[depart_definition_list_item]
+%[visit_definition_list_item]
+\item[. They automatically converts functions to static methods :]
+%[visit_definition]
+
+if the input object is not a class. If an explicit name is not passed
+the name of the created class is obtained by adding an underscore to 
+the name of the original object.
+
+%[depart_definition]
+%[depart_definition_list_item]
+\end{description}
+
+\texttt{{\_}{\_}call{\_}{\_}(self, *args)}
+\begin{quote}
+
+Generates a new class using self.meta and avoiding conflicts.
+The first metaobject can be a dictionary, an object with a
+dictionary (except a class), or a simple name.
+\end{quote}
+\end{quote}
+
+\texttt{WithCounter(object)}
+\begin{quote}
+
+Mixin class counting the total number of its instances and storing 
+it in the class attribute counter.
+\end{quote}
+
+
+%___________________________________________________________________________
+
+\hypertarget{documented-functions}{}
+\section*{Documented functions}
+\pdfbookmark[0]{Documented functions}{documented-functions}
+
+\texttt{mandelbrot(row,col)}
+\begin{quote}
+
+Computes the Mandelbrot set in one line
+\end{quote}
+
+\texttt{with{\_}tracer(function,namespace='{\_}{\_}main{\_}{\_}',output=sys.stdout, indent=[0])}
+\begin{quote}
+
+Closure returning traced functions. It is typically invoked
+trough an auxiliary function fixing the parameters of with{\_}tracer.
+\end{quote}
+
+\texttt{ancestor(C,S=None)}
+\begin{quote}
+
+Returns the ancestors of the first argument with respect to the 
+MRO of the second argument. If the second argument is None, then 
+returns the MRO of the first argument.
+\end{quote}
+
+\texttt{customize(obj,errfile=None,**kw)}
+\begin{quote}
+
+Adds attributes to an object, if possible. If not, writes an error
+message on 'errfile'. If errfile is None, skips the exception.
+\end{quote}
+
+\texttt{loop{\_}overhead(N)}
+\begin{quote}
+
+Computes the time spent in empty loop of N iterations
+\end{quote}
+
+\texttt{indent(block,n)}
+\begin{quote}
+
+Indent a block of code by n spaces
+\end{quote}
+
+\texttt{totuple(arg)}
+\begin{quote}
+
+Converts the argument to a tuple, if need there is
+\end{quote}
+
+\texttt{attributes(obj,condition=lambda n,v: not special(n))}
+\begin{quote}
+
+Returns a dictionary containing the accessible attributes of 
+an object. By default, returns the non-special attributes only.
+\end{quote}
+
+\texttt{generateblocks(regexp,text)}
+\begin{quote}
+
+Generator splitting text in blocks according to regexp
+\end{quote}
+
+\texttt{wrapfunctions(obj,wrapper,err=None,**options)}
+\begin{quote}
+
+Traces the callable objects in an object with a dictionary
+\end{quote}
+
+\texttt{wrap(obj,wrapped,condition=lambda k,v: True, err=None)}
+\begin{quote}
+
+Retrieves obj's dictionary and wraps it
+\end{quote}
+
+\texttt{reflective(*classes)}
+\begin{quote}
+
+Reflective classes know themselves, i.e. they own a private
+attribute {\_}{\_}this containing a reference to themselves. If the class
+name starts with '{\_}', the underscores are stripped. This is needed
+to make the mangling mechanism work.
+\end{quote}
+
+\texttt{withmemory(f)}
+\begin{quote}
+
+This closure invokes the callable object f only if need there is
+\end{quote}
+
+\texttt{get{\_}time()}
+\begin{quote}
+
+Return the time of the system in the format HH:MM:SS
+\end{quote}
+
+\texttt{prn(s)}
+\begin{quote}
+
+Given an evaluable string, print its value and its object reference.
+Notice that the evaluation is done in the {\_}{\_}main{\_}{\_} dictionary.
+\end{quote}
+
+\texttt{isplaindata(a)}
+\begin{quote}
+
+A data attribute has no {\_}{\_}get{\_}{\_} or {\_}{\_}set{\_}{\_} attributes, is not
+a built-in function, nor a built-in method.
+\end{quote}
+
+\texttt{Pizza(toppings,**dic)}
+\begin{quote}
+
+This function produces classes inheriting from GenericPizza and 
+WithLogger, using a metaclass inferred from Logged
+\end{quote}
+
+\texttt{modulesub(s,r,module)}
+\begin{quote}
+
+Requires 2.3
+\end{quote}
+
+\texttt{memoize(f)}
+\begin{quote}
+
+This closure remembers all f invocations
+\end{quote}
+
+\texttt{with{\_}timer(func, modulename='{\_}{\_}main{\_}{\_}', n=1, logfile=sys.stdout)}
+\begin{quote}
+
+Wraps the function func and executes it n times (default n=1). 
+The average time spent in one iteration, express in milliseconds, 
+is stored in the attributes func.time and func.CPUtime, and saved 
+in a log file which defaults to the standard output.
+\end{quote}
+
+\texttt{dedent(text)}
+\begin{quote}
+
+dedent(text : string) -{$>$} string
+\begin{quote}
+\begin{quote}
+
+Remove any whitespace than can be uniformly removed from the left
+of every line in text.
+
+This can be used e.g. to make triple-quoted strings line up with
+the left edge of screen/whatever, while still presenting it in the
+source code in indented form.
+
+For example:
+\begin{quote}
+\begin{quote}
+\begin{description}
+%[visit_definition_list_item]
+\item[def test()::]
+%[visit_definition]
+
+{\#} end first line with to avoid the empty line!
+s = '''            hello
+
+Unexpected indentation.
+
+\begin{quote}
+
+world
+\end{quote}
+
+Block quote ends without a blank line; unexpected unindent.
+
+
+'''
+print repr(s)          {\#} prints '    hello
+
+%[depart_definition]
+%[depart_definition_list_item]
+\end{description}
+\end{quote}
+
+Block quote ends without a blank line; unexpected unindent.
+
+
+world
+\end{quote}
+
+Block quote ends without a blank line; unexpected unindent.
+
+\begin{description}
+%[visit_definition_list_item]
+\item[':]
+%[visit_definition]
+
+print repr(dedent(s))  {\#} prints 'hello
+
+%[depart_definition]
+%[depart_definition_list_item]
+\end{description}
+\end{quote}
+
+Block quote ends without a blank line; unexpected unindent.
+
+
+world
+\end{quote}
+
+Block quote ends without a blank line; unexpected unindent.
+
+
+'
+\end{quote}
+
+\texttt{makecls(*metas,**options)}
+\begin{quote}
+
+Class factory avoiding metatype conflicts. The invocation syntax is
+makecls(M1,M2,..,priority=1)(name,bases,dic). If the base classes have 
+metaclasses conflicting within themselves or with the given metaclasses,
+it automatically generates a compatible metaclass and instantiate it. 
+If priority is True, the given metaclasses have priority over the 
+bases' metaclasses
+\end{quote}
+
+\end{document}

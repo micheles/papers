@@ -1,0 +1,19 @@
+# ex.py
+
+class B(object):
+    def __init__(self, *args):
+        print "B.__init__"
+        super(B, self).__init__(*args)
+
+class M(B, type):
+    def __init__(self, n, b, d):
+        print "M.__init__"
+        super(M, self).__init__(n, b, d)
+     
+class C(B):
+    __metaclass__ = M
+    def __init__(self):
+        print "C.__init__"
+        super(C, self).__init__()
+
+

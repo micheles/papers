@@ -1,0 +1,44 @@
+RIFERIMENTI
+===========
+
+In Inglese
+----------------------------
+
+Home Page Ufficiale:: www.python.org
+Newsgroup: groups-beta.google.com/group/comp.lang.python
+Tutor: 
+
+In Italiano
+-------------------------------
+
+Home Page Ufficiale: www.python.it 
+Newsgroup: groups-beta.google.com/group/it.comp.lang.python
+
+Libri/Tutorials in rete
+------------------------
+
+Tradotti in italiano in www.zonapython.it/doc/
+
+ - How to Think Like a Computer Scientist
+ - Dive Into Python
+
+Articoli/riviste
+-----------------------
+
+1. la rivista italiana di Python: www.pyj.it 
+2. IBMdeveloperWorks: www-130.ibm.com/developerworks/linux
+3. O' Reilly On LAMP: www.onlamp.com
+
+Libri cartacei
+------------------
+
+Due soli libri in Italiano:
+
+1. David Brueck, Stephan Tanner, Python 2.1 Tutto e oltre  (Apogeo)
+2. Mark Lutz, David Asher, Programmare con Python (Hoeply)
+
+Decine di libri in inglesi. Consigliati:
+
+1. Alex Martelli, Python in a Nushell (O' Reilly)
+2. Alex Martelli, Python Cookbook (O' Reilly)
+3. Mark Lutz, David Asher, Learning Python

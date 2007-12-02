@@ -1,0 +1,669 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
+<meta name="version" content="S5 1.1" />
+<title>An Introduction to Web Programming with WSGI</title>
+<meta name="organization" content="StatPro Italy" />
+<meta name="date" content="2007-07-11" />
+<style type="text/css">
+
+/*
+:Author: David Goodger
+:Contact: goodger@users.sourceforge.net
+:Date: $Date: 2005-12-18 01:56:14 +0100 (Sun, 18 Dec 2005) $
+:Revision: $Revision: 4224 $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin-left: 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left {
+  clear: left }
+
+img.align-right {
+  clear: right }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em ;
+  background-color: #eeeeee }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+tt.docutils {
+  background-color: #eeeeee }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+<!-- configuration parameters -->
+<meta name="defaultView" content="slideshow" />
+<meta name="controlVis" content="hidden" />
+<!-- style sheet links -->
+<script src="ui/default/slides.js" type="text/javascript"></script>
+<link rel="stylesheet" href="ui/default/slides.css"
+      type="text/css" media="projection" id="slideProj" />
+<link rel="stylesheet" href="ui/default/outline.css"
+      type="text/css" media="screen" id="outlineStyle" />
+<link rel="stylesheet" href="ui/default/print.css"
+      type="text/css" media="print" id="slidePrint" />
+<link rel="stylesheet" href="ui/default/opera.css"
+      type="text/css" media="projection" id="operaFix" />
+
+<style type="text/css">
+#currentSlide {display: none;}
+</style>
+</head>
+<body>
+<div class="layout">
+<div id="controls"></div>
+<div id="currentSlide"></div>
+<div id="header">
+
+</div>
+<div id="footer">
+<h1>An Introduction to Web Programming with WSGI</h1>
+<h2>EuroPython 2007 - 11 June 2007</h2>
+</div>
+</div>
+<div class="presentation">
+<div class="slide" id="slide0">
+<h1 class="title">An Introduction to Web Programming with WSGI</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">Talk given at:</th><td class="field-body">EuroPython 2007</td>
+</tr>
+<tr class="field"><th class="docinfo-name">By:</th><td class="field-body">Michele Simionato</td>
+</tr>
+<tr><th class="docinfo-name">Organization:</th>
+<td>StatPro Italy</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>2007-07-11</td></tr>
+</tbody>
+</table>
+<!-- Definitions of interpreted text roles (classes) for S5/HTML data. -->
+<!-- This data file has been placed in the public domain. -->
+<!-- Colours
+======= -->
+<!-- Text Sizes
+========== -->
+<!-- Display in Slides (Presentation Mode) Only
+========================================== -->
+<!-- Display in Outline Mode Only
+============================ -->
+<!-- Display in Print Only
+===================== -->
+<!-- Incremental Display
+=================== -->
+
+</div>
+<div class="slide" id="introduction">
+<h1>Introduction</h1>
+<p>This is as a talk for beginners, only knowledge of
+CGI and a bit of HTTP protocol is expected
+<span class="incremental">(non-beginners -&gt; &quot;Zope on a Paste&quot;)</span></p>
+<ul class="incremental simple">
+<li>Have you ever heard of WSGI?</li>
+<li>Have you ever used WSGI?</li>
+<li>Have you used non WSGI-based Web frameworks?</li>
+</ul>
+</div>
+<div class="slide" id="ok-now-about-me">
+<h1>Ok, now about me</h1>
+<ul class="incremental simple">
+<li>I started to do Web programming with Zope and Plone</li>
+<li>(never liked them)</li>
+<li>I flirted with Quixote, Twisted, CherryPy, mod_python</li>
+<li>(which are ok but ...)</li>
+<li>I got in love with WSGI at last EuroPython</li>
+<li>(I am still in love with it ;)</li>
+</ul>
+</div>
+<div class="slide" id="what-i-have-done">
+<h1>What I have done</h1>
+<ul class="incremental simple">
+<li>written various helpers to simplify the usage of WSGI;</li>
+<li>debug with WSGI, deploy with Zope strategy</li>
+<li>written various simple Web tools for internal usage at <a class="reference" href="http://www.statpro.com">StatPro</a></li>
+<li>now we are going to start a major project with WSGI</li>
+</ul>
+</div>
+<div class="slide" id="wsgi">
+<h1>WSGI</h1>
+<img alt="Scotch_Whisky_(aka).png" src="Scotch_Whisky_(aka).png" />
+</div>
+<div class="slide" id="short-history-of-wsgi">
+<h1><em>Short</em> history of WSGI</h1>
+<ul class="incremental simple">
+<li>WSGI = Web Server Gateway Interface (<em>Whisky</em> for friends)</li>
+<li>the brainchild of Python guru Phillip J. Eby</li>
+<li>also input from Ian Bicking (<tt class="docutils literal"><span class="pre">paste</span></tt>) and others</li>
+<li>starting from Python 2.5, we have a WSGI web server in the standard
+library (<tt class="docutils literal"><span class="pre">wsgiref</span></tt>)</li>
+<li>there are plenty of simple and useful add-ons for WSGI applications
+out there (<tt class="docutils literal"><span class="pre">pylons</span> <span class="pre">...</span></tt>)</li>
+<li><a class="reference" href="http://video.google.com/videoplay?docid=-8502904076440714866">Guido</a> likes it!</li>
+</ul>
+</div>
+<div class="slide" id="wsgi-key-concepts">
+<h1>WSGI key concepts</h1>
+<ol class="incremental arabic">
+<li><p class="first">WSGI application:</p>
+<p>(env, resp) -&gt; chunks of text</p>
+<p>env = environment dictionary of the server;
+resp = function sending to the client the HTTP headers</p>
+</li>
+<li><p class="first">WSGI middleware:</p>
+<p>WSGI app -&gt; enhanced WSGI app</p>
+</li>
+</ol>
+</div>
+<div class="slide" id="hello-world">
+<h1>Hello World</h1>
+<pre class="literal-block">
+from wsgiref import simple_server
+
+def app(env, resp):
+    resp(
+     '200 OK', [('Content-type', 'text/html')])
+    return ['&lt;h1&gt;Hello, World!&lt;/h1&gt;']
+
+server=simple_server.make_server('', 8000, app)
+server.serve_forever()
+</pre>
+</div>
+<div class="slide" id="a-real-life-example">
+<h1>A real-life example</h1>
+<p class="incremental">Let me show a real problem we had at <a class="reference" href="http://www.statpro.com">StatPro</a></p>
+<img alt="badpricehistory.png" class="incremental" src="badpricehistory.png" />
+</div>
+<div class="slide" id="the-history-plotter">
+<h1>The history plotter</h1>
+<p>It was easy to write a simple command line history plotter</p>
+<ul class="incremental simple">
+<li>show live example</li>
+<li>but we were not happy with it</li>
+<li>because of installation issues, etc</li>
+<li>so we wanted to go on the Web</li>
+</ul>
+</div>
+<div class="slide" id="going-on-the-web">
+<h1>Going on the Web</h1>
+<ul class="incremental simple">
+<li>tool for internal usage on our intranet</li>
+<li>convenient to integrate with other Web tools</li>
+<li>usable also for non-techical users</li>
+<li>avoid installing and mantaining on every machine</li>
+<li>possibly we may open it to our other offices in the world</li>
+<li>we like the browser interface</li>
+</ul>
+</div>
+<div class="slide" id="without-a-framework">
+<h1>Without a framework</h1>
+<ul class="incremental simple">
+<li>KISS</li>
+<li>no security concerns</li>
+<li>no scalability concerns</li>
+<li>no nice-looking concerns</li>
+<li>it must be <em>EASY</em> to change</li>
+<li>we want minimal learning curve</li>
+<li>we want no installation/configuration hassle</li>
+<li>we want no dependencies</li>
+<li>we want something even simpler than CGI, if possible!</li>
+</ul>
+</div>
+<div class="slide" id="wsgi-is-the-answer">
+<h1>WSGI is the answer!</h1>
+<p>The web plotter</p>
+<pre class="literal-block">
+$ python webplotter.py
+</pre>
+<p><a class="reference" href="http://localhost:8000">Click here for the live demonstration</a></p>
+</div>
+<div class="slide" id="some-code-i">
+<h1>Some code (I)</h1>
+<pre class="literal-block">
+def app(env, resp):
+ form = getformdict(env)
+ if form.get('submitted'):
+   try:
+    fname = make_graph(form.get('code'), batch=True)
+   except Exception, e:
+    resp('500 ERR', [('Content-type', 'text/plain')])
+    return [traceback.format_exc()]
+   else:
+    resp('200 OK', [('Content-type', 'image/png')])
+    return file(fname)
+</pre>
+</div>
+<div class="slide" id="some-code-ii">
+<h1>Some code (II)</h1>
+<pre class="literal-block">
+else:
+ resp('200 OK', [('Content-type', 'text/html')])
+ return [
+  'Try values such as &lt;pre&gt;fri-gb;AVE&lt;/pre&gt;',
+  '&lt;pre&gt;fri-gb;TSCO&lt;/pre&gt; &lt;pre&gt;fri-us;DELL&lt;/pre&gt;',
+  '&lt;form&gt;', 'insert code ',
+  '&lt;input type=&quot;text&quot; name=&quot;code&quot;/&gt;',
+  '&lt;input type=&quot;submit&quot;, name=&quot;submitted&quot;,'
+  ' value=&quot;submit&quot; /&gt;',
+  '&lt;/form&gt;']
+</pre>
+</div>
+<div class="slide" id="some-code-iii">
+<h1>Some code (III)</h1>
+<pre class="literal-block">
+def getformdict(env):
+   qs = env.get('QUERY_STRING')
+   if qs:
+       return dict((k, v[0])
+              for k, v in cgi.parse_qsl(qs))
+   else:
+       return {}
+</pre>
+</div>
+<div class="slide" id="wsgi-vs-cgi">
+<h1>WSGI vs. CGI</h1>
+<ul class="incremental simple">
+<li>WSGI is simpler than CGI<ul>
+<li><span class="incremental">using wsgiref you don't require an external server</span></li>
+<li><span class="incremental">you can keep sessions in memory</span></li>
+</ul>
+</li>
+<li>WSGI scales better than CGI<ul>
+<li><span class="incremental">there is a large choice of wsgi servers (mod_wsgi, Twisted ...)</span></li>
+<li><span class="incremental">there is a large choice of third party middleware</span></li>
+<li><span class="incremental">it is relatively easy to turn a toy application into a serious one</span></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="slide" id="the-missing-link">
+<h1>The missing link</h1>
+<p>WSGI is a the missing link between the low-level mechanics of
+the Web and the high-level intricacies of the Web frameworks.</p>
+<img alt="Australopithecus.jpg" src="Australopithecus.jpg" />
+</div>
+<div class="slide" id="a-common-objection">
+<h1>A common objection</h1>
+<ul class="incremental simple">
+<li>Python has too many Web frameworks because it is too easy to build
+a Web framework in Python</li>
+<li>WSGI makes building a Web framework even easier, the number of framework
+will increase</li>
+<li>=&gt; WSGI fails its goal!</li>
+<li><strong>NOT TRUE</strong></li>
+<li><em>integration</em> is the key word</li>
+</ul>
+</div>
+<div class="slide" id="object-publishing-i">
+<h1>Object publishing (I)</h1>
+<pre class="literal-block">
+class Example(object):
+ def __init__(self, sitename):
+  self.sitename = sitename
+ def __call__(self):
+  yield '&lt;h1&gt;%s: index page&lt;/h1&gt;' % self.sitename
+  yield 'goto &lt;a href=&quot;./page1&quot;&gt;page1&lt;/a&gt;&lt;br/&gt;'
+  yield 'goto &lt;a href=&quot;./page2&quot;&gt;page2&lt;/a&gt;&lt;br/&gt;'
+  yield 'goto &lt;a href=&quot;subsite&quot;&gt;subsite&lt;/a&gt;&lt;br/&gt;'
+ def page1(self): yield 'page1'
+ def page2(self): yield 'page2'
+ page1.exposed = page2.exposed = True
+</pre>
+</div>
+<div class="slide" id="object-publishing-ii">
+<h1>Object publishing (II)</h1>
+<pre class="literal-block">
+class WSGIObjectPublisher(object):
+ def __init__(self, root):
+  self.root = root
+ def __call__(self, env, resp):
+  return self.getsubpage(self.root,env,resp)()
+ def getsubpage(self, root, env, resp):
+  script_name = util.shift_path_info(env)
+  if not script_name: # We've arrived!
+    resp('200 OK',[('content-type','text/html')])
+    return root
+  ...
+</pre>
+</div>
+<div class="slide" id="object-publishing-iii">
+<h1>Object publishing (III)</h1>
+<pre class="literal-block">
+try:
+ page = getattr(root, script_name)
+except AttributeError:
+ resp('404 Not Found',[('content-type','text/plain')])
+ return lambda:['missing page %r'%script_name]
+exposed = getattr(page, 'exposed', False)
+if not exposed:
+ resp('404 Not Found',[('content-type','text/plain')])
+ return lambda : [
+  '%r is not exposed!' % script_name]
+return self.getsubpage(page, env, resp)
+</pre>
+</div>
+<div class="slide" id="wsgi-vs-frameworks">
+<h1>WSGI vs. frameworks</h1>
+<p>Pro:</p>
+<ul class="simple">
+<li><span class="incremental">if you liked playing with Lego, you will be happy</span></li>
+<li><span class="incremental">you have much more control and you are not forced to marry a technology</span></li>
+<li><span class="incremental">you can learn a lot</span></li>
+<li><span class="incremental">others ...</span></li>
+</ul>
+</div>
+<div class="slide" id="id2">
+<h1>WSGI vs. frameworks</h1>
+<p>Contra:</p>
+<ul class="simple">
+<li><span class="incremental">you can build your own framework with WSGI, but you have to debug it</span></li>
+<li><span class="incremental">the existing WSGI frameworks are newer, there is less experience with them</span></li>
+<li><span class="incremental">WSGI is not particularly Twisted-friendly</span></li>
+<li><span class="incremental">others ...</span></li>
+</ul>
+</div>
+<div class="slide" id="and-now-middleware">
+<h1>And now middleware</h1>
+<p>No middleware in the standard library, but lots of useful middleware
+from third party sources. For instance, authentication middleware:</p>
+<pre class="literal-block">
+from paste.auth.basic import AuthBasicHandler
+
+def only_for_pippo(env, user, passwd):
+    return user == 'pippo'
+
+auth_app = AuthBasicHandler(
+    app, 'app realm', only_for_pippo)
+</pre>
+</div>
+<div class="slide" id="debugging-wsgi-apps">
+<h1>Debugging WSGI apps</h1>
+<pre class="literal-block">
+from wsgiref.simple_server import make_server
+from paste.evalexception import EvalException
+
+a, b = 1,0
+
+def app(env, resp):
+  resp('200 OK',[('Content-type','text/html')])
+  return [str(a/b)]
+
+make_server('',9090,EvalException(app)
+ ).serve_forever()
+</pre>
+<p>Show <a class="reference" href="http://localhost:9090">evalexception</a></p>
+</div>
+<div class="slide" id="references">
+<h1>References</h1>
+<p>That's all, folks!</p>
+<ul class="simple">
+<li><a class="reference" href="http://wsgi.org/wsgi">http://wsgi.org/wsgi</a></li>
+<li><a class="reference" href="http://www.python.org/dev/peps/pep-0333">http://www.python.org/dev/peps/pep-0333</a></li>
+<li><a class="reference" href="http://pythonpaste.org/do-it-yourself-framework.html">http://pythonpaste.org/do-it-yourself-framework.html</a></li>
+<li><a class="reference" href="http://pylonshq.com/">http://pylonshq.com/</a></li>
+</ul>
+<p class="incremental"><strong>(P.S. at StatPro, we are hiring! ;)</strong></p>
+</div>
+</div>
+</body>
+</html>

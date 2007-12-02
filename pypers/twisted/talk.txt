@@ -1,0 +1,231 @@
+An Introduction to Twisted
+=======================================
+
+<center>
+Seminar given at StatPro Italia<br/>
+15 September 2005        <br/>  
+Michele Simionato<br/>
+
+</center>
+
+
+Three things
+------------------
+
+<ul>
+ <li> What's Twisted <em>(life in an asynchronous world)</em> </li>
+ <li> Using deferreds <em>(the Hollywood principle)</em> </li>
+ <li> Writing servers and clients with Twisted </li>
+</ul>
+
+
+What's Twisted?
+---------------------
+
+Asynchronous Framework for Network Programming
+
+<ul>
+ <li> Synchronous  </li>
+ <li> Threaded  </li>
+ <li> Multiprocess  </li>
+ <li> Asynchronous </li>
+</ul>
+
+
+Example: a file downloader
+-----------------------------
+
+<pre>
+class Downloader(cmd.Cmd):
+    out = TkWindow()
+    def postloop(self):
+        self.out.close()
+    def do_quit(self, arg):
+        return True
+    def download(self, fname):
+        self.out.write("BEGIN %s" % fname)
+        for line in file(fname):
+            time.sleep(.1)
+            self.out.write(".")
+        self.out.write(" END %s\n" % fname)
+</pre>
+
+
+Threaded file downloader
+--------------------------------------
+
+<pre>
+class ThreadedDownloader(Downloader):
+    def do_download(self, arg):
+        self.thread = threading.Thread(
+                      target=self.download, args=(arg,))
+        self.thread.start()
+    def postloop(self):
+        self.thread.join() # wait before closing self.out
+        Downloader.postloop(self)
+</pre>
+
+
+Issues with threads
+-----------------------------------
+
+<ul>
+ <li>Platform bugs </li>
+ <li>Your own bugs</li>
+ <li>You <em>cannot kill threads</em></li>
+ <ul>
+  <li>unhandled exceptions do not stop the program</li>
+  <li>sys.exit does not work </li> 
+  <li>CTRL-C does not work</li>
+ </ul>
+ <li>Performance and scalability issues</li>
+</ul>
+
+
+Solution: split the computation in steps.
+------------------------------------------
+
+<ul>
+<li>Need a way to switch between multiple tasks</li>
+<li>Need a non-blocking mainloop</li>
+</ul>
+
+
+Multi iterator
+------------------------------
+
+<pre>
+def multi_iter(iterlist, terminate=True):
+    while True:
+        for it in iterlist:
+            try:
+                yield it.next()
+            except StopIteration:
+                iterlist.remove(it)
+        if not iterlist:
+            if terminate:
+                break
+            else:
+                yield Nothing
+</pre>
+
+
+Non-blocking mainloops
+------------------------------
+
+<ul>
+<li> Hand-made command loop </li>
+<li> Twisted mainloop </li> 
+<li> Tkinter mainloop </li> 
+</ul>
+
+
+Performance
+---------------------------------
+
+show <em>million.py</em>
+
+
+Deferreds
+----------------------
+
+<ul>
+ <li> getProcessOutput </li>
+ <li> deferToThread </li>
+ <li> dbpool.runQuery </li>
+</ul>
+
+
+Writing servers
+---------------------------------
+
+<ul>
+ <li>A server spawning processes</li>
+ <li>The server version of the file downloader</li>
+</ul>
+
+
+A server spawning processes
+------------------------------------
+
+<pre>
+class FakeTelnet(protocol.Protocol):
+    dirToRunIn = os.getcwd()
+    def connectionMade(self):
+        print 'connection made'
+        self.pp = ProcessProtocol(self)
+        cmd = self.factory.cmd_list
+        reactor.spawnProcess(self.pp, cmd[0], cmd, os.environ,
+                             self.dirToRunIn, usePTY=True)
+    def dataReceived(self, data):
+        self.pp.transport.write(data)
+    def connectionLost(self, reason=None):
+        print 'connection lost'
+        self.pp.transport.loseConnection()
+
+class ProcessProtocol(protocol.ProcessProtocol):
+    def __init__(self, telnet):
+        self.telnet = telnet
+    def outReceived(self, data):
+        self.telnet.transport.write(data)
+    def errReceived(self, data):
+        self.telnet.transport.write("! " + data)
+    def processEnded(self, status):
+        print 'protocol connection lost'
+        self.telnet.transport.loseConnection()
+</pre>
+
+
+How to run it
+------------------------
+
+<pre>
+def run(cmd_list, port=1025):
+    factory = protocol.ServerFactory()
+    factory.protocol = FakeTelnet
+    factory.cmd_list = cmd_list
+    reactor.listenTCP(port, factory)
+    reactor.run()
+</pre>
+
+
+Writing clients
+---------------------------------
+
+<pre>
+from twisted.internet.protocol import ClientFactory
+from twisted.protocols.basic import LineReceiver
+from twisted.internet import reactor
+
+class EchoClient(LineReceiver):
+    end="Bye-bye!"
+    def connectionMade(self):
+        self.sendLine("Hello, world!")
+        self.sendLine("What a fine day it is.")
+        self.sendLine(self.end)
+    def lineReceived(self, line):
+        print "receive:", line
+        if line == self.end:
+            self.transport.loseConnection()
+
+class EchoClientFactory(ClientFactory):
+    protocol = EchoClient
+    def clientConnectionFailed(self, connector, reason):
+        print 'connection failed:', reason.getErrorMessage()
+        reactor.stop()
+    def clientConnectionLost(self, connector, reason):
+        print 'connection lost:', reason.getErrorMessage()
+        reactor.stop()
+
+reactor.connectTCP('localhost', 8000, EchoClientFactory())
+reactor.run()
+</pre>
+
+
+Not only Twisted ...
+--------------------------------------
+
+<ul>
+ <li>greenlets</li>
+ <li>back button</li>
+</ul>

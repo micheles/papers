@@ -1,0 +1,100 @@
+Hi Mark!
+
+I have found a number of misprints, due to the fact I have sent my
+article in reStructuredText format. The advantage of reStructuredText is 
+that can be converted in HTML automatically. If you prefer, I can send you 
+directly the HTML version, I thought the text version was easier to edit 
+and you didn't express any preference when I asked about it.
+
+These are the issues with reStructuredText markup:
+
+- ``xxx`` should be displayed in a typewriter font
+
+- *xxx*  should be displayed in italic 
+
+- :: starts a literal block (rendered as <pre> ...</pre>)
+
+- xxx_ denotes an HTML link
+
+Words to be fixed are ``getopt``, `optparse``, etc., the *i.e.*,
+*destinations*, way::, here_
+
+Moreover, the indentation in the code went mixed up, so please check it
+again.
+
+I also found a misprint in the sentence "The only disadvantage of ``optparse`` 
+is that it is sophisticated tool", an "a" is missing: "The only disadvantage 
+of ``optparse`` is that it is a sophisticated tool".
+
+I saw that you cutted some sentences, probably due to lenght limits. Something
+went lost here:
+
+"It makes sense to write this kind of utility in Python. remote directories."
+
+The original was:
+
+
+"So, it makes sense 
+to write this kind of utilities in Python, and actually many people 
+(including myself) are actively replacing some Unix commands and bash 
+scripts with Python scripts. In real life, I have extended a lot 
+the minimal tool that I describe here, and I continue to tune it as 
+needed. For instance, you can make it to work recursively and/or on
+remote directories."
+
+I would rewrite the sentence as follows:
+
+"It makes sense to write this kind of utility in Python (or in Perl, but this
+is Pyzine ;)"
+
+
+in such a way that it is short and makes clear that I know about the 
+existence of Perl.
+
+
+
+> I had some difficulty understanding your draft at the end. As part of
+> the references you seemed to include some code that was in the Recipe. 
+> Does this need to be repeated?
+
+Re-reading it after a couple of months, I do realize that it is pretty
+difficult to follow the last part. I see two solutions:
+
+1. The code of the recipe has to go inside the paper and some additional
+   explanation has to be added;
+
+2. We kill the last paragraph and just put a reference to the Cookbook
+   recipe.
+
+In the first case the paper can become too long; in the second case it
+can become too short (then we should restore the cutted sentences).
+
+I have no preferences, tell me the option you like the most and that you
+think would be the best interest of Py readers. The only point I wanted
+to make is that it is possible to reduce the verbosity of optparse with 
+some relatively simple trick (the recipe). BTW, the recipe got 
+enthusiastic comments (see 
+http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/278844) so I 
+think it was appreciated. However it is not standard optionparse and can
+be found in the cookbook, so it can be cutted if there are lenght 
+constraints.
+
+All links should be working; if something is missing is because of
+a) reStructuredText markup getting mixed up or b) sometimes the
+Cookbook site goes offline and the link get lost  or c) you are
+referring to the local link to the cookbook recipe code, since
+originally I thought it must go at the end of the article as an
+appendix (I thought the reader could not follow the argument
+without seeing it and I didn't want to force him/her to go to
+the cookbook site while reading the paper, also because of b).
+
+So let me know what you prefer to do for this last part and I will
+fix it.
+
+With my best regards,
+
+
+                            Michele Simionato
+
+P.S. I will send you my bio and picture in a forthcoming email.
+

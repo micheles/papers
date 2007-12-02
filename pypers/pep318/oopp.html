@@ -1,0 +1,324 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.2.9: http://docutils.sourceforge.net/" />
+<title>Documentation of the oopp module</title>
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="documentation-of-the-oopp-module">
+<h1 class="title">Documentation of the oopp module</h1>
+<div class="section" id="documented-metaclasses">
+<h1><a name="documented-metaclasses">Documented metaclasses</a></h1>
+<p><tt class="literal"><span class="pre">Final(type):</span> <span class="pre">#</span> <span class="pre">better</span> <span class="pre">derived</span> <span class="pre">from</span> <span class="pre">WithCounter,typ</span></tt></p>
+<blockquote>
+Instances of Final cannot be derived</blockquote>
+<p><tt class="literal"><span class="pre">AutoWrapped(type)</span></tt></p>
+<blockquote>
+Metaclass that looks at the methods declared in the attributes 
+builtinlist and wraplist of its instances and wraps them with
+autowrappedmethod.</blockquote>
+<p><tt class="literal"><span class="pre">Wrapped(Customizable,type)</span></tt></p>
+<blockquote>
+<p>A customizable metaclass to wrap methods with a given wrapper and
+a given condition</p>
+<p><tt class="literal"><span class="pre">Reflective(type)</span></tt></p>
+<blockquote>
+Cooperative metaclass that defines the private variable __this in
+its instances. __this contains a reference to the class, therefore
+it allows anonymous cooperative super calls in the class.</blockquote>
+<p><tt class="literal"><span class="pre">wrappedmethod(Customizable)</span></tt></p>
+<blockquote>
+Customizable method factory intended for derivation.
+The wrapper method is overridden in the children.</blockquote>
+</blockquote>
+<p><tt class="literal"><span class="pre">Cooperative(BracketCallable,type)</span></tt></p>
+<blockquote>
+<p>Bracket-callable metaclass implementing cooperative methods. Works
+well for plain methods returning None, such as __init__</p>
+<p><tt class="literal"><span class="pre">coop_method(cls,name,method):</span> <span class="pre">#</span> <span class="pre">method</span> <span class="pre">can</span> <span class="pre">be</span> <span class="pre">Non</span></tt></p>
+<blockquote>
+Calls both the superclass method and the class method (if the 
+class has an explicit method). Implemented via a closure</blockquote>
+</blockquote>
+<p><tt class="literal"><span class="pre">Logged(WithLogger,Reflective)</span></tt></p>
+<blockquote>
+Metaclass that reuses the features provided by WithLogger. 
+In particular the classes created by Logged are Reflective, 
+PrettyPrinted and Customizable.</blockquote>
+<p><tt class="literal"><span class="pre">MagicallyTransformed(type)</span></tt></p>
+<blockquote>
+Metaclass changing the formatstring of its instances</blockquote>
+<p><tt class="literal"><span class="pre">Printable(PrettyPrinted,type)</span></tt></p>
+<blockquote>
+Apparently does nothing, but actually makes PrettyPrinted acting as
+a metaclass.</blockquote>
+</div>
+<div class="section" id="documented-classes">
+<h1><a name="documented-classes">Documented classes</a></h1>
+<p><tt class="literal"><span class="pre">convert2descriptor(object)</span></tt></p>
+<blockquote>
+<p>To all practical means, this class acts as a function that, given an
+object, adds to it a __get__ method if it is not already there. The 
+added __get__ method is trivial and simply returns the original object, 
+independently from obj and cls.</p>
+<p><tt class="literal"><span class="pre">__get__(self,obj,cls=None)</span></tt></p>
+<blockquote>
+Returns self.a independently from obj and cls</blockquote>
+</blockquote>
+<p><tt class="literal"><span class="pre">Object(object)</span></tt></p>
+<blockquote>
+A convenient Object class</blockquote>
+<p><tt class="literal"><span class="pre">GeometricFigure(object):</span> <span class="pre">#an</span> <span class="pre">example</span> <span class="pre">of</span> <span class="pre">object</span> <span class="pre">factor</span></tt></p>
+<blockquote>
+<p>This class allows to define geometric figures according to their
+equation in the cartesian plane. It will be extended later.</p>
+<p><tt class="literal"><span class="pre">__init__(self,equation,**parameters)</span></tt></p>
+<blockquote>
+Specify the cartesian equation of the object and its parameters</blockquote>
+</blockquote>
+<p><tt class="literal"><span class="pre">UglyDuckling(PrettyPrinted)</span></tt></p>
+<blockquote>
+A plain, regular class</blockquote>
+<p><tt class="literal"><span class="pre">autowrappedmethod(wrappedmethod)</span></tt></p>
+<blockquote>
+Makes the method returning cls instances, by wrapping its
+output with cls</blockquote>
+<p><tt class="literal"><span class="pre">Clock(object)</span></tt></p>
+<blockquote>
+Clock with a staticmethod</blockquote>
+<p><tt class="literal"><span class="pre">AccessError(object)</span></tt></p>
+<blockquote>
+Descriptor raising an AttributeError when the attribute is 
+accessed</blockquote>
+<p><tt class="literal"><span class="pre">Frozen(object)</span></tt></p>
+<blockquote>
+Subclasses of Frozen are frozen, i.e. it is impossibile to add
+new attributes to them and their instances</blockquote>
+<p><tt class="literal"><span class="pre">Timer(Clock)</span></tt></p>
+<blockquote>
+Inherits the get_time staticmethod from Clock</blockquote>
+<p><tt class="literal"><span class="pre">Vector(list)</span></tt></p>
+<blockquote>
+Implements finite dimensional vectors as lists. Can be instantiated
+as Vector([a,b,c,..]) or as Vector(a,b,c ..)</blockquote>
+<p><tt class="literal"><span class="pre">Singleton(WithCounter)</span></tt></p>
+<blockquote>
+If you inherit from me, you can only have one instance</blockquote>
+<p><tt class="literal"><span class="pre">Homo(PrettyPrinted)</span></tt></p>
+<blockquote>
+Defines the method 'can', which is intended to be overriden 
+in the children classes, and inherits '__str__' from PrettyPrinted,
+ensuring a nice printing representation for all children.</blockquote>
+<p><tt class="literal"><span class="pre">kwdict(dict)</span></tt></p>
+<blockquote>
+<p>Keyword dictionary base class</p>
+<p><tt class="literal"><span class="pre">pretty(dic)</span></tt></p>
+<blockquote>
+Returns a nice string representation for the dictionary</blockquote>
+</blockquote>
+<p><tt class="literal"><span class="pre">WithLogger(WithCounter,PrettyPrinted)</span></tt></p>
+<blockquote>
+WithLogger inherits from WithCounter the 'count' class attribute; 
+moreover it inherits '__str__' from PrettyPrinted</blockquote>
+<p><tt class="literal"><span class="pre">Get(object)</span></tt></p>
+<blockquote>
+Invoked as Get(cls)(xxx) where xxx = staticmethod, classmethod,
+property, plainmethod, plaindata, returns the corresponding 
+attributes as a keyword dictionary. It works by internally calling 
+the routine inspect.classify_class_attrs. Notice that special data
+attributes are not retrieved (this is by design).</blockquote>
+<p><tt class="literal"><span class="pre">Makeobj(object)</span></tt></p>
+<blockquote>
+A factory of object factories. Makeobj(cls) returns instances
+of cls</blockquote>
+<p><tt class="literal"><span class="pre">ExampleBaseClass(PrettyPrinted)</span></tt></p>
+<blockquote>
+Contains a regular method 'm', a staticmethod 's', a classmethod 
+'c', a property 'p' and a data attribute 'd'.</blockquote>
+<p><tt class="literal"><span class="pre">TransformedUglyDuckling(PrettyPrinted)</span></tt></p>
+<blockquote>
+A class metamagically modified</blockquote>
+<p><tt class="literal"><span class="pre">Customizable(object)</span></tt></p>
+<blockquote>
+Classes inhering from 'Customizable' have a 'with' method acting as
+an object modifier and 'With' classmethod acting as a class factory</blockquote>
+<p><tt class="literal"><span class="pre">WithMultiCounter(WithCounter)</span></tt></p>
+<blockquote>
+Each time a new subclass is derived, the counter is reset</blockquote>
+<p><tt class="literal"><span class="pre">BracketCallable(object)</span></tt></p>
+<blockquote>
+Any subclass C(BracketCallable) can be called with the syntax C[t], 
+where t is a tuple of arguments stored in bracket_args;  returns the 
+class or an instance of it, depending on the flag 'returnclass'.</blockquote>
+<p><tt class="literal"><span class="pre">ClsFactory(BracketCallable)</span></tt></p>
+<blockquote>
+<dl>
+<dt>Bracket callable non-cooperative class acting as </dt>
+<dd>a factory of class factories.
+ClsFactory instances are class factories accepting 0,1,2 or 3 arguments.</dd>
+<dt>. They automatically converts functions to static methods </dt>
+<dd>if the input object is not a class. If an explicit name is not passed
+the name of the created class is obtained by adding an underscore to 
+the name of the original object.</dd>
+</dl>
+<p><tt class="literal"><span class="pre">__call__(self,</span> <span class="pre">*args)</span></tt></p>
+<blockquote>
+Generates a new class using self.meta and avoiding conflicts.
+The first metaobject can be a dictionary, an object with a
+dictionary (except a class), or a simple name.</blockquote>
+</blockquote>
+<p><tt class="literal"><span class="pre">WithCounter(object)</span></tt></p>
+<blockquote>
+Mixin class counting the total number of its instances and storing 
+it in the class attribute counter.</blockquote>
+</div>
+<div class="section" id="documented-functions">
+<h1><a name="documented-functions">Documented functions</a></h1>
+<p><tt class="literal"><span class="pre">mandelbrot(row,col)</span></tt></p>
+<blockquote>
+Computes the Mandelbrot set in one line</blockquote>
+<p><tt class="literal"><span class="pre">with_tracer(function,namespace='__main__',output=sys.stdout,</span> <span class="pre">indent=[0])</span></tt></p>
+<blockquote>
+Closure returning traced functions. It is typically invoked
+trough an auxiliary function fixing the parameters of with_tracer.</blockquote>
+<p><tt class="literal"><span class="pre">ancestor(C,S=None)</span></tt></p>
+<blockquote>
+Returns the ancestors of the first argument with respect to the 
+MRO of the second argument. If the second argument is None, then 
+returns the MRO of the first argument.</blockquote>
+<p><tt class="literal"><span class="pre">customize(obj,errfile=None,**kw)</span></tt></p>
+<blockquote>
+Adds attributes to an object, if possible. If not, writes an error
+message on 'errfile'. If errfile is None, skips the exception.</blockquote>
+<p><tt class="literal"><span class="pre">loop_overhead(N)</span></tt></p>
+<blockquote>
+Computes the time spent in empty loop of N iterations</blockquote>
+<p><tt class="literal"><span class="pre">indent(block,n)</span></tt></p>
+<blockquote>
+Indent a block of code by n spaces</blockquote>
+<p><tt class="literal"><span class="pre">totuple(arg)</span></tt></p>
+<blockquote>
+Converts the argument to a tuple, if need there is</blockquote>
+<p><tt class="literal"><span class="pre">attributes(obj,condition=lambda</span> <span class="pre">n,v:</span> <span class="pre">not</span> <span class="pre">special(n))</span></tt></p>
+<blockquote>
+Returns a dictionary containing the accessible attributes of 
+an object. By default, returns the non-special attributes only.</blockquote>
+<p><tt class="literal"><span class="pre">generateblocks(regexp,text)</span></tt></p>
+<blockquote>
+Generator splitting text in blocks according to regexp</blockquote>
+<p><tt class="literal"><span class="pre">wrapfunctions(obj,wrapper,err=None,**options)</span></tt></p>
+<blockquote>
+Traces the callable objects in an object with a dictionary</blockquote>
+<p><tt class="literal"><span class="pre">wrap(obj,wrapped,condition=lambda</span> <span class="pre">k,v:</span> <span class="pre">True,</span> <span class="pre">err=None)</span></tt></p>
+<blockquote>
+Retrieves obj's dictionary and wraps it</blockquote>
+<p><tt class="literal"><span class="pre">reflective(*classes)</span></tt></p>
+<blockquote>
+Reflective classes know themselves, i.e. they own a private
+attribute __this containing a reference to themselves. If the class
+name starts with '_', the underscores are stripped. This is needed
+to make the mangling mechanism work.</blockquote>
+<p><tt class="literal"><span class="pre">withmemory(f)</span></tt></p>
+<blockquote>
+This closure invokes the callable object f only if need there is</blockquote>
+<p><tt class="literal"><span class="pre">get_time()</span></tt></p>
+<blockquote>
+Return the time of the system in the format HH:MM:SS</blockquote>
+<p><tt class="literal"><span class="pre">prn(s)</span></tt></p>
+<blockquote>
+Given an evaluable string, print its value and its object reference.
+Notice that the evaluation is done in the __main__ dictionary.</blockquote>
+<p><tt class="literal"><span class="pre">isplaindata(a)</span></tt></p>
+<blockquote>
+A data attribute has no __get__ or __set__ attributes, is not
+a built-in function, nor a built-in method.</blockquote>
+<p><tt class="literal"><span class="pre">Pizza(toppings,**dic)</span></tt></p>
+<blockquote>
+This function produces classes inheriting from GenericPizza and 
+WithLogger, using a metaclass inferred from Logged</blockquote>
+<p><tt class="literal"><span class="pre">modulesub(s,r,module)</span></tt></p>
+<blockquote>
+Requires 2.3</blockquote>
+<p><tt class="literal"><span class="pre">memoize(f)</span></tt></p>
+<blockquote>
+This closure remembers all f invocations</blockquote>
+<p><tt class="literal"><span class="pre">with_timer(func,</span> <span class="pre">modulename='__main__',</span> <span class="pre">n=1,</span> <span class="pre">logfile=sys.stdout)</span></tt></p>
+<blockquote>
+Wraps the function func and executes it n times (default n=1). 
+The average time spent in one iteration, express in milliseconds, 
+is stored in the attributes func.time and func.CPUtime, and saved 
+in a log file which defaults to the standard output.</blockquote>
+<p><tt class="literal"><span class="pre">dedent(text)</span></tt></p>
+<blockquote>
+<p>dedent(text : string) -&gt; string</p>
+<blockquote>
+<blockquote>
+<p>Remove any whitespace than can be uniformly removed from the left
+of every line in <cite>text</cite>.</p>
+<p>This can be used e.g. to make triple-quoted strings line up with
+the left edge of screen/whatever, while still presenting it in the
+source code in indented form.</p>
+<p>For example:</p>
+<blockquote>
+<blockquote>
+<dl>
+<dt>def test():</dt>
+<dd><p class="first"># end first line with to avoid the empty line!
+s = '''            hello</p>
+<div class="system-message">
+<p class="system-message-title">System Message: ERROR/3 (<tt>oopp.rst</tt>, line 337)</p>
+Unexpected indentation.</div>
+<blockquote>
+world</blockquote>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt>oopp.rst</tt>, line 338)</p>
+Block quote ends without a blank line; unexpected unindent.</div>
+<p class="last">'''
+print repr(s)          # prints '    hello</p>
+</dd>
+</dl>
+</blockquote>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt>oopp.rst</tt>, line 340)</p>
+Block quote ends without a blank line; unexpected unindent.</div>
+<p>world</p>
+</blockquote>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt>oopp.rst</tt>, line 341)</p>
+Block quote ends without a blank line; unexpected unindent.</div>
+<dl>
+<dt>'</dt>
+<dd>print repr(dedent(s))  # prints 'hello</dd>
+</dl>
+</blockquote>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt>oopp.rst</tt>, line 343)</p>
+Block quote ends without a blank line; unexpected unindent.</div>
+<p>world</p>
+</blockquote>
+<div class="system-message">
+<p class="system-message-title">System Message: WARNING/2 (<tt>oopp.rst</tt>, line 344)</p>
+Block quote ends without a blank line; unexpected unindent.</div>
+<p>'</p>
+</blockquote>
+<p><tt class="literal"><span class="pre">makecls(*metas,**options)</span></tt></p>
+<blockquote>
+Class factory avoiding metatype conflicts. The invocation syntax is
+makecls(M1,M2,..,priority=1)(name,bases,dic). If the base classes have 
+metaclasses conflicting within themselves or with the given metaclasses,
+it automatically generates a compatible metaclass and instantiate it. 
+If priority is True, the given metaclasses have priority over the 
+bases' metaclasses</blockquote>
+</div>
+</div>
+<hr class="footer"/>
+<div class="footer">
+<a class="reference" href="oopp.rst">View document source</a>.
+Generated on: 2003-09-20 12:54 UTC.
+Generated by <a class="reference" href="http://docutils.sourceforge.net/">Docutils</a> from <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> source.
+</div>
+</body>
+</html>

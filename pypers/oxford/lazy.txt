@@ -1,0 +1,14 @@
+>>> import itertools
+>>> def anyTrue(predicate, iterable): 
+...     return True in itertools.imap(predicate, iterable)
+
+>>> def is3(i):
+...     print "i=%s" % i
+...     return i == 3
+
+>>> anyTrue(is3, range(10))
+i=0
+i=1
+i=2
+i=3
+True

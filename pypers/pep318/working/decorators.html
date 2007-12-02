@@ -1,0 +1,1337 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.2.9: http://docutils.sourceforge.net/" />
+<title>Implementing PEP 318 (decorators)</title>
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="implementing-pep-318-decorators">
+<h1 class="title">Implementing PEP 318 (decorators)</h1>
+<blockquote>
+<table class="field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field"><th class="field-name">Module:</th><td class="field-body">decorators</td>
+</tr>
+<tr class="field"><th class="field-name">Version:</th><td class="field-body">0.5</td>
+</tr>
+<tr class="field"><th class="field-name">Author:</th><td class="field-body">Michele Simionato</td>
+</tr>
+<tr class="field"><th class="field-name">e-mail:</th><td class="field-body"><a class="reference" href="mailto:MicheleSimionato&#64;libero.it">MicheleSimionato&#64;libero.it</a></td>
+</tr>
+<tr class="field"><th class="field-name">Licence:</th><td class="field-body">Python-like</td>
+</tr>
+<tr class="field"><th class="field-name">Disclaimer:</th><td class="field-body">This is experimental code. Use it at your own risk!</td>
+</tr>
+</tbody>
+</table>
+</blockquote>
+<div class="contents topic" id="contents">
+<p class="topic-title"><a name="contents">Contents</a></p>
+<ul class="simple">
+<li><a class="reference" href="#basics" id="id1" name="id1">Basics</a></li>
+<li><a class="reference" href="#simple-usage-of-decorators" id="id2" name="id2">Simple usage of decorators</a></li>
+<li><a class="reference" href="#decorating-classes" id="id3" name="id3">Decorating classes</a></li>
+<li><a class="reference" href="#adding-magic" id="id4" name="id4">Adding magic</a></li>
+<li><a class="reference" href="#the-dangers-of-magic" id="id5" name="id5">The dangers of magic</a></li>
+<li><a class="reference" href="#defining-method-decorators" id="id6" name="id6">Defining method decorators</a></li>
+<li><a class="reference" href="#composing-decorators" id="id7" name="id7">Composing decorators</a></li>
+<li><a class="reference" href="#defining-class-decorators" id="id8" name="id8">Defining class decorators</a></li>
+<li><a class="reference" href="#advanced-usage" id="id9" name="id9">Advanced usage</a></li>
+<li><a class="reference" href="#the-implementation" id="id10" name="id10">The implementation</a></li>
+</ul>
+</div>
+<p>Having plenty of free time in these days, I have finished an old 
+project of mine, the implementation of PEP 318 in pure Python.</p>
+<p>Here is the rationale:</p>
+<ul class="simple">
+<li>some kind of decorator syntax is scheduled to go in Python 2.4,
+therefore it is interesting to play with the concept;</li>
+<li>it is nice to play with decorators now, without having to
+wait for one year or so;</li>
+<li>it is much easier levelto experiment with a pure Python implementation
+than with a C implementation;</li>
+<li>the implementation can be seen as an exercise on modern Python
+programming and may be valuable to people wanting to study the most
+advanced new constructs in Python 2.2 (<a class="reference" href="http://users.rcn.com/python/download/Descriptor.htm">descriptors</a>, <a class="reference" href="http://www-106.ibm.com/developerworks/library/l-pymeta2.html">metaclasses</a>, 
+<a class="reference" href="http://www.python.org/2.3/descrintro.html">cooperative methods</a>, etc.)</li>
+</ul>
+<div class="section" id="basics">
+<h1><a class="toc-backref" href="#id1" name="basics">Basics</a></h1>
+<p>PEP 318 has the goal of providing a nice syntactic sugar for expressions like</p>
+<blockquote>
+<pre class="literal-block">
+def identity(x):
+    return x
+identity=staticmethod(identity)
+</pre>
+</blockquote>
+<p>or</p>
+<blockquote>
+<pre class="literal-block">
+def name(cls):
+   return cls.__name__
+name=classmethod(name)
+</pre>
+</blockquote>
+<p>which are pretty verbose. It is clear that having new syntax (as 
+for instance the proposed square bracket notation)</p>
+<blockquote>
+<pre class="literal-block">
+def identity(x)[staticmethod]:
+    return x
+
+def name(cls)[classmethod]:
+    return cls.__name__
+</pre>
+</blockquote>
+<p>involves changing the grammar and modifying the interpreter at the
+C level. This means a lot of work. Fortunately, it is possible to 
+have the same effect without changing the Python grammar. 
+The idea is to use magic docstrings like this:</p>
+<blockquote>
+<pre class="literal-block">
+def identity(x):
+    &quot;[staticmethod]&quot;
+    return x
+
+def name(cls):
+    &quot;[classmethod]&quot;
+    return cls.__name__
+</pre>
+</blockquote>
+<p>The implementation is able to recognize such docstrings
+and to automagically convert those methods in decorators.</p>
+<p>Decorators are nothing else than a sophisticated kind of wrappers.
+The <tt class="literal"><span class="pre">decorators</span></tt> module provides support both for method decorators,
+which wrap functions and class decorator, which wrap classes. 
+<tt class="literal"><span class="pre">staticmethod</span></tt> and <tt class="literal"><span class="pre">classmethod</span></tt> are two examples of already existing
+method decorators (actually my implementation rewrites them, but let me 
+pass on this detail). Technically speaking, method decorators are classes 
+taking a single function as input and producing a descriptor object 
+as output (properties are not decorators according to this definition, 
+since they take four functions as input, <tt class="literal"><span class="pre">get,</span> <span class="pre">set,</span> <span class="pre">del_</span></tt> and <tt class="literal"><span class="pre">doc</span></tt>). 
+Descriptors are objects with a <tt class="literal"><span class="pre">__get__</span></tt> method; they are quite 
+sophisticated, but fortunately they have been wonderfully explained by 
+Raymond Hettinger already, so  I am allowed to skip on this point ;). 
+A knowledge of descriptors is not needed in order to use the <tt class="literal"><span class="pre">decorator</span></tt> 
+module; however it is welcomed for advanced users wanting to implement
+custom method decorators. 
+Class decorators are metaclasses taking a class as imput and returning
+a decorated class as output. A good understanding of metaclasses is needed 
+in order to be able to write custom class decorators, but no knowledge
+at all is required in order to use the pre-defined class decorators
+provided by the module.
+Finally, the module is meant to be extensible; so one could 
+define new kind of decorators. For instance, the original version of
+the module also had the concept of module decorators; however I have cut 
+down that part in order to keep the module short.</p>
+<p>Admittedly, the implementation 
+is not for the faint of heart, nevertheless I have tried to make the 
+basic usage easy and simple to understand.</p>
+</div>
+<div class="section" id="simple-usage-of-decorators">
+<h1><a class="toc-backref" href="#id2" name="simple-usage-of-decorators">Simple usage of decorators</a></h1>
+<p>Before talking about the implementation details, I will show
+how the <tt class="literal"><span class="pre">decorators</span></tt> module works in practice. The simplest and safest
+usage is by means of the <tt class="literal"><span class="pre">decorators.decorated()</span></tt> function, which
+takes an object (a function or a class) and checks its docstring: if 
+a magic docstring is found, it returns a decorated version of the object, 
+otherwise it returns the original object. Using <tt class="literal"><span class="pre">decorators.decorated()</span></tt>
+is simple but verbose, so magic shortcuts will be discussed in the next 
+section.</p>
+<p>Here, let me give an example, showing that method decorators work both for 
+<a class="reference" href="http://www.python.org/2.3/descrintro.html">new style classes and old style classes</a>:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;example1.py&gt;
+
+import decorators
+
+def do_nothing(self):
+   &quot;No magic docstring here&quot;
+dec_do_nothing=decorators.decorated(do_nothing)
+
+def identity(x):
+    &quot;[staticmethod]&quot;
+    return x
+dec_identity=decorators.decorated(identity) 
+
+def name(cls):
+    &quot;[classmethod]&quot;
+    return cls.__name__
+dec_name=decorators.decorated(name)
+
+class OldStyle:
+    do_nothing=dec_do_nothing
+    identity=dec_identity
+
+class NewStyle(object):
+    name=dec_name
+
+o=OldStyle() # creates an old style instance
+n=NewStyle() # creates a new style instance
+
+#&lt;/example1.py&gt;
+</pre>
+</blockquote>
+<p>In this example, both <tt class="literal"><span class="pre">dec_identity</span></tt> and <tt class="literal"><span class="pre">dec_name</span></tt> are decorator objects,
+i.e. descriptors modifiying the attribute access. It is easy to recognize
+decorators objects, since they have a re-defined printing representation:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from example1 import *
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; print dec_identity
+&lt;staticmethod:identity&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; print dec_name
+&lt;classmethod:name&gt;
+</pre>
+<p>Now, let me check that <tt class="literal"><span class="pre">dec_</span> <span class="pre">identity</span></tt> works as a staticmethod,</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; assert OldStyle.identity(1) == 1 # called from the class
+&gt;&gt;&gt; assert o.identity(1) == 1 # called from the instance
+</pre>
+<p>whereas <tt class="literal"><span class="pre">dec_name</span></tt> works as a classmethod:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; assert NewStyle.name() == 'NewStyle' # called from the class
+&gt;&gt;&gt; assert n.name() == 'NewStyle' # called from the instance
+</pre>
+<p>On the other hand, <tt class="literal"><span class="pre">do_nothing</span></tt> does not have a magic 
+docstring, therefore it is not converted to a decorator object; 
+actually it is <em>exactly</em> the original function:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; assert dec_do_nothing is do_nothing # not converted
+</pre>
+<p>Therefore it works without surprises:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; o.do_nothing() # does nothing, correct
+</pre>
+<p>For sake of convenience, I have re-implemented the built-in 
+<tt class="literal"><span class="pre">staticmethod</span></tt> and <tt class="literal"><span class="pre">classmethod</span></tt>, so</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; isinstance(dec_identity,staticmethod)
+False
+</pre>
+<p>and</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; isinstance(dec_name,classmethod)
+False
+</pre>
+<p>but</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; isinstance(dec_identity,decorators.staticmethod)
+True
+</pre>
+<p>and</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; isinstance(dec_name,decorators.classmethod)
+True
+</pre>
+<p>It is possible to recognize method decorators since they provides 
+a couple of special attributes:</p>
+<p><tt class="literal"><span class="pre">__func__</span></tt>, returning the function from which they originated</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; assert dec_identity.__func__ is identity
+&gt;&gt;&gt; assert dec_name.__func__ is name
+</pre>
+</blockquote>
+<p>and <tt class="literal"><span class="pre">__klass__</span></tt>, returning the class where they where defined</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; dec_identity.__klass__
+&lt;class 'decorators.?'&gt;
+</pre>
+</blockquote>
+<p>The question mark here means that the definition class is unknown.</p>
+</div>
+<div class="section" id="decorating-classes">
+<h1><a class="toc-backref" href="#id3" name="decorating-classes">Decorating classes</a></h1>
+<p>The problem with the approach described in the previous section 
+is that it does not present any significant advantage over 
+the already existing mechanism. A real step forward would be to
+have classes with the ability of automatically converting their 
+methods to method decorators according to the docstrings. 
+This sounds a bit of magic, but actually can be done very simply 
+by adding to the class a docstring starting with &quot;[Decorated]&quot;
+and decorating the class. 
+Here is an example:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;example2.py&gt;
+
+from decorators import decorated
+from example1 import do_nothing,identity,name
+
+class B(object):
+    &quot;This is a regular class&quot;
+
+B=decorated(B) # does nothing
+
+class C(B):
+   &quot;[Decorated]&quot;
+   do_nothing=do_nothing
+   identity=identity
+   name=name
+
+C=decorated(C) # regenerates the class converting methods in decorators
+c=C()
+
+#&lt;/example2.py&gt;
+</pre>
+</blockquote>
+<p>Here is the testing:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from example2 import *
+&gt;&gt;&gt; assert C.identity(1) == 1
+&gt;&gt;&gt; assert C.name() == 'C'
+&gt;&gt;&gt; assert c.identity(1) == 1 
+&gt;&gt;&gt; assert c.name() == 'C' 
+</pre>
+<p>Notice that adding <tt class="literal"><span class="pre">identity</span></tt> after the class creation with the syntax 
+<tt class="literal"><span class="pre">C.identity=identity</span></tt> would not work; 
+<tt class="literal"><span class="pre">C.identity=decorators.decorated(identity)</span></tt> is required:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; C.identity=decorators.decorated(identity)
+&gt;&gt;&gt; C.identity(1) # it works
+1
+</pre>
+<p>If a class misses the magic docstring, nothing happens:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; B # returns the original B
+&lt;class 'example2.B'&gt;
+</pre>
+<p>The mechanism works for old style classes too:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;example2.py&gt;
+
+class D: # old style
+    &quot;[Decorated]&quot;
+    def identity(x):
+        &quot;[staticmethod]&quot;
+        return x
+
+D=decorated(D)
+
+d=D()
+
+# test
+assert d.identity(1) == 1
+assert D.identity(1) == 1 
+
+#&lt;/example2.py&gt;
+</pre>
+</blockquote>
+<p>Under the hood <tt class="literal"><span class="pre">decorators.decorated()</span></tt> recognizes the class level
+magic docstring &quot;[Decorated]&quot; and creates an instance of the 
+<tt class="literal"><span class="pre">decorators.Decorated</span></tt> metaclass; incidentally, 
+this converts old style classes in new style classes:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from example2 import D,d
+&gt;&gt;&gt; type(D) # D is an instance of decorator.Decorated
+&lt;class 'decorators.Decorated'&gt;
+</pre>
+<p>Internally the metaclass invokes <tt class="literal"><span class="pre">decorators.decorated()</span></tt>
+on the methods of its instances: this is why they becomes decorated
+if a suitable docstring is found. By the way, if you mispell a
+decorator name you get an helpful error message:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class E:
+...     &quot;[Decorated]&quot;
+...     def f():
+...         &quot;[staticmeth]&quot;
+&gt;&gt;&gt; E=decorators.decorated(E)
+Traceback (most recent call last):
+  .. a long and cryptic traceback here ..
+UnknownDecoratorError: staticmeth
+</pre>
+<p>The enhancement provided by the metaclass includes a new default 
+printing representation for both the class</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print D # returns the name of D and of its metaclass
+&lt;class D[Decorated]&gt;
+</pre>
+<p>and its instances:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print d
+&lt;D instance&gt;
+</pre>
+<p>One can even forget the docstring in subclasses of decorated 
+classes, since metaclasses are inherited:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class E(D):
+...     def name(cls):
+...          &quot;[classmethod]&quot;
+...          return cls.__name__
+&gt;&gt;&gt; print E.name()
+E
+</pre>
+<p>This approach presents another advantage: the decorated methods know
+the class where they were defined via the special attribute <tt class="literal"><span class="pre">__klass__</span></tt>:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; E.__dict__['name'].__klass__ # the class where 'name' is defined
+&lt;class 'E'&gt;
+</pre>
+<p>This is useful for introspection and debugging purposes.</p>
+</div>
+<div class="section" id="adding-magic">
+<h1><a class="toc-backref" href="#id4" name="adding-magic">Adding magic</a></h1>
+<p>The problem of the previous approach is that one must explicitely
+decorate the classes by hand, by invoking <tt class="literal"><span class="pre">decorators.decorated()</span></tt>
+each time. However, it is possible to add more magic
+and to decorate all the classes automatically. 
+It is as easy as writing <tt class="literal"><span class="pre">decorators.enhance_classes()</span></tt>
+on top of the module. Then all methods in all classes of the module 
+with a magic docstring will be checked for magic docstrings and 
+automagically decorated if needed. 
+For instance, the previous example would be written</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;example4.py&gt;
+
+import decorators; decorators.enhance_classes()
+
+class C:
+    &quot;[Decorated]&quot; # magic docstring here 
+    def do_nothing(self):
+       &quot;No magic docstring here&quot;
+
+    def identity(x):
+        &quot;[staticmethod]&quot;
+        return x
+
+class D(object):
+    &quot;Undecorated&quot; # no magic docstring here
+    def name(cls):
+        &quot;[classmethod]&quot;
+        return cls.__name__
+
+c=C(); d=D()
+
+#&lt;/example4.py&gt;
+</pre>
+</blockquote>
+<p><tt class="literal"><span class="pre">C</span></tt> has a <tt class="literal"><span class="pre">[Decorated]</span></tt> docstring, so its methods
+are automatically decorated:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from example4 import *
+&gt;&gt;&gt; assert c.do_nothing() is None
+&gt;&gt;&gt; assert C.identity(1) == 1
+&gt;&gt;&gt; assert c.identity(1) == 1 
+</pre>
+<p>On the other hand, since <tt class="literal"><span class="pre">D</span></tt> misses a magic docstring,
+its <tt class="literal"><span class="pre">name</span></tt> method is not decorated:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; hasattr(D.__dict__['name'],'__func__') # not a decorator
+False
+</pre>
+<p>Since <tt class="literal"><span class="pre">D.name</span></tt> is a regular method and not a classmethod, <tt class="literal"><span class="pre">D.name()</span></tt>
+gives an error:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; D.name()
+Traceback (most recent call last):
+  ...
+TypeError: unbound method name() must be called with D instance as first argument (got nothing instead)
+</pre>
+<p>The trick works for classes containing inner classes, too:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;example5.py&gt;
+
+import decorators; decorators.enhance_classes()
+
+class C:
+    &quot;[Decorated]&quot; # required docstring 
+    def identity(x):
+        &quot;[staticmethod]&quot;
+        return x
+    class Inner:
+        &quot;[Decorated]&quot; # required docstring   
+        def name(cls):
+            &quot;[classmethod]&quot;
+            return cls.__name__
+
+
+assert C.identity(1) == 1
+assert C.Inner.name() == 'Inner'
+
+#&lt;/example5.py&gt;
+</pre>
+</blockquote>
+<p>Under the hood, the magic works by enhancing the <tt class="literal"><span class="pre">object</span></tt> class 
+of the module with a <tt class="literal"><span class="pre">decorators.ClassDecorator</span></tt> metaclass:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; import example5
+&gt;&gt;&gt; type(example5.object)
+&lt;class 'decorators.ClassDecorator'&gt;
+</pre>
+<p>Notice that for safety reasons the enhancement is only on the module 
+<tt class="literal"><span class="pre">object</span></tt> class, not on the <tt class="literal"><span class="pre">__builtin__.object</span></tt> class. The problem
+is that adding too much magic can be risky.</p>
+</div>
+<div class="section" id="the-dangers-of-magic">
+<h1><a class="toc-backref" href="#id5" name="the-dangers-of-magic">The dangers of magic</a></h1>
+<p>For the sake of metaclass users, in this section I will point out the 
+dangers of the  <tt class="literal"><span class="pre">enhance_classes()</span></tt> syntax. On the other hand, if you 
+never use metaclasses, you may safely skip to the following section.</p>
+<p>The problem is that the  <tt class="literal"><span class="pre">enhance_classes()</span></tt> syntax is not 100% safe, 
+because of possible metaclass conflicts. 
+Here is an example:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; import decorators; decorators.enhance_classes()
+</pre>
+<p>This line enhances the <tt class="literal"><span class="pre">object</span></tt> class in the interpreter namespace:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print object 
+&lt;class object[ClassDecorator]&gt;
+</pre>
+<p>This shows that <tt class="literal"><span class="pre">object</span></tt> is an instance of <tt class="literal"><span class="pre">ClassDecorator</span></tt>.</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class M(type): 
+...     &quot;Some non-trivial code here...&quot; 
+</pre>
+<p>This line creates a custom metaclass we want to use to enhance our classes.</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class D(object): __metaclass__=M # does not work!
+...
+Traceback (most recent call last):
+  ...
+TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+</pre>
+<p>The problem is that the previous line tries to create a class <tt class="literal"><span class="pre">D</span></tt> 
+which should have both metaclasses <tt class="literal"><span class="pre">ClassDecorator</span></tt> and <tt class="literal"><span class="pre">M</span></tt>: 
+a conflict follows.</p>
+<p>Fortunately, the decorators module imports the <tt class="literal"><span class="pre">makecls</span></tt> function from my
+<tt class="literal"><span class="pre">noconflict</span></tt> module (described in the <a class="reference" href="http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/204197">cookbook</a>)
+just to avoid this kind of problems:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class D(object):
+...     __metaclass__=decorators.makecls(M)
+</pre>
+<p>Now the class has been safely created as an instance of the composed
+class <tt class="literal"><span class="pre">ClassDecoratorM</span></tt>.</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; type(D)
+&lt;class 'noconflict.ClassDecoratorM'&gt;
+</pre>
+<p>If we want <tt class="literal"><span class="pre">M</span></tt> to have the priority over <tt class="literal"><span class="pre">ClassDecorator</span></tt>, the
+option <tt class="literal"><span class="pre">priority=True</span></tt> makes the job:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class D(object):
+...     __metaclass__=decorators.makecls(M,priority=True)
+&gt;&gt;&gt; type(D)
+&lt;class 'noconflict.MClassDecorator'&gt;
+</pre>
+<p>The situation for old style classes is worse, since</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class D:
+...     __metaclass__=M
+...     def sm(): 
+...         &quot;[staticmethod]&quot;
+</pre>
+<p>apparently gives no error, but actually the metaclass <tt class="literal"><span class="pre">M</span></tt> overrides 
+<tt class="literal"><span class="pre">ClassDecorator</span></tt>, so <tt class="literal"><span class="pre">D</span></tt> will not recognize magic docstrings:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; type(D)
+&lt;class 'M'&gt;
+&gt;&gt;&gt; D.sm()
+Traceback (most recent call last):
+  ...
+TypeError: unbound method sm() must be called with D instance as first argument (got nothing instead)
+</pre>
+<p>Using <tt class="literal"><span class="pre">decorators.makecls(M)</span></tt> will not help here (because of the way Python 
+assigns metaclasses) and the only solution is to be completely explicit:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class D:
+...     __metaclass__=decorators.makecls(decorators.ClassDecorator,M)
+...     def sm():
+...         &quot;[staticmethod]&quot;
+&gt;&gt;&gt; type(D) 
+&lt;class 'noconflict.ClassDecoratorM'&gt;
+</pre>
+<p>Now <tt class="literal"><span class="pre">D</span></tt> is not decorated since it does miss a magic docstring, but
+it provides the ability to recognizing magic docstrings, so <tt class="literal"><span class="pre">D</span></tt>
+subclasses with a &quot;[Decorated]&quot; docstring will be decorated:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class E(D): 
+...     &quot;[Decorated]&quot;
+...     def cm(cls):
+...         &quot;[classmethod]&quot;
+...         print '.cm() called from',cls
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; E.cm() # it works
+.cm() called from &lt;class E[ClassDecoratorMDecorated]&gt;
+</pre>
+<p>Notice that <tt class="literal"><span class="pre">sm</span></tt> was defined in <tt class="literal"><span class="pre">D</span></tt>, the undecorated class: therefore
+it is not decorated:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; E.sm() # correctly, does not work
+Traceback (most recent call last):
+  ...
+TypeError: unbound method sm() must be called with E instance as first argument (got nothing instead)
+</pre>
+<p>The error message says clearly that <tt class="literal"><span class="pre">sm</span></tt> is an unbound method and not
+a static method.</p>
+</div>
+<div class="section" id="defining-method-decorators">
+<h1><a class="toc-backref" href="#id6" name="defining-method-decorators">Defining method decorators</a></h1>
+<p>The <tt class="literal"><span class="pre">decorators</span> <span class="pre">module</span></tt> contains two predefinite method decorators, 
+<tt class="literal"><span class="pre">staticmethod</span></tt> and <tt class="literal"><span class="pre">classmethod</span></tt>, which emulate the built-ins 
+with the same names. However, it is possible to write your own
+custom decorators. The <tt class="literal"><span class="pre">decorators.MethodDecorator</span></tt> class which is here 
+exactly for that purpose.</p>
+<p>Custom decorators are expected to be implemented by subclassing
+<tt class="literal"><span class="pre">MethodDecorator</span></tt> and by overriding its <tt class="literal"><span class="pre">get</span></tt> method. The
+<tt class="literal"><span class="pre">get</span></tt> method automagically induces a <tt class="literal"><span class="pre">__get__</span></tt> method, turning the 
+class in a descriptor. The machinery is needed since <tt class="literal"><span class="pre">__get__</span></tt> cannot 
+be made cooperative using  the standard <tt class="literal"><span class="pre">super</span></tt> mechanism because
+there would be a confusion between <tt class="literal"><span class="pre">super.__get__</span></tt> and the decorator 
+<tt class="literal"><span class="pre">__get__</span></tt>. This is a bit tricky, but the causal programmer is not 
+expected to write custom decorators, and actually I don't want to make 
+the access to decorators <em>too</em> easy, since they are potentially dangerous.</p>
+<p>In order to give a simple example, let me show the implementation 
+of a <tt class="literal"><span class="pre">chattymethod</span></tt> that prints a message when it is called:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;customdec.py&gt;
+
+from decorators import *  
+
+class chattymethod(MethodDecorator):
+    logfile=sys.stdout # default
+    def get(self,obj,cls=None): # same signature as __get__
+        self.logfile.write('calling %s from %s\n' % (self,obj or cls))
+        return super(chattymethod,self).get(obj,cls)
+
+#&lt;/customdec.py&gt;
+</pre>
+</blockquote>
+<p>Notice the usage of the <tt class="literal"><span class="pre">super().get</span></tt> trick. This guarantees that 
+<tt class="literal"><span class="pre">chattymethod</span></tt> will play well with other decorators (i.e. it
+can be nicely composed via multiple inheritance). The point will
+be fully discussed in the section on composing decorators.</p>
+<p>Here is an example of usage:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; import customdec # adds chattymethod to the list of known decorators
+&gt;&gt;&gt; customdec.enhance_classes() # automagically enhances classes when needed
+&gt;&gt;&gt; class C: 
+...     &quot; [Decorated] &quot;
+...     def f(self): 
+...         &quot;&quot;&quot;
+...         [ chattymethod ]
+...         &quot;&quot;&quot;
+&gt;&gt;&gt; c=C()
+&gt;&gt;&gt; c.f()
+calling &lt;chattymethod:f&gt; from &lt;C instance&gt;
+</pre>
+<p>By the way, this shows that one can safely add whitespaces (including
+newlines) to the magic docstring: they are simply ignored.</p>
+<p>One can check that the syntax <tt class="literal"><span class="pre">C.f(c)</span></tt> works too:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; C.f(c) 
+calling &lt;chattymethod:f&gt; from &lt;class C[Decorated]&gt;
+</pre>
+<p>A tricky point of the decorators mechanism is the issue of parameter passing.
+In comp.lang.python there was the proposal of allowing explicit parameter
+passing to decorators, with a syntax of kind</p>
+<blockquote>
+<pre class="literal-block">
+def f(self)[chattymethod(logfile=file('file1.log','w'))]
+</pre>
+</blockquote>
+<p>In my view, there are too many parenthesis in this syntax, and it may
+become rapidly unreadable. Moreover, it complicates the implementation
+without any real benefit, so the decorators module does not allow
+this kind of parameter passings. There are however viable
+workarounds, so you should not miss the syntax.</p>
+<p>A simple minded solution is to change the defaults by hand:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from customdec import chattymethod,decorated
+&gt;&gt;&gt; chattymethod.logfile=file('file.log','w')
+&gt;&gt;&gt; def g(self): 
+...     &quot;[chattymethod]&quot;
+&gt;&gt;&gt; C.g=decorated(g)
+&gt;&gt;&gt; c.g() # will print a message on file.log
+</pre>
+<p>This approach has the drawback that chattymethods created before changing 
+the logfile will also print to the new logfile, if invoked after the
+change. Therefore</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; c.f()
+</pre>
+<p>will print a message to <tt class="literal"><span class="pre">file.log</span></tt> too, and not to standard output.
+Here is the confirmation:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; chattymethod.logfile.close()
+&gt;&gt;&gt; print file('file.log').read().rstrip()
+calling &lt;chattymethod:g&gt; from &lt;C instance&gt;
+calling &lt;chattymethod:f&gt; from &lt;C instance&gt;
+</pre>
+<p>A much better solution is to pass  
+parameters to method decorators as function attributes: then the function
+attributes can be converted to attributes of the decorator 
+in  the <tt class="literal"><span class="pre">__init__</span></tt> method. Here is an example:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;customdec.py&gt;
+
+class chattymethod2(chattymethod): 
+    logfile=sys.stdout # default
+    def __init__(self,objfunc):
+        super(chattymethod2,self).__init__(objfunc)
+        logfile=getattr(self.__func__,'logfile',None)
+        if logfile: self.logfile=logfile 
+
+#&lt;/customdec.py&gt;
+</pre>
+</blockquote>
+<p>Notice that the <tt class="literal"><span class="pre">__init__</span></tt> method has the signature
+<tt class="literal"><span class="pre">__init__(self,objfunc)</span></tt>, where the <tt class="literal"><span class="pre">objfunc</span></tt> object is a
+decorator object or the function to be converted in the decorator 
+object, and that it is cooperative.
+This is the suggested way of overriding <tt class="literal"><span class="pre">__init__</span></tt> (see also 
+<tt class="literal"><span class="pre">help(decorators.MethodDecorator.__init__)</span></tt>).</p>
+<p>Here is the testing:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;chatty2.py&gt;
+
+import customdec; customdec.enhance_classes(&quot;[Decorated]&quot;)
+
+# sets the log files
+log1=file('file1.log','w')
+log2=file('file2.log','w')
+
+class C:
+    def f(self): 
+        &quot;[chattymethod2]&quot;
+    f.logfile=log1 # function attribute
+    def g(self): 
+        &quot;[chattymethod2]&quot;
+    g.logfile=log2 # function attribute
+
+assert C.__dict__['f'].logfile is log1 # check the conversion 
+assert C.__dict__['g'].logfile is log2 # function attr. -&gt; decorator attr.
+
+c=C() # C instantiation
+
+c.f() # print a message in file1.log
+c.g() # print a message in file2.log
+
+log1.close(); log2.close() # finally
+
+#&lt;/chatty2.py&gt;
+</pre>
+</blockquote>
+<p>Let me check the contents of the log files:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; import chatty2
+&gt;&gt;&gt; print file('file1.log').read().rstrip()
+calling &lt;chattymethod2:f&gt; from &lt;C instance&gt;
+&gt;&gt;&gt; print file('file2.log').read().rstrip()
+calling &lt;chattymethod2:g&gt; from &lt;C instance&gt;
+</pre>
+<p><tt class="literal"><span class="pre">chattymethod</span></tt> is the poor man version of <tt class="literal"><span class="pre">tracedmethod</span></tt>, a
+sophisticated decorator for tracing methods.
+Here is the code, given for pedagogical purposes; the lazy reader can 
+skip it and go directly to the usage section.</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;customdec.py&gt;
+
+class tracedmethod(MethodDecorator):
+    &quot;Descriptor class, converts a method in a traced method&quot;
+    indent=0; output=sys.stdout # defaults
+
+    def __init__(self,objfunc):
+        super(tracedmethod,self).__init__(objfunc)
+        self.funcname=self.__func__.__name__
+        output=getattr(self.__func__,'output',None) 
+        if output: self.output=output # func.attr. -&gt; dec.attr.
+
+    def get(self,obj,cls):
+        clsname=self.__klass__.__name__ # definition clas
+        def tracedmeth(obj,*args,**kw):
+            i=' '*self.indent # default indentation
+            self.__class__.indent+=4 # increases indentation
+            self.output.write(&quot;%sCalling '%s.%s' with arguments &quot; % 
+                             (i,clsname,self.funcname))
+            self.output.write(&quot;%s%s ...\n&quot; % (obj or '',str(args)+str(kw)))
+            res=super(tracedmethod,self).get(obj,cls)(*args,**kw)
+            self.output.write(&quot;%s'%s.%s' called with result: %s\n&quot;
+                               % (i,clsname,self.funcname,res))
+            self.__class__.indent-=4 # restores default indentation
+            return res
+        return tracedmeth.__get__(obj,cls) # method wrapper
+
+#&lt;/customdec.py&gt;
+</pre>
+</blockquote>
+<p><tt class="literal"><span class="pre">tracedmethod.get</span></tt> returns a method wrapper object, so it is
+possible to use <tt class="literal"><span class="pre">im_func</span></tt> to retrieve the internal function
+<tt class="literal"><span class="pre">tracedmeth</span></tt>:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class C:
+...     &quot;[Decorated]&quot;
+...     def f(self):
+...         &quot;[tracedmethod]&quot;
+&gt;&gt;&gt; c=C(); c.f() 
+Calling 'C.f' with arguments &lt;C instance&gt;(){} ...
+'C.f' called with result: None
+&gt;&gt;&gt; c.f.im_func.__name__
+'tracedmeth'
+</pre>
+<p>As soon as the <tt class="literal"><span class="pre">tracedmethod</span></tt> module is loaded, the <tt class="literal"><span class="pre">tracedmethod</span></tt> class
+is added to the list of know decorators, so one should use the  
+&quot;[tracedmethod]&quot; docstring and not something like
+&quot;[customdec.tracedmethod]&quot;.</p>
+<p>Here is a less trivial example of usage, writing in a log file the 
+internal working of a recursive function:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;example9.py&gt;
+
+import customdec; customdec.enhance_classes()
+
+logfile=file('file3.log','w')
+
+class C(object):
+    &quot;[Decorated]&quot;
+    def fact(self,n):
+        &quot;[tracedmethod] The good old factorial.&quot;
+        if n==0: return 1
+        else: return n*self.fact(n-1)
+    fact.output=logfile
+
+C().fact(2) # write a message to logfile
+
+logfile.close()
+
+#&lt;/example9.py&gt;
+</pre>
+</blockquote>
+<p>Here is the content of the <tt class="literal"><span class="pre">file3.log</span></tt>:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; import example9
+&gt;&gt;&gt; print file('file3.log').read().rstrip()
+Calling 'C.fact' with arguments &lt;C instance&gt;(2,){} ...
+    Calling 'C.fact' with arguments &lt;C instance&gt;(1,){} ...
+        Calling 'C.fact' with arguments &lt;C instance&gt;(0,){} ...
+        'C.fact' called with result: 1
+    'C.fact' called with result: 1
+'C.fact' called with result: 2
+</pre>
+</div>
+<div class="section" id="composing-decorators">
+<h1><a class="toc-backref" href="#id7" name="composing-decorators">Composing decorators</a></h1>
+<p>Decorators can be composed by using magic docstrings with comma-separated
+decorator names. For instance, you can trace a classmethod as in this example:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;example6.py&gt;
+
+&quot;How to trace a class method&quot;
+
+import customdec; customdec.enhance_classes()
+
+class C(object):
+    &quot;[Decorated]&quot;
+    def fact(cls,n): # a traced classmethod
+        &quot;[classmethod,tracedmethod]&quot;
+        if n==0: return 1
+        else: return n*cls.fact(n-1)
+
+#&lt;/example6.py&gt;
+</pre>
+</blockquote>
+<p>Here is the testing:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from example6 import C
+&gt;&gt;&gt; C.fact(2)
+Calling 'C.fact' with arguments &lt;class C[Decorated]&gt;(2,){} ...
+    Calling 'C.fact' with arguments &lt;class C[Decorated]&gt;(1,){} ...
+        Calling 'C.fact' with arguments &lt;class C[Decorated]&gt;(0,){} ...
+        'C.fact' called with result: 1
+    'C.fact' called with result: 1
+'C.fact' called with result: 2
+2
+</pre>
+<p>You may easily check that calling <tt class="literal"><span class="pre">.fact</span></tt> from the instance will work too.</p>
+<p>Under the hood the syntax</p>
+<blockquote>
+<pre class="literal-block">
+[classmethod,tracedmethod]
+</pre>
+</blockquote>
+<p>generates a <tt class="literal"><span class="pre">classmethodtracedmethod</span></tt> class obtained via
+multiple inheritance:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; C.__dict__['fact'].__class__
+&lt;class 'noconflict.classmethodtracedmethod'&gt;
+</pre>
+<p>Notice that the order does matter and using the docstring 
+&quot;[tracedmethod,classmethod]&quot; will not work:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class D:
+...     &quot;[Decorated]&quot;
+...     def f(cls):
+...         &quot;[tracedmethod,classmethod]&quot;
+&gt;&gt;&gt; D.f()
+Traceback (most recent call last):
+  ...
+TypeError: unbound method tracedmeth() must be called with D instance as first argument (got nothing instead)
+</pre>
+<p>The problem here is that <tt class="literal"><span class="pre">tracedmethod.get</span></tt> returns a method-wrapper object
+which expects a D instance as first argument whereas it gets <tt class="literal"><span class="pre">None</span></tt> since
+it is called from the class. On the other hand,</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; D().f()
+Calling 'D.f' with arguments &lt;D instance&gt;(){} ...
+'D.f' called with result: None
+</pre>
+<p>will work. When <tt class="literal"><span class="pre">classmethod</span></tt> precedes <tt class="literal"><span class="pre">tracedmethod</span></tt>, then
+<tt class="literal"><span class="pre">classmethod</span></tt> passes to <tt class="literal"><span class="pre">tracedmeth</span></tt> a non-empty first argument,
+i.e. the calling class, even when called from the instance:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; C().fact(2)
+Calling 'C.fact' with arguments &lt;class C[Decorated]&gt;(2,){} ...
+    Calling 'C.fact' with arguments &lt;class C[Decorated]&gt;(1,){} ...
+        Calling 'C.fact' with arguments &lt;class C[Decorated]&gt;(0,){} ...
+        'C.fact' called with result: 1
+    'C.fact' called with result: 1
+'C.fact' called with result: 2
+2
+</pre>
+<p>If we try to trace a staticmethod, we will get a different error with
+the order &quot;tracedmethod, staticmethod&quot;:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class F(object):
+...    &quot;[Decorated]&quot;
+...    def fact(n):
+...        &quot;[tracedmethod,staticmethod]&quot;
+...        if n==0: return 1
+...        else: return n*F.fact(n-1)
+&gt;&gt;&gt; F.fact(2)
+Traceback (most recent call last):
+  ...
+TypeError: unbound method tracedmeth() must be called with F instance as first argument (got int instance instead)
+</pre>
+<p>The message is self-explanatory.</p>
+<p>On the other hand, composing the decorators in the other order
+&quot;[tracedmethod,staticmethod]&quot; will work just fine.</p>
+</div>
+<div class="section" id="defining-class-decorators">
+<h1><a class="toc-backref" href="#id8" name="defining-class-decorators">Defining class decorators</a></h1>
+<p>PEP 318 proposes to decorate methods by using descriptors; it is
+quite natural to extend this idea and to decorate classes by using 
+class decorators implemented as metaclasses. We already saw a
+class decorator at work, the metaclass <tt class="literal"><span class="pre">Decorated</span></tt>, giving
+to its instances the ability to interpret magic docstrings,
+and converting functions in method decorators.</p>
+<p>To define a custom class decorator is easy: one defines a custom metaclass 
+as usual, with the only difference from deriving by <tt class="literal"><span class="pre">ClassDecorator</span></tt> instead
+of deriving from <tt class="literal"><span class="pre">type</span></tt>. To understand how this works in practice, let me 
+show how to add logging capabilities to a given class. The first
+step is to define a suitable class decorator, such as the following:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;customdec.py&gt;
+
+class Logged(ClassDecorator):
+    output=sys.stdout
+    def __init__(cls,name,bases,dic):
+        super(Logged,cls).__init__(name,bases,dic)
+        print &gt;&gt; cls.output,&quot;%s created&quot; % cls
+
+#&lt;/customdec.py&gt;
+</pre>
+</blockquote>
+<p><tt class="literal"><span class="pre">Logged</span></tt> is derived by the metaclass <tt class="literal"><span class="pre">ClassDecorator</span></tt>, 
+which provides a certain amount of magic under the hood (in particular
+its printing representation and its calling syntax are redefined by its
+metaclass <tt class="literal"><span class="pre">MetaDecorator</span></tt>). Logging capabilities can be added to a class 
+by simply using the magic docstring syntax:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;logged.py&gt;
+
+import customdec; customdec.enhance_classes()
+
+class D(object): # will print a message at D creation
+    &quot;[Logged]&quot;
+
+#&lt;/logged.py&gt;
+</pre>
+</blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; import logged
+&lt;class D[Logged]&gt; created
+</pre>
+<p>Notice that the printing representation of <tt class="literal"><span class="pre">D</span></tt> involves the name
+of <tt class="literal"><span class="pre">D</span></tt> preceded by the name of its metaclass, which in this case
+is <tt class="literal"><span class="pre">Logged</span></tt></p>
+<p>Each time an instance of <tt class="literal"><span class="pre">Logged</span></tt> is created, a similar message is printed:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class E(logged.D):
+...     pass
+&lt;class E[Logged]&gt; created
+</pre>
+<p>Notice that <tt class="literal"><span class="pre">E</span></tt> does not have any magic docstring</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; E.__doc__ # no docstring
+</pre>
+<p>but still it inherits its magic from <tt class="literal"><span class="pre">D</span></tt>.</p>
+<p>Another simple example of class decorator is the following metaclass 
+which modifies the docstrings of the methods of its instances, 
+by magically inducing tracing capabilities on them:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;customdec.py&gt;
+
+from types import FunctionType  
+
+class Traced(ClassDecorator):
+    def __init__(cls,n,b,d):
+        for name,func in d.iteritems():
+            if isinstance(func,FunctionType): # modifies the docstring
+                func.__doc__=&quot;[tracedmethod] &quot; + (func.__doc__ or '')
+        super(Traced,cls).__init__(n,b,d)
+
+
+#&lt;/customdec.py&gt;
+</pre>
+</blockquote>
+<p>Here is an example of usage:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class C(object):
+...     &quot;&quot;&quot;[Decorated,Traced] The class decorator adds the magic docstring
+...     '[tracedmethod]' to f1 and f2, which are then converted 
+...     to method decorator objects.&quot;&quot;&quot;
+...     def f1(self): pass
+...     def f2(self): pass
+...
+&gt;&gt;&gt; type(C)
+&lt;class 'noconflict.DecoratedTraced'&gt;
+&gt;&gt;&gt; c=C()
+&gt;&gt;&gt; c.f1()
+Calling 'C.f1' with arguments &lt;C instance&gt;(){} ...
+'C.f1' called with result: None
+&gt;&gt;&gt; c.f2()
+Calling 'C.f2' with arguments &lt;C instance&gt;(){} ...
+'C.f2' called with result: None
+</pre>
+<p>By default, the decorators module only decorates classes with a magic 
+docstring (and they subclasses, even without magic docstrings). 
+If all the classes of your module have the same magic docstring, 
+it makes sense to decorate them all
+with a single command. It is enough to use <tt class="literal"><span class="pre">decorators.enhance_classes()</span></tt>
+with a magic docstring corresponding to a class decorator as argument, 
+as in this example:</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;example.py&gt;
+
+from example2 import identity,name
+import inspect, decorators; decorators.enhance_classes(&quot;[Decorated]&quot;)
+
+class C1: # automagically converted to a decorated class
+    identity=identity 
+
+class C2: # automagically converted to a DecoratedLogged class
+    &quot;[Logged]&quot;
+    name=name
+
+c1=C1() # C1 instance
+c2=C2() # C2 instance
+
+#&lt;/example.py&gt;
+</pre>
+</blockquote>
+<p>Notice that class <tt class="literal"><span class="pre">C2</span></tt> has already a magic docstring. This means that
+<tt class="literal"><span class="pre">C2</span></tt> has to be enhanced both from <tt class="literal"><span class="pre">Logged</span></tt> and from <tt class="literal"><span class="pre">Decorated</span></tt>.
+This is done by automagically creating a <tt class="literal"><span class="pre">DecoratedLogged</span></tt> class
+decorator:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from example import C1,C2,c1,c2 
+&lt;class C2[DecoratedLogged]&gt; created
+</pre>
+<p>The second line is printed because of the logging capabilities of <tt class="literal"><span class="pre">C2</span></tt>.
+Moreover, since <tt class="literal"><span class="pre">C2</span></tt> is decorated too, the following will work:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; assert C2.name() == 'C2'
+&gt;&gt;&gt; assert c2.name() == 'C2' 
+</pre>
+<p>Idem for <tt class="literal"><span class="pre">C1</span></tt>:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; assert C1.identity(1) == 1
+&gt;&gt;&gt; assert c1.identity(1) == 1 
+</pre>
+<p>You may check that the magic works both for new style classes (decorating
+module <tt class="literal"><span class="pre">object</span></tt> class) and old style classes (by setting the module level 
+<tt class="literal"><span class="pre">__metaclass</span></tt> attribute and by implicitly converting the classes 
+to new style classes).</p>
+<p>This magical approach is the easiest way to go if you want to trace
+inheritance hierarchies. For instance, here is how to trace cooperative 
+methods in complicate (which is useful for debugging):</p>
+<blockquote>
+<pre class="literal-block">
+#&lt;tracing.py&gt;
+
+import customdec; customdec.enhance_classes(&quot;[Decorated]&quot;)
+ 
+class B(object): 
+    def __init__(self):
+        &quot;[tracedmethod]&quot;
+        super(B,self).__init__()
+
+class D(object): 
+    def __init__(self):
+        &quot;[tracedmethod]&quot;
+        super(D,self).__init__()
+
+class E(B,D):
+    def __init__(self):
+        &quot;[tracedmethod]&quot;
+        super(E,self).__init__()
+
+ #&lt;/tracing.py&gt;
+</pre>
+</blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; from tracing import E
+&gt;&gt;&gt; e=E()
+Calling 'E.__init__' with arguments &lt;E instance&gt;(){} ...
+    Calling 'B.__init__' with arguments &lt;E instance&gt;(){} ...
+        Calling 'D.__init__' with arguments &lt;E instance&gt;(){} ...
+        'D.__init__' called with result: None
+    'B.__init__' called with result: None
+'E.__init__' called with result: None
+</pre>
+</div>
+<div class="section" id="advanced-usage">
+<h1><a class="toc-backref" href="#id9" name="advanced-usage">Advanced usage</a></h1>
+<p>Whereas the average programmer is expected to use the 
+<tt class="literal"><span class="pre">decorators.decorated</span></tt> function only, the module provides access to
+its underlining implementation, which may be useful to the advanced
+programmer.</p>
+<p>The module provides an utility functions to retrieve the list of
+recognized decorators: <tt class="literal"><span class="pre">decorators.get(docstring)</span></tt>, where <tt class="literal"><span class="pre">docstring</span></tt>
+is a magic docstring, i.e. a bracketed comma-separated list 
+of decorator names. For instance <tt class="literal"><span class="pre">decorators.get('[MethodDecorator]')</span></tt>
+gives the list of all subclasses of <tt class="literal"><span class="pre">MethodDecorator</span></tt>, i.e. all method
+decorators, whereas <tt class="literal"><span class="pre">decorators.get('[ClassDecorator]')</span></tt>
+gives the list of the known class decorators. It is even possible
+to use the comma notation:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; decorators.get(&quot;[classmethod,tracedmethod]&quot;)
+[&lt;class 'noconflict.classmethodtracedmethod'&gt;]
+</pre>
+<p>For instance, it is possible to decorate functions by hand,
+without using magic docstring. Here is an example:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; do_nothing=decorators.staticmethod(lambda:None)
+&gt;&gt;&gt; print do_nothing # ``do_nothing`` is a static method
+&lt;staticmethod:&lt;lambda&gt;&gt;
+</pre>
+<p>One can even compose decorators by hand:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class B: pass
+...
+&gt;&gt;&gt; B.chattystatic=customdec.chattymethod2(do_nothing)
+&gt;&gt;&gt; B.chattystatic()
+calling &lt;chattymethod2staticmethod:&lt;lambda&gt;&gt; from &lt;class B[ClassDecorator]&gt;
+</pre>
+<p>In other words</p>
+<blockquote>
+<tt class="literal"><span class="pre">decorator1(decorator2(obj))</span></tt></blockquote>
+<p>automagically creates a composed class <tt class="literal"><span class="pre">decorator1decorator2</span></tt> in the
+<tt class="literal"><span class="pre">noconflict</span></tt> module (or recycle it, if <tt class="literal"><span class="pre">decorator1decorator2</span></tt> has 
+been already created) and it is equivalent to</p>
+<blockquote>
+<tt class="literal"><span class="pre">decorator1decorator2(obj)</span></tt></blockquote>
+<p>Here is the check:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; decorators.get(&quot;[chattymethod2staticmethod]&quot;)
+[&lt;class 'noconflict.chattymethod2staticmethod'&gt;]
+</pre>
+<p>Here is another example:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from customdec import tracedmethod
+&gt;&gt;&gt; class C(object):
+...     def fact(self,n):
+...         if n==0: return 1
+...         else: return n*self.fact(n-1)
+...     fact=tracedmethod(fact)
+&gt;&gt;&gt; c=C()
+&gt;&gt;&gt; c.fact(2)
+Calling '?.fact' with arguments &lt;C instance&gt;(2,){} ...
+    Calling '?.fact' with arguments &lt;C instance&gt;(1,){} ...
+        Calling '?.fact' with arguments &lt;C instance&gt;(0,){} ...
+        '?.fact' called with result: 1
+    '?.fact' called with result: 1
+'?.fact' called with result: 2
+2
+</pre>
+<p>In this second syntax <tt class="literal"><span class="pre">fact</span></tt> does not know where it 
+is defined, unless the containing class is explicitly set:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; C.__dict__['fact'].__klass__=C
+</pre>
+<p>Now the code will work as with the docstring syntax.</p>
+<p>What happens if you try to decorate something which is already
+decorated? You get <tt class="literal"><span class="pre">None</span></tt>:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; def f(x): &quot;[tracedmethod]&quot;
+...
+&gt;&gt;&gt; tm=decorators.decorated(f) # creates a tracedmethod from f
+&gt;&gt;&gt; print decorators.decorated(tm) # trying to decorate a tracedmethod
+None
+</pre>
+<p>You can compose decorators in a trivial way:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; cmtm=decorators.classmethod(tm)
+&gt;&gt;&gt; print cmtm
+&lt;classmethodtracedmethod:f&gt;
+</pre>
+<p>whereas you can compose classes:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class C: &quot;[Decorated]&quot;
+...
+&gt;&gt;&gt; print customdec.Traced(C)
+&lt;class C[TracedDecorated]&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; class D: pass
+...
+&gt;&gt;&gt; print customdec.Decorated(customdec.Traced(D))
+&lt;class D[DecoratedTraced]&gt;
+</pre>
+<p>This is the hierarchy:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; for C in type(cmtm).mro(): print C
+...
+&lt;class 'noconflict.classmethodtracedmethod'&gt;
+&lt;class 'decorators.classmethod'&gt;
+&lt;class 'customdec.tracedmethod'&gt;
+&lt;class 'decorators.MethodDecorator'&gt;
+&lt;class 'decorators.Decorator'&gt;
+&lt;type 'object'&gt;
+</pre>
+<p>One can also decorate classes by hand, by using class decorators.
+<tt class="literal"><span class="pre">decorators.ClassDecorator</span></tt> which converts a regular (both old 
+style or new style) class in a class with the ability to recognize 
+magic docstrings. Actually, the <tt class="literal"><span class="pre">decorators.enhance_classes()</span></tt> 
+trick works by decorating the <tt class="literal"><span class="pre">object</span></tt> class with
+<tt class="literal"><span class="pre">decorators.ClassDecorator</span></tt> and by setting the custom metaclass to 
+<tt class="literal"><span class="pre">decorators.ClassDecorator</span></tt> and it is equivalent to write</p>
+<blockquote>
+<pre class="literal-block">
+import decorators
+object=decorators.ClassDecorator(object) # decorates all new style classes
+__metaclass__= decorators.ClassDecorator # decorates all old style classes
+</pre>
+</blockquote>
+<p>on top of your module. 
+If you want the magic to work only for new style classes only, you may 
+forget the
+second line; if you want the magic to work for old style classes only, you
+may forget the first line.</p>
+<p>If the module contains a magic docstring which is an explicit class decorator,
+such as <tt class="literal"><span class="pre">decorators.Decorated</span></tt>, then <tt class="literal"><span class="pre">decorators.decorated</span></tt> look at the
+magic docstring and executes something like</p>
+<blockquote>
+<pre class="literal-block">
+import decorators
+object=decorators.Decorated(object) # decorates all new style classes
+__metaclass__= decorators.Decorated # decorates all old style classes
+</pre>
+</blockquote>
+<p>It is possible to go even deeper in black magic, and to decorate all 
+the new style classes in <em>all</em> modules, by decorating <tt class="literal"><span class="pre">__builtin__.object</span></tt>:</p>
+<blockquote>
+<pre class="literal-block">
+import decorators,__builtin__
+__builtin.object=decorators.decorated(object)
+</pre>
+</blockquote>
+<p>Still, redefining <tt class="literal"><span class="pre">__builtin__object</span></tt> is not recommended since it 
+may induce metaclass conflicts in other modules using metaclasses. 
+It will work only if you import modules not using metaclasses, or 
+modules using metaclasses safely, i.e. modules taking care of 
+possible conflicts by using the <tt class="literal"><span class="pre">makecls</span></tt> function or an equivalent one.</p>
+</div>
+<div class="section" id="the-implementation">
+<h1><a class="toc-backref" href="#id10" name="the-implementation">The implementation</a></h1>
+<p>This part can be safely skipped, unless you are a <em>really</em> curious and
+you want to know how the implementation works.</p>
+<p>The module is rather short (~150 lines) but far from being trivial,
+since it is based on extensive usage of metaclass wizardry.</p>
+<p>The main class-metaclass hierarchy is represented in figure 1, where
+boxes denote classes and ovals denote metaclasses; instantiation is
+denoted by dashed green lines whereas inheritance is denoted by continuous
+blue lines.</p>
+<div class="figure">
+<p><img alt="decorators.png" src="decorators.png" /></p>
+</div>
+<p>Notice that <tt class="literal"><span class="pre">MetaDecorator</span></tt> (inherited via <tt class="literal"><span class="pre">Decorator</span></tt>) is the 
+metaclass of all decorators. Class decorators are already metaclasses,
+so <tt class="literal"><span class="pre">MetaDecorator</span></tt> is actually a meta-metaclass with respect to
+instances of decorated classes, whereas it is a simple metaclass with
+respect to instances of decorated methods. For this reason in the
+presenced of class decorators the unusual relation</p>
+<p>assert object.__metaclass__ != object.__class__</p>
+<p>holds. More specifically</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; object.__class__
+&lt;class 'decorators.ClassDecorator'&gt;
+</pre>
+<p>but</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; object.__metaclass__ 
+&lt;class 'decorators.MetaDecorator'&gt;
+</pre>
+<p>since <tt class="literal"><span class="pre">object</span></tt> the <tt class="literal"><span class="pre">__metaclass__</span></tt> 
+attribute is inherited from <tt class="literal"><span class="pre">Decorator</span></tt>.</p>
+<p>The implementation is relatively smart. Consider for instance the case of
+the logged example. In that example class <tt class="literal"><span class="pre">D</span></tt> was a subclass of a tricked 
+<tt class="literal"><span class="pre">object</span></tt> class, enhanced by a metaclass <tt class="literal"><span class="pre">ClassDecorator</span></tt>. Moreover <tt class="literal"><span class="pre">D</span></tt> 
+had a <tt class="literal"><span class="pre">Logged</span></tt> docstring. Therefore it should have been an instance of 
+<tt class="literal"><span class="pre">_ClassDecoratorLogged</span></tt> metaclass. But logged was
+a subclass of <tt class="literal"><span class="pre">ClassDecorator</span></tt>, therefore it already had all the features
+of <tt class="literal"><span class="pre">ClassDecorator</span></tt> and it would have been redundant to create 
+<tt class="literal"><span class="pre">_ClassDecoratorLogged</span></tt>, when``Logged`` would have been enough. 
+So <tt class="literal"><span class="pre">Logged</span></tt> 
+was used and <tt class="literal"><span class="pre">_ClassDecoratorLogged</span></tt> was never created. All the magic is in 
+the <tt class="literal"><span class="pre">noconflict</span></tt> module discussed in my <a class="reference" href="http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/204197">cookbook</a> recipe.</p>
+<p>The current implementation does not make any attempt of optimization and
+there may be alternative implementations faster or more memory efficient.
+At this experimental level I didn't care to explore about performances 
+issues. They does not probably matter unless one has to decorate
+thousands or millions of functions and classes.</p>
+<p>Things to do: adding more error checking.</p>
+<p>Finally, a word about bugs. The <tt class="literal"><span class="pre">decorators</span></tt> module is fairly sophisticated,
+therefore whereas I can guarantee that it passes my test suite (which involves
+~100 tests automatically extracted from the documentation you are reading), 
+I cannot guarantee that it is correct. 
+If somebody finds a bug or an unexpected 
+behavior, please let me know and I will try to fix it.</p>
+<!-- References: -->
+</div>
+</div>
+<hr class="footer"/>
+<div class="footer">
+<a class="reference" href="decorators.txt">View document source</a>.
+Generated on: 2003-09-17 14:45 UTC.
+Generated by <a class="reference" href="http://docutils.sourceforge.net/">Docutils</a> from <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> source.
+</div>
+</body>
+</html>

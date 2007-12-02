@@ -1,0 +1,1207 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.4.1: http://docutils.sourceforge.net/" />
+<meta name="version" content="S5 1.1" />
+<title>SciPy on WSGI</title>
+<meta name="organization" content="StatPro Italy" />
+<meta name="date" content="2007-06-09" />
+<style type="text/css">
+
+/*
+:Author: David Goodger
+:Contact: goodger@users.sourceforge.net
+:Date: $Date: 2005-12-18 01:56:14 +0100 (Sun, 18 Dec 2005) $
+:Revision: $Revision: 4224 $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin-left: 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left {
+  clear: left }
+
+img.align-right {
+  clear: right }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em ;
+  background-color: #eeeeee }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+tt.docutils {
+  background-color: #eeeeee }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+<!-- configuration parameters -->
+<meta name="defaultView" content="slideshow" />
+<meta name="controlVis" content="hidden" />
+<!-- style sheet links -->
+<script src="ui/default/slides.js" type="text/javascript"></script>
+<link rel="stylesheet" href="ui/default/slides.css"
+      type="text/css" media="projection" id="slideProj" />
+<link rel="stylesheet" href="ui/default/outline.css"
+      type="text/css" media="screen" id="outlineStyle" />
+<link rel="stylesheet" href="ui/default/print.css"
+      type="text/css" media="print" id="slidePrint" />
+<link rel="stylesheet" href="ui/default/opera.css"
+      type="text/css" media="projection" id="operaFix" />
+
+<style type="text/css">
+#currentSlide {display: none;}
+</style>
+</head>
+<body>
+<div class="layout">
+<div id="controls"></div>
+<div id="currentSlide"></div>
+<div id="header">
+
+</div>
+<div id="footer">
+<h1>SciPy on WSGI</h1>
+<h2>PyCon Uno 2007 - 09 June 2007</h2>
+</div>
+</div>
+<div class="presentation">
+<div class="slide" id="slide0">
+<h1 class="title">SciPy on WSGI</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">Talk given at:</th><td class="field-body">PyCon Uno 2007</td>
+</tr>
+<tr class="field"><th class="docinfo-name">By:</th><td class="field-body">Michele Simionato</td>
+</tr>
+<tr><th class="docinfo-name">Organization:</th>
+<td>StatPro Italy</td></tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>2007-06-09</td></tr>
+</tbody>
+</table>
+<!-- Definitions of interpreted text roles (classes) for S5/HTML data. -->
+<!-- This data file has been placed in the public domain. -->
+<!-- Colours
+======= -->
+<!-- Text Sizes
+========== -->
+<!-- Display in Slides (Presentation Mode) Only
+========================================== -->
+<!-- Display in Outline Mode Only
+============================ -->
+<!-- Display in Print Only
+===================== -->
+<!-- Incremental Display
+=================== -->
+<p class="center"><strong>Subtitle</strong>: <em>Science on the Web for pedestrians</em></p>
+
+</div>
+<div class="slide" id="before-i-start">
+<h1>Before I start</h1>
+<p>What about you?</p>
+<p class="incremental">Are you more of a programmer or more of a scientist/engineer?</p>
+<p class="incremental">What kind of scientific tools are you using, if any?</p>
+<p class="incremental">Have you ever heard of SciPy?</p>
+<p class="incremental">Have you ever heard of WSGI?</p>
+</div>
+<div class="slide" id="ok-now-i-can-begin">
+<h1>Ok, now I can begin ;)</h1>
+<p>The motivation from this talk comes from a real problem at <a class="reference" href="http://www.statpro.com">StatPro</a></p>
+<p class="incremental">we have bad histories for many financial products</p>
+<p class="incremental">wrong prices at some dates in the past</p>
+</div>
+<div class="slide" id="a-picture">
+<h1>A picture</h1>
+<img alt="badpricehistory.png" src="badpricehistory.png" />
+<p class="incremental">(damn data providers!)</p>
+</div>
+<div class="slide" id="discarding-values">
+<h1>Discarding values ...</h1>
+<img alt="badpricehistory2.png" src="badpricehistory2.png" />
+<p>... is tricky!</p>
+</div>
+<div class="slide" id="issues">
+<h1>Issues</h1>
+<p>We cannot use the conventional criterium</p>
+<img alt="nongaussian.png" class="incremental" src="nongaussian.png" />
+</div>
+<div class="slide" id="strategy">
+<h1>Strategy</h1>
+<ul class="incremental simple">
+<li>price distributions (ln p_i/p) are known to decay with power laws</li>
+<li>fit the distributions with a &quot;reasonable&quot; curve and determine
+a suitable criterium for the spikes at some confidence level</li>
+<li>a reasonably simple ansatz gives a family of distributions depending
+on a parameter delta</li>
+<li><a class="reference" href="formulas.pdf">show formulae</a></li>
+</ul>
+</div>
+<div class="slide" id="delta-distribution">
+<h1>delta-distribution</h1>
+<img alt="delta-dist.png" src="delta-dist.png" />
+<p>From Dirac delta (delta -&gt; 0) to Gaussian
+distribution (delta -&gt; oo)</p>
+</div>
+<div class="slide" id="cumulative-dist">
+<h1>Cumulative dist</h1>
+<img alt="cdf-dist.png" src="cdf-dist.png" />
+<p>VAR-XX = Max loss at XX% confidence level [<a class="reference" href="http://integrals.wolfram.com/index.jsp">i</a>]</p>
+</div>
+<div class="slide" id="relation-var-vol">
+<h1>Relation VAR-vol.</h1>
+<p>If you assume a given distribution, there is a fixed relation between
+VAR-XX and volatility</p>
+<ul class="incremental simple">
+<li>for the Gaussian VAR-95 = 1.64 sigma, for a lot of our distributions
+VAR-95 &lt; 1.0 sigma</li>
+<li>we don't want to make assumptions on the distribution function
+for computing the VAR</li>
+<li>but we are willing to make assumptions for the sake of eliminating
+statistically invalid values</li>
+</ul>
+</div>
+<div class="slide" id="the-tool-we-need">
+<h1>The tool we need</h1>
+<pre class="literal-block">
+$ python simpleplotter.py &quot;fri-gb;AVE&quot;
+</pre>
+<p>(not 100% finished yet!)</p>
+</div>
+<div class="slide" id="enter-scipy-co">
+<h1>Enter SciPy &amp; Co.</h1>
+<p>In order to perform our analysis we looked
+at many scientific tools</p>
+<ul class="incremental simple">
+<li>a good plotting tool (matplotlib)</li>
+<li>support for histograms (matplotlib)</li>
+<li>support for special functions (scipy.special)</li>
+<li>support for non-linear fitting (scipy.leastsq)</li>
+<li>good performance  (scipy)</li>
+<li>interactive and IPython-friendly (scipy)</li>
+<li>bla-bla</li>
+<li>cheating: I actually used Gnuplot!! ;-)</li>
+</ul>
+</div>
+<div class="slide" id="installation">
+<h1>Installation</h1>
+<p>If you are lucky, it is trivial:</p>
+<pre class="literal-block">
+$ apt-get install ipython
+$ apt-get install python-matplotlib
+$ apt-get install python-numpy
+$ apt-get install python-numpy-ext
+$ apt-get install python-scipy
+</pre>
+<p>If you are unlucky, or if you try to build from sources,
+YMMV ...</p>
+</div>
+<div class="slide" id="what-s-in-scipy">
+<h1>What's in Scipy</h1>
+<ul class="incremental simple">
+<li>support for multi-dimensional array (numpy)</li>
+<li>linear algebra and minimization routines</li>
+<li>solving, integration, interpolation, fitting</li>
+<li>special functions and statistical functions</li>
+<li>etc. etc.</li>
+</ul>
+</div>
+<div class="slide" id="special-functions">
+<h1>Special functions</h1>
+<p>Airy Functions:</p>
+<pre class="literal-block">
+airy
+--Airy functions and their derivatives.
+airye
+--Exponentially scaled Airy functions
+ai_zeros
+--Zeros of Airy functions Ai(x) and Ai'(x)
+bi_zeros
+--Zeros of Airy functions Bi(x) and Bi'(x)
+</pre>
+</div>
+<div class="slide" id="elliptic-functions-and-integrals">
+<h1>Elliptic Functions and Integrals</h1>
+<pre class="literal-block">
+ellipj
+--Jacobian elliptic functions
+ellipk
+--Complete elliptic integral of the first kind.
+ellipkinc
+--Incomplete elliptic integral of the first kind.
+ellipe
+--Complete elliptic integral of the second kind.
+ellipeinc
+--Incomplete elliptic integral of the second kind.
+</pre>
+</div>
+<div class="slide" id="bessel-functions">
+<h1>Bessel Functions</h1>
+<pre class="literal-block">
+jn
+--Bessel function of integer order and real argument.
+jv
+--Bessel function of real-valued order and complex argument.
+jve
+--Exponentially scaled Bessel function.
+yn
+--Bessel function of second kind (integer order).
+yv
+--Bessel function of the second kind (real-valued order).
+yve
+--Exponentially scaled Bessel function of the second kind.
+kn
+--Modified Bessel function of the third kind (integer order).
+kv
+--Modified Bessel function of the third kind (real order).
+kve
+--Exponentially scaled modified Bessel function of the third kind.
+iv
+--Modified Bessel function.
+ive
+--Exponentially scaled modified Bessel function.
+hankel1
+--Hankel function of the first kind.
+hankel1e
+--Exponentially scaled Hankel function of the first kind.
+hankel2
+--Hankel function of the second kind.
+hankel2e
+--Exponentially scaled Hankel function of the second kind.
+
+lmbda
+--Sequence of lambda functions with arbitrary order v.
+</pre>
+</div>
+<div class="slide" id="zeros-of-bessel-functions">
+<h1>Zeros of Bessel Functions</h1>
+<pre class="literal-block">
+jnjnp_zeros
+--Zeros of integer-order Bessel functions and derivatives
+                   sorted in order.
+jnyn_zeros
+--Zeros of integer-order Bessel functions and derivatives
+                   as separate arrays.
+jn_zeros
+--Zeros of Jn(x)
+jnp_zeros
+--Zeros of Jn'(x)
+yn_zeros
+--Zeros of Yn(x)
+ynp_zeros
+--Zeros of Yn'(x)
+y0_zeros
+--Complex zeros: Y0(z0)=0 and values of Y0'(z0)
+y1_zeros
+--Complex zeros: Y1(z1)=0 and values of Y1'(z1)
+y1p_zeros
+--Complex zeros of Y1'(z1')=0 and values of Y1(z1')
+</pre>
+</div>
+<div class="slide" id="faster-versions">
+<h1>Faster versions</h1>
+<pre class="literal-block">
+j0
+--Bessel function of order 0.
+j1
+--Bessel function of order 1.
+y0
+--Bessel function of second kind of order 0.
+y1
+--Bessel function of second kind of order 1.
+i0
+--Modified Bessel function of order 0.
+i0e
+--Exponentially scaled modified Bessel function of order 0.
+i1
+--Modified Bessel function of order 1.
+i1e
+--Exponentially scaled modified Bessel function of order 1.
+k0
+--Modified Bessel function of the third kind of order 0.
+k0e
+--Exponentially scaled modified Bessel function of the
+              third kind of order 0.
+k1
+--Modified Bessel function of the third kind of order 1.
+k1e
+--Exponentially scaled modified Bessel function of the
+              third kind of order 1.
+</pre>
+</div>
+<div class="slide" id="integrals-of-bessel-functions">
+<h1>Integrals of Bessel Functions</h1>
+<pre class="literal-block">
+itj0y0
+--Basic integrals of j0 and y0 from 0 to x.
+it2j0y0
+--Integrals of (1-j0(t))/t from 0 to x and
+                y0(t)/t from x to inf.
+iti0k0
+--Basic integrals of i0 and k0 from 0 to x.
+it2i0k0
+--Integrals of (i0(t)-1)/t from 0 to x and
+                k0(t)/t from x to inf.
+besselpoly
+--Integral of a bessel function: Jv(2*a*x) * x^lambda
+                from x=0 to 1.
+</pre>
+</div>
+<div class="slide" id="derivatives-of-bessel-functions">
+<h1>Derivatives of Bessel Functions</h1>
+<pre class="literal-block">
+jvp
+--Nth derivative of Jv(v,z)
+yvp
+--Nth derivative of Yv(v,z)
+kvp
+--Nth derivative of Kv(v,z)
+ivp
+--Nth derivative of Iv(v,z)
+h1vp
+--Nth derivative of H1v(v,z)
+h2vp
+--Nth derivative of H2v(v,z)
+</pre>
+</div>
+<div class="slide" id="spherical-bessel-functions">
+<h1>Spherical Bessel Functions</h1>
+<pre class="literal-block">
+sph_jn
+--Sequence of spherical Bessel functions, jn(z)
+sph_yn
+--Sequence of spherical Bessel functions, yn(z)
+sph_jnyn
+--Sequence of spherical Bessel functions, jn(z) and yn(z)
+sph_in
+--Sequence of spherical Bessel functions, in(z)
+sph_kn
+--Sequence of spherical Bessel functions, kn(z)
+sph_inkn
+--Sequence of spherical Bessel functions, in(z) and kn(z)
+</pre>
+</div>
+<div class="slide" id="riccati-bessel-fun">
+<h1>Riccati-Bessel Fun.</h1>
+<pre class="literal-block">
+riccati_jn
+--Sequence of Ricatti-Bessel functions
+  of first kind.
+riccati_yn
+--Sequence of Ricatti-Bessel functions
+  of second kind.
+</pre>
+</div>
+<div class="slide" id="struve-functions">
+<h1>Struve Functions</h1>
+<pre class="literal-block">
+struve
+--Struve function --- Hv(x)
+modstruve
+--Modified struve function --- Lv(x)
+itstruve0
+--Integral of H0(t) from 0 to x
+it2struve0
+--Integral of H0(t)/t from x to Inf.
+itmodstruve0
+--Integral of L0(t) from 0 to x.
+</pre>
+</div>
+<div class="slide" id="statistical-functions">
+<h1>Statistical Functions</h1>
+<pre class="literal-block">
+bdtr
+--Sum of terms 0 through k of of the binomial pdf.
+bdtrc
+--Sum of terms k+1 through n of the binomial pdf.
+bdtri
+--Inverse of bdtr
+btdtr
+--Integral from 0 to x of beta pdf.
+btdtri
+--Quantiles of beta distribution
+fdtr
+--Integral from 0 to x of F pdf.
+fdtrc
+--Integral from x to infinity under F pdf.
+fdtri
+--Inverse of fdtrc
+gdtr
+--Integral from 0 to x of gamma pdf.
+gdtrc
+--Integral from x to infinity under gamma pdf.
+gdtri
+--Quantiles of gamma distribution
+nbdtr
+--Sum of terms 0 through k of the negative binomial pdf.
+nbdtrc
+--Sum of terms k+1 to infinity under negative binomial pdf.
+nbdtri
+--Inverse of nbdtr
+pdtr
+--Sum of terms 0 through k of the Poisson pdf.
+pdtrc
+--Sum of terms k+1 to infinity of the Poisson pdf.
+pdtri
+--Inverse of pdtr
+stdtr
+--Integral from -infinity to t of the Student-t pdf.
+stdtri
+--Inverse of stdtr (quantiles)
+chdtr
+--Integral from 0 to x of the Chi-square pdf.
+chdtrc
+--Integral from x to infnity of Chi-square pdf.
+chdtri
+--Inverse of chdtrc.
+ndtr
+--Integral from -infinity to x of standard normal pdf
+ndtri
+--Inverse of ndtr (quantiles)
+smirnov
+--Kolmogorov-Smirnov complementary CDF for one-sided
+                test statistic (Dn+ or Dn-)
+smirnovi
+--Inverse of smirnov.
+kolmogorov
+--The complementary CDF of the (scaled) two-sided test
+                      statistic (Kn*) valid for large n.
+kolmogi
+--Inverse of kolmogorov
+tklmbda
+--Tukey-Lambda CDF
+</pre>
+</div>
+<div class="slide" id="gamma-and-related-functions">
+<h1>Gamma and Related Functions</h1>
+<pre class="literal-block">
+gamma
+--Gamma function.
+gammaln
+--Log of the absolute value of the gamma function.
+gammainc
+--Incomplete gamma integral.
+gammaincinv
+--Inverse of gammainc.
+gammaincc
+--Complemented incomplete gamma integral.
+gammainccinv
+--Inverse of gammaincc.
+beta
+--Beta function.
+betaln
+--Log of the absolute value of the beta function.
+betainc
+--Incomplete beta integral.
+betaincinv
+--Inverse of betainc.
+betaincinva
+--Inverse (in first argument, a) of betainc
+betaincinvb
+--Inverse (in first argument, b) of betainc
+psi(digamma)
+--Logarithmic derivative of the gamma function.
+rgamma
+--One divided by the gamma function.
+polygamma
+--Nth derivative of psi function.
+</pre>
+</div>
+<div class="slide" id="error-function-and-fresnel-int">
+<h1>Error Function and Fresnel Int.</h1>
+<pre class="literal-block">
+erf
+--Error function.
+erfc
+--Complemented error function (1- erf(x))
+erfinv
+--Inverse of error function
+erfcinv
+--Inverse of erfc
+erf_zeros
+--Complex zeros of erf(z)
+fresnel
+--Fresnel sine and cosine integrals.
+fresnel_zeros
+--Complex zeros of both Fresnel integrals
+fresnelc_zeros
+--Complex zeros of fresnel cosine integrals
+fresnels_zeros
+--Complex zeros of fresnel sine integrals
+modfresnelp
+--Modified Fresnel integrals F_+(x) and K_+(x)
+modfresnelm
+--Modified Fresnel integrals F_-(x) and K_-(x)
+</pre>
+</div>
+<div class="slide" id="legendre-functions">
+<h1>Legendre Functions</h1>
+<pre class="literal-block">
+lpn
+--Legendre Functions (polynomials) of the first kind
+lqn
+--Legendre Functions of the second kind.
+lpmn
+--Associated Legendre Function of the first kind.
+lqmn
+--Associated Legendre Function of the second kind.
+lpmv
+--Associated Legendre Function of arbitrary non-negative
+               degree v.
+sph_harm
+--Spherical Harmonics (complex-valued) Y^m_n(theta,phi)
+</pre>
+</div>
+<div class="slide" id="orthogonal-polyn">
+<h1>Orthogonal polyn.</h1>
+<pre class="literal-block">
+legendre
+--Legendre polynomial P_n(x)
+chebyt
+--Chebyshev polynomial T_n(x)
+chebyu
+--Chebyshev polynomial U_n(x)
+chebyc
+--Chebyshev polynomial C_n(x)
+chebys
+--Chebyshev polynomial S_n(x)
+jacobi
+--Jacobi polynomial P^(alpha,beta)_n(x)
+laguerre
+--Laguerre polynomial, L_n(x)
+genlaguerre
+--Generalized (Associated) Laguerre polynomial, L^alpha_n(x)
+hermite
+--Hermite polynomial H_n(x)
+hermitenorm
+--Normalized Hermite polynomial, He_n(x)
+gegenbauer
+--Gegenbauer (Ultraspherical) polynomials, C^(alpha)_n(x)
+sh_legendre
+--shifted Legendre polynomial, P*_n(x)
+sh_chebyt
+--shifted Chebyshev polynomial, T*_n(x)
+sh_chebyu
+--shifted Chebyshev polynomial, U*_n(x)
+sh_jacobi
+--shifted Jacobi polynomial, J*_n(x) = G^(p,q)_n(x)
+</pre>
+</div>
+<div class="slide" id="hypergeometric-functions">
+<h1>HyperGeometric Functions</h1>
+<pre class="literal-block">
+hyp2f1
+--Gauss hypergeometric function (2F1)
+hyp1f1
+--Confluent hypergeometric function (1F1)
+hyperu
+--Confluent hypergeometric function (U)
+hyp0f1
+--Confluent hypergeometric limit function (0F1)
+hyp2f0
+--Hypergeometric function (2F0)
+hyp1f2
+--Hypergeometric function (1F2)
+hyp3f0
+--Hypergeometric function (3F0)
+</pre>
+</div>
+<div class="slide" id="parabolic-cylinder-functions">
+<h1>Parabolic Cylinder Functions</h1>
+<pre class="literal-block">
+pbdv
+--Parabolic cylinder function Dv(x) and derivative.
+pbvv
+--Parabolic cylinder function Vv(x) and derivative.
+pbwa
+--Parabolic cylinder function W(a,x) and derivative.
+pbdv_seq
+--Sequence of parabolic cylinder functions Dv(x)
+pbvv_seq
+--Sequence of parabolic cylinder functions Vv(x)
+pbdn_seq
+--Sequence of parabolic cylinder functions Dn(z), complex z
+</pre>
+</div>
+<div class="slide" id="mathieu-functions">
+<h1>Mathieu functions</h1>
+<pre class="literal-block">
+mathieu_a
+--Characteristic values for even solution (ce_m)
+mathieu_b
+--Characteristic values for odd solution (se_m)
+mathieu_even_coef
+--sequence of expansion coefficients for even solution
+mathieu_odd_coef
+--sequence of expansion coefficients for odd solution
+   ** All the following return both function and first derivative **
+mathieu_cem
+--Even mathieu function
+mathieu_sem
+--Odd mathieu function
+mathieu_modcem1
+--Even modified mathieu function of the first kind
+mathieu_modcem2
+--Even modified mathieu function of the second kind
+mathieu_modsem1
+--Odd modified mathieu function of the first kind
+mathieu_modsem2
+--Odd modified mathieu function of the second kind
+</pre>
+</div>
+<div class="slide" id="spheroidal-wave-functions">
+<h1>Spheroidal Wave Functions</h1>
+<pre class="literal-block">
+pro_ang1
+--Prolate spheroidal angular function of the first kind
+pro_rad1
+--Prolate spheroidal radial function of the first kind
+pro_rad2
+--Prolate spheroidal radial function of the second kind
+obl_ang1
+--Oblate spheroidal angluar function of the first kind
+obl_rad1
+--Oblate spheroidal radial function of the first kind
+obl_rad2
+--Oblate spheroidal radial function of the second kind
+pro_cv
+--Compute characteristic value for prolate functions
+obl_cv
+--Compute characteristic value for oblate functions
+pro_cv_seq
+--Compute sequence of prolate characteristic values
+obl_cv_seq
+--Compute sequence of oblate characteristic values
+ ** The following functions require pre-computed characteristic values **
+pro_ang1_cv
+--Prolate spheroidal angular function of the first kind
+pro_rad1_cv
+--Prolate spheroidal radial function of the first kind
+pro_rad2_cv
+--Prolate spheroidal radial function of the second kind
+obl_ang1_cv
+--Oblate spheroidal angluar function of the first kind
+obl_rad1_cv
+--Oblate spheroidal radial function of the first kind
+obl_rad2_cv
+--Oblate spheroidal radial function of the second kind
+</pre>
+</div>
+<div class="slide" id="kelvin-functions">
+<h1>Kelvin Functions</h1>
+<pre class="literal-block">
+kelvin
+--All Kelvin functions (order 0) and derivatives.
+kelvin_zeros
+--Zeros of All Kelvin functions (order 0) and derivatives
+ber
+--Kelvin function ber x
+bei
+--Kelvin function bei x
+berp
+--Derivative of Kelvin function ber x
+beip
+--Derivative of Kelvin function bei x
+ker
+--Kelvin function ker x
+kei
+--Kelvin function kei x
+kerp
+--Derivative of Kelvin function ker x
+keip
+--Derivative of Kelvin function kei x
+ber_zeros
+--Zeros of Kelvin function bei x
+bei_zeros
+--Zeros of Kelvin function ber x
+berp_zeros
+--Zeros of derivative of Kelvin function ber x
+beip_zeros
+--Zeros of derivative of Kelvin function bei x
+ker_zeros
+--Zeros of Kelvin function kei x
+kei_zeros
+--Zeros of Kelvin function ker x
+kerp_zeros
+--Zeros of derivative of Kelvin function ker x
+keip_zeros
+--Zeros of derivative of Kelvin function kei x
+</pre>
+</div>
+<div class="slide" id="other-special-functions">
+<h1>Other Special Functions</h1>
+<pre class="literal-block">
+expn
+--Exponential integral.
+exp1
+--Exponential integral of order 1 (for complex argument)
+expi
+--Another exponential integral
+--Ei(x)
+wofz
+--Fadeeva function.
+dawsn
+--Dawson's integral.
+shichi
+--Hyperbolic sine and cosine integrals.
+sici
+--Integral of the sinc and &quot;cosinc&quot; functions.
+spence
+--Dilogarithm integral.
+zeta
+--Riemann zeta function of two arguments.
+zetac
+--1.0 - standard Riemann zeta function.
+</pre>
+</div>
+<div class="slide" id="convenience-functions">
+<h1>Convenience Functions</h1>
+<pre class="literal-block">
+cbrt
+--Cube root.
+exp10
+--10 raised to the x power.
+exp2
+--2 raised to the x power.
+radian
+--radian angle given degrees, minutes, and seconds.
+cosdg
+--cosine of the angle given in degrees.
+sindg
+--sine of the angle given in degrees.
+tandg
+--tangent of the angle given in degrees.
+cotdg
+--cotangent of the angle given in degrees.
+log1p
+--log(1+x)
+expm1
+--exp(x)-1
+cosm1
+--cos(x)-1
+round
+--round the argument to the nearest integer. If argument
+  ends in 0.5 exactly, pick the nearest even integer.
+</pre>
+</div>
+<div class="slide" id="and-more">
+<h1>... and more!</h1>
+<p>but let us go back to our problem</p>
+<ul class="incremental simple">
+<li>at the present we are cleaning our histories in production with a
+quick and dirty criterium;</li>
+<li>we want to be able to see the histories case by case in order to take
+specific actions;</li>
+<li>we want to go on the Web (--&gt; next)</li>
+</ul>
+</div>
+<div class="slide" id="going-on-the-web">
+<h1>Going on the Web</h1>
+<ul class="incremental simple">
+<li>we want a simple tool for internal usage on our intranet;</li>
+<li>convenient to integrate with other Web tools;</li>
+<li>usable also for non-techical users;</li>
+<li>avoid installing and mantaining on every machine;</li>
+<li>possibly we may open it to our other offices in the world;</li>
+<li>we like the browser interface.</li>
+</ul>
+</div>
+<div class="slide" id="without-a-framework">
+<h1>Without a framework</h1>
+<ul class="incremental simple">
+<li>no security concerns;</li>
+<li>no scalability concerns;</li>
+<li>no nice-looking concerns;</li>
+<li>it must be <em>EASY</em> to change;</li>
+<li>we want minimal learning curve;</li>
+<li>we want no installation/configuration hassle;</li>
+<li>we want no dependencies;</li>
+<li>we want something even simpler than CGI, if possible!</li>
+</ul>
+</div>
+<div class="slide" id="enter-wsgi">
+<h1>Enter WSGI</h1>
+<ul class="incremental simple">
+<li>WSGI = Web Server Gateway Interface (<em>Whiskey</em> for friends)</li>
+<li>the brainchild of Python guru Phillip J. Eby;</li>
+<li>also input from Ian Bicking (<tt class="docutils literal"><span class="pre">paste</span></tt>) and others;</li>
+<li>starting from Python 2.5, we have a WSGI web server in the standard
+library (<tt class="docutils literal"><span class="pre">wsgiref</span></tt>);</li>
+<li>there are plenty of simple and useful add-ons for WSGI applications
+out there;</li>
+<li>even <tt class="docutils literal"><span class="pre">wsgiref</span></tt> fullfills all of our requirements, let's use it!
+(following the example of <a class="reference" href="http://video.google.com/videoplay?docid=-8502904076440714866">Guido</a> ...)</li>
+</ul>
+</div>
+<div class="slide" id="wsgi-key-concepts">
+<h1>WSGI key concepts</h1>
+<ol class="incremental arabic">
+<li><p class="first">WSGI application:</p>
+<p>(env, resp) -&gt; chunks of text</p>
+<p>env = environment dictionary of the server;
+resp = function sending to the client the HTTP headers;</p>
+</li>
+<li><p class="first">WSGI middleware:</p>
+<p>WSGI app -&gt; enhanced WSGI app</p>
+</li>
+</ol>
+</div>
+<div class="slide" id="ex1-hello-world">
+<h1>Ex1: Hello World</h1>
+<pre class="literal-block">
+from wsgiref import simple_server
+
+def app(env, resp):
+    resp(
+     '200 OK', [('Content-type', 'text/html')])
+    return ['&lt;h1&gt;Hello, World!&lt;/h1&gt;']
+
+server=simple_server.make_server('', 8000, app)
+server.serve_forever()
+</pre>
+<p><a class="reference" href="http://localhost:8000">show live example</a></p>
+</div>
+<div class="slide" id="ex2-middleware">
+<h1>Ex2: middleware</h1>
+<p>No middleware in the standard library, but lots of useful middleware
+from third party sources. For instance, authentication middleware:</p>
+<pre class="literal-block">
+from paste.auth.basic import AuthBasicHandler
+
+def only_for_pippo(env, user, passwd):
+    return user == 'pippo'
+
+auth_app = AuthBasicHandler(
+    app, 'app realm', only_for_pippo)
+</pre>
+</div>
+<div class="slide" id="other-middleware">
+<h1>Other middleware</h1>
+<pre class="literal-block">
+from wsgiref.simple_server import make_server
+from paste.evalexception import EvalException
+
+a, b = 1,0
+
+def app(env, resp):
+    resp('200 OK', [('Content-type', 'text/html')])
+    return [str(a/b)]
+
+make_server('', 9090, EvalException(app)).serve_forever()
+</pre>
+<p>Show <a class="reference" href="http://localhost:9090">evalexception</a></p>
+</div>
+<div class="slide" id="wsgi-vs-cgi">
+<h1>WSGI vs. CGI</h1>
+<ul class="simple">
+<li>WSGI is simpler than CGI<ul>
+<li><span class="incremental">using wsgiref you don't require an external server</span></li>
+<li><span class="incremental">you can keep sessions in memory</span></li>
+</ul>
+</li>
+<li>WSGI scales better than CGI<ul>
+<li><span class="incremental">there is a large choice of wsgi servers (mod_wsgi, Twisted ...)</span></li>
+<li><span class="incremental">there is a large choice of third party middleware</span></li>
+<li><span class="incremental">it is relatively easy to turn a toy application into a serious one</span></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="slide" id="wsgi-vs-frameworks">
+<h1>WSGI vs. frameworks</h1>
+<p>Pro:</p>
+<ul class="simple">
+<li><span class="incremental">if you liked playing with Lego, you will be happy</span></li>
+<li><span class="incremental">you have much more control and you are not forced to marry a technology</span></li>
+<li><span class="incremental">you can learn a lot</span></li>
+<li><span class="incremental">others ...</span></li>
+</ul>
+</div>
+<div class="slide" id="id1">
+<h1>WSGI vs. frameworks</h1>
+<p>Contra:</p>
+<ul class="simple">
+<li><span class="incremental">you can build your own framework with WSGI, but you have to debug it</span></li>
+<li><span class="incremental">the existing WSGI frameworks are newer, there is less experience with them</span></li>
+<li><span class="incremental">WSGI is not particularly Twisted-friendly</span></li>
+<li><span class="incremental">others ...</span></li>
+</ul>
+</div>
+<div class="slide" id="the-history-plotter">
+<h1>The history plotter</h1>
+<pre class="literal-block">
+$ python webplotter.py
+</pre>
+<p><a class="reference" href="http://localhost:8000">Click here for the live demonstration</a></p>
+</div>
+<div class="slide" id="references">
+<h1>References</h1>
+<p>That's all, folks!</p>
+<ul class="simple">
+<li><a class="reference" href="http://www.scipy.org">http://www.scipy.org</a></li>
+<li><a class="reference" href="http://www.python.org/dev/peps/pep-0333">http://www.python.org/dev/peps/pep-0333</a></li>
+<li><a class="reference" href="http://pythonpaste.org/do-it-yourself-framework.html">http://pythonpaste.org/do-it-yourself-framework.html</a></li>
+</ul>
+<p class="incremental"><strong>(P.S. at StatPro, we are hiring! ;)</strong></p>
+</div>
+</div>
+</body>
+</html>

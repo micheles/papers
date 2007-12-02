@@ -1,0 +1,97 @@
+
+
+
+Module decorators
+-----------------------------------------------------------------------
+
+Finally, one can decorate entire modules through the concept of 
+*module decorators*. Module decorators have the ability of decorating
+modules by changing their dictionary. Custom module decorators 
+should be derived from the class ``decorators.ModuleDecorator``, by 
+cooperatively overriding its ``__init__(self,mod)`` method. Writing
+a module decorator is a bit tricky, but I do expect only
+expert programmers to play this kind of game. 
+For instance, suppose one wants to trace all the functions in a module,
+unless they have the docstring "-untraced-" . This can be done with a 
+suitable module decorator which modifies the module dictionary.  
+Here is an example
+
+ ::
+
+  #<customdec.py>
+  
+  class TraceFunctions(ModuleDecorator):
+      def __init__(self,mod):
+          super(TraceFunctions,self).__init__(mod)
+          for name,func in self.__dict__.items():
+              if inspect.isfunction(func):
+                  doc=func.__doc__ or ''
+                  if doc.startswith('-untraced-'):
+                      pass # do nothing
+                  else:
+                      def traced(func):
+                          def tracedfunc(*args,**kw):
+                              print 'called',func.__name__
+                              return func(*args,**kw)
+                          return tracedfunc
+                      setattr(self,name,traced(func))
+
+  #</customdec.py>
+
+There is no way of tinkering with the attribute access in modules (as
+opposed to attribute access in classes) so we cannot used descriptors 
+here and we are forced to use closures.
+
+Let me test that the module decorator does its job. Consider the module
+
+ ::
+
+  #<mod.py>
+
+  #"[TraceFunctions]"
+
+  def f1(): pass
+ 
+  def f2(): pass
+
+  def f3(): "-untraced-"
+
+  #</mod.py>
+
+By importing this module, only the functions ``f1`` and ``f2`` should
+be traced. This is indeed the case:
+
+>>> from customdec import TraceFunctions
+>>> mod=TraceFunctions('mod',{})
+>>> mod.f1()
+called f1
+>>> mod.f2()
+called f2
+>>> mod.f3() # does nothing, correct
+
+One has always access to the original, undecorated module, via the
+``undecorated`` attribute:
+
+>>> orig=mod.undecorated
+>>> orig.f1() # does nothing, correct
+
+ ::
+
+  #<module.py>
+
+  "Magically decorated module"
+  
+  import decorators,sys
+
+  thismodule=sys.modules[__name__]
+
+  class MyClass: "[Decorated]"
+
+  newmod=decorators.decorated(thismodule)
+
+  #</module.py>
+
+>>> from module import *
+>>> assert isinstance(newmod.MyClass, decorators.Decorated)
+>>> assert isinstance(newmod,decorators.DecoratedModule)
+

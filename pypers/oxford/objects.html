@@ -1,0 +1,743 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.7: http://docutils.sourceforge.net/" />
+<title>Lecture 2: Objects (delegation &amp; inheritance)</title>
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="lecture-2-objects-delegation-inheritance">
+<h1 class="title">Lecture 2: Objects (delegation &amp; inheritance)</h1>
+<div class="section" id="part-i-delegation">
+<h1><a name="part-i-delegation">Part I: delegation</a></h1>
+<p>Understanding how attribute access works: internal delegation via <em>descriptors</em></p>
+<div class="section" id="accessing-simple-attributes">
+<h2><a name="accessing-simple-attributes">Accessing simple attributes</a></h2>
+<pre class="doctest-block">
+&gt;&gt;&gt; class C(object):
+...     a = 2
+...     def __init__(self, x):
+...        self.x = x
+...
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; c = C(1)
+&gt;&gt;&gt; c.x
+1
+&gt;&gt;&gt; c.a
+2
+</pre>
+<p>We are retrieving</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; c.__dict__[&quot;x&quot;]
+1
+</pre>
+<p>If there is nothing in c.__dict__, Python looks at C.__dict__:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print c.__dict__.get(&quot;a&quot;)
+None
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; C.__dict__[&quot;a&quot;]
+2
+</pre>
+<p>If there is nothing in C.__dict__, Python looks at the superclasses according
+to the MRO (see part II).</p>
+</div>
+<div class="section" id="accessing-methods">
+<h2><a name="accessing-methods">Accessing methods</a></h2>
+<pre class="doctest-block">
+&gt;&gt;&gt; c.__init__ #doctest: +ELLIPSIS
+&lt;bound method C.__init__ of &lt;__main__.C object at 0x...&gt;&gt;
+</pre>
+<p>since __init__ is not in c.__dict__ Python looks in the class dictionary 
+and finds</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; C.__dict__[&quot;__init__&quot;] #doctest: +ELLIPSIS
+&lt;function __init__ at 0x...&gt;
+</pre>
+<p>Then it magically converts the function into a method bound to the instance
+&quot;c&quot;.</p>
+<p>NOTE: this mechanism works for new-style classes only.</p>
+<p>The old-style mechanism is less consistent and the attribute lookup of special
+methods is special: (*)</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class C(object): pass
+&gt;&gt;&gt; c = C()
+&gt;&gt;&gt; c.__str__ = lambda : &quot;hello!&quot;
+&gt;&gt;&gt; print c #doctest: +ELLIPSIS
+&lt;__main__.C object at ...&gt;
+</pre>
+<p>whereas for old-style classes</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class C: pass
+&gt;&gt;&gt; c = C()
+&gt;&gt;&gt; c.__str__ = lambda : &quot;hello!&quot;
+&gt;&gt;&gt; print c 
+hello!
+</pre>
+<p>the special method is looked for in the instance dictionary too.</p>
+<p>(*) modulo a very subtle difference for __getattr__-delegated special methods,
+see later.</p>
+</div>
+<div class="section" id="converting-functions-into-methods">
+<h2><a name="converting-functions-into-methods">Converting functions into methods</a></h2>
+<p>It is possible to convert a function into a bound or unbound method
+by invoking the <tt class="docutils literal"><span class="pre">__get__</span></tt> special method:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; def f(x): pass
+&gt;&gt;&gt; f.__get__ #doctest: +ELLIPSIS
+&lt;method-wrapper object at 0x...&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; class C(object): pass
+...
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; def f(self): pass
+...
+&gt;&gt;&gt; f.__get__(C(), C) #doctest: +ELLIPSIS
+&lt;bound method C.f of &lt;__main__.C object at 0x...&gt;&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; f.__get__(None, C)
+&lt;unbound method C.f&gt;
+</pre>
+<p>Functions are the simplest example of <em>descriptors</em>.</p>
+<p>Access to methods works since internally Python transforms</p>
+<blockquote>
+<tt class="docutils literal"><span class="pre">c.__init__</span> <span class="pre">-&gt;</span> <span class="pre">type(c).__dict__['__init__'].__get__(c,</span> <span class="pre">type(c))</span></tt></blockquote>
+<p>Note: not <em>all</em> functions are descriptors:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from operator import add
+&gt;&gt;&gt; add.__get__
+Traceback (most recent call last):
+  ...
+AttributeError: 'builtin_function_or_method' object has no attribute '__get__'
+</pre>
+</div>
+<div class="section" id="hack-a-very-slick-adder">
+<h2><a name="hack-a-very-slick-adder">Hack: a very slick adder</a></h2>
+<p>The descriptor protocol can be (ab)used as a way to avoid the late binding
+issue in for loops:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; def add(x,y):
+...     return x + y
+&gt;&gt;&gt; closures = [add.__get__(i) for i in range(10)]
+&gt;&gt;&gt; closures[5](1000)
+1005
+</pre>
+<p>Notice: operator.add will not work.</p>
+</div>
+<div class="section" id="descriptor-protocol">
+<h2><a name="descriptor-protocol">Descriptor Protocol</a></h2>
+<p>Everything at <a class="reference" href="http://users.rcn.com/python/download/Descriptor.htm">http://users.rcn.com/python/download/Descriptor.htm</a></p>
+<p>Formally:</p>
+<pre class="literal-block">
+descr.__get__(self, obj, type=None) --&gt; value
+descr.__set__(self, obj, value) --&gt; None
+descr.__delete__(self, obj) --&gt; None
+</pre>
+<p>Examples of custom descriptors:</p>
+<pre class="literal-block">
+#&lt;descriptor.py&gt;
+
+
+class AttributeDescriptor(object):
+   def __get__(self, obj, cls=None):
+       if obj is None and cls is None:
+           raise TypeError(&quot;__get__(None, None) is invalid&quot;)
+       elif obj is None:
+           return self.get_from_class(cls)
+       else:
+           return self.get_from_obj(obj)
+   def get_from_class(self, cls):
+       print &quot;Getting %s from %s&quot; % (self, cls)
+   def get_from_obj(self, obj):
+       print &quot;Getting %s from %s&quot; % (self, obj)
+
+
+class Staticmethod(AttributeDescriptor):
+   def __init__(self, func):
+       self.func = func
+   def get_from_class(self, cls):
+       return self.func
+   get_from_obj = get_from_class
+
+
+class Classmethod(AttributeDescriptor):
+   def __init__(self, func):
+       self.func = func
+   def get_from_class(self, cls):
+       return self.func.__get__(cls, type(cls))
+   def get_from_obj(self, obj):
+       return self.get_from_class(obj.__class__)
+
+class C(object):
+   s = Staticmethod(lambda : 1)
+   c = Classmethod(lambda cls : cls.__name__)
+
+c = C()
+
+assert C.s() == c.s() == 1
+assert C.c() == c.c() == &quot;C&quot;
+
+#&lt;/descriptor.py&gt;
+</pre>
+</div>
+<div class="section" id="multilingual-attribute">
+<h2><a name="multilingual-attribute">Multilingual attribute</a></h2>
+<p>Inspirated by a question in the Italian Newsgroup:</p>
+<pre class="literal-block">
+#&lt;multilingual.py&gt;
+
+import sys
+from descriptor import AttributeDescriptor
+
+class MultilingualAttribute(AttributeDescriptor):
+    &quot;&quot;&quot;When a MultilingualAttribute is accessed, you get the translation 
+    corresponding to the currently selected language.
+    &quot;&quot;&quot;
+    def __init__(self, **translations):
+        self.trans = translations
+    def get_from_class(self, cls):
+        return self.trans[getattr(cls, &quot;language&quot;, None) or
+                         sys.modules[cls.__module__].language]
+    def get_from_obj(self, obj):
+        return self.trans[getattr(obj, &quot;language&quot;, None) or
+                         sys.modules[obj.__class__.__module__].language]
+     
+
+language = &quot;en&quot;
+
+# a dummy User class
+class DefaultUser(object):
+    def has_permission(self):
+        return False
+   
+class WebApplication(object):
+    error_msg = MultilingualAttribute(
+        en=&quot;You cannot access this page&quot;,
+        it=&quot;Questa pagina non e' accessibile&quot;,
+        fr=&quot;Vous ne pouvez pas acceder cette page&quot;,)
+    user = DefaultUser()
+    def __init__(self, language=None):
+        self.language = language or getattr(self.__class__, &quot;language&quot;, None)
+    def show_page(self):
+        if not self.user.has_permission():
+            return self.error_msg
+
+
+app = WebApplication()
+assert app.show_page() == &quot;You cannot access this page&quot;
+
+app.language = &quot;fr&quot;
+assert app.show_page() == &quot;Vous ne pouvez pas acceder cette page&quot;
+
+app.language = &quot;it&quot;
+assert app.show_page() == &quot;Questa pagina non e' accessibile&quot;
+
+app.language = &quot;en&quot;
+assert app.show_page() == &quot;You cannot access this page&quot;
+
+#&lt;/multilingual.py&gt;
+</pre>
+<p>The same can be done with properties:</p>
+<pre class="literal-block">
+#&lt;multilingualprop.py&gt;
+
+language = &quot;en&quot;
+
+# a dummy User class
+class DefaultUser(object):
+    def has_permission(self):
+        return False
+   
+def multilingualProperty(**trans):
+    def get(self):
+        return trans[self.language]
+    def set(self, value):
+        trans[self.language] = value 
+    return property(get, set)
+
+class WebApplication(object):
+    language = language
+    error_msg = multilingualProperty(
+        en=&quot;You cannot access this page&quot;,
+        it=&quot;Questa pagina non e' accessibile&quot;,
+        fr=&quot;Vous ne pouvez pas acceder cette page&quot;,)
+    user = DefaultUser()
+    def __init__(self, language=None):
+        if language: self.language = self.language
+    def show_page(self):
+        if not self.user.has_permission():
+            return self.error_msg
+
+#&lt;/multilingualprop.py&gt;
+</pre>
+<p>This also gives the possibility to set the error messages.</p>
+<p>The difference with the descriptor approach</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from multilingual import WebApplication
+&gt;&gt;&gt; app = WebApplication()
+&gt;&gt;&gt; print app.error_msg
+You cannot access this page
+&gt;&gt;&gt; print WebApplication.error_msg
+You cannot access this page
+</pre>
+<p>is that with properties there is no nice access from the class:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from multilingualprop import WebApplication
+&gt;&gt;&gt; WebApplication.error_msg #doctest: +ELLIPSIS
+&lt;property object at ...&gt;
+</pre>
+</div>
+<div class="section" id="another-use-case-for-properties-storing-users">
+<h2><a name="another-use-case-for-properties-storing-users">Another use case for properties: storing users</a></h2>
+<p>Consider a library providing a simple User class:</p>
+<pre class="literal-block">
+#&lt;crypt_user.py&gt;
+
+class User(object):
+    def __init__(self, username, password):
+        self.username, self.password = username, password
+
+#&lt;/crypt_user.py&gt;
+</pre>
+<p>The User objects are stored in a database as they are.
+For security purpose, in a second version of the library it is
+decided to crypt the password, so that only crypted passwords
+are stored in the database. With properties, it is possible to
+implement this functionality without changing the source code for 
+the User class:</p>
+<pre class="literal-block">
+#&lt;crypt_user.py&gt;
+
+from crypt import crypt
+
+def cryptedAttribute(seed=&quot;x&quot;):
+    def get(self):
+        return getattr(self, &quot;_pw&quot;, None)
+    def set(self, value):
+        self._pw = crypt(value, seed)
+    return property(get, set)
+   
+User.password = cryptedAttribute()
+</pre>
+<p>#&lt;/crypt_user.py&gt;</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from crypt_user import User
+&gt;&gt;&gt; u = User(&quot;michele&quot;, &quot;secret&quot;)
+&gt;&gt;&gt; print u.password
+xxZREZpkHZpkI
+</pre>
+<p>Notice the property factory approach used here.</p>
+</div>
+<div class="section" id="low-level-delegation-via-getattribute">
+<h2><a name="low-level-delegation-via-getattribute">Low-level delegation via __getattribute__</a></h2>
+<p>Attribute access is managed by the__getattribute__ special method:</p>
+<pre class="literal-block">
+#&lt;tracedaccess.py&gt;
+
+class TracedAccess(object):
+    def __getattribute__(self, name):
+        print &quot;Accessing %s&quot; % name
+        return object.__getattribute__(self, name)
+
+
+class C(TracedAccess):
+    s = staticmethod(lambda : 'staticmethod')
+    c = classmethod(lambda cls: 'classmethod')
+    m = lambda self: 'method'
+    a = &quot;hello&quot;
+
+#&lt;/tracedaccess.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from tracedaccess import C
+&gt;&gt;&gt; c = C()
+&gt;&gt;&gt; print c.s()
+Accessing s
+staticmethod
+&gt;&gt;&gt; print c.c()
+Accessing c
+classmethod
+&gt;&gt;&gt; print c.m()
+Accessing m
+method
+&gt;&gt;&gt; print c.a
+Accessing a
+hello
+&gt;&gt;&gt; print c.__init__ #doctest: +ELLIPSIS
+Accessing __init__
+&lt;method-wrapper object at 0x...&gt;
+&gt;&gt;&gt; try: c.x
+... except AttributeError, e: print e
+...
+Accessing x
+'C' object has no attribute 'x'
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; c.y = 'y'
+&gt;&gt;&gt; c.y
+Accessing y
+'y'
+</pre>
+<p>You are probably familiar with <tt class="docutils literal"><span class="pre">__getattr__</span></tt> which is similar 
+to <tt class="docutils literal"><span class="pre">__getattribute__</span></tt>, but it is called <em>only for missing attributes</em>.</p>
+</div>
+<div class="section" id="traditional-delegation-via-getattr">
+<h2><a name="traditional-delegation-via-getattr">Traditional delegation via __getattr__</a></h2>
+<p>Realistic use case in &quot;object publishing&quot;:</p>
+<pre class="literal-block">
+#&lt;webapp.py&gt;
+
+class WebApplication(object):
+    def __getattr__(self, name):
+        return name.capitalize()
+
+
+app = WebApplication()
+
+assert app.page1 == 'Page1'
+assert app.page2 == 'Page2'
+
+#&lt;/webapp.py&gt;
+</pre>
+<p>Here is another use case in HTML generation:</p>
+<pre class="literal-block">
+#&lt;XMLtag.py&gt;
+
+def makeattr(dict_or_list_of_pairs):
+    dic = dict(dict_or_list_of_pairs) 
+    return &quot; &quot;.join('%s=&quot;%s&quot;' % (k, dic[k]) for k in dic) # simplistic
+
+class XMLTag(object):
+    def __getattr__(self, name):
+        def tag(value, **attr):
+            &quot;&quot;&quot;value can be a string or a sequence of strings.&quot;&quot;&quot;
+            if hasattr(value, &quot;__iter__&quot;): # is iterable
+                value = &quot; &quot;.join(value)
+            return &quot;&lt;%s %s&gt;%s&lt;/%s&gt;&quot; % (name, makeattr(attr), value, name)
+        return tag
+
+class XMLShortTag(object):
+    def __getattr__(self, name):
+        def tag(**attr):
+            return &quot;&lt;%s %s /&gt;&quot; % (name, makeattr(attr))
+        return tag
+
+tag = XMLTag()
+tg = XMLShortTag()
+
+#&lt;/XMLtag.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from XMLtag import tag, tg
+&gt;&gt;&gt; print tag.a(&quot;example.com&quot;, href=&quot;http://www.example.com&quot;)
+&lt;a href=&quot;http://www.example.com&quot;&gt;example.com&lt;/a&gt;
+&gt;&gt;&gt; print tg.br(**{'class':&quot;br_style&quot;})
+&lt;br class=&quot;br_style&quot; /&gt;
+</pre>
+</div>
+<div class="section" id="keyword-dictionaries-with-getattr-setattr">
+<h2><a name="keyword-dictionaries-with-getattr-setattr">Keyword dictionaries with __getattr__/__setattr__</a></h2>
+<pre class="literal-block">
+#&lt;kwdict.py&gt;
+
+class kwdict(dict): # UserDict not dict, to make it to work with Zope
+    &quot;&quot;&quot;A typing shortcut used in place of a keyword dictionary.
+    It also has two useful 'fromfile' and 'fromstring' constructors
+    &quot;&quot;&quot;
+    def __getattr__(self, name):
+        return self[name]
+    def __setattr__(self, name, value):
+        self[name] = value
+
+#&lt;/kwdict.py&gt;
+</pre>
+<p>An now for a completely different solution:</p>
+<pre class="literal-block">
+#&lt;dictwrapper.py&gt;
+
+class DictWrapper(object): 
+    def __init__(self, **kw):
+        self.__dict__.update(kw)
+
+#&lt;/dictwrapper.py&gt;
+</pre>
+</div>
+<div class="section" id="delegation-to-special-methods-caveat">
+<h2><a name="delegation-to-special-methods-caveat">Delegation to special methods caveat</a></h2>
+<pre class="doctest-block">
+&gt;&gt;&gt; class ListWrapper(object):
+...     def __init__(self, ls):
+...         self._list = ls
+...     def __getattr__(self, name):
+...         if name == &quot;__getitem__&quot;: # special method
+...             return self._list.__getitem__
+...         elif name == &quot;reverse&quot;: # regular method
+...             return self._list.reverse
+...         else:
+...             raise AttributeError(&quot;%r is not defined&quot; % name)
+... 
+&gt;&gt;&gt; lw = ListWrapper([0,1,2])
+&gt;&gt;&gt; print lw.x
+Traceback (most recent call last):
+  ...
+AttributeError: 'x' is not defined
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; lw.reverse()
+&gt;&gt;&gt; print lw.__getitem__(0)
+2
+&gt;&gt;&gt; print lw.__getitem__(1)
+1
+&gt;&gt;&gt; print lw.__getitem__(2)
+0
+&gt;&gt;&gt; print lw[0]
+Traceback (most recent call last):
+  ...
+TypeError: unindexable object
+</pre>
+</div>
+</div>
+<div class="section" id="part-ii-inheritance">
+<h1><a name="part-ii-inheritance">Part II: Inheritance</a></h1>
+<p>The major changes in inheritance from Python 2.1 to 2.2+ are:</p>
+<ol class="arabic simple">
+<li>you can subclass built-in types (as a consequence the constructor__new__ 
+has been exposed to the user, to help subclassing immutable types);</li>
+<li>the Method Resolution Order (MRO) has changed;</li>
+<li>now Python allows <em>cooperative method calls</em>, i.e. we have <em>super</em>.</li>
+</ol>
+<p>In principle, the last two changes are relevant only if you use multiple 
+inheritance. If you use single inheritance only, you don't need <tt class="docutils literal"><span class="pre">super</span></tt>; 
+you can just name the superclass or use tricks such as:</p>
+<pre class="literal-block">
+self.__class__.__base__.__init__(self, *args, **kw)
+</pre>
+<p>instead of:</p>
+<pre class="literal-block">
+super(CurrentClass, self).__init__(*args, **kw)
+</pre>
+<p>However, somebody else may want to use your class in a MI hierarchy,
+and you would make her life difficult if you don't use <tt class="docutils literal"><span class="pre">super</span></tt>:</p>
+<pre class="literal-block">
+#&lt;why_super.py&gt;
+
+class Base(object):
+    def __init__(self):
+        print &quot;B.__init__&quot;
+
+class MyClass(Base):
+    &quot;I do not cooperate with others&quot;
+    def __init__(self):
+        print &quot;MyClass.__init__&quot;
+        Base.__init__(self)  #instead of super(MyClass, self).__init__()
+
+
+class Mixin(Base):
+    &quot;I am cooperative with others&quot;
+    def __init__(self):
+        print &quot;Mixin.__init__&quot;
+        super(Mixin, self).__init__()
+
+class HerClass(MyClass, Mixin):
+    &quot;I am cooperative too&quot;
+    def __init__(self):
+        print &quot;HerClass.__init__&quot;
+        super(HerClass, self).__init__()
+
+#&lt;/why_super.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from why_super import HerClass
+&gt;&gt;&gt; h = HerClass() # Mixin.__init__ is not called!
+HerClass.__init__
+MyClass.__init__
+B.__init__
+</pre>
+<p>So to be polite versus your future users you should use <tt class="docutils literal"><span class="pre">super</span></tt> always.
+This adds a cognitive burden even for people not using MI :-(</p>
+<p>Notice that there is no good comprehensive reference on <tt class="docutils literal"><span class="pre">super</span></tt> (yet)
+Your best bet is still <a class="reference" href="http://www.python.org/2.2.3/descrintro.html#cooperation">http://www.python.org/2.2.3/descrintro.html#cooperation</a></p>
+<p>The MRO instead is explained here: <a class="reference" href="http://www.python.org/2.3/mro.html">http://www.python.org/2.3/mro.html</a></p>
+<p>Notice that I DO NOT recommand Multiple Inheritance.</p>
+<p>More often than not you are better off using composition/delegation/wrapping, 
+etc.</p>
+<p>See Zope 2 -&gt; Zope 3 experience.</p>
+<div class="section" id="elementary-introduction-to-the-most-sophisticated-descriptor-ever-super">
+<h2><a name="elementary-introduction-to-the-most-sophisticated-descriptor-ever-super">Elementary introduction to the most sophisticated descriptor ever: <em>super</em></a></h2>
+<pre class="doctest-block">
+&gt;&gt;&gt; class B(object):
+...     def __init__(self): print &quot;B.__init__&quot;
+...
+&gt;&gt;&gt; class C(B):
+...     def __init__(self): print &quot;C.__init__&quot;
+...
+&gt;&gt;&gt; c = C()
+C.__init__
+</pre>
+<p><tt class="docutils literal"><span class="pre">super(cls,</span> <span class="pre">instance)</span></tt>, where <tt class="docutils literal"><span class="pre">instance</span></tt> is an instance of <tt class="docutils literal"><span class="pre">cls</span></tt> or of
+a subclass of <tt class="docutils literal"><span class="pre">cls</span></tt>, retrieves the right method in the MRO:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; super(C, c).__init__ #doctest: +ELLIPSIS
+&lt;bound method C.__init__ of &lt;__main__.C object at 0x...&gt;&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; super(C, c).__init__.im_func is B.__init__.im_func
+True
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; super(C, c).__init__()
+B.__init__
+</pre>
+<p><tt class="docutils literal"><span class="pre">super(cls,</span> <span class="pre">subclass)</span></tt> works for unbound methods:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; super(C, C).__init__
+&lt;unbound method C.__init__&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; super(C, C).__init__.im_func is B.__init__.im_func
+True
+&gt;&gt;&gt; super(C, C).__init__(c)
+B.__init__
+</pre>
+<p><tt class="docutils literal"><span class="pre">super(cls,</span> <span class="pre">subclass)</span></tt> is also necessary for classmethods and staticmethods. 
+Properties and custom descriptorsw works too:</p>
+<pre class="literal-block">
+#&lt;super_ex.py&gt;
+
+from descriptor import AttributeDescriptor
+
+class B(object):
+   &#64;staticmethod
+   def sm(): return &quot;staticmethod&quot;
+
+   &#64;classmethod
+   def cm(cls): return cls.__name__
+
+   p = property()
+   a = AttributeDescriptor()
+
+class C(B): pass
+
+#&lt;/super_ex.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from super_ex import C
+</pre>
+<p>Staticmethod usage:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; super(C, C).sm #doctest: +ELLIPSIS
+&lt;function sm at 0x...&gt;
+&gt;&gt;&gt; super(C, C).sm()
+'staticmethod'
+</pre>
+<p>Classmethod usage:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; super(C, C()).cm
+&lt;bound method type.cm of &lt;class 'super_ex.C'&gt;&gt;
+&gt;&gt;&gt; super(C, C).cm() # C is automatically passed
+'C'
+</pre>
+<p>Property usage:</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; print super(C, C).p #doctest: +ELLIPSIS
+&lt;property object at 0x...&gt;
+&gt;&gt;&gt; super(C, C).a #doctest: +ELLIPSIS
+Getting &lt;descriptor.AttributeDescriptor object at 0x...&gt; from &lt;class 'super_ex.C'&gt;
+</pre>
+<p><tt class="docutils literal"><span class="pre">super</span></tt> does not work with old-style classes, however you can use the
+following trick:</p>
+<pre class="literal-block">
+#&lt;super_old_new.py&gt;
+class O:
+    def __init__(self):
+        print &quot;O.__init__&quot;
+
+class N(O, object):
+    def __init__(self):
+        print &quot;N.__init__&quot;
+        super(N, self).__init__()
+</pre>
+<p>#&lt;/super_old_new.py&gt;</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from super_old_new import N
+&gt;&gt;&gt; new = N()
+N.__init__
+O.__init__
+</pre>
+<p>There are dozens of tricky points concerning <tt class="docutils literal"><span class="pre">super</span></tt>, be warned!</p>
+</div>
+<div class="section" id="subclassing-built-in-types-new-vs-init">
+<h2><a name="subclassing-built-in-types-new-vs-init">Subclassing built-in types; __new__ vs. __init__</a></h2>
+<pre class="literal-block">
+#&lt;point.py&gt;
+
+class NotWorkingPoint(tuple):
+    def __init__(self, x, y):
+        super(NotWorkingPoint, self).__init__((x,y))
+        self.x, self.y = x, y
+
+#&lt;/point.py&gt;
+</pre>
+<pre class="doctest-block">
+&gt;&gt;&gt; from point import NotWorkingPoint
+&gt;&gt;&gt; p = NotWorkingPoint(2,3)
+Traceback (most recent call last):
+  ...
+TypeError: tuple() takes at most 1 argument (2 given)
+</pre>
+<blockquote>
+<p>#&lt;point.py&gt;</p>
+<dl class="docutils">
+<dt>class Point(tuple):</dt>
+<dd><dl class="first last docutils">
+<dt>def __new__(cls, x, y):</dt>
+<dd>return super(Point, cls).__new__(cls, (x,y))</dd>
+<dt>def __init__(self, x, y):</dt>
+<dd>super(Point, self).__init__((x, y))
+self.x, self.y = x, y</dd>
+</dl>
+</dd>
+</dl>
+<p>#&lt;/point.py&gt;</p>
+</blockquote>
+<p>Notice that__new__ is a staticmethod, not a classmethod, so one needs
+to pass the class explicitely.</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; from point import Point
+&gt;&gt;&gt; p = Point(2,3)
+&gt;&gt;&gt; print p, p.x, p.y
+(2, 3) 2 3
+</pre>
+</div>
+<div class="section" id="be-careful-when-using-new-with-mutable-types">
+<h2><a name="be-careful-when-using-new-with-mutable-types">Be careful when using __new__ with mutable types</a></h2>
+<pre class="doctest-block">
+&gt;&gt;&gt; class ListWithDefault(list):
+...     def __new__(cls):
+...         return super(ListWithDefault, cls).__new__(cls, [&quot;hello&quot;])
+...
+&gt;&gt;&gt; print ListWithDefault() # beware! NOT [&quot;hello&quot;]!
+[]
+</pre>
+<p>Reason: lists are re-initialized to empty lists in list.__init__!</p>
+<p>Instead</p>
+<pre class="doctest-block">
+&gt;&gt;&gt; class ListWithDefault(list):
+...     def __init__(self):
+...         super(ListWithDefault, self).__init__([&quot;hello&quot;])
+...
+&gt;&gt;&gt; print ListWithDefault() # works!
+['hello']
+</pre>
+</div>
+</div>
+</div>
+</body>
+</html>

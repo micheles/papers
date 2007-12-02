@@ -1,0 +1,7 @@
+>>> import customdec; customdec.enhance_classes()
+>>> class C: 
+...     "[Decorated,Logged]"
+...     def f(): 
+...         "[staticmethod]"
+...            return 'it works!'
+<class C[DecoratedLogged]> created

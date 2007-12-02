@@ -1,0 +1,33 @@
+
+Doctest and exceptions
+--------------------------------------
+
+<pre>
+
+>>> from partecs_voting import vote_validator
+>>> from partecs_voting.util import TheVoteIsClosedError
+>>> validate = vote_validator(
+...     choices = ["A", "B", "C"],
+...     OpeningDate = "Sun Aug 29 06:00:00 2004", 
+...     ClosingDate = "Sun Aug 30 22:00:00 2004")
+>>> try: # assuming you run this after Aug 29 2004
+...     validate("A")
+... except TheVoteIsClosedError:
+...     print "The vote is closed!"
+The vote is closed!
+
+</pre>
+
+Real example
+----------------------------------------------------------
+
+<pre>
+
+>>> from partecs_voting import make_ballot
+>>> ballot=make_ballot(["A", "B"], [["A"], ["A"], ["B"]], "BordaBallot")
+>>> print ballot.getresults()
+ALL RESULTS:
+A 2
+B 1
+
+</pre>

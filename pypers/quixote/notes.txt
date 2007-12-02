@@ -1,0 +1,16 @@
+Quixote is a programmer's framework. 
+
+The design goals for Quixote were:
+
+   1.
+
+      To allow easy development of Web applications where the accent is more on complicated programming logic than complicated templating.
+   2.
+
+      To make the templating language as similar to Python as possible. The aim is to make as many of the skills and techniques learned from writing regular Python code applicable to the task of writing Web applications.
+   3.
+
+      No magic. When it's not obvious what to do in a certain case, Quixote refuses to guess.
+
+If you view a web site as a program, and web pages as subroutines, Quixote just might be the tool for you. If you view a web site as a graphic design showcase, and each web page as an individual work of art, Quixote is probably not what you're looking for.
+

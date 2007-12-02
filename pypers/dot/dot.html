@@ -1,0 +1,347 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.3.1: http://docutils.sourceforge.net/" />
+<title>Drawing graphs the easy way: an introduction to dot</title>
+<link rel="stylesheet" href="default.css" type="text/css" />
+</head>
+<body>
+<div class="document" id="drawing-graphs-the-easy-way-an-introduction-to-dot">
+<h1 class="title">Drawing graphs the easy way: an introduction to <tt class="literal"><span class="pre">dot</span></tt></h1>
+<div class="section" id="got-a-graphing-problem">
+<h1><a name="got-a-graphing-problem">Got a graphing problem?</a></h1>
+<p>You must give a presentation tomorrow and you haven't prepared any
+figure yet; you must document your last project and you need to plot
+your most hairy class hierarchies;  you are asked to provide ten slightly 
+different variations of the same picture; you are pathologically unable to put 
+your finger on a mouse and drawing anything more complex that a square ...
+in all these cases,  dont' worry! <tt class="literal"><span class="pre">dot</span></tt> comes at the rescue and 
+can save your day!</p>
+</div>
+<div class="section" id="what-is-dot">
+<h1><a name="what-is-dot">What is <tt class="literal"><span class="pre">dot</span></tt>?</a></h1>
+<p><tt class="literal"><span class="pre">dot</span></tt> is a tool to generate nice-looking diagrams with a minimum of
+effort. <tt class="literal"><span class="pre">dot</span></tt> is distributed as a part of <tt class="literal"><span class="pre">GraphViz</span></tt>, an
+Open Source project developed at AT&amp;T and released under a MIT licence.
+It is a high quality and mature product, with very good 
+documentation and support, available on all major platforms, 
+including Unix/Linux, Windows and Mac. There is an official home-page and 
+a supporting mailing list.</p>
+</div>
+<div class="section" id="what-can-i-do-with-dot">
+<h1><a name="what-can-i-do-with-dot">What can I do with <tt class="literal"><span class="pre">dot</span></tt> ?</a></h1>
+<p>First of all, let me make clear that <tt class="literal"><span class="pre">dot</span></tt> is not just another paint program, 
+nor a vector graphics program. <tt class="literal"><span class="pre">dot</span></tt> is a scriptable batch-oriented graphing 
+tool;  it is to vector drawing programs as <tt class="literal"><span class="pre">LaTex</span></tt> is to word processors.
+If you want to have control on every single pixel in your diagram,
+or if you are an artistic person who likes to draw free hand, then <tt class="literal"><span class="pre">dot</span></tt> 
+is not for you. <tt class="literal"><span class="pre">dot</span></tt> is a tool for the lazy developer, the one who wants
+the job done with the minimum effort and without caring too much about the details.</p>
+<p>Since <tt class="literal"><span class="pre">dot</span></tt> is not a WYSIWYG tool - even if it comes together with a WYSIWYG tool, 
+<tt class="literal"><span class="pre">dotty</span></tt> - it is not intended to be used interactively: 
+its strength is the ability to <em>programmatically</em> generate diagrams. To fullfill
+this aim, <tt class="literal"><span class="pre">dot</span></tt> uses a simple but powerful graph description language. You 
+just give (very high level) instructions to <tt class="literal"><span class="pre">dot</span></tt> and it will draw the diagrams 
+for you, taking into account all the low level details. Whereas the user 
+has a faily large choice of customization 
+options and can control the final output in many ways, it is not at all easy 
+to force <tt class="literal"><span class="pre">dot</span></tt> to do <em>exactly</em> what one wants.</p>
+<p>Expecting that would mean to fight with the tool. 
+You should think of <tt class="literal"><span class="pre">dot</span></tt> as a kind of smart boy, 
+who likes to do things his own way and who is very good at it, but becomes 
+nervous if the master tries to put too much pressure on him. 
+The right attitude with <tt class="literal"><span class="pre">dot</span></tt> (just as with Latex) is to trust it and 
+let it to do the job.
+At the end, when <tt class="literal"><span class="pre">dot</span></tt> has finished its part, the user can always 
+refine the graph by hand, by using <tt class="literal"><span class="pre">dotty</span></tt>, the interactive editor 
+of <tt class="literal"><span class="pre">dot</span></tt> diagrams which comes with GraphViz and has the ability to read 
+and generate <tt class="literal"><span class="pre">dot</span></tt> code.
+But in most cases, the user is not expected to do anything manually,
+since <tt class="literal"><span class="pre">dot</span></tt> works pretty well. The right way to go is to customize
+<tt class="literal"><span class="pre">dot</span></tt> options, then the user can programmatically generate one or
+one hundred diagrams with the least effort.</p>
+<p><tt class="literal"><span class="pre">dot</span></tt> is especially useful in repetitive and automatic tasks, since
+it is not difficult to generate <tt class="literal"><span class="pre">dot</span></tt> code.
+For instance, <tt class="literal"><span class="pre">dot</span></tt> comes very handy in the area of automatic documentation 
+of code. This kind of jobs can be down with UML tools, but <tt class="literal"><span class="pre">dot</span></tt> has an 
+advantage over them in terms of easy of use, flat learning curve and 
+flexibility. On top of that, <tt class="literal"><span class="pre">dot</span></tt> is very fast, since it is written in C
+and can generate very complicated diagrams in fractions of second.</p>
+</div>
+<div class="section" id="hello-world-from-dot">
+<h1><a name="hello-world-from-dot">Hello World from <tt class="literal"><span class="pre">dot</span></tt></a></h1>
+<p><tt class="literal"><span class="pre">dot</span></tt> code has a C-ish syntax and it is quite readable even from somebody
+who has not read the manual. For instance, this <tt class="literal"><span class="pre">dot</span></tt> script:</p>
+<blockquote>
+<pre class="literal-block">
+graph hello{
+
+// Comment: Hello World from ``dot``
+// a graph with a single node Node1
+
+Node1 [label=&quot;Hello, World!&quot;]
+
+}
+</pre>
+</blockquote>
+<p>generates the following picture:</p>
+<div class="figure">
+<p><img alt="fig1.png" src="fig1.png" /></p>
+</div>
+<p>Having saved this code in a file called <tt class="literal"><span class="pre">hello.dot</span></tt>, the graph can be 
+generated and shown on the screen with a simple one-liner:</p>
+<blockquote>
+<pre class="literal-block">
+$ dot hello.dot -Tps | gv -
+</pre>
+</blockquote>
+<p>The <tt class="literal"><span class="pre">-Tps</span></tt> option generates postscript
+code, which is then piped to the ghostview utility. Notice that 
+I am running my examples on a Linux machine with ghostview installed, 
+but <tt class="literal"><span class="pre">dot</span></tt> works equally well under Windows, so you may trivially 
+adapt the examples.</p>
+<p>If the user is satisfied with the output, it can save it into a file:</p>
+<blockquote>
+<pre class="literal-block">
+$ dot hello.dot -Tps -o hello.ps
+</pre>
+</blockquote>
+<p>Most probably the user may want to tweak with the options,
+for instance adding colors and changing the font size. 
+This is not difficult:</p>
+<blockquote>
+<pre class="literal-block">
+graph hello2{
+
+// Hello World with nice colors and big fonts
+
+Node1 [label=&quot;Hello, World!&quot;, color=Blue, fontcolor=Red,
+    fontsize=24, shape=box]
+ 
+}
+</pre>
+</blockquote>
+<p>This draws a blue square with a red label:</p>
+<div class="figure">
+<p><img alt="fig2.png" src="fig2.png" /></p>
+</div>
+<p>All X-Window colors and fonts are available.</p>
+<p><tt class="literal"><span class="pre">dot</span></tt> is quite tolerant: the language is case insensitive and 
+quoting the options (color=&quot;Blue&quot;, shape=&quot;box&quot;) will work too. 
+Moreover, in order to make happy C fans, semicolons can be used 
+to terminate statements and they will simply be ignored.</p>
+</div>
+<div class="section" id="basic-concepts-of-dot">
+<h1><a name="basic-concepts-of-dot">Basic concepts of <tt class="literal"><span class="pre">dot</span></tt></a></h1>
+<p>A generic <tt class="literal"><span class="pre">dot</span></tt> graph is composed by nodes and edges.
+Our <tt class="literal"><span class="pre">hello.dot</span></tt> example contains a single node and no edges.
+Edges enter in the game when there are relationships between nodes,
+for instance hierarchical relationships as in this example:</p>
+<blockquote>
+<pre class="literal-block">
+digraph simple_hierarchy{
+
+B [label=&quot;The boss&quot;]      // node B
+E [label=&quot;The employee&quot;]  // node E
+
+B-&gt;E [label=&quot;commands&quot;, fontcolor=darkgreen] // edge B-&gt;E
+
+}
+</pre>
+</blockquote>
+<div class="figure">
+<p><img alt="fig3.png" src="fig3.png" /></p>
+</div>
+<p><tt class="literal"><span class="pre">dot</span></tt> is especially good at drawing directed graph such this, where
+there is a natural direction (notice that GraphViz  also includes the <tt class="literal"><span class="pre">neato</span></tt>
+tool, which is quite similar to <tt class="literal"><span class="pre">dot</span></tt> and is especially targeted to 
+undirected graphs). 
+In this example the direction is from the boss, who commands, 
+to the employee, who obeys. Of course in <tt class="literal"><span class="pre">dot</span></tt> one has the freedom 
+to revert social hierarchies ;):</p>
+<blockquote>
+<pre class="literal-block">
+digraph revolution{
+
+B [label=&quot;The boss&quot;]      // node B
+E [label=&quot;The employee&quot;]  // node E
+
+B-&gt;E [label=&quot;commands&quot;, dir=back, fontcolor=red]  
+// revert arrow direction 
+
+}
+</pre>
+</blockquote>
+<div class="figure">
+<p><img alt="fig4.png" src="fig4.png" /></p>
+</div>
+<p>Sometimes, one wants to put on the same level things of the
+same importance; this can be done with the rank option, as
+in the following example, which describes a hierarchy with a boss,
+two employees of the same rank, John and Jack, and a lower
+rank employee Al who depends from John:</p>
+<blockquote>
+<pre class="literal-block">
+digraph hierarchy{
+
+nodesep=1.0 // increases the separation between nodes
+
+node [color=Red,fontname=Courier]
+edge [color=Blue, style=dashed] //setup options
+
+Boss-&gt;{ John Jack} // the boss has two employees
+
+{rank=same; John Jack} //they have the same rank
+
+John -&gt; Al // John has a subordinate 
+
+John-&gt;Jack [dir=both] // but still is on the same level as Jack
+}
+</pre>
+</blockquote>
+<div class="figure">
+<p><img alt="fig5.png" src="fig5.png" /></p>
+</div>
+<p>This example shows a nifty feature of <tt class="literal"><span class="pre">dot</span></tt>: if the user forgets
+to give it explicit labels, it will use the name of the nodes as
+default labels. The default colors and style can be set for nodes and 
+edges respectively. It is also possible to control the separation 
+between (all) nodes by tuning the <tt class="literal"><span class="pre">nodesep</span></tt> option.
+We leave for our readers to see what happens without the rank option
+(hint: you get a very ugly graph).</p>
+<p><tt class="literal"><span class="pre">dot</span></tt> is quite sophisticated and 
+there are dozen of options which are deeply discussed in the excellent 
+documentation. In particular, the man page (<tt class="literal"><span class="pre">man</span> <span class="pre">dot</span></tt>) is especially 
+useful and well done. The documentation also explain how to draw
+graphs containing subgraphs. However those are advanced features which
+are outside the scope of a brief presentation.</p>
+<p>Here we will discuss another feature instead: the ability to generate output 
+in different formats.
+Depending on the requirements, different formats can be more or
+less suitable. For the purpose of generating printed documentation, 
+the postscript format is quite handy. On the other hand, if the documentation
+has to be converted in html format and put on a Web page, a png
+format can be handy. It is quite trivial to get it:</p>
+<blockquote>
+<pre class="literal-block">
+$ dot hello.dot -Tpng -o hello.png
+</pre>
+</blockquote>
+<p>There are <em>many</em> others available formats, including all the common ones
+such as gif, jpg, wbmp, fig and more exotic ones.</p>
+</div>
+<div class="section" id="generating-dot-code">
+<h1><a name="generating-dot-code">Generating <tt class="literal"><span class="pre">dot</span></tt> code</a></h1>
+<p><tt class="literal"><span class="pre">dot</span></tt> is not a real programming language, nevertheless it is pretty easy
+to interface <tt class="literal"><span class="pre">dot</span></tt> with a real programming language.  Bindings for 
+many programming languages - including Java, Perl and Python - are already
+available. A more lightweight alternative is just to generate the <tt class="literal"><span class="pre">dot</span></tt> code
+from your preferred language. 
+Doing so allows the user to completely automatize the graph generation. 
+Here I will give a simple Python example using this technique.</p>
+<p>This example script shows how to draw Python class hierarchies 
+with the least effort; it may help you in documenting your code.</p>
+<p>Here is the script:</p>
+<blockquote>
+<pre class="literal-block">
+# dot.py 
+
+&quot;Require Python 2.3 (or 2.2. with from __future__ import generators)&quot;
+
+def dotcode(cls):
+    setup='node [color=Green,fontcolor=Blue,fontname=Courier]\n'
+    name='hierarchy_of_%s' % cls.__name__
+    code='\n'.join(codegenerator(cls))
+    return &quot;digraph %s{\n\n%s\n%s\n}&quot; % (name, setup, code)
+
+def codegenerator(cls):
+    &quot;Returns a line of dot code at each iteration.&quot;
+    # works for new style classes; see my Cookbook
+    # recipe for a more general solution
+    for c in cls.__mro__:
+        bases=c.__bases__
+        if bases: # generate edges parent -&gt; child
+            yield ''.join([' %s -&gt; %s\n' % ( b.__name__,c.__name__)
+                           for b in bases])
+        if len(bases) &gt; 1: # put all parents on the same level
+            yield &quot; {rank=same; %s}\n&quot; % ''.join(
+                ['%s ' % b.__name__ for b in bases])
+
+if __name__==&quot;__main__&quot;: 
+    # returns the dot code generating a simple diamond hierarchy
+    class A(object): pass
+    class B(A): pass
+    class C(A): pass
+    class D(B,C): pass
+    print dotcode(D)
+</pre>
+</blockquote>
+<p>The function <tt class="literal"><span class="pre">dotcode</span></tt> takes a class and returns the <tt class="literal"><span class="pre">dot</span></tt> source
+code needed to plot the genealogical tree of that class.  
+The source code is generated by <tt class="literal"><span class="pre">codegenerator</span></tt>, which traverses the list
+of the ancestors of the class (a.k.a. the Method Resolution Order of
+the class) and determines the edges and the nodes of the hierarchy. 
+<tt class="literal"><span class="pre">codegenerator</span></tt> is a generator which returns an iterator yielding 
+a line of <tt class="literal"><span class="pre">dot</span></tt> code at each iteration. Generators are a cool 
+recent addition to Python; they come particularly handy for the purpose
+of generating text or source code.</p>
+<p>The output of the script is the following self-explanatory <tt class="literal"><span class="pre">dot</span></tt> code:</p>
+<blockquote>
+<pre class="literal-block">
+digraph hierarchy_of_D{
+
+node [color=Green,fontcolor=Blue,font=Courier]
+
+ B -&gt; D
+ C -&gt; D
+
+ {rank=same; B C }
+
+ A -&gt; B
+
+ A -&gt; C
+
+ object -&gt; A
+
+}
+</pre>
+</blockquote>
+<p>Now the simple one-liner:</p>
+<blockquote>
+<pre class="literal-block">
+$ python dot.py|dot -Tpng -o x.png
+</pre>
+</blockquote>
+<p>generates the following picture:</p>
+<div class="figure">
+<p><img alt="fig6.png" src="fig6.png" /></p>
+</div>
+</div>
+<div class="section" id="references">
+<h1><a name="references">References</a></h1>
+<p>You may download <tt class="literal"><span class="pre">dot</span></tt> and the others tool coming with GraphViz at the
+official home-page of the project:</p>
+<p><a class="reference" href="http://www.graphviz.org">http://www.graphviz.org</a></p>
+<p>You will also find plenty of documentation and links to the mailing list.</p>
+<p>Perl and Python bindings are available here</p>
+<p><a class="reference" href="http://theoryx5.uwinnipeg.ca/CPAN/data/GraphViz/GraphViz.html">http://theoryx5.uwinnipeg.ca/CPAN/data/GraphViz/GraphViz.html</a></p>
+<p>(Perl bindings, thanks to Leon Brocard)</p>
+<p>and here</p>
+<p><a class="reference" href="http://www.cs.brown.edu/~er/software/">http://www.cs.brown.edu/~er/software/</a></p>
+<p>(Python bindings, thanks to Manos Renieris).</p>
+<p>The script <tt class="literal"><span class="pre">dot.py</span></tt> I presented in this article is rather minimalistic. 
+This is on purpose. A much more sophisticated version with additional 
+examples is discussed in my Python Cookbook recipe</p>
+<p><a class="reference" href="http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/213898">http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/213898</a></p>
+</div>
+</div>
+<hr class="footer" />
+<div class="footer">
+<a class="reference" href="dot.txt">View document source</a>.
+Generated on: 2004-03-08 08:13 UTC.
+Generated by <a class="reference" href="http://docutils.sourceforge.net/">Docutils</a> from <a class="reference" href="http://docutils.sourceforge.net/rst.html">reStructuredText</a> source.
+</div>
+</body>
+</html>

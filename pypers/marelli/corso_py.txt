@@ -1,0 +1,144 @@
+- modulo string non è deprecated, ma il 90% di quello che contiene e' inutile
+- le classi normalmente iniziano con la 1a lettera maiuscola
+- nota sul coding dei caratteri
+- dalla 2.2.1 esistono True e False (1 o 0)
+- triple virgolette permettono di andare a capo
+- le costanti sono tutte maiuscole (come in C)
+- GRAFICA: librerie tk sono standard in tutte le distribuzioni
+- ipython è interessante: chiamando la funzione con due ?? ritorna il codice sorgente
+- nella normale distribuzione: import inspect, poi print inspect.getsource(nomefunzione)
+- esistono dei decompilatori che permettono di ritrovare il sorgente py partendo dal pyc
+- libro: python in a nutshell di Alex Martelli (come manuale di riferimento)
+- modulo __future__ per importare le caratteristiche future del linguaggio
+- __file__ restituisce il nome del file python in esecuzione
+- %s sostituisce il parametro nella stringa di testo (ciao)
+- %r sostituisce invece la rappresentazione della stringa ('ciao')
+- non far iniziare i files .py con un numero (i programmi), sempre con un carattere. 
+  Però è possibile eseguire un programma che inizia con un numero facendo __import__("nomeprogramma").
+- IDLE non è consigliabile usarlo aperto 2 volte
+- l'attributo __name__ può essere 2 cose: il nome del modulo, se importato, oppure __main__
+- la funzione import esegue il file py, quindi se ci sono inizializzazioni ecc QUESTE VERRANNO ESEGUITE. 
+  Per evitare ciò occorre (ed è bene) mettere if __name__ == '--main__' prima della parte di codice da eseguire 
+  in caso quel file venga lanciato da solo (come main). 
+  Questa cosa è fondamentale anche per il pydoc (documentazione).
+- nuovo modulo "decimal" per calcoli con numeri decimali (i calcoli sono ESATTI non c'e' errore di arrotondamento)
+- IMPORT: se si è modificato il modulo: reload(nomemodulo). Rifare l'import non funziona. Si può importare 
+  anche con un altro nome "import pippo as pluto"; A PARITà DI NOME, L'ULTIMO IMPORT VINCE.
+  Non fare import metodo from modulo, meglio importare il modulo (si evita la confusione in caso di 
+  metodi omonimi). PER FARE LA LISTA: import sys: sys.modules.
+- la prima stringa che segue la definizione di funzione rappresenta il doc help.
+- pydoc nomefunzione restiruisce la doc string della funzione o modulo
+- pydoc -g in grafico
+- pydoc -w nomefile -> scrive nomefile.html, colorato.
+- per chiamare pydoc: python -m pydoc (è un modulo).
+- attenzione a usare il backslash perchè è il codice di escape
+- quando una funzione non ritorna niente, in realtà ritorna un None.
+- usare os.path.join(dir1,dir2,ecc) per creare correttamente i nomi del path.
+- valori immutabili: numeri, stringhe e tuple. IMPORTANTE DA RICORDARE.
+- ls.sort ordina velocemente, ma cambia la lista; sorted invece no.
+- tuple (1,2,3) => usate in genere stile record database.
+- liste [1,2,3] => mutabili, hanno più metodi per lavorarci sopra.
+- modulo operator molto comodo (metodo itemgetter per ordinare).
+- potente istruzione set (nuovo tipo di dato), per fare la lista ORDINATA degli elementi. 
+  Builtin solo nella 2.4, nelle precedenti occorre prendere il modulo sets dalla distro 2.3 e importarlo: 
+  try: set: except Nameerror: from sets import Set as set (vedi esempio).
+- comoda ma strana libreria tkMessageBox per le finestre grafiche [non e' strana ;-)]
+- libreria urllib per leggere le pagine web
+- libreria webbrowser per aprire il browser sulla macchina e visualizzare la pagina.
+- isinstance per verificare il tipo di oggetto
+- installazione di matplotlib: indicare a mano di usare numarray (matplotlibrc) e riavviare python.
+- from pylab import *; plot(x,y) due vettori; show() per vedere il plot.
+- strumenti di sviluppo: wingide, boa x wxpython, eric (sotto linux gratis, a pagamento sotto Windows), 
+  iron python x dot net, ctypes x accedere alle librerie windows.
+- è preferibile non scrivere righe di codice python più lunghe di 80 caratteri. Per andare a capo si usa semplicemente il "\".
+- Guido Var Rossum è il creatore, durante le vacanze di Natale 1989.
+- ATTENZIONE: se una funzione esce con return, è una funzione. Se esce con yeld allora è un generatore di iterazioni. 
+  L'iteratore va chiamato con un ciclo, in modo da farsi restituire gli elementi, ma non ha bisogno di trappare 
+  le eccezioni sulla fine del ciclo (vedi immagini2.py).
+- quando parte python viene eseguito il file pythonrc.
+- per modificare una libreria conviene fare la sovrascrittura della funzione incriminata e sovrascriverla dopo il caricamento.
+- in caso di applicazioni grafiche, conviene fare prima il kernel non grafico e validarlo, poi aggiungere la grafica.
+- per chiamare programmi esterni la 2.4 ha subprocess.call, che è più sicura di os.system. 
+  Inserita a mano funziona nella 2.3;  eventualmente verificare sulla 2.2. E' diverso da os.system, che chiama una nuova shell.
+- come navigatore di classi, IDLE è meglio del Pwin (?).
+- Michele ha copiato dalle FAQ una funzione per killare i processi windows (non esiste nella distro standard).
+- newsgroup: it.comp.lang.python (anche su google newsgroup: http://groups.google.it/group/it.comp.lang.python).
+- IMPORTANTE: non esistono variabili globali, ma solo relative al modulo. Però è possibile modificare __builtin__ 
+  in qualsiasi momento per aggiungere o cambiare qualsiasi metodo o parametro. E' ALTAMENTE SCONSIGLIATO.
+- threads: nuovo modulo "threading"
+- in generale è meglio usare i processi, invece dei thread (si maneggiano meglio). E poi i processi si possono spammare 
+  su altri computer in caso di bisogno. Però sotto WIN i processi consumano molte risorse.
+- i thread non si possono uccidere, a differenza dei processi, se non usando ctrl-break. 
+  L'uso di try:finally è consigliabile perchè si può trappare i ctrl-c ed eseguire le varie operazioni di abort. 
+  Ma usando i thread l'unica soluzione rimane ctrl-break, e quindi non è possibile eseguire correttamente le operazioni di chiusura. 
+  ATTENZIONE!!!
+- interessante trucco killme di Michele per chiudere il programma principale lanciato.
+- dir(oggetto) restituisce le proprietà di un oggetto (in pratica, qualsiasi cosa di python).
+- CLASSI: usare (object), nuova definizione per le classi "class Nomeclasse(object):"
+- modulo itertools per le iterazioni.
+- per lanciare IDLE: pythonw c:\programmi\Utils\python24\Lib\idlelib\idle.pyw
+- debugger a riga di comando: python -m pdb nomedelfile.py
+- il debugger praticamente non serve quando si usa il python (testimonianze dirette dei guru).
+- exc_debugger è comodo per il debug post mortem.
+- Classi.oggetti privati: iniziarli con "_".
+- esiste l'ereditarietà multipla, ma non è consigliato usarla. EVITARE.
+- zope3 è stata appena rifatta praticamente senza ereditarieta' multipla.
+- non usare exec, perchè restituisce poco in caso di errore; usare getattr e setattr. ATTENZIONE: in python non si è mai sicuri 
+  della conformazione della classe, visto che può essere dinamicamente ridefinita -> istanze comprese!!!
+- usare Classe.mro per vedere il method resolution order.
+- pydoc nomedelmodulo(senza .py) restituisce le doc strings ordinate.
+- pydoc -w nomedelmodulo(senza .py) restituisce un file nomedelmodulo.html (colorato).
+- doctester.py (creato da Michele, chiama il doctest) permette di eseguire codice scritto all'interno della documentazione ascii. 
+  GALATTICO!
+- wrapper di rst2html.py fatto da Michele per produrre sia html che pdf, partendo dalla sintassi ascii "restructured text". 
+  Il pdf lo fa Latex, non c'è sotto windows. BISOGNA INSTALLARE ANCHE docutils: partendo dalla dir della distro: python setup.py install.
+Riga di comando: python rst2html.py < f:\doctest\esempio.txt >f:\doctest\esempio.html (meglio fare un batch).
+- unit test: vengono verificati solo i metodi che iniziano per "test". Si usa il modulo "unittest".
+- e' possibile convertire un doctest in unit test!!!! Si usa doctest.DocFileSuite. GALATTICO!
+- non è possibile testare un'interfaccia grafica, se non c'è la possibilità offerta dall'interfaccia stessa.
+- la classe cmd permette di costruire un interprete di comandi; per accedere ai metodi occorre che inizino per "do".
+- PACKAGE: collezione di cose che possono servire. E' una directory che contiene un file "__init__.py". 
+  Va messa nel posto giusto: .\Lib\site-packages, dentro un file .pth. Si mette la dir di livello superiore. 
+  Si possono indicare anche files .zip (GAGLIARDO, ma solo dalla 2.3).
+- EXCEPTION: è molto comodo specificare un messaggio. NON USARE raise "frasettina", non verrà più supportato. 
+  Si può inoltre specificare una classe personale per le eccezioni, frasette incluse. Vedi esempio.
+- attualmente il metodo super non funziona con le eccezioni (sono vecchio stile).
+- gli errori non devono mai passare sotto silenzio, sempre che non siano trappati correttamente. 
+  OCCORRE TRAPPARE UNA COSA ALLA VOLTA!!!
+- usando i threads in caso eccezione imprevista il programma non si ferma. ATTENZIONE.
+- "la cosa giusta è non usare i thread".... by Michele Simionato :)
+- classe queue per comunicare tra i thread. Classe deque (doppia coda). 
+  USARE TRY EXCEPT per verificare la coda, non usare if. INSERIRE SEMPRE UN TRY: FINALLY: 
+  -> ATTENZIONE: IL CTRL-BREAK AMMAZZA TUTTO E NON è TRAPPABILE. (Diverso il discorso tra linea 
+  di comando e interfaccia grafica).
+- PEP: python enhancement proposal
+- generator conphrention: un loop entro parentesi tonde non sporca la variabile indice nel workspace. 
+  La list conphrention esisteva già [parentesi quadre].
+- invece di ritornare un parametro in caso di errore conviene sollevare e gestire un'eccezione.
+- in caso di liste è molto più conveniente usare un append (o extend) invece che +=.
+- anche in caso di stringhe è meglio usare join invece di +.
+- import this -> zen di python
+- IDE: Wingide gode di buona fama; Eric/QT Designer è molto carino per le interfacce grafiche; Komodo; 
+  Boa Contructor... sono a pagamento. MA I PIù GRANDI SVILUPPATORI USANO VI, EMACS...
+- INFORMAZIONI: usare il newsgroup è caldamente consigliato! Cookbook per esempi di codice ben fatto.
+- il carattere "_" è una variabile dummy.
+- il del non libera la memoria, solo le referenze. NON bisogna fidarsi ciecamente del garbage collector!!! 
+  Infatti, in caso di utilizzo di debugger, rimangono dei riferimenti collegati.
+- file HISTORY.txt che spiega l'evoluzione del modulo. Ordine cronologico inverso.
+- EXEC serve solo per i guru... (doctest per esempio). Meglio usare import per eseguire altri files, oppure execfile 
+  (che alimenta un dizionario), così si riesce a fare il debug.
+- revision control systems: Darts (a linea di comando).
+- DOC STRING: se manca il modulo già puzza...
+- tutti i progetti seri hanno il loro test!!!
+- ASSERT: utile per verificare una variabile rispetto uno o più valori noti. 
+  Se è diversa viene alzata un'eccezione "AssertionError".
+- www.edgewall.com, trac, version control manager, Roberto Lupi (Fano) <- contatto da Michele Simionato.
+- utilizzo di __init__ per eseguire operazioni di default tipo directory.
+- ATTENZIONE: gli oggetti che hanno un wrapper c (o altro) bisogna cancellarli esplicitamente, 
+  altrimente non saranno distrutti.
+- im_func per estrarre un metodo da una classe e usarlo come funzione (o metterlo dentro un'altra classe). 
+  Si può cancellare un metodo da una classe usando del. COMUNQUE SONO COSE DA EVITARE!
+- il doppio underscore davanti al metodo impedisce la sovrascrittura da parte di una classe ereditata 
+  che ridefinisce lo stesso metodo.
+- from __future__ import generators
+- pyserial per gestire le seriali.

@@ -1,0 +1,22 @@
+Attention:
+
+get -> _get not possible! Why ?!
+
+
+Moreover:
+
+
+>>> from tracing import E
+>>> E.__dict__['__init__'].output=file('err','w')
+
+
+>>> e=E()
+    Calling 'B.__init__' with arguments <E instance>(){} ...
+        Calling 'D.__init__' with arguments <E instance>(){} ...
+        'D.__init__' called with result: None
+    'B.__init__' called with result: None
+
+
+>>> import chatty2
+>>> print file('file1.log').read().rstrip()
+calling <chattymethod2:f> from <C instance>

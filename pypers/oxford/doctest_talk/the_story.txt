@@ -1,0 +1,23 @@
+- a physicist perspective
+- the story of this talk
+- making the slides
+- what I wanted to realize
+- shallow knowledge
+- browser requirements
+- a word about security
+- the preparation of my lectures
+- emacs
+- importance of documentation
+- the right mindset
+- the doctester at work
+- real life experience with outsourcing
+- if you want to start a new company ...
+- /home/micheles/code/branches/1.3/lib/python/partecs_voting/tests
+- doctest vs. unittest
+- show the slides till page 6
+- a word about converting to testing methodologies
+- doctesting web applications
+- doctest 2 unittest
+- zope experience
+- cleverness vs. wisdom
+- three things to remember

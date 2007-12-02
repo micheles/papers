@@ -1,0 +1,1 @@
+$\Phi(x) = \frac12+\frac12 erf(x/\sqrt(2))$

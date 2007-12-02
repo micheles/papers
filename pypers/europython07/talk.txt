@@ -1,0 +1,374 @@
+An Introduction to Web Programming with WSGI
+===============================================
+
+:Talk given at: EuroPython 2007
+:By: Michele Simionato
+:organization: StatPro Italy
+:date: 2007-07-11
+
+.. include:: <s5defs.txt>
+.. footer:: EuroPython 2007 - 11 June 2007
+
+Introduction
+------------------------------------------------
+
+This is as a talk for beginners, only knowledge of
+CGI and a bit of HTTP protocol is expected
+`(non-beginners -> "Zope on a Paste")`
+
+.. class:: incremental
+
+ - Have you ever heard of WSGI?
+ - Have you ever used WSGI?
+ - Have you used non WSGI-based Web frameworks?
+
+
+Ok, now about me
+----------------------------
+
+.. class:: incremental
+
+- I started to do Web programming with Zope and Plone
+- (never liked them)
+- I flirted with Quixote, Twisted, CherryPy, mod_python
+- (which are ok but ...)
+- I got in love with WSGI at last EuroPython
+- (I am still in love with it ;)
+
+What I have done
+--------------------------------------
+
+.. class:: incremental
+
+- written various helpers to simplify the usage of WSGI;
+- debug with WSGI, deploy with Zope strategy
+- written various simple Web tools for internal usage at StatPro_
+- now we are going to start a major project with WSGI
+
+.. _StatPro: http://www.statpro.com
+
+WSGI
+----------------------------------
+
+.. image:: Scotch_Whisky_(aka).png
+
+
+*Short* history of WSGI
+------------------------- 
+
+.. class:: incremental
+
+- WSGI = Web Server Gateway Interface (*Whisky* for friends)
+- the brainchild of Python guru Phillip J. Eby
+- also input from Ian Bicking (``paste``) and others
+- starting from Python 2.5, we have a WSGI web server in the standard 
+  library (``wsgiref``)
+- there are plenty of simple and useful add-ons for WSGI applications
+  out there (``pylons ...``)
+- Guido_ likes it!
+
+.. _Guido: http://video.google.com/videoplay?docid=-8502904076440714866
+
+WSGI key concepts
+------------------------------------------------
+
+.. class:: incremental      
+
+1. WSGI application:
+
+   (env, resp) -> chunks of text
+
+   env = environment dictionary of the server;
+   resp = function sending to the client the HTTP headers
+
+2. WSGI middleware:
+
+   WSGI app -> enhanced WSGI app
+
+Hello World
+-------------------------------
+
+::
+
+  from wsgiref import simple_server
+
+  def app(env, resp):
+      resp(
+       '200 OK', [('Content-type', 'text/html')])
+      return ['<h1>Hello, World!</h1>']
+
+  server=simple_server.make_server('', 8000, app)
+  server.serve_forever()
+
+A real-life example
+--------------------------------------
+
+.. class:: incremental
+
+ Let me show a real problem we had at StatPro_ 
+
+ .. _StatPro: http://www.statpro.com 
+
+ .. image:: badpricehistory.png
+
+The history plotter
+------------------------------------
+
+It was easy to write a simple command line history plotter
+                         
+.. class:: incremental
+
+- show live example
+- but we were not happy with it
+- because of installation issues, etc
+- so we wanted to go on the Web
+
+Going on the Web
+-----------------------------------
+
+.. class:: incremental
+
+- tool for internal usage on our intranet
+- convenient to integrate with other Web tools
+- usable also for non-techical users
+- avoid installing and mantaining on every machine
+- possibly we may open it to our other offices in the world
+- we like the browser interface
+
+Without a framework
+---------------------------------------------
+
+.. class:: incremental      
+
+- KISS
+- no security concerns
+- no scalability concerns
+- no nice-looking concerns
+
+- it must be *EASY* to change
+- we want minimal learning curve
+- we want no installation/configuration hassle
+
+- we want no dependencies
+- we want something even simpler than CGI, if possible!
+
+WSGI is the answer!
+----------------------------------------------------
+
+The web plotter
+
+::
+
+ $ python webplotter.py
+
+`Click here for the live demonstration`_
+
+.. _`Click here for the live demonstration`: http://localhost:8000
+
+
+Some code (I)
+-------------------------------------------------
+
+::
+
+ def app(env, resp):
+  form = getformdict(env)
+  if form.get('submitted'):
+    try:
+     fname = make_graph(form.get('code'), batch=True)
+    except Exception, e:
+     resp('500 ERR', [('Content-type', 'text/plain')])
+     return [traceback.format_exc()]
+    else:
+     resp('200 OK', [('Content-type', 'image/png')])
+     return file(fname)
+
+
+Some code (II)
+-------------------------------------------------
+
+::
+
+ else:
+  resp('200 OK', [('Content-type', 'text/html')])
+  return [
+   'Try values such as <pre>fri-gb;AVE</pre>',
+   '<pre>fri-gb;TSCO</pre> <pre>fri-us;DELL</pre>',
+   '<form>', 'insert code ',
+   '<input type="text" name="code"/>',
+   '<input type="submit", name="submitted",'
+   ' value="submit" />',
+   '</form>']
+
+
+Some code (III)
+-------------------------------------------------
+
+::
+
+ def getformdict(env):
+    qs = env.get('QUERY_STRING')
+    if qs:
+        return dict((k, v[0]) 
+               for k, v in cgi.parse_qsl(qs))
+    else:
+        return {}
+
+
+WSGI vs. CGI
+--------------------------------------------
+   
+.. class:: incremental
+
+- WSGI is simpler than CGI
+
+  + `using wsgiref you don't require an external server`
+  + `you can keep sessions in memory`
+ 
+- WSGI scales better than CGI
+
+  + `there is a large choice of wsgi servers (mod_wsgi, Twisted ...)`
+  + `there is a large choice of third party middleware`
+  + `it is relatively easy to turn a toy application into a serious one`
+
+
+The missing link
+-----------------------------------------
+
+WSGI is a the missing link between the low-level mechanics of
+the Web and the high-level intricacies of the Web frameworks.
+
+.. image:: Australopithecus.jpg
+
+A common objection
+-----------------------------------------
+
+.. class:: incremental
+
+- Python has too many Web frameworks because it is too easy to build
+  a Web framework in Python
+- WSGI makes building a Web framework even easier, the number of framework
+  will increase
+- => WSGI fails its goal!
+- **NOT TRUE**
+- *integration* is the key word
+
+Object publishing (I)
+------------------------------
+
+::
+
+ class Example(object):
+  def __init__(self, sitename):
+   self.sitename = sitename
+  def __call__(self):
+   yield '<h1>%s: index page</h1>' % self.sitename
+   yield 'goto <a href="./page1">page1</a><br/>'
+   yield 'goto <a href="./page2">page2</a><br/>'
+   yield 'goto <a href="subsite">subsite</a><br/>'
+  def page1(self): yield 'page1'
+  def page2(self): yield 'page2'
+  page1.exposed = page2.exposed = True
+
+Object publishing (II)
+------------------------------
+
+::
+
+ class WSGIObjectPublisher(object):
+  def __init__(self, root):
+   self.root = root
+  def __call__(self, env, resp):
+   return self.getsubpage(self.root,env,resp)()
+  def getsubpage(self, root, env, resp):
+   script_name = util.shift_path_info(env)
+   if not script_name: # We've arrived!
+     resp('200 OK',[('content-type','text/html')])
+     return root
+   ...
+
+Object publishing (III)
+------------------------------
+
+::
+
+  try:
+   page = getattr(root, script_name)
+  except AttributeError:
+   resp('404 Not Found',[('content-type','text/plain')])
+   return lambda:['missing page %r'%script_name]
+  exposed = getattr(page, 'exposed', False)
+  if not exposed:
+   resp('404 Not Found',[('content-type','text/plain')])
+   return lambda : [
+    '%r is not exposed!' % script_name]
+  return self.getsubpage(page, env, resp)
+
+WSGI vs. frameworks
+------------------------------------------------
+
+Pro:
+
+- `if you liked playing with Lego, you will be happy`
+- `you have much more control and you are not forced to marry a technology`
+- `you can learn a lot`
+- `others ...`
+
+WSGI vs. frameworks
+------------------------------------------------
+
+Contra:
+
+- `you can build your own framework with WSGI, but you have to debug it`
+- `the existing WSGI frameworks are newer, there is less experience with them`
+- `WSGI is not particularly Twisted-friendly`
+- `others ...`
+
+And now middleware
+-----------------------------
+
+No middleware in the standard library, but lots of useful middleware 
+from third party sources. For instance, authentication middleware::
+
+    from paste.auth.basic import AuthBasicHandler
+
+    def only_for_pippo(env, user, passwd):
+        return user == 'pippo'
+
+    auth_app = AuthBasicHandler(
+        app, 'app realm', only_for_pippo)
+
+Debugging WSGI
+-----------------------------------------------
+
+::
+
+ from wsgiref.simple_server import make_server
+ from paste.evalexception import EvalException
+
+ a, b = 1,0
+
+ def app(env, resp):
+   resp('200 OK',[('Content-type','text/html')])
+   return [str(a/b)]
+
+ make_server('',9090,EvalException(app)
+  ).serve_forever()
+
+Show evalexception_
+
+.. _evalexception: http://localhost:9090
+
+References
+-----------
+
+That's all, folks!
+
+- http://wsgi.org/wsgi
+- http://www.python.org/dev/peps/pep-0333
+- http://pythonpaste.org/do-it-yourself-framework.html
+- http://pylonshq.com/
+
+.. class:: incremental      
+
+ **(P.S. at StatPro, we are hiring! ;)**

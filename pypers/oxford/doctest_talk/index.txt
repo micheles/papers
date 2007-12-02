@@ -1,0 +1,6 @@
+Partecs Training: Internal Documentation
+=========================================
+
+`Michele's slides for the Italian Code Jam conference`__
+
+__ http://wiki.partecs.com/Developers/PartecsTraining/P01.html

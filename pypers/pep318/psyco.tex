@@ -1,0 +1,201 @@
+\documentclass[10pt,english]{article}
+\usepackage{babel}
+\usepackage{shortvrb}
+\usepackage[latin1]{inputenc}
+\usepackage{tabularx}
+\usepackage{longtable}
+\setlength{\extrarowheight}{2pt}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage[a4paper,margin=2cm,nohead]{geometry}
+%% generator Docutils: http://docutils.sourceforge.net/
+\newlength{\admonitionwidth}
+\setlength{\admonitionwidth}{0.9\textwidth}
+\newlength{\docinfowidth}
+\setlength{\docinfowidth}{0.9\textwidth}
+\newcommand{\optionlistlabel}[1]{\bf #1 \hfill}
+\newenvironment{optionlist}[1]
+{\begin{list}{}
+  {\setlength{\labelwidth}{#1}
+   \setlength{\rightmargin}{1cm}
+   \setlength{\leftmargin}{\rightmargin}
+   \addtolength{\leftmargin}{\labelwidth}
+   \addtolength{\leftmargin}{\labelsep}
+   \renewcommand{\makelabel}{\optionlistlabel}}
+}{\end{list}}
+% begin: floats for footnotes tweaking.
+\setlength{\floatsep}{0.5em}
+\setlength{\textfloatsep}{\fill}
+\addtolength{\textfloatsep}{3em}
+\renewcommand{\textfraction}{0.5}
+\renewcommand{\topfraction}{0.5}
+\renewcommand{\bottomfraction}{0.5}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+% end floats for footnotes
+% some commands, that could be overwritten in the style file.
+\newcommand{\rubric}[1]{\subsection*{~\hfill {\it #1} \hfill ~}}
+% end of "some commands"
+\input{/mnt/exp/MyDocs/pypers/style.tex}
+\title{Module psyco}
+\author{}
+\date{}
+\hypersetup{
+pdftitle={Module psyco}
+}
+\raggedbottom
+\begin{document}
+\maketitle
+
+
+Psyco -- the Python Specializing Compiler.
+
+Typical usage: add the following lines to your application's main module:
+\begin{description}
+%[visit_definition_list_item]
+\item[try::]
+%[visit_definition]
+
+import psyco
+psyco.profile()
+
+%[depart_definition]
+%[depart_definition_list_item]
+%[visit_definition_list_item]
+\item[except::]
+%[visit_definition]
+
+print 'Psyco not found, ignoring it'
+
+%[depart_definition]
+%[depart_definition_list_item]
+\end{description}
+
+
+%___________________________________________________________________________
+
+\hypertarget{functions}{}
+\section*{Functions}
+\pdfbookmark[0]{Functions}{functions}
+
+\texttt{cannotcompile(x):}
+\begin{quote}
+
+Instruct Psyco never to compile the given function, method
+or code object.
+\end{quote}
+
+\texttt{log(logfile='', mode='w', top=10):}
+\begin{quote}
+
+Enable logging to the given file.
+
+If the file name is unspecified, a default name is built by appending
+a 'log-psyco' extension to the main script name.
+
+Mode is 'a' to append to a possibly existing file or 'w' to overwrite
+an existing file. Note that the log file may grow quickly in 'a' mode.
+\end{quote}
+
+\texttt{runonly(memory=None, time=None, memorymax=None, timemax=None):}
+\begin{quote}
+
+Nonprofiler.
+
+XXX check if this is useful and document.
+\end{quote}
+
+\texttt{profile(watermark   = default{\_}watermark,}
+\begin{quote}
+
+Turn on profiling.
+
+The 'watermark' parameter controls how easily running functions will
+be compiled. The smaller the value, the more functions are compiled.
+\end{quote}
+
+\texttt{full(memory=None, time=None, memorymax=None, timemax=None):}
+\begin{quote}
+
+Compile as much as possible.
+
+Typical use is for small scripts performing intensive computations
+or string handling.
+\end{quote}
+
+\texttt{dumpcodebuf():}
+\begin{quote}
+
+Write in file psyco.dump a copy of the emitted machine code,
+provided Psyco was compiled with a non-zero CODE{\_}DUMP.
+See py-utils/httpxam.py to examine psyco.dump.
+\end{quote}
+
+\texttt{stop():}
+\begin{quote}
+
+Turn off all automatic compilation.  bind() calls remain in effect.
+\end{quote}
+
+\texttt{proxy(x, rec=None):}
+\begin{quote}
+
+Return a Psyco-enabled copy of the function.
+
+The original function is still available for non-compiled calls.
+The optional second argument specifies the number of recursive
+compilation levels: all functions called by func are compiled
+up to the given depth of indirection.
+\end{quote}
+
+\texttt{background(watermark   = default{\_}watermark,}
+\begin{quote}
+
+Turn on passive profiling.
+
+This is a very lightweight mode in which only intensively computing
+functions can be detected. The smaller the 'watermark', the more functions
+are compiled.
+\end{quote}
+
+\texttt{unbind(x):}
+\begin{quote}
+
+Reverse of bind().
+\end{quote}
+
+\texttt{bind(x, rec=None):}
+\begin{quote}
+
+Enable compilation of the given function, method, or class object.
+
+If C is a class (or anything with a '{\_}{\_}dict{\_}{\_}' attribute), bind(C) will
+rebind all functions and methods found in C.{\_}{\_}dict{\_}{\_} (which means, for
+classes, all methods defined in the class but not in its parents).
+
+The optional second argument specifies the number of recursive
+compilation levels: all functions called by func are compiled
+up to the given depth of indirection.
+\end{quote}
+
+\texttt{{\_}getemulframe(depth=0):}
+\begin{quote}
+
+As {\_}getframe(), but the returned objects are real Python frame objects
+emulating Psyco frames. Some of their attributes can be wrong or missing,
+however.
+\end{quote}
+
+\texttt{unproxy(proxy):}
+\begin{quote}
+
+Return a new copy of the original function of method behind a proxy.
+The result behaves like the original function in that calling it
+does not trigger compilation nor execution of any compiled code.
+\end{quote}
+
+\end{document}

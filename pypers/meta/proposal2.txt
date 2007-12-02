@@ -1,0 +1,49 @@
+Proposal for a new paper METACLASS PROGRAMMING IN PYTHON - PART 2
+--------------------- -------------------------------------------
+
+In the early days, metaclasses were considered an esoteric subject, for 
+wizards only. After the coming of Python 2.2, they have been better exposed 
+to the programmer, but still their usage has been considered mysterious by 
+most users. However, nowadays, this perception is changing and more and more
+ programmers are beginning to explore this fascinating topic.
+
+In our earlier paper on metaclass programming in Python, we introduced 
+the concept of metaclasses, showing how powerful they are, and
+how they can be used in real life, for solving problems such as
+dynamic customization of classes and libraries at run-time.
+
+This paper has proved quite popular, and we followup by
+filling in some of the gaps in our initial summary, that was
+necessarily compact. 
+
+There are many subtilities in the usage of metaclasses, which deserves
+to be better explored. Based on the feedback of our readers and the 
+discussions in comp.lang.python, we think that the following points are 
+crucial for the programmer wanting to master metaclasses:
+
+1) understanding the subtle differences and interactions between 
+metaclass-oriented programming and more traditional object-oriented
+programming that utilizes multiple inheritance and mix-in classes.  
+Many programmers become confused on the subtle distinctions, since
+inheritance in metaclasses works differently than usual inheritance.  
+
+2) Python 2.2 has added the built-in 'staticmethod()' and 'classmethod()' 
+that allows to call methods from classes. Superficially, that overlaps with
+the behavior of methods defined in metaclasses, but nonetheless differ 
+importantly. This has also generated a lot of confusion in the mind of
+many programmers.
+
+3) understanding the origin and the resolution of metatype conflicts, 
+that becomes ubiquitous at the moment when the user wants to use more
+than a single custom metaclass. This amount to understanding the issue of
+composition (in the sense of multiple inheritance) of metaclasses.
+
+As well as clarifying these OOP concepts, this paper provides several
+additional concrete examples where metaclasses ease programming
+tasks.
+
+
+---
+
+D. Mertz
+M. Simionato                                            4-30-2003

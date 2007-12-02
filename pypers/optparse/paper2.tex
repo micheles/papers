@@ -1,0 +1,507 @@
+\documentclass[10pt,a4paper,english]{article}
+\usepackage{babel}
+\usepackage{ae}
+\usepackage{aeguill}
+\usepackage{shortvrb}
+\usepackage[latin1]{inputenc}
+\usepackage{tabularx}
+\usepackage{longtable}
+\setlength{\extrarowheight}{2pt}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{ifthen}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage[DIV12]{typearea}
+%% generator Docutils: http://docutils.sourceforge.net/
+\newlength{\admonitionwidth}
+\setlength{\admonitionwidth}{0.9\textwidth}
+\newlength{\docinfowidth}
+\setlength{\docinfowidth}{0.9\textwidth}
+\newlength{\locallinewidth}
+\newcommand{\optionlistlabel}[1]{\bf #1 \hfill}
+\newenvironment{optionlist}[1]
+{\begin{list}{}
+  {\setlength{\labelwidth}{#1}
+   \setlength{\rightmargin}{1cm}
+   \setlength{\leftmargin}{\rightmargin}
+   \addtolength{\leftmargin}{\labelwidth}
+   \addtolength{\leftmargin}{\labelsep}
+   \renewcommand{\makelabel}{\optionlistlabel}}
+}{\end{list}}
+\newlength{\lineblockindentation}
+\setlength{\lineblockindentation}{2.5em}
+\newenvironment{lineblock}[1]
+{\begin{list}{}
+  {\setlength{\partopsep}{\parskip}
+   \addtolength{\partopsep}{\baselineskip}
+   \topsep0pt\itemsep0.15\baselineskip\parsep0pt
+   \leftmargin#1}
+ \raggedright}
+{\end{list}}
+% begin: floats for footnotes tweaking.
+\setlength{\floatsep}{0.5em}
+\setlength{\textfloatsep}{\fill}
+\addtolength{\textfloatsep}{3em}
+\renewcommand{\textfraction}{0.5}
+\renewcommand{\topfraction}{0.5}
+\renewcommand{\bottomfraction}{0.5}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+% end floats for footnotes
+% some commands, that could be overwritten in the style file.
+\newcommand{\rubric}[1]{\subsection*{~\hfill {\it #1} \hfill ~}}
+\newcommand{\titlereference}[1]{\textsl{#1}}
+% end of "some commands"
+\input{style.tex}
+\title{The optparse module: writing command-line tools the easy way}
+\author{}
+\date{}
+\hypersetup{
+pdftitle={The optparse module: writing command-line tools the easy way}
+}
+\raggedbottom
+\begin{document}
+\maketitle
+
+
+\setlength{\locallinewidth}{\linewidth}
+\begin{quote}
+\begin{quote}
+\begin{description}
+\item [Status:]
+Draft
+
+
+\item [Author:]
+Michele Simionato
+
+
+\item [E-mail:]
+\href{mailto:michele.simionato@gmail.com}{michele.simionato@gmail.com}
+
+
+\item [Date:]
+May 2004
+
+
+\end{description}
+\end{quote}
+\end{quote}
+
+\emph{The optparse module is a powerful, flexible, extensible, easy-to-use 
+command-line parsing library for Python. Using optparse, you can add 
+intelligent, sophisticated handling of command-line options to your 
+scripts with very little overhead.} -{}- Greg Ward, optparse author
+
+
+%___________________________________________________________________________
+
+\hypertarget{introduction}{}
+\pdfbookmark[0]{Introduction}{introduction}
+\section*{Introduction}
+
+Once upon a time, when graphic interfaces were still to be dreamed
+about, command-line tools were the body and the soul of all programming
+tools. Many years have passed since then, but some things have not 
+changed: command-line tools are still fast, efficient, portable, easy 
+to use and - more importantly - reliable. You can count on them.
+You can expect command-line scripts to work in any situation, 
+during the installation phase, in a situation of disaster recovery, when 
+your window manager breaks down and even in systems with severe 
+memory/hardware constraints. When you really need them, command-line 
+tools are always there.
+
+Hence, it is important for a programming language - especially
+one that wants to be called a ``scripting'' language - to provide 
+facilities to help the programmer in the task of writing command-line 
+tools. For a long time Python support for this kind of tasks has 
+been provided by the``getopt`` module. I have never 
+been particularly fond of \texttt{getopt}, since it required 
+a sensible amount of coding even for the parsing of simple 
+command-lines. However, with the coming of Python 2.3 the situation 
+has changed: thanks to the great job of Greg Ward (the author of 
+\texttt{optparse} a.k.a. \texttt{Optik}) now the Python programmer 
+has at her disposal (in the standard library and not as an 
+add-on module) a fully fledged Object Oriented API for 
+command-line arguments parsing, which makes writing Unix-style 
+command-line tools easy, efficient and fast.
+
+The only disadvantage of \texttt{optparse} is that it is a 
+sophisticated tool, which requires some time to be fully mastered. 
+The purpose of this paper is to help the reader to rapidly get the 
+10{\%} of the features of \texttt{optparse} that she will use in the 90{\%} of 
+the cases. Taking as an example a real life application - a search and 
+replace tool -  I will guide the reader through (some of) the wonders 
+of \texttt{optparse}. Also, I will show some trick that will make your life 
+with \texttt{optparse} much happier. 
+This paper is intended for both Unix and
+Windows programmers - actually I will argue that Windows programmers 
+need \texttt{optparse} even more than Unix programmers; it does not
+require any particular expertise to be fully appreciated.
+
+
+%___________________________________________________________________________
+
+\hypertarget{a-simple-example}{}
+\pdfbookmark[0]{A simple example}{a-simple-example}
+\section*{A simple example}
+
+I will take as pedagogical example a little tool I wrote some time ago,
+a multiple files search and replace tool. I needed it because I am 
+not always working under Unix, and I do not always have sed/awk or
+even Emacs installed, so it made sense to have this 
+little Python script in my toolbox. It is only few lines long,
+it can always be modified and extended with a minimal effort,
+works on every platform (including my PDA) and has the advantage 
+of being completely command-line driven: 
+it does not require to have any graphics library installed
+and I can use it when I work on a remote machine via ssh.
+
+The tool takes a bunch of files and replace a given regular expression 
+everywhere in-place; moreover, it saves a backup copy of the original 
+un-modified files and give the option to recover 
+them when I want to.  Of course, all of this can be done more efficiently 
+in the Unix world with specialized tools, but those tools are written 
+in C and they are not as easily customizable as a Python script, that 
+you may change in real time to suit your needs. So, it makes sense 
+to write this kind of utility in Python (or in Perl, but I am writing on 
+Pyzine now ;)
+
+As a final note, let me notice that I find \texttt{optparse} 
+to be much more useful in the Windows world than in the Unix/Linux/Mac OS X
+world. The reason is that the pletora 
+of pretty good command-line tools which are available under Unix are 
+missing in the Windows environment, or do not have a satisfactory 
+equivalent. Therefore, 
+it makes sense to write a personal collection of command-line scripts 
+for your more common task, if you need to work on many platforms and
+portability is an important requirement. 
+Using Python and \texttt{optparse}, you may write your own scripts 
+once and having them to run on every platform running Python, 
+which means in practice any traditional platform and increasingly
+more of the non-traditional ones - Python is spreading into the 
+embedded market too, including PDA's, cellular phones, and more.
+
+
+%___________________________________________________________________________
+
+\hypertarget{the-unix-philosophy-for-command-line-arguments}{}
+\pdfbookmark[0]{The Unix philosophy for command-line arguments}{the-unix-philosophy-for-command-line-arguments}
+\section*{The Unix philosophy for command-line arguments}
+
+In order to understand how \texttt{optparse} works, it is essential
+to understand the Unix philosophy about command-lines arguments.
+
+As Greg Ward puts it:
+
+\emph{The purpose of optparse is to make it very easy to provide the 
+most standard, obvious, straightforward, and user-friendly user 
+interface for Unix command-line programs. The optparse philosophy 
+is heavily influenced by the Unix and GNU toolkits ...}
+
+Here is a brief summary of the terminology:
+the arguments given to a command-line script - \emph{i.e.}  the arguments
+that Python stores in the list \texttt{sys.argv{[}1:]} - are classified in
+three groups: options, option arguments and positional arguments. 
+Options can be distinguished since they are prefixed by a dash
+or a double dash; options can have arguments or not 
+(there is at most an option argument right after each option); 
+options without arguments are called flags. Positional arguments 
+are what it is left in the command-line after you remove options 
+and option arguments.
+
+In the example of the search/replace tool, 
+I will need two options with an argument - I want 
+to pass to the script a regular expression and a replacement string - 
+and I will need a flag specifying whether or not a backup of the original 
+files needs to be performed. Finally, I will need a number of positional
+arguments to store the names of the files on which the search and
+replace will act.
+
+Consider - for the sake of the example - the following situations:
+you have a bunch of text files in the current directory containing dates 
+in the European format DD-MM-YYYY, and that you want to convert them in
+the American format MM-DD-YYYY. If you are sure that all your dates
+are in the correct format, your can match them with a simple regular
+expression such as \texttt{({\textbackslash}d{\textbackslash}d)-({\textbackslash}d{\textbackslash}d)-({\textbackslash}d{\textbackslash}d{\textbackslash}d{\textbackslash}d)}.
+
+In this particular example it is not so important to make a backup
+copy of the original files, since to revert to the original
+format it is enough to run the script again. So the syntax to use 
+would be something like
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\$}>~replace.py~-{}-nobackup~-{}-regx="({\textbackslash}d{\textbackslash}d)-({\textbackslash}d{\textbackslash}d)-({\textbackslash}d{\textbackslash}d{\textbackslash}d{\textbackslash}d)"~{\textbackslash}~\\
+~~~~~~~~~~~~~~~~~~~~~~~~~-{}-repl="{\textbackslash}2-{\textbackslash}1-{\textbackslash}3"~*.txt
+}\end{quote}
+\end{quote}
+
+In order to emphasize the portability, I have used a generic 
+\texttt{{\$}>} promtp, meaning that these examples work equally well on
+both Unix and Windows (of course on Unix I could do the same 
+job with sed or awk, but these tools are not as flexible as
+a Python script).
+
+The syntax here has the advantage of being
+quite clear, but the disadvantage of being quite verbose, and it is
+handier to use abbreviations for the name of the options. For instance, 
+sensible abbreviations can be \texttt{-x} for \texttt{-{}-regx}, \texttt{-r} for \texttt{-{}-repl} 
+and \texttt{-n} for \texttt{-{}-nobackup}; moreover, the \texttt{=} sign can safely be
+removed. Then the previous command reads
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\$}>~replace.py~-n~-x"({\textbackslash}dd)-({\textbackslash}dd)-({\textbackslash}d{\textbackslash}d{\textbackslash}d{\textbackslash}d)"~-r"{\textbackslash}2-{\textbackslash}1-{\textbackslash}3"~*.txt
+}\end{quote}
+\end{quote}
+
+You see here the Unix convention at work: one-letter options
+(a.k.a. short options) are prefixed with a single dash, whereas 
+long options are prefixed with a double dash. The advantage of the 
+convention is that short options can be composed: for instance
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\$}>~replace.py~-nx~"({\textbackslash}dd)-({\textbackslash}dd)-({\textbackslash}d{\textbackslash}d{\textbackslash}d{\textbackslash}d)"~-r~"{\textbackslash}2-{\textbackslash}1-{\textbackslash}3"~*.txt
+}\end{quote}
+\end{quote}
+
+means the same as the previous line, i.e. \texttt{-nx} is parsed as
+\texttt{-n -x}.  You can also freely exchange the order of the options,
+for instance in this way:
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\$}>~replace.py~-nr~"{\textbackslash}2-{\textbackslash}1-{\textbackslash}3"~*.txt~-x~"({\textbackslash}dd)-({\textbackslash}dd)-({\textbackslash}d{\textbackslash}d{\textbackslash}d{\textbackslash}d)"
+}\end{quote}
+\end{quote}
+
+This command will be parsed exactly as before, i.e. options and option 
+arguments are not positional.
+
+
+%___________________________________________________________________________
+
+\hypertarget{how-does-it-work-in-practice}{}
+\pdfbookmark[0]{How does it work in practice?}{how-does-it-work-in-practice}
+\section*{How does it work in practice?}
+
+Having stated the requirements, we may start implementing our 
+search and replace tool. The first step, is to write down the 
+documentation string:
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}!/usr/bin/env~python~\\
+"{}"{}"~\\
+Given~a~sequence~of~text~files,~replaces~everywhere~\\
+a~regular~expression~x~with~a~replacement~string~s.~\\
+~\\
+~~usage:~{\%}prog~files~{[}options]~\\
+~~-x,~-{}-regx=REGX:~regular~expression~\\
+~~-r,~-{}-repl=REPL:~replacement~string~\\
+~~-n,~-{}-nobackup:~do~not~make~backup~copies~\\
+"{}"{}"
+}\end{quote}
+\end{quote}
+
+On Windows the first line in unnecessary, but is good practice to have it 
+in the Unix world.
+
+The next step is to write down a simple search and replace routine:
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+import~re~\\
+~\\
+def~replace(regx,~repl,~files,~backup{\_}option=True):~\\
+~~~~rx~=~re.compile(regx)~\\
+~~~~for~fname~in~files:~\\
+~~~~~~~~txt~=~file(fname,~"U").read()~{\#}~quick~{\&}~dirty~\\
+~~~~~~~~if~backup{\_}option:~\\
+~~~~~~~~~~~~print~>{}>~file(fname+".bak",~"w"),~txt,~\\
+~~~~~~~~print~>{}>~file(fname,~"w"),~rx.sub(repl,~txt),
+}\end{quote}
+\end{quote}
+
+This replace routine is entirely unsurprising, the only thing you
+may notice is the usage of the ``U'' option in the line
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+txt=file(fname,"U").read()
+}\end{quote}
+\end{quote}
+
+This is a new feature of Python 2.3. Text files open with the ``U''
+option are read in ``Universal'' mode: this means that Python takes
+care for you of the newline pain, i.e. this script will work 
+correctly everywhere, independently by the newline
+conventions of your operating system. The script works by reading 
+the whole file in memory: this is bad practice, and here I am assuming 
+that you will use this script only on short files that will fit in 
+your memory, otherwise you should ``massage'' the code a bit.
+Also, a full fledged script would check if the file exists 
+and can be read, and would do something in the case it is not.
+
+So, how does it work? It is quite simple, really. 
+First you need to instantiate an argument line parser from
+the \texttt{OptionParser} class provided by \texttt{optparse}:
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+import~optparse~~\\
+parser~=~optparse.OptionParser("usage:~{\%}prog~files~{[}options]")
+}\end{quote}
+\end{quote}
+
+The string \texttt{"usage: {\%}prog files {[}options]"} will be used to
+print a customized usage message,  where \texttt{{\%}prog} will be replaced
+by the name of the script (in this case \titlereference{replace.py`}). You
+may safely omit it and \texttt{optparse} will use a default 
+\texttt{"usage: {\%}prog {[}options]"} string.
+
+Then, you tell the parser informations about which options
+it must recognize:
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+parser.add{\_}option("-x",~"-{}-regx",~\\
+~~~~~~~~~~~~~~~~help="regular~expression")~\\
+parser.add{\_}option("-r",~"-{}-repl",~\\
+~~~~~~~~~~~~~~~~help="replacement~string")~\\
+parser.add{\_}option("-n",~"-{}-nobackup",~\\
+~~~~~~~~~~~~~~~~action="store{\_}true",~\\
+~~~~~~~~~~~~~~~~help="do~not~make~backup~copies")
+}\end{quote}
+\end{quote}
+
+The \texttt{help} keyword argument is intended to document the
+intent of the given option; it is also used by \texttt{optparse} in the 
+usage message. The \texttt{action=store{\_}true} keyword argument is
+used to distinguish flags from options with arguments, it tells
+\texttt{optparse} to set the flag \texttt{nobackup} to \texttt{True} if \texttt{-n}
+or \texttt{-{}-nobackup} is given in the command line.
+
+Finally, you tell the parse to do its job and to parse the command line:
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+option,~files~=~parser.parse{\_}args()
+}\end{quote}
+\end{quote}
+
+The \texttt{.parse{\_}args()} method returns two values: \texttt{option}, 
+which is an instance of the \texttt{optparse.Option} class, and \texttt{files},
+which is a list of positional arguments.
+The \texttt{option} object has attributes - called \emph{destionations} in 
+\texttt{optparse} terminology - corresponding to the given options.
+In our example, \texttt{option} will have the attributes \texttt{option.regx}, 
+\texttt{option.repl} and  \texttt{option.nobackup}.
+
+If no options are passed to the command line, all these attributes
+are initialized to \texttt{None}, otherwise they are initialized to 
+the argument option. In particular flag options are initialized to 
+\texttt{True} if they are given, to \texttt{None} otherwise. So, in our example 
+\texttt{option.nobackup} is \texttt{True} if the flag \texttt{-n} or \texttt{-{}-nobackup} 
+is given.
+The list \texttt{files} contains the files passed
+to the command line (assuming you passed
+the names of accessible text files in your system).
+
+The main logic can be as simple as the following:
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+if~not~files:~\\
+~~~~print~"No~files~given!"~\\
+elif~option.regx~and~option.repl:~\\
+~~~~replace(option.regex,~option.repl,~files,~not~option.nobackup)~\\
+else:~\\
+~~~~print~"Missing~options~or~unrecognized~options."~\\
+~~~~print~{\_}{\_}doc{\_}{\_}~{\#}~documentation~on~how~to~use~the~script
+}\end{quote}
+\end{quote}
+
+A nice feature of \texttt{optparse} is that an help option is automatically
+created, so \texttt{replace.py -h} (or  \texttt{replace.py -{}-help}) will work as
+you may expect:
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\$}>~replace.py~-{}-help~\\
+usage:~replace.py~files~{[}options]~\\
+~\\
+~\\
+options:~\\
+~~-h,~-{}-help~~~~~~~~~~~show~this~help~message~and~exit~\\
+~~-xREGX,~-{}-regx=REGX~~regular~expression~\\
+~~-rREPL,~-{}-repl=REPL~~replacement~string~\\
+~~-n,~-{}-nobackup~~~~~~~do~not~make~backup~copies
+}\end{quote}
+\end{quote}
+
+You may programmatically print the usage message by invoking  
+\texttt{parser.print{\_}help()}.
+
+At this point you may test your script and see that it works as
+advertised.
+
+
+%___________________________________________________________________________
+
+\hypertarget{how-to-reduce-verbosity-and-make-your-life-with-optparse-happier}{}
+\pdfbookmark[0]{How to reduce verbosity and make your life with optparse happier}{how-to-reduce-verbosity-and-make-your-life-with-optparse-happier}
+\section*{How to reduce verbosity and make your life with \texttt{optparse} happier}
+
+The power of \texttt{optparse`{}`comes with a penalty: using `{}`optparse} in
+the standard way, as I explained before, involves a certain amount of 
+verbosity/redundance.
+
+Suppose for instance 
+I want to add the ability to restore the original file from the backup copy.
+Then, we have to change the script in three points: in the docstring,
+in the \texttt{add{\_}option} list, and in the \texttt{if .. elif .. else ...} 
+statement. At least one of this is redundant.
+
+The redundance can be removed by parsing the docstring to infer the 
+options to be recognized. This avoids the boring task 
+of writing by hand the \texttt{parser.add{\_}option} lines. 
+I implemented this idea in a cookbook recipe, by writing an 
+\texttt{optionparse} module which is just a thin wrapper around \texttt{optparse}.
+For sake of space, I cannot repeat it here, but you can find the code
+and a small explanation in the Python Cookbook (see the reference below).
+It is really easy to use. For instance, the paper you are 
+reading now has been written by using \texttt{optionparse}: I used it to 
+write a simple wrapper to docutils - the standard
+Python tool which converts (restructured) text files to HTML pages. 
+It is also nice to notice that internally
+docutils itself uses \texttt{optparse} to do its job, so actually this
+paper has been composed by using \texttt{optparse} twice!
+
+Finally, you should keep in mind that this article only scratch the
+surface of \texttt{optparse}, which is quite sophisticated. 
+For instance you can specify default values, different destinations, 
+a \texttt{store{\_}false} action and much more, even if often you don't need 
+all this power. Still, it is handy to have the power at your disposal when 
+you need it.  The serious user of \texttt{optparse} is strongly 
+encorauged to read the documentation in the standard library, which 
+is pretty good and detailed. I think that this article has fullfilled
+its function of ``appetizer'' to \texttt{optparse}, if it has stimulate 
+the reader to learn more.
+
+
+%___________________________________________________________________________
+
+\hypertarget{references}{}
+\pdfbookmark[0]{References}{references}
+\section*{References}
+\begin{itemize}
+\item {} 
+\texttt{optparse/optik} is a sourceforge project on its own:  
+\href{http://optik.sourceforge.net}{http://optik.sourceforge.net}
+
+\item {} 
+starting from Python 2.3, \texttt{optparse} is included in the standard library:
+\href{http://www.python.org/doc/2.3.4/lib/module-optparse.html}{http://www.python.org/doc/2.3.4/lib/module-optparse.html}
+
+\item {} 
+I wrote a Python Cookbook recipe about optparse:
+\href{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/278844}{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/278844}
+
+\end{itemize}
+
+\end{document}
+

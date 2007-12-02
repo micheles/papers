@@ -1,0 +1,457 @@
+Lecture 1: Loops (i.e. iterators & generators)
+==============================================
+
+Part I: iterators
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Iterators are everywhere
+--------------------------------
+
+>>> for i in 1, 2, 3:
+...     print i
+1
+2
+3
+
+The 'for' loop is using *iterators* internally::
+
+ it = iter((1,2,3))
+ while True:
+     try:
+         print it.next()
+     except StopIteration:
+         break
+
+Iterables and iterators
+--------------------------
+
+*Iterable* = anything you can loop over = any sequence + any object with an __iter__ method;
+
+Not every sequence has an __iter__ method:
+
+>>> "hello".__iter__()
+Traceback (most recent call last):
+  ...
+AttributeError: 'str' object has no attribute '__iter__'
+
+*Iterator* = any object with a .next method and an __iter__ method returning self
+
+Simpler way to get an iterator
+--------------------------------------------------------
+
+>>> it = iter("hello")
+>>> it.next()
+'h'
+>>> it.next()
+'e'
+>>> it.next()
+'l'
+>>> it.next()
+'l'
+>>> it.next()
+'o'
+>>> it.next()
+Traceback (most recent call last):
+  ...
+StopIteration
+
+Sentinel syntax iter(callable, sentinel)
+--------------------------------------------
+
+Example::
+
+ $ echo -e "value1\nvalue2\nEND\n" > data.txt
+ $ python -c "print list(iter(file('data.txt').readline, 'END\n'))"
+ ['value1\n', 'value2\n']
+
+Beware of infinite iterators:
+
+>>> repeat = iter(lambda : "some value", "")
+>>> repeat.next()
+'some value'
+
+Second simpler way to get an iterator: generator-expressions
+-------------------------------------------------------------
+
+>>> squares = (i*i for i in range(1,11)) 
+>>> list(squares)
+[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]
+
+Excessive parenthesis can be skipped, so use
+
+>>> dict((i, i*i) for i in range(1,11))
+{1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81, 10: 100}
+
+instead of
+
+>>> dict([(i, i*i) for i in range(1,11)])
+{1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81, 10: 100}
+
+(as usual, the most elegant version is the most efficient).
+
+Iteration caveats
+--------------------------
+
+>>> ls = [i for i in (1,2,3)]
+>>> i 
+3
+
+>>> it = (j for j in (1,2,3))
+>>> j 
+Traceback (most recent call last):
+  ...
+NameError: name 'j' is not defined
+
+A subtler example:
+
+>>> ls = [lambda :i for i in (1,2,3)]
+>>> ls[0]()
+3
+
+instead
+
+>>> it = (lambda :i for i in (1,2,3))
+>>> it.next()()
+1
+>>> it.next()()
+2
+>>> it.next()()
+3
+
+*seems* to be working but it is not really the case:
+
+>>> it = (lambda :i for i in (1,2,3))
+>>> f1 = it.next()
+>>> f2 = it.next()
+>>> f3 = it.next()
+>>> f1()
+3
+
+The reason is that Python does LATE binding *always*. The solution is ugly:
+
+>>> it = list(lambda i=i:i for i in (1,2,3))
+>>> it[0]()
+1
+>>> it[1]()
+2
+>>> it[2]()
+3
+
+Part II: generators 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Trivial example:
+
+>>> def gen123(): # "function" which returns an iterator over the values 1, 2, 3
+...     yield 1
+...     yield 2
+...     yield 3
+...
+>>> it = gen123()
+>>> it.next()
+1
+>>> it.next()
+2
+>>> it.next()
+3
+>>> it.next()
+Traceback (most recent call last):
+  ...
+StopIteration
+
+Real life example: using generators to generate HTML tables
+
+::
+
+   #<htmltable.py>
+
+   def HTMLTablegen(table):
+       yield "<table>"
+       for row in table:
+          yield "<tr>"
+          for col in row:
+              yield "<td>%s</td>" % col
+          yield "</tr>"
+       yield "</table>"
+
+   def test():
+       return "\n".join(HTMLTablegen([["Row", "City"], 
+                          [1,'London'], [2, 'Oxford']]))
+
+   if __name__ == "__main__": # example
+       print test()
+
+   #</htmltable.py>
+
+>>> from htmltable import test
+>>> print test()
+<table>
+<tr>
+<td>Row</td>
+<td>City</td>
+</tr>
+<tr>
+<td>1</td>
+<td>London</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Oxford</td>
+</tr>
+</table>
+
+A simple recipe: skip redundant
+---------------------------------
+
+How to remove duplicates by keeping the order::
+
+ #<skip_redundant.py>
+
+ def skip_redundant(iterable, skipset=None):
+    "Redundant items are repeated items or items in the original skipset."
+    if skipset is None: skipset = set()
+    for item in iterable:
+        if item not in skipset:
+            skipset.add(item)
+            yield item
+          
+ #</skip_redundant.py>
+
+>>> from skip_redundant import skip_redundant
+>>> print list(skip_redundant("<hello, world>", skipset=set("<>")))
+['h', 'e', 'l', 'o', ',', ' ', 'w', 'r', 'd']
+
+Another real life example: working with nested structures
+----------------------------------------------------------
+
+::
+
+ #<walk.py>
+
+ def walk(iterable, level=0):
+     for obj in iterable:
+         if not hasattr(obj, "__iter__"): # atomic object
+             yield obj, level
+         else: # composed object: iterate again
+             for subobj, lvl in walk(obj, level + 1):
+                 yield subobj, lvl
+
+ def flatten(iterable):
+     return (obj for obj, level in walk(iterable))
+        
+ def pprint(iterable):
+     for obj, level in walk(iterable):
+         print " "*level, obj
+        
+ #</walk.py>
+
+>>> from walk import flatten, pprint
+>>> nested_ls = [1,[2,[3,[[[4,5],6]]]],7]
+>>> pprint(nested_ls)     
+ 1
+  2
+   3
+      4
+      5
+     6
+ 7
+>>> pprint(flatten(nested_ls))
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7
+
+Another typical use case for generators: parsers
+---------------------------------------------------------
+
+A very stripped down parser for nested expressions
+
+::
+
+ #<sexpr2indent.py>
+ """A simple s-expression formatter."""
+
+ import re
+
+ def parse(sexpr):
+     position = 0
+     nesting_level = 0
+     paren = re.compile(r"(?P<paren_beg>\()|(?P<paren_end>\))")
+     while True:
+         match = paren.search(sexpr, position)
+         if match:
+             yield nesting_level, sexpr[position: match.start()]
+             if match.lastgroup == "paren_beg":
+                 nesting_level += 1
+             elif match.lastgroup == "paren_end":
+                 nesting_level -= 1
+             position = match.end()
+         else:
+             break
+
+ def sexpr_indent(sexpr):
+     for nesting, text in parse(sexpr.replace("\n", "")):
+         if text.strip():  print " "*nesting, text
+
+ #</sexpr2indent.py>
+
+>>> from sexpr2indent import sexpr_indent
+>>> sexpr_indent("""\
+... (html (head (title Example)) (body (h1 s-expr formatter example)
+... (a (@ (href http://www.example.com)) A link)))""")
+... #doctest: +NORMALIZE_WHITESPACE
+  html
+   head
+    title Example
+    body
+    h1 s-expr formatter example
+    a
+     @
+      href http://www.example.com
+     A link
+
+
+Other kinds of iterables
+------------------------------------------------
+
+The following class generates iterable which are not iterators:
+::
+
+ #<reiterable.py>
+
+ class ReIter(object):
+     "A re-iterable object."
+     def __iter__(self):
+         yield 1
+         yield 2
+         yield 3
+
+ #</reiterable.py>
+
+>>> from reiterable import ReIter
+>>> rit = ReIter()
+>>> list(rit)
+[1, 2, 3]
+>>> list(rit) # it is reiterable!
+[1, 2, 3]
+
+The itertools module
+----------------------------------------------------
+
+  - count([n]) --> n, n+1, n+2, ...
+  - cycle(p) --> p0, p1, ... plast, p0, p1, ...
+  - repeat(elem [,n]) --> elem, elem, elem, ... endlessly or up to n times
+  - izip(p, q, ...) --> (p[0], q[0]), (p[1], q[1]), ...
+  - ifilter(pred, seq) --> elements of seq where pred(elem) is True
+  - ifilterfalse(pred, seq) --> elements of seq where pred(elem) is False
+  - islice(seq, [start,] stop [, step]) --> elements from seq[start:stop:step]
+  - imap(fun, p, q, ...) --> fun(p0, q0), fun(p1, q1), ...
+  - starmap(fun, seq) --> fun(\*seq[0]), fun(\*seq[1]), ...
+  - tee(it, n=2) --> (it1, it2 , ... itn) splits one iterator into n
+  - chain(p, q, ...) --> p0, p1, ... plast, q0, q1, ...
+  - takewhile(pred, seq) --> seq[0], seq[1], until pred fails
+  - dropwhile(pred, seq) --> seq[n], seq[n+1], starting when pred fails
+  - groupby(iterable[, keyfunc]) --> sub-iterators grouped by value of keyfunc(v)
+
+anyTrue
+------------------------------
+
+>>> import itertools
+>>> def anyTrue(predicate, iterable): 
+...     return True in itertools.imap(predicate, iterable)
+...
+>>> fname = "picture.gif"
+>>> anyTrue(fname.endswith, ".jpg .gif .png".split())
+True
+
+AnyTrue does *short-circuit*:
+
+>>> def is3(i):
+...     print "i=%s" % i
+...     return i == 3
+
+>>> anyTrue(is3, range(10))
+i=0
+i=1
+i=2
+i=3
+True
+
+chop
+----------------------
+
+You want to chop an iterable in batches of a given size:
+
+>>> from chop import chop
+>>> list(chop([1, 2, 3, 4], 2))
+[[1, 2], [3, 4]]
+>>> list(chop([1, 2, 3, 4, 5, 6, 7],3))
+[[1, 2, 3], [4, 5, 6], [7]]
+
+Here is a possible implementation::
+
+ #<chop.py>
+
+ # see also http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/303279
+
+ import itertools
+
+ def chop(iterable, batchsize):
+     it = iter(iterable)
+     while True:
+         batch = list(itertools.islice(it, batchsize))
+         if batch: yield batch
+         else: break
+
+ #</chop.py>
+
+For people thinking Python is too readable, here is a one-liner:
+
+>>> chop = lambda it, n : itertools.izip(*(iter(it),)*n)
+...
+>>> list(chop([1,2,3,4], 2))
+[(1, 2), (3, 4)]
+
+tee
+-----------------------
+
+To make copies of iterables; typically used in parsers:
+
+>>> from itertools import tee, chain, izip
+>>> chars, prevs = tee("abc")
+>>> prevs = chain([None], prevs)
+>>> for char, prev in izip(chars, prevs):
+...     print char, prev
+...
+a None
+b a
+c b
+
+Grouping and sorting
+----------------------
+
+>>> from itertools import groupby
+>>> from operator import itemgetter
+
+>>> NAME, AGE = 0, 1
+>>> query_result = ("Smith", 34), ("Donaldson", 34), ("Lee", 22), ("Orr", 22)
+
+Grouping together people of the same age:
+
+>>> for k, g in groupby(query_result, key=itemgetter(AGE)):
+...     print k, list(g)
+...
+34 [('Smith', 34), ('Donaldson', 34)]
+22 [('Lee', 22), ('Orr', 22)]
+
+Sorting by name:
+
+>>> for tup in sorted(query_result, key=itemgetter(NAME)):
+...     print tup
+('Donaldson', 34)
+('Lee', 22)
+('Orr', 22)
+('Smith', 34)

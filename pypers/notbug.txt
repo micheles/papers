@@ -1,0 +1,31 @@
+Ask why SyntaxError: because a dict is not hashable!
+
+from oopp import customized
+
+class Customizable(object):
+    """Classes inhering from 'Customizable' have a 'with' method acting as
+    an object modifier"""
+    def __getitem__(self,**kw):
+        print kw
+    with=customized
+    With=classmethod(customized)
+    class __metaclass__(type):
+        def __getitem__(cls,kw=None):
+            print kw
+
+c=Customizable()
+c.with(a='a')
+print c.a
+
+Customizable.With(b='b')
+
+#Customizable[a='b']
+
+print c.b
+
+print c[kw='a'] # SyntaxError: invalid syntax
+
+
+def f(kw='b'): print kw
+
+f(kw='a') # works

@@ -1,0 +1,7 @@
+Okay, finally this Sunday morning I have found the time to finish the optparse 
+article :)
+
+I send it to you in reStructuredText format, let me know if you prefer
+another format, or if needs some further editing in some part. I also
+send you my optionparse module, a wrapper which makes optparse easier
+to use.

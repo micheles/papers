@@ -1,0 +1,3 @@
+>>> import pro1
+>>> pro1.prn()
+ciao

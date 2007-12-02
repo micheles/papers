@@ -1,0 +1,288 @@
+Using decorators
+----------------
+
+:talk given at: EuroPython 2006
+:by: Michele Simionato
+:date: 2006-07-04
+
+An introduction to Python 2.4 decorators.
+
+.. include:: <s5defs.txt>
+.. footer:: EuroPython 2006 - 4 July 2006 
+
+Let's begin with a poll ... 
+---------------------------
+
+.. class:: incremental
+
+  1. how many of you know what decorators are?
+
+  2. how many of you have used built-in decorators? 
+
+   ::
+
+     # example of built-in decorator
+     @classmethod
+     def makeinstance(cls):
+         return cls()
+
+  3. how many of you are using custom decorators?
+
+Decorators are out there
+-------------------------------------------
+
+There already libraries out there that provide custom decorators.
+I will show two examples of many.
+
+.. class:: incremental
+
+1. cherrypy: exposing methods
+2. standard library: making templates for the ``with`` statement
+
+
+CherryPy (exposing web methods)
+---------------------------------
+
+::
+
+ import cherrypy as cp
+
+ class Root(object):
+     @cp.expose
+     def index(self):
+         return 'This is the index page'
+
+ if __name__ == '__main__':
+     cp.root = Root()
+     cp.server.start()
+
+How does it work
+---------------------------------------------
+
+::
+
+ def expose(func):
+     "Expose a function"
+     func.exposed = True
+     return func
+
+  @expose
+  def foo(): pass
+
+>>> foo.exposed
+True
+
+Decorators as syntactic sugar
+-----------------------------
+
+In other words
+
+ ::
+
+  @decor
+  def foo(): pass
+
+is (essentially) a shortcut for
+
+ ::
+
+  def foo(): pass
+  foo = decor(foo)
+
+Only syntactic sugar?
+--------------------------------------
+
+`all Turing-complete languages are equivalent up to syntactic sugar`
+  
+  `=>`
+
+`syntactic sugar is the most important thing ever!!` 
+
+ `;-)`
+
+`*Decorators changed the way we think about functions*`
+
+Python 2.5 contextmanager
+------------------------------------------
+
+::
+
+ from __future__ import with_statement
+ from contextlib import contextmanager
+ @contextmanager
+ def cursor(conn):
+     curs = conn.cursor()
+     try: 
+         yield curs
+     except: 
+        conn.rollback(); raise
+     finally: 
+        curs.close()
+     conn.commit()
+
+
+Python 2.5 transactions
+---------------------------------------------------
+
+::
+
+     import psycopg
+     from contextlib import closing
+
+     with closing(psycopg.connect('')) as conn:
+       with cursor(conn) as c:
+         c.execute('create table example (name char(3))')
+         c.execute("insert into example values ('foo')")
+         c.execute("insert into example values ('bar')")
+         c.execute('select * from example')
+         print c.fetchall()
+
+Writing your own decorators
+--------------------------------------
+
+Naive implementation::
+
+ def traced(func):
+     def newfunc(*args,**kw):
+         print 'Calling %s with arguments %s, %s' % (
+            func.__name__, args, kw)
+         return func(*args, **kw)
+     return newfunc
+
+ @traced
+ def square(x):
+     return x*x
+
+Example 
+------------------------------------------
+
+>>> square(2)
+Calling square with arguments (2,), {}
+4
+
+However the naive implementation breaks introspection::
+
+
+ >>> help(square)
+ Help on function newfunction in module __main__:
+
+ newfunction(*args, **kw)
+
+A non-solution
+---------------------------------
+
+.. class:: incremental
+
+ >>> def traced(func):
+ ...   def newfunc(*args,**kw):
+ ...     print 'Calling %s with arguments %s, %s' % (
+ ...        func.__name__, args, kw)
+ ...     return func(*args, **kw)
+ ...   newfunc.__name__ = func.__name__
+ ...   newfunc.__doc__ = func.__doc__
+ ...   newfunc.__module__ = func.__module__
+ ...   newfunc.__dict__ = func.__dict__
+ ...   return newfunc
+
+ but the signature is still broken :-(
+
+Enter the *decorator* module
+------------------------------------------
+
+::
+
+ from decorator import decorator
+
+ @decorator
+ def traced(func, *args, **kw):
+     print 'Calling %s with arguments %s, %s' % (
+            func.__name__, args, kw)
+     return func(*args, **kw)
+
+ @traced
+ def square(x):
+     return x*x
+
+Look ma, it works!
+------------------------------------------
+
+::
+
+ >>> square(2)
+ Calling square with arguments (2,), {}
+ 4
+ >>> help(square)
+ Help on function square in module __main__:
+
+ square(x)
+
+ >>> isinstance(traced, decorator)
+ True
+
+Nontrivial decorators
+----------------------------------------
+
+.. class:: incremental
+
+- timing::
+
+   @time
+   def mycomputation(): pass
+
+- logging::
+
+   @log
+   def myprocedure(): pass
+
+Other applications ...
+-------------------------------------------
+
+- caching::
+
+   @cached
+   def mylongcomputation(): pass
+
+.. class:: incremental
+
+- access control::
+
+   @admin
+   def showpage(): pass
+
+   @user
+   def showpage(): pass
+
+Other applications
+-------------------------------------------
+
+- provide nice syntax in frameworks
+
+.. class:: incremental
+
+- remove boilerplate in locking, transactions, ...
+- mind boggling exercises::
+
+   @tail_recursive
+   def fact(n, acc=1): return fact(n-1, acc*n)
+
+- etc. etc.
+
+Caveats
+---------------------------------
+
+.. class:: incremental
+
+1. you may have performance issues
+2. your traceback will become longer
+3. you may end up being too clever :-(
+
+References
+-------------------------------------
+
+- history of decorators
+  http://wiki.python.org/moin/PythonDecorators
+- the decorators PEP:
+  http://www.python.org/dev/peps/pep-0318/
+- http://wiki.python.org/moin/PythonDecoratorLibrary
+- David Mertz's on IBMDeveloperWorks
+- http://www.phyast.pitt.edu/~micheles/python/documentation.txt

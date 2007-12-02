@@ -1,0 +1,196 @@
+
+Other points that could be added or not ...
+---------------------------------------------------------------------------- 
+
+1. Widespread packages using metaclasses:
+
+  - gnosis.magic
+  - Psyco
+  - ...
+
+2. Changing metaclasses on the fly.
+
+Let us now define a metaclass 'Froggyness':
+
+  >>> class Frogginess(type): attributes="Powerlessness,Poverty,Uglyness"
+
+Instances of 'Frogginess' are classes like 'Frog', 'Toad', etc.
+
+  >>> Frog=Frogginess("Frog",(),{})
+  >>> Frog.attributes
+  'Powerlessness,Poverty,Uglyness'
+
+However, in Python miracles can happen:
+
+  >>> def miracle(Frog): Frog.__class__=Nobility
+  >>> miracle(Frog); Frog.attributes
+  'Powerlessness,Richness,Beauty'
+
+In this example a miracle happened on the class 'Frog', by changing its
+(meta)class to 'Nobility'; therefore its attributes have changed accordingly.
+
+However, there is subtle point here. Suppose we explicitly specify the 'Frog'
+attributes, in such a way that it can be inherited by one of its specific
+representative:
+
+  >>> Frog.attributes="poor, small, ugly"
+  >>> jack=Frog(); jack.attributes
+  'poor, small, ugly'
+
+Then the miracle cannot work:
+
+ ::
+
+  #<fairytale2.py>
+
+  class Nobility(type): attributes="Power, Richness, Beauty"
+  Prince=Nobility("Prince",(),{})
+  charles=Prince()
+
+  class Frogginess(type): attributes="Inpuissance, Poverty, Uglyness"
+  Frog=Frogginess("Frog",(),{})
+  Frog.attributes="poor, small, ugly"
+  jack=Frog()
+
+  def miracle(Frog): Frog.__class__=Nobility
+
+  miracle(Frog)
+
+  print "I am",Frog.attributes,"even if my class is",Frog.__class__
+
+  #</fairytale2.py>
+
+Output:
+
+ ::
+
+  I am poor, small, ugly even if my class is <class '__main__.Nobility'>
+
+The reason is that Python first looks at specific attributes of an object
+(in this case the object is the class 'Frog') an only if they are not found, 
+it looks at the attributes of its class (here the metaclass 'Nobility').Since 
+in this example the 'Frog' class has explicit attributes, the
+result is ``poor, small, ugly``. If you think a bit, it makes sense.
+
+Remark:
+
+In Python 2.3 there are restrictions when changing the ``__class__`` 
+attribute for classes:
+
+  >>> C=type('C',(),{})
+  >>> C.__class__ = Nobility #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: __class__ assignment: only for heap types
+
+Here changing ``C.__class__`` is not allowed, since 'C' is an instance
+of the built-in metaclass 'type'. This restriction, i.e. the fact that 
+the built-in metaclass cannot be changed, has been imposed for
+security reasons, in order to avoid dirty tricks with the built-in
+classes. For instance, if it was possible to change the metaclass
+of the 'bool' class, we could arbitrarily change the behavior of
+boolean objects. This could led to abuses. 
+Thanks to this restriction,
+the programmer is always sure that built-in classes behaves as documented.
+This is also the reason why 'bool' cannot be subclassed:
+
+  >>> print bool.__doc__ # in Python 2.2 would give an error
+  bool(x) -> bool
+  Returns True when the argument x is true, False otherwise.
+  The builtins True and False are the only two instances of the class bool.
+  The class bool is a subclass of the class int, and cannot be subclassed.
+
+In any case, changing the class of a class is not a good idea, since it
+does not play well with inheritance, i.e. changing the metaclass of a base 
+class does not change the metaclass of its children:
+
+  >>> class M1(type): f=lambda cls: 'M1.f' #metaclass1
+  >>> class M2(type): f=lambda cls: 'M2.f' #metaclass2
+  >>> B=M1('B',(),{}) # B receives M1.f
+  >>> class C(B): pass #C receives M1.f
+  >>> B.f()
+  'M1.f'
+  B.__class__=M2 #change the metaclass
+  >>> B.f() #B receives M2.f
+  'M2.f'
+  C.f() #however C does *not* receive M2.f
+  >>> C.f()
+  'M1.f'
+  >>> type(B)
+  <class '__main__.M2'>
+  >>> type(C)
+  <class '__main__.M1'>
+
+An example: counting instances
+-------------------------------------------------------------------------
+
+# This is elaborated from some post of Alex Martelli
+# I will flesh out this if you like the example; the lines with
+# super could be skipped if you think it is too advanced
+# if you don't like it, I have plenty of other examples ;)
+
+ ::
+
+  class Logger(object):
+      """Each time an object is created, the counter is increased; notice
+      that each time a new subclass is derived, the counter is reset, 
+      therefore different subclasses have different counters."""
+      class __metaclass__(type):
+          def __init__(cls,*args):
+              cls.counter=0 # rests the counter at each derivation
+              return super(cls.__metaclass__,cls).__init__(*args)
+          def __call__(cls,*args,**kw):
+              cls.counter+=1 # increases the counter at each instantiation
+              print 'Created instance #%s of class %s' % (cls.counter,cls)
+              return super(cls.__metaclass__,cls).__call__(*args,**kw)
+
+This is an example with an *anonymous inner metaclass*, made cooperative
+for use in multiple inheritance of metaclasses ;)
+
+
+Python has already few built-in metamethods: ``.mro()`` 
+and ``__subclass__``. These are methods of the metaclass ``type`` and
+therefore of any of its sub-metaclasses.
+
+  >>> print type.mro.__doc__
+  mro() -> list
+  return a type's method resolution order
+
+  >>> print type.__subclasses__.__doc__
+  __subclasses__() -> list of immediate subclasses
+
+  >>> class A(object): pass
+  ...
+  >>> class B(A): pass
+  ...
+  >>> B.mro()
+  [<class 'B'>, <class 'A'>, <type 'object'>]
+  >>> A.__subclasses__()
+  [<class 'B'>]
+
+Clashing of metamethods with regular methods 
+------------------------------------------------------------------
+
+It is interesting to notice that, 
+This explains what happerns for special methods.
+The ``print c`` statement works because it is equivalent to 
+
+  >>> print C.__str__(c)
+  <C object at 0x40380a6c>
+
+whereas ``print C`` works because it is equivalent to 
+
+  >>> print Printable.__str__(C)
+  This is class C
+
+Conclusion: ``__str__, __new__, __init__`` etc. defined in the metaclass
+have name clashing with the standard methods defined in the class, therefore
+they must be invoked with the extended syntax (ex. ``B.__str__(C)``),
+whereas normal methods in the metaclass with no name clashing with the methods
+of the class can be used as class methods (ex. ``C.mm()`` instead of
+``B.mm(C)``).
+
+Metamethods are always bound to the metaclass, they bind to the class 
+(receiving the class as first argument) only if there is no name clashing with 
+already defined methods in the class. Which is the case for ``__str__``,
+``___init__``, etc. 

@@ -1,0 +1,199 @@
+SOLVING THE METACLASS CONFLICT
+=========================================================================
+
+Summary:
+------------------------------------------------------------------------
+
+Any serious user of metaclasses has been bitten at least once by the 
+infamous metaclass/metatype conflict. Here I give a general recipe to
+solve the problem, as well as some theory and some examples.
+
+ ::
+
+  #<noconflict.py>
+
+  metadic={}
+
+  def _generatemetaclass(bases,metas,priority):
+      trivial=lambda m: sum([issubclass(M,m) for M in metas],m is type)
+      # hackish!! m is trivial if it is 'type' or, in the case explicit
+      # metaclasses are given, if it is a superclass of at least one of them
+      metabs=tuple([mb for mb in map(type,bases) if not trivial(mb)])
+      metabases=(metabs+metas, metas+metabs)[priority]
+      if metabases in metadic: # already generated metaclass
+          return metadic[metabases]
+      elif not metabases: # trivial metabase
+          meta=type 
+      elif len(metabases)==1: # single metabase
+          meta=metabases[0]
+      else: # multiple metabases
+          metaname="_"+''.join([m.__name__ for m in metabases])
+          meta=makecls()(metaname,metabases,{})
+      return metadic.setdefault(metabases,meta)
+
+  def makecls(*metas,**options):
+      """Class factory avoiding metatype conflicts. The invocation syntax is
+      makecls(M1,M2,..,priority=1)(name,bases,dic). If the base classes have 
+      metaclasses conflicting within themselves or with the given metaclasses, 
+      it automatically generates a compatible metaclass and instantiate it. 
+      If priority is True, the given metaclasses have priority over the 
+      bases' metaclasses"""
+
+      priority=options.get('priority',False) # default, no priority
+      return lambda n,b,d: _generatemetaclass(b,metas,priority)(n,b,d)
+
+  #</noconflict.py>
+
+Discussion
+---------------------------------------------------------
+
+I think that not too many programmers are familiar with metaclasses and 
+metatype conflicts, therefore let me be pedagogical ;) 
+
+The simplest case where a metatype conflict happens is the following.
+Consider a class ``A`` with metaclass ``M_A`` and a class ``B`` with
+an independent metaclass ``M_B``; suppose we derive ``C`` from ``A`` 
+and ``B``. The question is: what is the metaclass of ``C`` ? 
+Is it ``M_A`` or ``M_B`` ?
+
+  >>> class M_A(type): 
+  ...     pass
+  >>> class M_B(type): 
+  ...     pass
+  >>> class A(object):
+  ...     __metaclass__=M_A
+  >>> class B(object):
+  ...     __metaclass__=M_B
+  >>> class C(A,B): 
+  ...     pass 
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+The correct answer (see the book "Putting metaclasses to work" for a 
+thought discussion) is ``M_C``, where ``M_C`` is a metaclass that inherits 
+from ``M_A`` and ``M_B``, as in the following graph, where instantiation 
+is denoted by colon lines:
+
+  ::
+
+
+             M_A     M_B
+              : \   / :
+              :  \ /  :
+              A  M_C  B
+               \  :  /
+                \ : /
+                  C
+
+
+However, Python is not that magic, and it does not automatically create 
+``M_C``. Instead, it raises a ``TypeError``, warning the programmer of
+the possible confusion. The metatype conflict can be avoided 
+by assegning the correct metaclass to ``C`` by hand:
+
+  >>> class M_AM_B(M_A,M_B): pass
+  ...
+  >>> class C(A,B): 
+  ...     __metaclass__=M_AM_B
+  >>> C,type(C)
+  (<class 'C'>, <class 'M_AM_B'>)
+
+In general, a class ``A(B, C, D , ...)`` can be generated without conflicts 
+only if ``type(A)`` is a subclass of each of ``type(B), type(C), ...``
+
+It is possible to automatically avoid conflicts, by defining a smart 
+class factory that generates the correct metaclass by looking at the 
+metaclasses of the base classes. This is done via the ``makecls``
+class factory, wich internally invokes the ``_generatemetaclass``
+function.
+
+  >>> from noconflict import makecls
+  >>> class C(A,B):
+  ...     __metaclass__=makecls()
+  >>> C 
+  <class 'C'>
+  >>> type(C) # automatically generated metaclass
+  <class 'noconflict._M_AM_B'>
+
+In order to avoid to generate twice the same metaclass,,
+they are stored in a dictionary. In particular, when ``_generatemetaclass`` 
+is invoked with the same arguments it returns the same metaclass.
+
+  >>> class D(A,B):
+  ...     __metaclass__=makecls()
+  >>> type(D) 
+  <class 'noconflict._M_AM_B'>
+  >>> type(C) is type(D)
+  True
+
+Another example where ``makecls()`` can solve the conflict is the
+following:
+
+  >>> class D(A):
+  ...     __metaclass__=M_B
+  Traceback (most recent call last):
+    File "<string>", line 1, in ?
+  TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+Here the problem is that since ``D`` inherits from ``A``, its metaclass must 
+inherit from ``M_A`` and cannot be ``M_B``. 
+
+``makecls`` solves the problem by automatically inheriting both from
+``M_A`` and ``M_B``:
+
+  >>> class D(A):
+  ...     __metaclass__=makecls(M_B)
+  >>> type(D)
+  <class 'noconflict._M_AM_B'>
+
+In some case, the user may want ``M_B`` to have the priority over ``M_A``.
+This is easily done:
+
+  >>> class D(A):
+  ...     __metaclass__=makecls(M_B,priority=True)
+  >>> type(D)
+  <class 'noconflict._M_BM_A'>
+
+``_generatemetaclass`` automatically skips unneeded metaclasses,
+
+  >>> class M0(type): pass
+  ...
+  >>> class M1(M0): pass
+  ...
+  >>> class B: __metaclass__=M0
+  ...
+  >>> class C(B): __metaclass__=makecls(M1)
+  ...
+  >>> print C,type(C)
+  <class 'C'> <class 'M1'>
+
+i.e. in this example where ``M1`` is a subclass of ``M0``, it
+returns ``M1`` and does not generate a redundant metaclass ``_M0M1``.
+
+``makecls`` also solves the meta-metaclass conflict, and generic higher
+order conflicts:
+
+  >>> class MM1(type): pass
+  ...
+  >>> class MM2(type): pass
+  ...
+  >>> class M1(type): __metaclass__=MM1
+  ...
+  >>> class M2(type): __metaclass__=MM2
+  ...
+  >>> class A: __metaclass__=M1
+  ...
+  >>> class B: __metaclass__=M2
+  ...
+  >>> class C(A,B): __metaclass__=makecls()
+  ...
+  >>> print C,type(C),type(type(C))
+  <class 'C'> <class 'noconflict._M1M2'> <class 'noconflict._MM1MM2'>
+
+----
+
+I thank David Mertz for help in polishing the original version of the code. 
+This version has largerly profited from discussion with Phillip J. Eby.
+
+These examples here have been checked with doctest on Python 2.3b1.
