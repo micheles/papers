@@ -2,7 +2,7 @@ Functional Programming For Dynamic Programmers - Part 3
 =======================================================
 
 :author: Michele Simionato
-:date: November 2007
+:date: December 2007
 
 This is the third of a series of articles on functional programming in
 statically typed languages. It is intended for dynamic programmers, i.e. 
@@ -13,7 +13,7 @@ statically typed languages. In order to be concrete, I will consider languages
 in the ML family, because they are pretty nice and much easier to understand
 that Haskell.
 
-Structures, modules, packages, components and all that
+How to write your first module
 ------------------------------------------------------
 
 Usually programs start small, but they have an unfortunate tendency to
@@ -114,7 +114,7 @@ With this definitions, we get the same behavior as in Python [#]_ ::
         http://www.standardml.org/Basis/string.html and here
         http://www.standardml.org/Basis/char.html
 
-.. [#] In Python we would write
+.. [#] In Python we would have
 
 ::
 
@@ -129,7 +129,10 @@ With this definitions, we get the same behavior as in Python [#]_ ::
   Traceback (most recent call last):
     File "<stdin>", line 1, in <module>
   StopIteration
- 
+
+Importing modules and components
+----------------------------------------------------
+
 Structures in the standard library are automatically available; on the other
 hand, if you write your own structure and save it into a file, you need to 
 import the file before you can use it. The simplest way to import a file is
@@ -156,11 +159,13 @@ inside the structure, you can open it:
 
   ``- open Iter;``
 
-this is however actively discourages, to prevent namespace pollution, i.e.
-name conflicts, since an exported name can shadow a pre-existent name.
-There is actually only a good use case for opening a structure, i.e. inside
-another structure. In particular, it is possible to redefine structures, augmenting
-them with additional objects as in this example::
+this is however actively discouraged, to prevent namespace pollution,
+i.e.  name conflicts, since an exported name can shadow a pre-existent
+name.  There is actually a good use case for opening a structure,
+i.e. inside another structure. In particular, it is possible to
+redefine structures, augmenting them with additional objects.
+For instance, we could supplement the ``Iter`` structure with 
+a routine to read binary files in chunks::
 
  - structure Iter = struct
       open Iter
@@ -168,7 +173,7 @@ them with additional objects as in this example::
           val inp = BinIO.openIn fname
       in 
         fn () => let
-           val vec = BinIO.inputN (inp, chunksize)
+           val vec = BinIO.inputN (inp, chunksize) (* read N bytes *)
         in
            if Word8Vector.length(vec) = 0 then raise StopIteration else vec
            handle err => (BinIO.closeIn inp; raise err) 
@@ -176,8 +181,7 @@ them with additional objects as in this example::
      end
  end;
 
-Here I have redefined the ``Iter`` structure by adding a routine to read
-binary files in chunks. Notice that ``BinIO.inputN`` returns a vector
+Notice that ``BinIO.inputN`` returns a vector
 of bytes, not a string; however, you can get a *bona fide*  string by
 applying the standard library function Byte.bytesToString_ to
 the returned chunks. Here is an example::
@@ -196,7 +200,7 @@ and should be done with care.
 Structures are not first class values
 -----------------------------------------------------------
  
-The problem with structures is that they are not first class values, so they cannot
+The problem with structures is that they are not first class values, i.e. they cannot
 be passed to functions and they cannot be inspected. This is the reason why giving at
 the prompt the name of  a structure does not work::
 
@@ -204,32 +208,37 @@ the prompt the name of  a structure does not work::
  1.0-1.6: unknown value or constructor `TextIO'
 
 ``TextIO`` is not recognized as the name of a know value. Structures live
-in a completely separate namespace, so that you can associate any value
-to the name ``TextIO`` [#]_
-
-::
+in a completely separate namespace [#]_, so that you can associate any value
+to the name ``TextIO`` and still you can access the contents of the structure 
+without any problem::
 
  - val TextIO = "astring";
+ 1.4-1.10: warning: value identifier `TextIO' violates standard naming conventions, 
+ which suggest value names of the form   foo, foo', fooBar
  val TextIO : string = "astring"
-
-and still you can access the contents of the structure without any problem::
 
  -   TextIO.print;
  val it : string -> unit = _lazy
 
-Structures can be given name and aliases via the ``structure`` declaration;
-for instance, if you  want to give a shorter alias to TextIO you can define
+Notice the warning about violating standard naming conventions, since
+a regular value such as a string should be denoted with a
+non-capitalized identitifier, whereas capitalized identitifiers should
+be reserved to structures.
 
- ``- structure T=TextIO;``
+Structures can be given name and aliases via the ``structure`` declaration;
+for instance, if you  want to give a shorter alias to ``TextIO`` you can define
+
+ ``- structure T = TextIO;``
 
 Structures can be arbitrarily nested, i.e they can contain
 substructures at any level of nesting. For instance, if you want to
 extract the substructure ``StreamIO`` from ``TextIO`` you can define
 
- ``- structure S=TextIO.StreamIO;``
+ ``- structure S = TextIO.StreamIO;``
 
-The lack of first class structures is motivated by reasons of (premature) optimization.
-Suppose structure where first class values: then you could write things like
+The lack of first class structures is motivated by reasons of
+(premature) optimization.  Suppose structure where first class values:
+then you could write things like
 
  ``val S = if someRuntimeCondition() then struct ... end else struct ... end``
 
@@ -241,37 +250,74 @@ Alice ML allows you to do that, by wrapping structures in packages.
 But in order to discuss that, we must first discuss signatures, which is
 the SML name for interfaces.
 
-Signatures as a form of restricted import
+.. [#] Readers familiar with Common Lisp will be familiar with the concept
+       of having separate namespecies for different kind of objects.
+
+Defining signatures
 --------------------------------------------
 
-Signatures are another kind of non-first-class objects. 
-Every structure has a principal signature, which is the most specific signature
-for that structure. In practice, the principal signature
-the one shown by the prompt if you do no specify a custom signature; 
-however, it is possible to define more
-generic versions of the principal signature. To be concrete, let me
-consider two structures of the standard library,``TextIO`` and ``BinIO``;
+Strictly speaking, it is not necessary to define signatures for your own
+structures, since even if you do not specify a signature, the
+compiler is able to figure out the complete signature, 
+thanks to type inference. The problem is exactly that: the compiler
+extracts the *complete* signature, a.k.a. the *principal* signature
+of you library, which is too much. Typically, you don't
+want to expose all the objects in your structure: for instance, you
+may have private utility functions that clients of your library should
+not see. This is a typical use case for writing custom signatures:
+if you want to implement `information hiding`_ you can just provide a 
+signature not exposing your private objects. 
+Another typical use case the `facade pattern`_, which is used when you
+want to provide a simple interface to complex library. For instance,
+consider two structures of the standard library, ``TextIO`` and ``BinIO``;
 their principal signatures are different since they have different implementations, 
-but still they share many
-features and it is possibile to define subsignature(s) matching both.
-For instance, you could define a simplified interface for IO as follows::
+but still they share many features and it is possibile to define subsignature(s) 
+matching both.
+In particular, it is possible to define a simplified interface (a *facade*) which is
+common to both as follows::
 
- signature SIMPLE_IO = sig
-    type instream
-    type outstream
-    type vector
-    val openIn: string-> instream
-    val closeIn: instream -> unit
-    val openOut: string-> outstream
-    val closeOut: outstream -> unit
-    val inputAll: instream -> vector
-    val output: outstream * vector -> unit
- end;
+ - signature SIMPLE_IO = sig
+       type instream
+       type outstream
+       type vector
+       val openIn: string-> instream
+       val closeIn: instream -> unit
+       val openOut: string-> outstream
+       val closeOut: outstream -> unit
+       val inputAll: instream -> vector
+       val output: outstream * vector -> unit
+    end;
 
-and you could import only a subset of the features provided by ``TextIO``
-and ``BinIO`` as follows::
+To an application compatible with the SIMPLE_IO signature, both ``TextIO``
+and ``BinIO`` will look the same: giving an explicit signature
+enhances genericity, modularity and code reuse. This is expecially true
+if you use *opaque importing*, i.e. the ``:>`` syntax exemplified below::
 
- structure T = TextIO:SIMPLE_IO;
+ - structure T=TextIO:>SIMPLE_IO;
+ structure T : SIMPLE_IO
+
+ - structure B=BinIO:>SIMPLE_IO;
+ structure B : SIMPLE_IO
+
+ - val f = B.openIn "three-lines.txt";
+ val f : B.instream = _val
+ - val x = Byte.bytesToString (B.inputAll f);
+ 1.8-1.41: mismatch on application: expression type
+    B.vector
+ does not match function's argument type
+    t
+ because type
+    B.vector
+ does not unify with
+    Word8Vector.vector
+ - 
+
+Transparent signatures
+---------------------------------
+
+and you could import only a subset of the features provided by  as follows::
+
+ - structure T = TextIO:SIMPLE_IO;
   structure T :
    sig
       type vector = vector
@@ -285,6 +331,7 @@ and ``BinIO`` as follows::
       val closeOut : TextIO.outstream -> unit
    end = TextIO
 
+::
 
  structure B = BinIO:SIMPLE_IO;
  structure B :
@@ -306,39 +353,20 @@ and ``BinIO`` as follows::
  - val x = Byte.bytesToString (B.inputAll f);
  -  B.closeIn f;
 
-.. [#] You will get a warning about violating standard naming conventions, since
-        a regular value such as a string should be denoted with a non-capitalized
-        identitifier, whereas capitalized identitifiers should be reserved to structures.
-
-Opaque signatures and information hiding
-----------------------------------------------------
 
 The rationale behind opaque signatures 
 is that they make easier to replace an implementation
 with another without breaking the interface.
 
-(which are a way of implementing the
-facade pattern) 
-http://en.wikipedia.org/wiki/Facade_pattern
-
-Another advantage of signatures is that they allow to implement information
-hiding
-
-http://en.wikipedia.org/wiki/Information_hiding
-
-i.e. if your structure contains private methods which are not meant to be
-exposed to the application programmer you can just provide a signature not exporting 
-them. On the other hand, the application program has still the choice to ignore
+On the other hand, the application program has still the choice to ignore
 your proposed signature and use the principal signature: in this case of course,
 he will take his risks, since the interface of private methods is not guaranteed
 and could change in future versions of the library, but he can do that if he
 needs it.
 
-::
 
- - structure T=TextIO:>SIMPLE_IO;
- structure T : SIMPLE_IO
-
+.. _information hiding: http://en.wikipedia.org/wiki/Information_hiding
+.. _facade pattern: http://en.wikipedia.org/wiki/Facade_pattern
 
 ----
 

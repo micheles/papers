@@ -2,7 +2,7 @@ Functional Programming For Dynamic Programmers - Part 2
 =======================================================
 
 :author: Michele Simionato
-:date: 10 November 2007
+:date: December 2007
 
 This is the second of a series of articles on functional programming in
 statically typed languages. It is intended for dynamic programmers, i.e. 
@@ -13,7 +13,107 @@ statically typed languages. In order to be concrete, I will consider languages
 in the ML family, because they are pretty nice and much easier to understand
 that Haskell.
 
-Loops
+Functional programming and Input/Output
+-----------------------------------------------------
+
+Input/output is the black ship of functional programming and it is
+often relegated at the end of tutorials and sometimes even omitted, as
+if shameful. Sometime, it is not even standardized and
+implementation-dependent. On the other hand, *all* programs must
+perform some kind of input/output, or at least of output, otherwise we
+would have no way to see what a program did. Therefore input/output
+*must* be explained at the beginning of any tutorial, not at the
+end. I always hated books not telling me how to read a file until the
+appendix!  In this section I will explain how you can read a file in
+SML. Reading a file is for some reason seen as "inpure" since it is
+not functional.  Let me explain that a bit more: in mathematics, a
+function takes an argument in input, and returns an output; if I call
+twice the function with the same argument, I get twice the *same*
+output. In programming, a procedure reading a line from a file returns
+a *different* line at each invocation, even if called with the same
+arguments (the arguments maybe simply the empty tuple), so it is not a
+function in the mathematical sense. On the other hand, a procedure
+writing a line into a file, is also impure, since it is modifying an
+object, the file itself. 
+In strict functional programming there is no
+mutation, objects are declared once and for all times they do not
+change. Functional programming in its purest form is therefore useless:
+notice that even the paradigmatic "Hello world" program is not a functional 
+program, since the "Hello world" string is printed via an imperative side 
+effect. In other words, every functional programming language must find a 
+non-functional way to manage input-output. Haskell tries very hard to hide
+non-functional constructs into monads; SML just uses traditional
+imperative constructs to perform input/output.  We already saw the
+``print`` function to write on stdout; to read from stdin, you can
+define the following utility::
+
+ - fun input prompt = (print prompt; getOpt(TextIO.inputLine TextIO.stdIn, ""))
+ val input : string -> string = _fn
+
+The parenthesis here are needed since the right hand side of a function definition
+must be an expression, and the parenthesis (plus the expression separator ";")
+allows you to compose expressions in a single expression returning as value
+the value of the last expression. ``TextIO`` is a module in the standard library
+managing textual I/O and ``TextIO.inputLine inputFile`` is a function
+returning a line wrapped into an option object or NONE if we arrived at the
+end of the input file. In particular, in the case of standard input,
+we arrive at the end when we give CTRL-D (in a Unix-like system); in
+this case ``input`` will return the empty string, otherwise it returns the
+input line, comprehensive of the newline character.
+
+Here is an example of usage::
+
+ - input "Enter a string: ";
+ Enter a string: hello
+ val it : string = "hello\n"
+ - input "Enter CTRL-D ";
+ - Enter CTRL-D 
+ val it : string = ""
+
+I we want to read a text file (assuming it fits in memory)
+the simplest way is to use ``TextIO.inputAll``::
+
+ - fun fileToString filename = let
+     val file = TextIO.openIn filename
+   in
+     TextIO.inputAll file finally TextIO.closeIn file
+   end
+
+Conversely, if we want to write a text on a file we can define::
+
+ - fun saveFile (fname, content) = let
+      val out = TextIO.openOut fname
+   in
+      TextIO.output(out, content) finally TextIO.closeOut out
+   end;
+
+The examples here use the standard *let* expression, which has the form::
+
+  let
+     <bindings>
+  in 
+     <expression; .. ; expression>
+  end
+
+and returns as value the value of the last expression. Moreover, the examples
+here use the *finally* construct, which is an Alice extension to SML, and
+works as you would expect:: 
+
+   <expression possibly raising exceptions> finally <cleanup expression>
+
+the finally clause if executed always, even
+if there is an exception in the first expression.
+
+The examples here are very simple and do not address the issue or reading
+or writing large files which do not fit in memory. But don't worry,
+I will address those situations in the next issues. In order to do so,
+however, I need to perform a digression on two of the most common
+programming techniques in functional languages, recursion and higher order 
+functions. You, as a dynamic programmer, will probably already know
+both concepts, but in languages such are Python, Perl, or even Common Lisp
+they are not as pervasive as in truly functional languages.
+
+Recursion
 ----------------------------------------------------
 
 Perhaps the most common construct in imperative programming is the *for* loop;
@@ -256,7 +356,7 @@ An evident weakness of the approach used here, is that it works only
 for text files (actually only for files opened for input; we would need to
 define a different higher order function for files opened for output); 
 if we wanted to wrap binary files, we would need
-to define an equivalent higher order function using the ``BinIO`` library
+to define equivalent higher order functions using the ``BinIO`` library
 instead of ``TextIO``; then, if we wanted to use it for sockets, we would need
 to define yet another higher order function; in general there
 are infinite resources which can be opened and closed, and we could define
@@ -264,61 +364,8 @@ an infinite number of higher order functions doing all the same thing.
 This is bad; fortunately this potentially infinite code duplication can be solved 
 using functors, but you will have to wait for the next articles to see how to do it ;)
 
-Higher order functions can also be used to implement poor man's object
-systems; consider for instance this example::
-
- class Counter(object):
-    def __init__(self, initial_value):
-         self.initial_value = self.value = 0
-    def incr(self):
-         self.value += 1
-    def show(self):
-         print "The value is %d" % self.value 
-    def reset(self):
-         self.value = self.initial_value
-
-We can get the same effect via a stateful higher order function (a.k.a. a closure)::
-
- exception MissingMethod
-
- fun makeCounter initialValue = let
-    val value = ref initialValue
- in 
-     fn "reset" => value := initialValue
-      | "show" => (print The value is "; print (Int.toString (!value)); print "\n")
-      | "incr" => value := !value + 1
-      | _ => raise MissingMethod
- end
-
- val counter = makeCounter 0;
-
- do counter "incr";
- do counter "show"; (* The value is 1 *)
- do counter "reset";
- do counter "show"; (* The value is 0 *)
-
-This example also shows the usage of pattern matching and of exceptions.
-
-You can rewrite it in a functional way as follows:
-
 ----
 
-*The venerable master Qc Na was walking with his student, Anton.  Hoping to
-prompt the master into a discussion, Anton said "Master, I have heard that
-objects are a very good thing - is this true?"  Qc Na looked pityingly at
-his student and replied, "Foolish pupil - objects are merely a poor man's
-closures."*
-
-*Chastised, Anton took his leave from his master and returned to his cell,
-intent on studying closures.  He carefully read the entire "Lambda: The
-Ultimate..." series of papers and its cousins, and implemented a small
-Scheme interpreter with a closure-based object system.  He learned much, and
-looked forward to informing his master of his progress.*
-
-*On his next walk with Qc Na, Anton attempted to impress his master by
-saying "Master, I have diligently studied the matter, and now understand
-that objects are truly a poor man's closures."  Qc Na responded by hitting
-Anton with his stick, saying "When will you learn? Closures are a poor man's
-object."  At that moment, Anton became enlightened.*
-
-      -- Anton van Straaten
+*Debugging is twice as hard as writing the code in the first
+place. Therefore, if you write the code as cleverly as possible, you
+are, by definition, not smart enough to debug it.* -- Brian W. Kernighan

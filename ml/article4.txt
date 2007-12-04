@@ -13,90 +13,62 @@ statically typed languages. In order to be concrete, I will consider languages
 in the ML family, because they are pretty nice and much easier to understand
 that Haskell.
 
-Functors
-------------------------------------------------------
-
-As we saw in the previous article, structures are not first class objects and 
-they cannot be passed to and returned from regular functions.
-To circumvent this restriction, the authors of ML invented
-the concept of *functor*, which is basically a *sui generis* function
-taking structures in input and to returning structures in output. Functors
-are not-first-class objects themselves and therefore they require a specific
-declaration, such as the following::
-
-- functor Wrap(SimpleIO:SIMPLE_IO) = struct
-    val inputAll = SimpleIO.inputAll
-    output = SimpleIO.output
-    fun fileIn manage fname = let
-        val file = openIn fname
-    in
-         manage file finally closeIn file
-    end
-    fun fileOut manage fname = let
-        val file = openOut fname
-    in
-         manage file finally closeOut file
-    end
- end
-
-The functor here is important, since it shows how it is possible to write
-generic code in SML. In this case, I have just written a library which is
-able to wrap *any* structure matching the ``SimpleIO`` interface, and I have
-avoided a potentially infinite code duplication.
-The specification of which specific structure to use will be the job of the client
-code, not of the library author; in particular a particular user of the library
-may be interested in specializing it both for ``TextIO`` and ``BinIO``
-by writing:
-
-- structure T = Wrap(TextIO)
-- structure B = Wrap(BinIO)
-
-The operation of specializing a functor is also called *functor instantiation*;
-since it happens in a structure declaration it is performed by the compiler
-*at compile time*. The advantage is that the compiler can generate different optimized
-code for  the structures``T`` and ``B`` in the *client* program.
-
-do print (IO.fileIn IO.inputAll "three-lines.txt")
-
 The Standard ML type system
 -------------------------------------------------------------------
 
-We have already seen many builtin types, such integers, strings, lists, etc.
-The type system of SML is extensible, and the user can define new types in terms
-of primitive types.
-
-In SML any value has a type, but types itself are not values, i.e. they are
-not first class values. That means that passing the name of a type to the
-prompt gives an error::
+SML has a sophisticated type which is, however, completely different from
+the type system of dynamic languages. Here I am assuming that you, the
+dynamic programmer, are familiar with the system of languages such as  
+Python and Ruby, or  Common Lisp and Smalltalk. 
+In such languages you here often the mantra *everything is an
+object* meaning that everything is a first class value which can created and
+inspected at runtime. Moreover, any object has a class, and classes themselves
+are objects, i.e. they are instances of metaclasses. In SML things are completely
+different. There a lots of things which are not first class values (structures,
+exceptions, signatures, ...) and even types are such: in SML any value has a type, 
+but types itself are not values, i.e. they are not values. 
+That means that passing the name of a type to the prompt gives an error::
 
   - string;
   1.0-1.6: unknown value or constructor `string'
 
-Just as structures, types live in a separated namespace. The lack of
-first class types also means the lack of metaclasses which are common
-in dynamic languages such as Smalltalk, Lisp, Perl, Python, Ruby,
-etc. Besides, SML types are not classes in any OO sense of the term,
-you cannot introspect them, there are no methods, and no inheritance;
-so, the first step in order to learn the SML type system is to forget
-everything you know about OOP ;) Having said that, you can certainly
-program in an OO style in ML, using closures as we saw in our previous
-essay, or using functors as we will show in the next paragraph; the
-point here is that you don't use types for OOP, types are used
-for pattern matching.
+SML types are not classes in any OO sense of the term,
+you cannot introspect them, there are no methods, no inheritance,  and
+they live in a separated namespace.  
+The first step in order to learn the SML type system is to forget
+everything you know about OOP. Having said that, you can certainly
+program in an OO style in ML,  but you don't use types for OOP, types are used
+internally by the compiler, but from the user's point of view they are just
+labels attached to values.
 
-Pattern matching in turn (among many other things) can be used to implement 
-runtime type dispatching. For instance, suppose, you want to define an utility
-function casting integer to strings. The first thing to do is to define an
-int_or_string datatype with two constructors INT and STR:
+The type system of SML is extensible, and the user can define new types (i.e.
+new labels) in terms of primitive types. The labels are just that; but together
+with a new label, the definition of an user defined type includes the definition
+of one or more functions, the *constructors* of the type, which are first class
+values and extremely useful for pattern matching.
+Let me give a concrete example: an
+``int_or_string`` datatype with two constructors ``INT`` and ``STR``, defined
+as follows::
 
-- datatype int_or_string = INT of int | STR of string;
+ - datatype int_or_string = INT of int | STR of string;
+ datatype int_or_string = INT of int | STR of string
 
+This definitions tells the compiler that the label ``int_or_string`` has to
+be used when showing the signature of objects of the newly defined types;
+but the important things are the constructors, which are able to convert (or *cast*)
+primitive values to values of the new type::
 
-Now it is possible to implement the casting function via pattern
-matching on the constructors
+ - val v1 = INT 1;
+ val v1 : int_or_string = INT 1
+ -  val v2 = STR "1";
+ val v2 : int_or_string = STR "1"
+
+The constructors are essential since you can use them in *pattern matching*.
+For instance, suppose you want to define an utility function casting integer to strings.
+You can do so as follows::
 
  - fun valueToString (INT x) = Int.toString x
-     | valueToString (STR x) = x;
+        | valueToString (STR x) = x;
  val valueToString : int_or_string -> string = _fn
 
 Let me check that it works:
@@ -106,9 +78,54 @@ Let me check that it works:
  - valueToString (STR "1");
  val it : string = "1"
 
-With this trick it is possible to emulate C++-style function overloading.
+In essence, we have just implemented runtime type dispatching: ``valueToString``
+is now emulating a C++ overloaded function (or a Lisp generic function) which 
+accepts both integers and strings and behaves differently according to the type.
+This in spirit, but technically ``valueToString`` is just an ordinary SML function
+which takes in input the ``int_or_string`` type, so we are somewhat cheating,
+but it works ;)
+Consider for instance the issue of defining heterogeneous collections, i.e.
+collections containing different types; in SML we cannot define a list
 
-In particular he may define composite types, like the following::
+- [1, "two"];
+  1.0-1.2: ill-typed constructor argument:
+    int * string list
+ does not match argument type
+    int * int list
+ because type
+    string
+ does not unify with
+    int
+
+but we can define
+
+- [INT 1, STR "two"];
+val it : int_or_string list = [INT 1, STR "two"]
+
+As Harper puts it, *heterogenity is a special case of homogenity*.
+
+It is also possible to define polymorphic types, where the constructor(s) can
+accept any type as argument. For instance, we can define a polymorphic 
+(parametric) box type::
+
+ - datatype 'a box = Box of 'a;
+ datatype 'a box = Box of 'a
+
+ - Box
+ val it : 'a -> 'a box = _fn 
+
+``box`` is a parametric type with constructor ``Box`` and parameter 'a 
+(to be read *alpha*), which corresponds to a generic type, so that you
+can define 
+
+  - Box(1);
+     val it : int box = Box 1
+  - Box("hello");
+     val it : string box = Box "hello"
+  - Box(fn x =>  2*x);
+  val it : (int -> int) box = Box (_fn)
+
+In particular we may define composite types, like the following::
 
  - datatype string_int = STRING_INT of string * int;
  datatype string_int = STRING_INT of string * int
@@ -121,27 +138,10 @@ be used to make concrete instances of the type::
  val it : string_int = STRING_INT ("hello", 1)
  -
 
-Notice is that the type itself is not a first class value::
-
- - string_int;
- 1.0-1.10: unknown value or constructor `string_int'
- +
-
 where the constructor is a first class value, being simply a function::
 
  - STRING_INT;
  val it  : string * int -> string_int = _fn
-
-It is also possible to define polymorphic types, where the constructor can
-accept any type as argument. For instance, suppose we want to define a generic 
-container type::
-
- - datatype 'a container = CONTAINER of 'a;
- datatype 'a container = CONTAINER of 'a
- - 
-
-#- CONTAINER 
-
 
 
 a *named_function* type corresponding
@@ -228,6 +228,51 @@ functor(F:HAS_LENGTH):
   
 polyLength(List)
 
+
+Functors
+------------------------------------------------------
+
+As we saw in the previous article, structures are not first class objects and 
+they cannot be passed to and returned from regular functions.
+To circumvent this restriction, the authors of ML invented
+the concept of *functor*, which is basically a *sui generis* function
+taking structures in input and to returning structures in output. Functors
+are not-first-class objects themselves and therefore they require a specific
+declaration, such as the following::
+
+- functor Wrap(SimpleIO:SIMPLE_IO) = struct
+    val inputAll = SimpleIO.inputAll
+    output = SimpleIO.output
+    fun fileIn manage fname = let
+        val file = openIn fname
+    in
+         manage file finally closeIn file
+    end
+    fun fileOut manage fname = let
+        val file = openOut fname
+    in
+         manage file finally closeOut file
+    end
+ end
+
+The functor here is important, since it shows how it is possible to write
+generic code in SML. In this case, I have just written a library which is
+able to wrap *any* structure matching the ``SimpleIO`` interface, and I have
+avoided a potentially infinite code duplication.
+The specification of which specific structure to use will be the job of the client
+code, not of the library author; in particular a particular user of the library
+may be interested in specializing it both for ``TextIO`` and ``BinIO``
+by writing::
+
+ - structure T = Wrap(TextIO)
+ - structure B = Wrap(BinIO)
+
+The operation of specializing a functor is also called *functor instantiation*;
+since it happens in a structure declaration it is performed by the compiler
+*at compile time*. The advantage is that the compiler can generate different optimized
+code for  the structures``T`` and ``B`` in the *client* program.
+
+``do print (IO.fileIn IO.inputAll "three-lines.txt")``
 
 Lists
 ---------------------------------------------------
@@ -448,6 +493,64 @@ impossible in a dynamic language (but this is of lesser relevance,
 since any user of dynamic languages will use C libraries if speed is
 an issue).
 
+
+Higher order functions can also be used to implement poor man's object
+systems; consider for instance this example::
+
+ class Counter(object):
+    def __init__(self, initial_value):
+         self.initial_value = self.value = 0
+    def incr(self):
+         self.value += 1
+    def show(self):
+         print "The value is %d" % self.value 
+    def reset(self):
+         self.value = self.initial_value
+
+We can get the same effect via a stateful higher order function (a.k.a. a closure)::
+
+ exception MissingMethod
+
+ fun makeCounter initialValue = let
+    val value = ref initialValue
+ in 
+     fn "reset" => value := initialValue
+      | "show" => (print The value is "; print (Int.toString (!value)); print "\n")
+      | "incr" => value := !value + 1
+      | _ => raise MissingMethod
+ end
+
+ val counter = makeCounter 0;
+
+ do counter "incr";
+ do counter "show"; (* The value is 1 *)
+ do counter "reset";
+ do counter "show"; (* The value is 0 *)
+
+This example also shows the usage of pattern matching and of exceptions.
+
+You can rewrite it in a functional way as follows:
+
 ----
+
+*The venerable master Qc Na was walking with his student, Anton.  Hoping to
+prompt the master into a discussion, Anton said "Master, I have heard that
+objects are a very good thing - is this true?"  Qc Na looked pityingly at
+his student and replied, "Foolish pupil - objects are merely a poor man's
+closures."*
+
+*Chastised, Anton took his leave from his master and returned to his cell,
+intent on studying closures.  He carefully read the entire "Lambda: The
+Ultimate..." series of papers and its cousins, and implemented a small
+Scheme interpreter with a closure-based object system.  He learned much, and
+looked forward to informing his master of his progress.*
+
+*On his next walk with Qc Na, Anton attempted to impress his master by
+saying "Master, I have diligently studied the matter, and now understand
+that objects are truly a poor man's closures."  Qc Na responded by hitting
+Anton with his stick, saying "When will you learn? Closures are a poor man's
+object."  At that moment, Anton became enlightened.*
+
+      -- Anton van Straaten
 
 

@@ -16,15 +16,16 @@ that Haskell.
 Declaration of intents
 ----------------------
 
-One may rightly wonder why to study functional languages, in a
-particular statically-typed ones [#]: after all, their relevance in
-enterprise programming is negligible, they are unknown for system
+One may rightly wonder why to study functional languages, and in
+particular statically-typed ones such as SML and Haskell: after all, 
+their relevance in enterprise programming is negligible, they are practically
+unknown for system
 administration task, and unless you are a computer science researcher
 you have no need to know them. All that is true; on the other hand, if
 you believed it, you would not be a dynamic programmer, you would have
 stick with C and you would not be a reader of my papers.
-dynamic programmer is the kind of person who, when everbody says
-";the Earth is flat", will wonder: "is the Earth *really* flat?". So,
+A dynamic programmer is the kind of person who, when everbody says
+"the Earth is flat", will wonder: "is the Earth *really* flat?". So,
 even if everybody says that object orientation is good and that
 inheritance is the best thing after sliced bread, a dynamic programmer
 will be suspicious of these claims and will seek for alternatives.
@@ -42,13 +43,13 @@ I always wanted to learn a modern statically-typed functional
 language, at least to have something intelligent to say in the endless
 usenet discussions on dynamic typing vs. static typing; recently, by
 accident, I run into Standard ML (SML, ML stands for Meta Language)
-and I found out it has a very clean syntax, so I decided to learn it
-[#].
+and I found out it has a very clean syntax, so I decided to learn it [#]_.
+
 SML is practically unknown outside academia (its cousins Caml and F# are a
 little more known, but they are certainly very far away from being
 mainstream languages) and I am not interested in advocating it for use
 in enterprise programming; after all in enterprise programming the technical
-advantages of a language count very little compared to thing like the support
+advantages of a language count very little compared to things like the support
 you can get, the ability to find skilled programmers,  the interoperability with
 your existent codebase and development environment (I mean the tools and
 libraries you use, the database, etc). My motivation here is to learn something
@@ -59,10 +60,10 @@ share a common implementation of interfaces. I have always had a bad gut
 feeling about Zope interfaces: I always thought they were overkill, complex, and
 not doing by default what they (In my opinion) should do, i.e. interface checking.
 I always thought there should be a better solution (Python 3.0 actually will
-have a simple  implementation of interfaces in the core language)
+have a simpler  implementation of interfaces in the core language)
 but until I studied SML I had no idea of how the solution should look like.
 I think SML has the better module system I have ever seen; and my goal
-here is to popularize it, trying to get some of SML ideas in Python frameworks.
+here is to popularize it, trying to get some of SML ideas into Python frameworks.
 
 Micro-introduction to functional languages
 ------------------------------------------------------------
@@ -73,7 +74,7 @@ languages in use, since an absolutely pure language would have to rule
 out input and output and it would be pretty much useless;
 nevertheless, some functional languages are purer that others. For
 instance, there are languages which have some support for functional
-programming, but are not considered functional (i.e. Python); others,
+programming, but are not considered functional (for instance, Python); others,
 like Lisp, which is regarded as the grandfather of functional
 languages, that are pretty much regarded as impure nowadays; Scheme is
 somewhat perceived as more functional than Common Lisp, but this is
@@ -86,14 +87,23 @@ than one way; nevertheless it is useful (in my personal opinion) in
 the sense that it gives and indication of how much the language
 departs from a mainstream imperative language, and how difficult it is
 to learn it.  Functional languages come in two kinds: dynamically
-typed (Lisp, Scheme, Erlang ...) and statically typed (SML, Haskell
+typed (Lisp, Scheme, Erlang ...) and statically typed (SML, OCaml, Haskell
 ...).  Programmers used to dynamic typing (i.e Pythonistas, Rubystas,
 etc) will have less trouble to understand dynamically typed functional
 language, so it is more interesting (in my opinion) to look at
 statically typed languages. After all, I think a programmer should have at
 least a statically typed language in his toolbox (C++ and Java do not
 count). SML is the simplest statically language out there, so l decided to
-start with it
+start with it.
+
+In the following, I will often contrast the functional way with the imperative
+way, and I will mostly use Python as an example of imperative language,
+because it is a language that I know decently well, and because it is
+so readable that the examples will be easy to understand even for
+programmers not familiar with Python.
+
+Getting an SML compiler
+--------------------------------------------------------
 
 SML is a language with many implementations, so if you want to try it,
 you must decide which implementation to use. I have played with some
@@ -126,16 +136,11 @@ Now you can write your first mandatory "Hello world" program::
  Hello world
  val it : unit = ()
 
-and you are ready to start ;) If you are an old timer Emacs user, you
+and you are ready to start. If you are an old timer Emacs user, you
 may also want to install (Aqua)Emacs and the sml-mode for Emacs (Alice
 has a custom version of it, that you can download from here_ ).
 
 .. _here: http://www.ps.uni-sb.de/alice/download/sml-mode-4.0+alice.zip
-
-.. [#] Modern statically-typed language here means a language with
-         type-inference, such as SML and Haskell. We all know that
-         there are no good ideas to be extracted from ancient
-         statically typed languages such as Java, C and C++ ;)
 
 .. [#] In principle, one may argue that choosing a language because of
         its syntax is stupid and that one should look at its features,
@@ -152,7 +157,12 @@ has a custom version of it, that you can download from here_ ).
          user-experience is the same as if you had an
          interpreter. This approach is commons in ML and Lisp implementations.
 
-"Hello world", Part I
+It may be useful sometime to contrast Alice with more traditional ML
+implementations (especially to see if the error messages are more
+understandable with another compiler) so you want to run
+``apt-get install smlnj mlton`` as well.
+ 
+Hello world
 ---------------------------------------
 
 In the previous section I have shown how the traditional "Hello world"
@@ -259,101 +269,6 @@ advanced for this introduction.  But stay tuned for the next issues ;)
 
 .. [#] The lack of function overloading may be seen as a feature or as
         a limitation, depending on the reader.
-
-Functional programming and Input/Output
------------------------------------------------------
-
-Input/output is the black ship of functional programming and it is
-often relegated at the end of tutorials and sometimes even omitted, as
-if shameful. Sometime, it is not even standardized and
-implementation-dependent. On the other hand, *all* programs must
-perform some kind of input/output, or at least of output, otherwise we
-would have no way to see what a program did. Therefore input/output
-*must* be explained at the beginning of any tutorial, not at the
-end. I always hated books not telling me how to read a file until the
-appendix!  In this section I will explain how you can read a file in
-SML. Reading a file is for some reason seen as "inpure" since it is
-not functional.  Let me explain that a bit more: in mathematics, a
-function takes an argument in input, and returns an output; if I call
-twice the function with the same argument, I get twice the *same*
-output. In programming, a procedure reading a line from a file returns
-a *different* line at each invocation, even if called with the same
-arguments (the arguments maybe simply the empty tuple), so it is not a
-function in the mathematical sense. On the other hand, a procedure
-writing a line into a file, is also impure, since it is modifying an
-object, the file itself. 
-In strict functional programming there is no
-mutation, objects are declared once and for all times they do not
-change. Functional programming in its purest form is therefore useless:
-notice that even the paradigmatic "Hello world" program is not a functional 
-program, since the "Hello world" string is printed via an imperative side 
-effect. In other words, every functional programming language must find a 
-non-functional way to manage input-output. Haskell tries very hard to hide
-non-functional constructs into monads; SML just uses traditional
-imperative constructs to perform input/output.  We already saw the
-``print`` function to write on stdout; to read from stdin, you can
-define the following utility::
-
- - fun input prompt = (print prompt; getOpt(TextIO.inputLine TextIO.stdIn, ""))
- val input : string -> string = _fn
-
-The parenthesis here are needed since the right hand side of a function definition
-must be an expression, and the parenthesis (plus the expression separator ";")
-allows you to compose expressions in a single expression returning as value
-the value of the last expression. ``TextIO`` is a module in the standard library
-managing textual I/O and ``TextIO.inputLine inputFile`` is a function
-returning a line wrapped into an option object or NONE if we arrived at the
-end of the input file. In particular, in the case of standard input,
-we arrive at the end when we give CTRL-D (in a Unix-like system); in
-this case ``input`` will return the empty string, otherwise it returns the
-input line, comprehensive of the newline character.
-
-Here is an example of usage::
-
- - input "Enter a string: ";
- Enter a string: hello
- val it : string = "hello\n"
- - input "Enter CTRL-D ";
- - Enter CTRL-D 
- val it : string = ""
-
-I we want to read a text file (assuming it fits in memory)
-the simplest way is to use ``TextIO.inputAll``::
-
- - fun fileToString filename = let
-     val file = TextIO.openIn filename
-   in
-     TextIO.inputAll file finally TextIO.closeIn file
-   end
-
-Conversely, if we want to write a text on a file we can define::
-
- - fun saveFile (fname, content) = let
-      val out = TextIO.openOut fname
-   in
-      TextIO.output(out, content) finally TextIO.closeOut out
-   end;
-
-The examples here use the standard *let* expression, which has the form::
-
-  let
-     <bindings>
-  in 
-     <expression; .. ; expression>
-  end
-
-and returns as value the value of the last expression. Moreover, the examples
-here use the *finally* construct, which is an Alice extension to SML, and
-works as you would expect:: 
-
-   <expression possibly raising exceptions> finally <cleanup expression>
-
-the finally clause if executed always, even
-if there is an exception in the first expression.
-
-The examples here are very simple and do not address the issue or reading
-or writing large files which do not fit in memory. But don't worry,
-we will address those situations in the next issues, have faith!
 
 ----
 
