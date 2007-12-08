@@ -13,7 +13,7 @@ statically typed languages. In order to be concrete, I will consider languages
 in the ML family, because they are pretty nice and much easier to understand
 that Haskell.
 
-How to write your first module
+Writing your first module
 ------------------------------------------------------
 
 Usually programs start small, but they have an unfortunate tendency to
@@ -130,7 +130,7 @@ With this definitions, we get the same behavior as in Python [#]_ ::
     File "<stdin>", line 1, in <module>
   StopIteration
 
-Importing modules and components
+Importing modules
 ----------------------------------------------------
 
 Structures in the standard library are automatically available; on the other
@@ -251,119 +251,127 @@ But in order to discuss that, we must first discuss signatures, which is
 the SML name for interfaces.
 
 .. [#] Readers familiar with Common Lisp will be familiar with the concept
-       of having separate namespecies for different kind of objects.
+       of having separate namespaces for different kind of objects.
 
-Defining signatures
---------------------------------------------
+Abstract signatures and abstract types
+---------------------------------------
 
-Strictly speaking, it is not necessary to define signatures for your own
-structures, since even if you do not specify a signature, the
-compiler is able to figure out the complete signature, 
-thanks to type inference. The problem is exactly that: the compiler
-extracts the *complete* signature, a.k.a. the *principal* signature
-of you library, which is too much. Typically, you don't
-want to expose all the objects in your structure: for instance, you
-may have private utility functions that clients of your library should
-not see. This is a typical use case for writing custom signatures:
-if you want to implement `information hiding`_ you can just provide a 
-signature not exposing your private objects. 
-Another typical use case the `facade pattern`_, which is used when you
-want to provide a simple interface to complex library. For instance,
-consider two structures of the standard library, ``TextIO`` and ``BinIO``;
-their principal signatures are different since they have different implementations, 
-but still they share many features and it is possibile to define subsignature(s) 
-matching both.
-In particular, it is possible to define a simplified interface (a *facade*) which is
-common to both as follows::
+Strictly speaking, it is not necessary to define signatures for your
+own structures, since even if you do not specify a signature, the
+compiler is able to figure out the complete signature, thanks to type
+inference. The problem is exactly that: the compiler extracts the
+*complete* signature, a.k.a. the *principal* signature of you library,
+which is too much. Typically, you don't want to expose all the objects
+in your structure, for safety reason (your structure may contain
+private functions which should not be exported to client code), for
+sake of simplicity (you may want to implement the `facade pattern`_)
+or for code reuse.  Using computer science buzzwords, we may say that
+`information hiding`_ is implemented in SML by defining *abstract
+signatures*, as opposed to the *concrete* (or principal) signatures we
+saw until now.
 
- - signature SIMPLE_IO = sig
-       type instream
-       type outstream
-       type vector
-       val openIn: string-> instream
-       val closeIn: instream -> unit
-       val openOut: string-> outstream
-       val closeOut: outstream -> unit
-       val inputAll: instream -> vector
-       val output: outstream * vector -> unit
-    end;
+To give a concrete example, let me consider the ``List`` and
+``Vector`` structures in the standard library: the ``List`` structure
+defines the type ``list``, whereas the ``Vector`` structure defines
+the type ``vector``; both types have a common alias ``t``. 
+``list`` and ``vector`` are container types, in the sense that a 
+list/vector may contain objects of any type, as long as all the elements
+are homegenous, so you may have a ``string list``, an ``int list``,
+a ``string list list``, etc  [#]_::
 
-To an application compatible with the SIMPLE_IO signature, both ``TextIO``
-and ``BinIO`` will look the same: giving an explicit signature
-enhances genericity, modularity and code reuse. This is expecially true
-if you use *opaque importing*, i.e. the ``:>`` syntax exemplified below::
+ - val lst = [0,1,2];
+ val lst : int list = [0, 1, 2]
+ - val vec = #[0,1,2];
+ val vec : int vector = #[0, 1, 2]
+ - val lst = [["hello", "world"]];
+ val lst : string list list = [["hello", "world"]]
 
- - structure T=TextIO:>SIMPLE_IO;
- structure T : SIMPLE_IO
+Both ``List`` and ``Vector`` provide a function ``length`` returning the
+number of elements of the list/vector, and a function ``sub`` return
+the i-th element of the list/vector::
 
- - structure B=BinIO:>SIMPLE_IO;
- structure B : SIMPLE_IO
+ - List.length(lst);
+ val it : int = 3
+ - Vector.length(vec);
+ val it : int = 3
 
- - val f = B.openIn "three-lines.txt";
- val f : B.instream = _val
- - val x = Byte.bytesToString (B.inputAll f);
- 1.8-1.41: mismatch on application: expression type
-    B.vector
- does not match function's argument type
-    t
- because type
-    B.vector
- does not unify with
-    Word8Vector.vector
- - 
+ -List.sub(lst, 1) (*) take the second element of the list
+ val it : int = 1
+ -Vector.sub(vec, 1) (*) take the second element of the vector
+ val it : int = 1
 
-Transparent signatures
----------------------------------
+We may abstract this common behavior by defining an abstract signature::
 
-and you could import only a subset of the features provided by  as follows::
+ - signature SIMPLE_SEQUENCE = sig
+     type 'a t
+     val length: 'a t -> int
+     val sub: 'a t * int -> 'a
+   end
+      sig
+         type 'a t
+         val length : 'a t -> int
+         val sub : 'a t * int -> 'a
+      end
 
- - structure T = TextIO:SIMPLE_IO;
-  structure T :
-   sig
-      type vector = vector
-      type instream = TextIO.instream
-      type outstream = TextIO.outstream
-      val openIn : string -> TextIO.instream
-      val inputAll : TextIO.instream -> vector
-      val closeIn : TextIO.instream -> unit
-      val openOut : string -> TextIO.outstream
-      val output : TextIO.outstream * vector -> unit
-      val closeOut : TextIO.outstream -> unit
-   end = TextIO
+Here the type t is *abstract*: it becomes concrete only if you *ascribe*
+the signature to a concrete structure::
 
-::
+ - structure L=List:SIMPLE_SEQUENCE;
+ structure L :
+     sig
+        type t = list
+        val length : 'a List.t -> int
+        val sub : 'a List.t * int -> 'a
+    end = List
 
- structure B = BinIO:SIMPLE_IO;
- structure B :
-   sig
-      type vector = vector
-      type instream = BinIO.instream
-      type outstream = BinIO.outstream
-      val inputAll : BinIO.instream -> vector
-      val closeIn : BinIO.instream -> unit
-      val output : BinIO.outstream * vector -> unit
-      val closeOut : BinIO.outstream -> unit
-      val openIn : string -> BinIO.instream
-      val openOut : string -> BinIO.outstream
-   end = BinIO
+ - structure V=Vector:SIMPLE_SEQUENCE;
+ structure V :
+     sig
+        type t = vector
+         val length : 'a Vector.t -> int
+        val sub : 'a Vector.t * int -> 'a
+     end = Vector
 
- - open BinIO:SIMPLE_IO;
- - val f = B.openIn "three-lines.txt";
- val f : BinIO.instream = _val
- - val x = Byte.bytesToString (B.inputAll f);
- -  B.closeIn f;
+i.e. the abstract type ``t`` is replaced by the concrete type ``list`` when the
+signature is ascribed to the ``List`` structure and by the concrete type ``vector``
+when the signature is ascribed to the ``Vector`` structure.
+Moreover, having ascribed the ``SIMPLE_SEQUENCE`` signature to the
+structures ``L`` and ``V``, we have automatically hidden all the additional
+functionality of the original structures, so that for instance ``L.map``
+and ``V.map`` are not accessible, even if ``List.map`` and ``Vector.map``
+do exists::
 
+ - L.map
+ 1.2-1.5: unknown value or constructor `map'
+ - V.map;
+ 1.2-1.5: unknown value or constructor `map'
 
-The rationale behind opaque signatures 
-is that they make easier to replace an implementation
-with another without breaking the interface.
+In a sense, you may see ascribing the signature as a way of importing a selected
+subset of the functionality of the original structure; you could even import a subset
+of the names defined in the original structures in the current namespace
+by opening the ascribed structure:: 
 
-On the other hand, the application program has still the choice to ignore
-your proposed signature and use the principal signature: in this case of course,
-he will take his risks, since the interface of private methods is not guaranteed
-and could change in future versions of the library, but he can do that if he
-needs it.
+ - open Vector:SIMPLE_SEQUENCE;
+ structure _id20 :
+    sig
+       type t = vector
+       val length : 'a Vector.t -> int
+       val sub : 'a Vector.t * int -> 'a
+    end = Vector
+ val sub : 'a Vector.t * int -> 'a = _fn
+ val length : 'a Vector.t -> int = _fn
+ type t = Vector.t
 
+Signatures allows much more than that, and the practical usage of abstract 
+signatures in SML will become clear once we will introduce the concept of 
+functors and packages. Nevertheless, I am sure that the
+expert object oriented programmer has already understood the point
+behind abstract signatures: they are nothing else than
+interfaces. Code written to work with a ``SIMPLE_SEQUENCE`` interface
+will automatically work with lists, vectors, and any data structure
+(builtin *and* custom) satisfying the interface.
+
+.. [#] Notice that since SML is a functional language, both lists and vectors are immutable.
 
 .. _information hiding: http://en.wikipedia.org/wiki/Information_hiding
 .. _facade pattern: http://en.wikipedia.org/wiki/Facade_pattern
