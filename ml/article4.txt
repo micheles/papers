@@ -143,7 +143,7 @@ The builtin ``Ref`` type works as a box and the builtin``!`` function works
 as ``unbox``, the different is that our ``Box`` is immutable, i.e. we do not
 have an equivalent of the assigment function ``:=``.
 
-Other examples of datatypes
+More on datatypes
 -----------------------------------------------------------
 
 We may define composite types, i.e. types with
@@ -151,14 +151,12 @@ We may define composite types, i.e. types with
 
  - datatype string_int = STRING_INT of string * int;
  datatype string_int = STRING_INT of string * int
- -
 
 The uppercase identifier is called the constructors of the datatype, and can
 be used to make concrete instances of the type::
 
  - STRING_INT("hello",  1);
  val it : string_int = STRING_INT ("hello", 1)
- -
 
 where the constructor is a first class value, being simply a function taking
 a pair ``(string, int)`` as input::
@@ -173,7 +171,6 @@ We can define it as follows::
 
  - datatype ('a, 'b) named_function = NAMED_FUNCTION of ('a->'b) * string;
  datatype ('a, 'b) named_function = NAMED_FUNCTION of ('a -> 'b) * string
- -
 
 *named_function* is a parametric type with parameter 'a (to be read *alpha*),
 which corresponds to a generic type, and NAMED_FUNCTION is its associated 
@@ -181,7 +178,6 @@ constructor::
 
  - NAMED_FUNCTION;
  val it : ('a -> 'b) * string -> ('a, 'b) named_function = _fn
- -
 
 In other words, NAMED_FUNCTION is a function converting a pair (value, name),
 where *value* can be of any type, into a *named_function* parametric type.
@@ -190,28 +186,23 @@ Here is an example::
  - NAMED_FUNCTION (fn x=>2*x, "double");
   (* giving a  name to the function x=>2*x *)
  val it = NAMED_FUNCTION (fn,"double") : (int,int) named_function
- -
 
 SML also allows to define enumeration types, like the following one::
 
  - datatype color = RED|GREEN|BLUE;
  datatype color = BLUE | GREEN | RED
- -
 
 but for enumeration types the name is rather improper, since they are
 just values::
 
  - RED;
  val it : color = RED
- -
 
  - GREEN;
  val it : color = GREEN
- -
 
  - BLUE;
  val it : color = BLUE
- -
 
 Finally, SML let you define aliases for previously defined types,
 or builtin types, by using the ``type`` keyword::
@@ -226,45 +217,16 @@ or builtin types, by using the ``type`` keyword::
 
 This is especially convenient when writing signatures.
 
-Polymorphism
--------------------
+Poor man's polymorphism
+-----------------------------------------------------------------
 
- -  functor Sequence(ListOrVector:) = funct
-     end
-
-
-Two examples of simple structures in the standard library as List and Vector;
-they act as modules with a mostly compatible interface, providing functions
-to manipulate lists and vectors respectively. Since SML is a functional language,
-both lists and vectors are immutable. Here are a few examples of usage::
-
- - val lst = [0,1,2];
- val lst : int list = [0, 1, 2]
- - val vec = #[0,1,2];
- val vec : int vector = #[0, 1, 2]
-
- - List.length(lst);
- val it : int = 3
- - Vector.length(vec);
- val it : int = 3
-
- -List.sub(lst, 1) (*) take the second element of the list
- val it : int = 1
- -Vector.sub(vec, 1) (*) take the second element of the vector
- val it : int = 1
-
- signature HAS_LENGTH = sig
-  val length: 
- functor(F:HAS_LENGTH):
-  
- polyLength(List)
-
-Abstract types in signatures
--------------------------------------------------------
-
-The common practice in SML is to define types inside structures,
-so that you can associate structures with a types. For instance
-here I define a ``ListOrVector`` structure associated with a
+Possibly the most used word in statically typed languages is *polymorphism*.
+The word does not exist in dynamic languages, since dynamically typed languages
+are polymorphic by design, whereas in statically typed languages you have
+to work to achieve polymorphism, i.e. the ability to define functions accepting 
+generic types. In order to give a poor man' example, suppose we want to
+define a few polymorphic utilities accepting both lists and vectors. We could
+do so by defining a ``ListOrVector`` structure associated with a
 ``list_or_vector`` datatype::
 
  - structure ListOrVector = struct
@@ -294,6 +256,9 @@ clear in the next paragraph. Here are two examples of usage::
  - ListOrVector.length (ListOrVector.VEC #[1,2,3]);
  val it : int = 3
 
+This approach to polymorphism works for simple things, but it is not practical, 
+nor extensible: this is the reason why SML provides an industrial strenght
+mechanism to support polymorphism, *functors*.
 
 Functors
 ------------------------------------------------------
@@ -305,6 +270,113 @@ the concept of *functor*, which is basically a *sui generis* function
 taking structures in input and to returning structures in output. Functors
 are not-first-class objects themselves and therefore they require a specific
 declaration, such as the following::
+
+ -  functor Sequence(s:SIMPLE_SEQUENCE) = funct
+        type t = s.t
+        length = 
+     end;
+
+
+Input and Output revisited
+--------------------------------------------------------------
+ 
+Another typical use case the, which is used when you
+want to provide a simple interface to complex library. For instance,
+consider two structures of the standard library, ``TextIO`` and ``BinIO``;
+their principal signatures are different since they have different implementations, 
+but still they share many features and it is possibile to define subsignature(s) 
+matching both.
+In particular, it is possible to define a simplified interface (a *facade*) which is
+common to both as follows::
+
+ - signature SIMPLE_IO = sig
+       type instream
+       type outstream
+       type vector
+       val openIn: string-> instream
+       val closeIn: instream -> unit
+       val openOut: string-> outstream
+       val closeOut: outstream -> unit
+       val inputAll: instream -> vector
+       val output: outstream * vector -> unit
+    end;
+
+To an application compatible with the SIMPLE_IO signature, both ``TextIO``
+and ``BinIO`` will look the same: giving an explicit signature
+enhances genericity, modularity and code reuse. This is expecially true
+if you use *opaque importing*, i.e. the ``:>`` syntax exemplified below::
+
+ - structure T=TextIO:>SIMPLE_IO;
+ structure T : SIMPLE_IO
+
+ - structure B=BinIO:>SIMPLE_IO;
+ structure B : SIMPLE_IO
+
+ - val f = B.openIn "three-lines.txt";
+ val f : B.instream = _val
+ - val x = Byte.bytesToString (B.inputAll f);
+ 1.8-1.41: mismatch on application: expression type
+    B.vector
+ does not match function's argument type
+    t
+ because type
+    B.vector
+ does not unify with
+    Word8Vector.vector
+ - 
+
+Transparent signatures
+---------------------------------
+
+and you could import only a subset of the features provided by  as follows::
+
+ - structure T = TextIO:SIMPLE_IO;
+  structure T :
+   sig
+      type vector = vector
+      type instream = TextIO.instream
+      type outstream = TextIO.outstream
+      val openIn : string -> TextIO.instream
+      val inputAll : TextIO.instream -> vector
+      val closeIn : TextIO.instream -> unit
+      val openOut : string -> TextIO.outstream
+      val output : TextIO.outstream * vector -> unit
+      val closeOut : TextIO.outstream -> unit
+   end = TextIO
+
+::
+
+ structure B = BinIO:SIMPLE_IO;
+ structure B :
+   sig
+      type vector = vector
+      type instream = BinIO.instream
+      type outstream = BinIO.outstream
+      val inputAll : BinIO.instream -> vector
+      val closeIn : BinIO.instream -> unit
+      val output : BinIO.outstream * vector -> unit
+      val closeOut : BinIO.outstream -> unit
+      val openIn : string -> BinIO.instream
+      val openOut : string -> BinIO.outstream
+   end = BinIO
+
+ - open BinIO:SIMPLE_IO;
+ - val f = B.openIn "three-lines.txt";
+ val f : BinIO.instream = _val
+ - val x = Byte.bytesToString (B.inputAll f);
+ -  B.closeIn f;
+
+
+The rationale behind opaque signatures 
+is that they make easier to replace an implementation
+with another without breaking the interface.
+
+On the other hand, the application program has still the choice to ignore
+your proposed signature and use the principal signature: in this case of course,
+he will take his risks, since the interface of private methods is not guaranteed
+and could change in future versions of the library, but he can do that if he
+needs it.
+
 
  - functor Wrap(SimpleIO:SIMPLE_IO) = struct
     val inputAll = SimpleIO.inputAll
