@@ -1,10 +1,10 @@
-Functional Programming For Dynamic Programmers - Part 4
+Functional Programming For Dynamic Programmers - Part 5
 =======================================================
 
 :author: Michele Simionato
 :date: December 2007
 
-This is the fourth of a series of articles on functional programming in
+This is the fifth of a series of articles on functional programming in
 statically typed languages. It is intended for dynamic programmers, i.e. 
 for programmers with a background in dynamically typed languages, such as Perl, 
 Python, Ruby, or languages in the Lisp family. The approch is eminently practical
@@ -260,154 +260,55 @@ This approach to polymorphism works for simple things, but it is not practical,
 nor extensible: this is the reason why SML provides an industrial strenght
 mechanism to support polymorphism, *functors*.
 
-Functors
-------------------------------------------------------
+Input and Output revisited
+--------------------------------------------------------------
 
-As we saw in the previous article, structures are not first class objects and 
+In accordance with the example-oriented spirit of this series, I will
+introduce functors with a motivating example, again in the arena of
+input and output. 
+We saw in an earlier installament that the standard library provides two
+structures ``TextIO`` and ``BinIO`` for managing text files and binary
+files respectively; we also show that the two structures have many things
+in common, and it is possibile to define a (sub)signature matching both.
+
+
+Structures are not first class objects and 
 they cannot be passed to and returned from regular functions.
 To circumvent this restriction, the authors of ML invented
 the concept of *functor*, which is basically a *sui generis* function
 taking structures in input and to returning structures in output. Functors
 are not-first-class objects themselves and therefore they require a specific
-declaration, such as the following::
+declaration ``functor Name(Struct:SIGNATURE) = funct ... end``.
 
- -  functor Sequence(s:SIMPLE_SEQUENCE) = funct
-        type t = s.t
-        length = 
-     end;
-
-
-Input and Output revisited
---------------------------------------------------------------
- 
-Another typical use case the, which is used when you
-want to provide a simple interface to complex library. For instance,
-consider two structures of the standard library, ``TextIO`` and ``BinIO``;
-their principal signatures are different since they have different implementations, 
-but still they share many features and it is possibile to define subsignature(s) 
-matching both.
-In particular, it is possible to define a simplified interface (a *facade*) which is
-common to both as follows::
-
- - signature SIMPLE_IO = sig
-       type instream
-       type outstream
-       type vector
-       val openIn: string-> instream
-       val closeIn: instream -> unit
-       val openOut: string-> outstream
-       val closeOut: outstream -> unit
-       val inputAll: instream -> vector
-       val output: outstream * vector -> unit
-    end;
-
-To an application compatible with the SIMPLE_IO signature, both ``TextIO``
-and ``BinIO`` will look the same: giving an explicit signature
-enhances genericity, modularity and code reuse. This is expecially true
-if you use *opaque importing*, i.e. the ``:>`` syntax exemplified below::
-
- - structure T=TextIO:>SIMPLE_IO;
- structure T : SIMPLE_IO
-
- - structure B=BinIO:>SIMPLE_IO;
- structure B : SIMPLE_IO
-
- - val f = B.openIn "three-lines.txt";
- val f : B.instream = _val
- - val x = Byte.bytesToString (B.inputAll f);
- 1.8-1.41: mismatch on application: expression type
-    B.vector
- does not match function's argument type
-    t
- because type
-    B.vector
- does not unify with
-    Word8Vector.vector
- - 
-
-Transparent signatures
----------------------------------
-
-and you could import only a subset of the features provided by  as follows::
-
- - structure T = TextIO:SIMPLE_IO;
-  structure T :
-   sig
-      type vector = vector
-      type instream = TextIO.instream
-      type outstream = TextIO.outstream
-      val openIn : string -> TextIO.instream
-      val inputAll : TextIO.instream -> vector
-      val closeIn : TextIO.instream -> unit
-      val openOut : string -> TextIO.outstream
-      val output : TextIO.outstream * vector -> unit
-      val closeOut : TextIO.outstream -> unit
-   end = TextIO
-
-::
-
- structure B = BinIO:SIMPLE_IO;
- structure B :
-   sig
-      type vector = vector
-      type instream = BinIO.instream
-      type outstream = BinIO.outstream
-      val inputAll : BinIO.instream -> vector
-      val closeIn : BinIO.instream -> unit
-      val output : BinIO.outstream * vector -> unit
-      val closeOut : BinIO.outstream -> unit
-      val openIn : string -> BinIO.instream
-      val openOut : string -> BinIO.outstream
-   end = BinIO
-
- - open BinIO:SIMPLE_IO;
- - val f = B.openIn "three-lines.txt";
- val f : BinIO.instream = _val
- - val x = Byte.bytesToString (B.inputAll f);
- -  B.closeIn f;
-
-
-The rationale behind opaque signatures 
-is that they make easier to replace an implementation
-with another without breaking the interface.
-
-On the other hand, the application program has still the choice to ignore
-your proposed signature and use the principal signature: in this case of course,
-he will take his risks, since the interface of private methods is not guaranteed
-and could change in future versions of the library, but he can do that if he
-needs it.
-
-
- - functor Wrap(SimpleIO:SIMPLE_IO) = struct
-    val inputAll = SimpleIO.inputAll
-    output = SimpleIO.output
-    fun fileIn manage fname = let
-        val file = openIn fname
-    in
-         manage file finally closeIn file
-    end
-    fun fileOut manage fname = let
-        val file = openOut fname
-    in
-         manage file finally closeOut file
-    end
- end
+.. include:: simple-io.aml
+   :literal:
 
 The functor here is important, since it shows how it is possible to write
 generic code in SML. In this case, I have just written a library which is
 able to wrap *any* structure matching the ``SimpleIO`` interface, and I have
 avoided a potentially infinite code duplication.
+
 The specification of which specific structure to use will be the job of the client
 code, not of the library author; in particular a particular user of the library
 may be interested in specializing it both for ``TextIO`` and ``BinIO``
 by writing::
 
- - structure T = Wrap(TextIO)
- - structure B = Wrap(BinIO)
+ - structure T = ManagedIO(TextIO)
+ - structure B = ManagedIO(BinIO)
 
 The operation of specializing a functor is also called *functor instantiation*;
 since it happens in a structure declaration it is performed by the compiler
 *at compile time*. The advantage is that the compiler can generate different optimized
-code for  the structures``T`` and ``B`` in the *client* program.
+code for  the structures ``T`` and ``B`` in the *client* program.
 
-``do print (IO.fileIn IO.inputAll "three-lines.txt")``
+ ``- T.withInputFile "three-lines.txt" (print o T.inputAll)``
+
+----
+
+ *Such things are called individuals because each of them consists 
+ of characteristics the collection of which will never be the 
+ same for anything else. For the characteristics of Socrates will
+ never be in any other particular. But the characteristics of man — 
+ I mean of the man that is general — will be the same in 
+ several things, or rather in all particular men insofar as they 
+ are men.*  -- Porphyry

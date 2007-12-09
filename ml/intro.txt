@@ -68,33 +68,33 @@ here is to popularize it, trying to get some of SML ideas into Python frameworks
 Micro-introduction to functional languages
 ------------------------------------------------------------
 
-Simply put, functional languages are programming languages that try very hard to
-avoid mutation and side effects. There are no pure functional
-languages in use, since an absolutely pure language would have to rule
-out input and output and it would be pretty much useless;
+Simply put, functional languages are programming languages that try
+very hard to avoid mutation and side effects. There are no pure
+functional languages in use, since an absolutely pure language would
+have to rule out input and output and it would be pretty much useless;
 nevertheless, some functional languages are purer that others. For
 instance, there are languages which have some support for functional
-programming, but are not considered functional (for instance, Python); others,
-like Lisp, which is regarded as the grandfather of functional
-languages, that are pretty much regarded as impure nowadays; Scheme is
-somewhat perceived as more functional than Common Lisp, but this is
-debatable, and in any case it is not very pure; Standard ML (SML) is
-often perceived as purer than Scheme, but mostly because of
-syntactical convenience, not of technical merit; Haskell is possibly
-the purest functional language commonly used, but still can be used in
-an imperative way. This classification is sloppy and wrong in more
-than one way; nevertheless it is useful (in my personal opinion) in
-the sense that it gives and indication of how much the language
-departs from a mainstream imperative language, and how difficult it is
-to learn it.  Functional languages come in two kinds: dynamically
-typed (Lisp, Scheme, Erlang ...) and statically typed (SML, OCaml, Haskell
-...).  Programmers used to dynamic typing (i.e Pythonistas, Rubystas,
-etc) will have less trouble to understand dynamically typed functional
-language, so it is more interesting (in my opinion) to look at
-statically typed languages. After all, I think a programmer should have at
-least a statically typed language in his toolbox (C++ and Java do not
-count). SML is the simplest statically language out there, so l decided to
-start with it.
+programming, but are not considered functional (Python being an
+example); others, like Lisp, which is regarded as the grandfather of
+functional languages, that are pretty much regarded as impure
+nowadays; Scheme is somewhat perceived as more functional than Common
+Lisp, but this is debatable, and in any case it is not very pure;
+Standard ML (SML) is often perceived as purer than Scheme, but mostly
+because of syntactical convenience, not of technical merit; Haskell is
+possibly the purest functional language commonly used, but still can
+be used in an imperative way. This classification is sloppy and wrong
+in more than one way; nevertheless it is useful (in my personal
+opinion) in the sense that it gives and indication of how much the
+language departs from a mainstream imperative language, and how
+difficult it is to learn it.  Functional languages come in two kinds:
+dynamically typed (Lisp, Scheme, Erlang ...) and statically typed
+(SML, OCaml, Haskell ...).  Programmers used to dynamic typing (i.e
+Pythonistas, Rubystas, etc) will have less trouble to understand
+dynamically typed functional language, so it is more interesting (in
+my opinion) to look at statically typed languages. After all, I think
+a programmer should have at least a statically typed language in his
+toolbox (C++ and Java do not count). SML is the simplest statically
+language out there, so l decided to start with it.
 
 In the following, I will often contrast the functional way with the imperative
 way, and I will mostly use Python as an example of imperative language,

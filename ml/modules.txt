@@ -81,7 +81,7 @@ converting it into a function ``iterator -> unit``, whereas
 iterator.  For instance, suppose we want to define an utility to
 convert to upper case a text file, by applying the function [#]_
 
- ``- fun upper str = String.implode (map Char.toUpper (String.explode str));``
+ ``- fun upper str = String.map Char.toUpper str;``
 
 to each line; we can test it by writing a file like the following::
 
@@ -276,7 +276,7 @@ defines the type ``list``, whereas the ``Vector`` structure defines
 the type ``vector``; both types have a common alias ``t``. 
 ``list`` and ``vector`` are container types, in the sense that a 
 list/vector may contain objects of any type, as long as all the elements
-are homegenous, so you may have a ``string list``, an ``int list``,
+are homogenous, so you may have a ``string list``, an ``int list``,
 a ``string list list``, etc  [#]_::
 
  - val lst = [0,1,2];
@@ -371,7 +371,8 @@ interfaces. Code written to work with a ``SIMPLE_SEQUENCE`` interface
 will automatically work with lists, vectors, and any data structure
 (builtin *and* custom) satisfying the interface.
 
-.. [#] Notice that since SML is a functional language, both lists and vectors are immutable.
+.. [#] Notice that since SML is a functional language, both lists and
+        vectors are immutable.
 
 .. _information hiding: http://en.wikipedia.org/wiki/Information_hiding
 .. _facade pattern: http://en.wikipedia.org/wiki/Facade_pattern
@@ -381,3 +382,4 @@ will automatically work with lists, vectors, and any data structure
     *divide et impera*
 
         -- old Roman saying
+

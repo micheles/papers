@@ -1,10 +1,10 @@
-Functional Programming For Dynamic Programmers - Part 5
+Functional Programming For Dynamic Programmers - Part 6
 =======================================================================
 
 :author:	Michele Simionato
 :date:	December 2007
 
-This is the fifth of a series of articles on functional programming in
+This is the sixth of a series of articles on functional programming in
 statically typed languages. It is intended for dynamic programmers,
 i.e. for programmers with a background in dynamically typed languages,
 such as Perl, Python, Ruby, or languages in the Lisp family. The
@@ -58,67 +58,6 @@ something more dynamic, you should use a map, not a record. Finally, records
 are functional, i.e. immutable: there is no way to change the value of a field,
 you must create an entirely new record with a different value if you want to
 simulate a record update. 
-
-Lists
----------------------------------------------------
-
-Lists are the most common data structures in functional languages (they formed
-the core of Lisp at its beginning) and there are many facilities to manage them and
-to iterate over them. For instance, in the first article of this series, I showed the
-``app`` builtin, to apply a function over the elements of a list; there is also
-a ``map`` builtin to build a new list from an old one::
-
- - val doubles = map (fn x => 2*x) [1,2,3];
- val doubles : int list = [2, 4, 6]
-
-and a ``filter`` function to extract the sublist of elements satisfying a given predicate::
-
- - fun isEven n = n mod 2 = 0;
- - val even = List.filter isEven [1,2,3];
- val even : int list = [2]
-
-Moreover, you can append lists with the ``@`` operator::
-
- - [1] @ [2] @ [3,4];
- val it : int list = [1, 2, 3, 4]
-
-There are other standard facilities and you can look at the documentation
-http://www.standardml.org/Basis/list.html to find them all.
-
-ML lists are linked lists in the same sense of Lisp or Scheme [#]_, however they 
-are immutable. Just as in Scheme [#]_, where
-
-  ``(list 1 2)``
-
-is a shortcut for
-
- ``(cons 1 (cons 2 '()))``
-
-in ML
-
-  ``[1, 2]``
-
-is a shortcut for
-
- ``1::2::[]``
-
-and ``::`` is the *cons* operator (short for constructor).
-
-
-.. [#] Python lists are actually arrays, not lists
-
-.. [#] If you don't know Scheme, 
-
-   [1, 2] (ML) => [1,[2,[]]] (Python)
-
-
-
-It is also possible to apply a binary operator to a list, via the ``foldl`` and ``foldr``
-functions::
-
- - val sum = foldl op+ 0 [1,2,3];
- val sum : int = 6
-
 
 fun enum n = lazy n :: enum (n+1)
 
@@ -223,60 +162,6 @@ end
       val length : 'a aggr -> int
       val sub : 'a aggr * int -> int
    end
- -
-
-ok
-
-"Hello World", part II
--------------------------------------------------
-
-On the other hand, print2 cannot accept anything different than strings::
-
- - print2("the answer is ", 42);
- 1.0-1.28: mismatch on application: expression type
-    string * int
- does not match function's argument type
-    string * string
- because type
-    int
- does not unify with
-    string
-
-To print a string and a number, we should define another function::
-
- - fun print_string_int(s, i)=(print s; print (Int.toString(i)));
- val print_string_int : string * int -> unit = _fn
- - print_string_int("The answer is ", 42);
- The answer is 42val it : unit = ()
-
-This is clearly unpractical, since we can't define an infinite number
-of ``print`` functions to be able to print all the potentially
-infinite types we can have in our programs.  Fortunately there are
-utility library for converting objects in strings (even if not
-standard :-(). SML/NJ has the library FormatComb, to be used as
-follows (from now on, for concision sake, I will omit to write down
-the full output of the REPL)::
-
- - open FormatComb;
- - print (format (text "The value is " o int o text ".") 42);
- The value is 42
-
-The syntax looks strange (especially the "o" operator) and if you
-forget the parenthesis you will get funny error messages. To
-understand what is going on, you will need to master SML to a much
-more advanced level than this first paper is meant to, so you will
-have to wait for "Hello World, Part II" ;) Here I will content myself
-to notice that the format utility requires you to specify the types of
-the arguments. SML is a *typeful* language: the compiler must know the
-types of all your variables *before running the program*.  In a
-dynamic language, instead, the types can be introspected at runtime
-and there is no need to specify them. This is most of the times an
-advantage, however, it also leads to type errors that cannot occur in
-a statically typed language such as SML (also called *type safe*
-languages). Moreover, SML compilers may perform optimization which are
-impossible in a dynamic language (but this is of lesser relevance,
-since any user of dynamic languages will use C libraries if speed is
-an issue).
 
 
 Higher order functions can also be used to implement poor man's object

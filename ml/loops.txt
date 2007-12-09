@@ -113,7 +113,7 @@ functions. You, as a dynamic programmer, will probably already know
 both concepts, but in languages such are Python, Perl, or even Common Lisp
 they are not as pervasive as in truly functional languages.
 
-Recursion
+Loops and recursion
 ----------------------------------------------------
 
 Perhaps the most common construct in imperative programming is the *for* loop;
