@@ -162,8 +162,8 @@ A few comments are in order.
 
 1.
  We used the ability to define exceptions with a value:
-  ``exception ArityError of string`` means that ``ArityError`` accepts
-  a string argument (the error message).
+ ``exception ArityError of string`` means that ``ArityError`` accepts
+ a string argument (the error message).
 
 2.
  We used the standard library ``String.fields`` utility, which splits a string
