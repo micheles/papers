@@ -1,0 +1,7 @@
+.. contents::
+
+.. include:: intro.txt
+.. include:: loops.txt
+.. include:: modules.txt
+.. include:: text.txt
+.. include:: types.txt
