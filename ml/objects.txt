@@ -47,17 +47,25 @@ A record containing functions::
  - #printArticle a article;
  Functional Programming M. Simionato
 
-Notice that the order of the fields is not specified and that there is no
-concept of subrecord; for instance two records of kind 
-``{title:string, author:string, publicationDate:string}``  and 
-``{title:string, author:string}``
-are considered completely different record types, the second one is not a subtype of 
-the first one and you cannot substitute one with the other, possibly with default
-values. Also, records are purely static and resolved at compile time: if you need
-something more dynamic, you should use a map, not a record. Finally, records
-are functional, i.e. immutable: there is no way to change the value of a field,
-you must create an entirely new record with a different value if you want to
-simulate a record update. 
+Notice that the order of the fields is not specified and that there is
+no concept of subrecord; for instance two records of kind
+``{title:string, author:string, publicationDate:string}`` and
+``{title:string, author:string}`` are considered completely different
+record types, the second one is not a subtype of the first one and you
+cannot substitute one with the other, possibly with default
+values. Also, records are purely static and resolved at compile time:
+if you need something more dynamic, you should use a map, not a
+record. Finally, records are functional, i.e. immutable: there is no
+way to change the value of a field, you must create an entirely new
+record with a different value if you want to simulate a record update.
+Alice provides some syntactic sugar for functional record update;
+here is an example::
+
+ - val r={a=1,b=2};
+ val r : {a : int, b : int} = {a = 1, b = 2}
+ - {r where a=2};
+ val it : {a : int, b : int} = {a = 2, b = 2}
+
 
 fun enum n = lazy n :: enum (n+1)
 
