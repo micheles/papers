@@ -1,5 +1,5 @@
-Functional Programming For Dynamic Programmers - Part 1
-=======================================================
+Functional Programming For Dynamic Programmers - Introduction
+===========================================================================
 
 :author: Michele Simionato
 :date: December 2007
@@ -9,73 +9,158 @@ statically typed languages. It is intended for dynamic programmers, i.e.
 for programmers with a background in dynamically typed languages, such as Perl, 
 Python, Ruby, or languages in the Lisp family. The approch is eminently practical
 and example-based; the main goal is to see if we can stole some good idea from
-statically typed languages. In order to be concrete, I will consider languages
-in the ML family, because they are pretty nice and much easier to understand
-that Haskell.
+statically typed languages. I will mostly consider languages in the ML family, because 
+they are pretty nice and much easier to understand than Haskell.
 
 Declaration of intents
-----------------------
+-------------------------------
 
-One may rightly wonder why to study functional languages, and in
-particular statically-typed ones such as SML and Haskell: after all, 
-their relevance in enterprise programming is negligible, they are practically
-unknown for system
-administration task, and unless you are a computer science researcher
-you have no need to know them. All that is true; on the other hand, if
-you believed it, you would not be a dynamic programmer, you would have
-stick with C and you would not be a reader of my papers.
-A dynamic programmer is the kind of person who, when everbody says
-"the Earth is flat", will wonder: "is the Earth *really* flat?". So,
-even if everybody says that object orientation is good and that
-inheritance is the best thing after sliced bread, a dynamic programmer
-will be suspicious of these claims and will seek for alternatives.
-Exactly in the same way he escaped from the enslaving by static typing
-in old fashioned languages, he will escape from the enslaving by
-dynamic typing languages, if he finds valid alternatives. A dynamic
-programmer has a kind of Casanova complex, and he will never be loyal
-to a single language.
-In particular, a dynamic programmer will judge academic languages
-worth of investigation: he may decided not to use them, but still he may get
-some good ideas from them. After all, Python stole the list comprehension
-idea from Haskell and iterators from Icon; Ruby stole many ideas from Scheme
-and Smalltalk; Perl stole from everybody.
-I always wanted to learn a modern statically-typed functional
-language, at least to have something intelligent to say in the endless
-usenet discussions on dynamic typing vs. static typing; recently, by
-accident, I run into Standard ML (SML, ML stands for Meta Language)
-and I found out it has a very clean syntax, so I decided to learn it [#]_.
+The title of this series of articles should make clear that the series
+is not intended for everybody, it is for dynamic programmers
+only. However, I have yet to specify what do I mean by dynamic
+programmer. For me a dynamic programmer is a non-believer, an heretic
+always ready to challenge the programming orthodoxia; moreover, it is
+a programmer with a Casanova complex, a person loving many languages
+and not marrying any one. A dynamic programmer is the kind of person
+who, when everbody says "the Earth is flat", will wonder: "is the
+Earth *really* flat?". When everybody says that object orientation is
+good and that inheritance is the best thing after sliced bread, a
+dynamic programmer will be suspicious of these claims and will seek
+for alternatives.  Exactly in the same way he will escape from the
+enslaving by static typing in C-like languages, he will escape from
+the enslaving by dynamic typing languages, if he finds valid
+alternatives. ll never be loyal to a single language.  The *forma
+mentis* of the dynamic programmer is very different from the *forma
+mentis* of the language evangelist: the dynamic programmer can be
+enhaumored of language for a while, but his love will not be
+exclusive.
+This premise is important in order to undestand the goals of this series
+of articles. The goal is not advocating functional programming. Others
+have taken this role. For instance, there is an infamous 
+article written by John Hughes in 1984 and titled
+`Why Functional Programming Matters`_ which begins with the sentence
+*This paper is an attempt to demonstrate to the “real world” that functional 
+programming is vitally important, and also to help functional programmers 
+exploit its advantages to the full by making it clear what those advantages are.*
+This is *not* the goal of this series of articles. The goal is this series if
+merely educational, to broaden the view of the world of my readers,
+including myself (after all, I am the first of my readers ;)
 
-SML is practically unknown outside academia (its cousins Caml and F# are a
-little more known, but they are certainly very far away from being
-mainstream languages) and I am not interested in advocating it for use
-in enterprise programming; after all in enterprise programming the technical
-advantages of a language count very little compared to things like the support
-you can get, the ability to find skilled programmers,  the interoperability with
-your existent codebase and development environment (I mean the tools and
-libraries you use, the database, etc). My motivation here is to learn something
-from SML, and to try to avoid mistakes in mainstream languages which have
-been already fixed in SML. Let me give a concrete example: in the past I have been
-using Zope and Twisted, which are enterprise-level Python frameworks. They
-share a common implementation of interfaces. I have always had a bad gut
-feeling about Zope interfaces: I always thought they were overkill, complex, and
-not doing by default what they (In my opinion) should do, i.e. interface checking.
-I always thought there should be a better solution (Python 3.0 actually will
-have a simpler  implementation of interfaces in the core language)
-but until I studied SML I had no idea of how the solution should look like.
-I think SML has the better module system I have ever seen; and my goal
-here is to popularize it, trying to get some of SML ideas into Python frameworks.
+A pragmatic programmer may rightly wonder why to study functional
+languages, since their relevance in enterprise programming is
+negligible, they are practically unknown for system administration
+task, and unless you are a computer science researcher you have no
+need to know them. All that is true; on the other hand, if you
+believed it, you would not be a dynamic programmer, you would have
+stick with C and you would not be a reader of my papers.  In
+particular, a dynamic programmer will judge academic languages worth
+of investigation: he may decided not to use them, but still he may get
+some good ideas from them. After all, Python stole the list
+comprehension idea from Haskell and iterators from Icon; Ruby stole
+many ideas from Scheme and Smalltalk; Perl stole from everybody.
 
-Micro-introduction to functional languages
+.. _Why Functional Programming Matters: http://www.math.chalmers.se/~rjmh/Papers/whyfp.html
+
+Mutation, rebinding and side effects in imperative languages
+------------------------------------------------------------------
+
+Usually functional programming is introduced by discussing
+the drawbacks of imperative programming, in particular the drawbacks 
+of mutation and side-effects. I will follow this tradition too
+(a dynamic programmer has no obbligation
+to be innovative at any cost, he may well decide to follow the traditional way).
+
+I will just add that I don't find the arguments against mutation and side effects
+terribly compelling. Certainy there are bugs due to mutation and side
+effects, but in my working experience they are relatively rare. Most of the bugs I have
+in my code are actually issue of business logic (I understood the specs incorrectly or the
+specs where incomplete); many others are due to an incomplete or wrong knowledge of
+the system I have work with; and others are due to the deadlines.
+I would have the same bugs even using a functional language.
+On the other hand, I have nothing against diminuishing the language-related bugs,
+even if they are a minority, so, let me contrast the functional way with the imperative
+way here. I will mostly use Python as an example of imperative language,
+because it is a language that I know well enough, and because it is
+so readable that the examples will be easy to understand even for
+programmers not familiar with Python.
+
+Let me begin by discussing the concept of mutation. 
+When you write code like 
+
+>>> lst = []; lst.append(1)
+
+in Python you are mutating the list ``lst``: originally it is empty, after the ``append``
+operation it contains the number ``1``. Mutation is a potential source of bugs and
+there are various workaround to make the bugs less likely. For instance, Scheme and
+Ruby use the *bang convention*: the name of a function/method performing mutation ends
+with an exclamation mark, so that they are more visible to the programmer. Python has
+no bang, but there is the convention that mutating methods returns ``None`` and
+not the mutated object. Pure functional languages such as Haskell take a radication
+position and they just make everything immutable. Making everything immutable
+has big advantages especially in multithreaded programming, since different threads cannot
+interfere each other and you can just forget about locks. On the other hand, various
+programming patterns based on mutability (for instance keeping a registry of callbacks)
+becames impossible.
+
+Another very common operation in imperative languages is rebinding a variable.
+When you write code like 
+
+>>> i = 1; i = i+1
+
+in Python, you are explicitely rebinding the name ``i`` which originally
+points to the value ``1``, making it to point to the value ``2``.
+This looks like an harmless operation. It is however not so harmless and it may be
+the source of subtle bugs. Consider for instance the following example
+
+>>> f1, f2, f3 = [lambda : i for i in (1, 2, 3)]
+
+Here I am definiting three function without argument (thunks); at each iteration
+in the ``for`` loop the index ``i`` is rebound; at the end of the loop, ``i``
+points to the value ``3``, so all thunks return ``3``:
+
+>>> f1()
+3
+>>> f2()
+3
+>>> f3()
+3
+
+In Haskell, where there is no rebinding, the corresponding list comprehension would
+return three thunks, the first one returning ``1``, the second ``2``, the third ``3`` [#]_.
+
+.. [#] To get the same in Python you can recur to the default argument hack, i.e. you can
+        rewrite ``f1, f2, f3 = [lambda i=i: i for i in (1, 2, 3)]``.
+
+Finally, let me discuss the side effects issue.  To be concrete, consider 
+the following function with side effects::
+
+  def square(x):
+     print "Called function square with argument %s" % x
+     result = x * x
+     return result
+
+Each time the function ``square`` is called, you get a log message as side effect.
+Unfortunaly, side effects do not play well with memoization techniques and if you cache
+the result of ``square`` with a suitable decorator::
+
+  square = memoize(square)
+
+the log message will not be printed the second time you call the function. 
+Generally speaking, programs relying on side effects cannot perform some kind of
+optimization that functional programs cannot perform.
+
+Functional programs have also various formal properties which are appealing for
+language theorists. I will say something more on that on the following articles.
+
+The world of functional languages
 ------------------------------------------------------------
 
-Simply put, functional languages are programming languages that try
-very hard to avoid mutation and side effects. There are no pure
-functional languages in use, since an absolutely pure language would
-have to rule out input and output and it would be pretty much useless;
-nevertheless, some functional languages are purer that others. For
-instance, there are languages which have some support for functional
+Often functional languages are classified according to their "purity", i.e. according to
+how hard they try to avoid mutation and side effects. That means that f
+unctional languages are not all equal: some are purer that others. 
+There are languages which have some support for functional
 programming, but are not considered functional (Python being an
-example); others, like Lisp, which is regarded as the grandfather of
+example); others, like Lisp, the grandfather of
 functional languages, that are pretty much regarded as impure
 nowadays; Scheme is somewhat perceived as more functional than Common
 Lisp, but this is debatable, and in any case it is not very pure;
@@ -86,189 +171,52 @@ be used in an imperative way. This classification is sloppy and wrong
 in more than one way; nevertheless it is useful (in my personal
 opinion) in the sense that it gives and indication of how much the
 language departs from a mainstream imperative language, and how
-difficult it is to learn it.  Functional languages come in two kinds:
-dynamically typed (Lisp, Scheme, Erlang ...) and statically typed
-(SML, OCaml, Haskell ...).  Programmers used to dynamic typing (i.e
-Pythonistas, Rubystas, etc) will have less trouble to understand
-dynamically typed functional language, so it is more interesting (in
-my opinion) to look at statically typed languages. After all, I think
+difficult it is to learn it. 
+Notice that there are no pure
+functional languages in use, since an absolutely pure language would
+have to rule out input and output and it would be pretty much useless.
+
+As always, one must be careful when distinguing the real benefits of
+purity (i.e. fewer bugs, simpler concurrency, better optimizations)
+versus religious thinking (remember OOP bigots?). There are always
+tradeoffs and by no means you should believe *the purest the better*.
+The important things in a language are things like simplicity of use,
+readability, interactivity, debuggability and of course the existence
+of good implementations and good libraries.  Still, it is nice to have
+a clean language, if possible.
+
+The world of functional languages is split in two: on one side there
+are the dynamically typed functional languages (Lisp, Scheme, Erlang
+...) on the other side there are the statically typed functional
+languages (SML, OCaml, Haskell ...) . To decide if the dynamically
+type languages are better than the statically typed ones or viceversa
+is an hot debate. For sure, dynamically typed languages are more used
+and better known. Programmers used to dynamic typing (i.e Pythonistas,
+Rubystas, etc) will have less trouble to understand dynamically typed
+functional language than statically types ones.
+
+Still I think it is interesting to look at statically typed languages. After all, I think
 a programmer should have at least a statically typed language in his
-toolbox (C++ and Java do not count). SML is the simplest statically
+toolbox (C++ and Java do not count ;) Also, I should notice that there are
+often issues of terminology when talking about types. Most people coming
+from the dynamic world will say that their language
+is strongly typed, contrasting it with weakly typed languages such as C
+or Assembly, where characters are the same as short integers, or with
+Perl, where 2+"3" is a valid expression and returns 5. On the other hand,
+people from the static world will say than dynamically typed languages
+are untyped, since you can change the type of a variable. For instance,
+the following is valid Scheme code:: 
+
+  (define a 1) 
+  (set! a  "hello")
+
+In a statically typed language, if a variable is of type integer, it
+stays of type integer, it cannot magically turn into a string.
+
+SML is the simplest statically
 language out there, so l decided to start with it.
-
-In the following, I will often contrast the functional way with the imperative
-way, and I will mostly use Python as an example of imperative language,
-because it is a language that I know decently well, and because it is
-so readable that the examples will be easy to understand even for
-programmers not familiar with Python.
-
-Getting an SML compiler
---------------------------------------------------------
-
-SML is a language with many implementations, so if you want to try it,
-you must decide which implementation to use. I have played with some
-of them, including SML of New Jersey (http://www.smlnj.org) and MLton
-(http://mlton.org) but at the end I have decided to use Alice ML,
-since it has a lot of innovative features, an interesting set of libraries, and
-some clean syntax extensions.  It is also a very dynamic version of SML,
-so that dynamic programmers will not feel too constrained ;-)
-On Ubuntu, you can install it with 
-``apt-get install alice-runtime`` (having added 
-``deb http://www.ps.uni-sb.de/alice/download/debian stable contrib`` to your
-``/etc/apt/sources.list``) where on the Mac, you can download the
-``.dmg`` installer and add ``/Applications/Alice.app/Contents/Resources/bin`` 
-to your PATH. There is also an installer for Windows, but if you are a dynamic
-programmer I do not expect you to use Windows, unless you are forced
-to ;) 
-
-Having installed Alice you can start the "interpreter"  or REPL 
-(read-eval-print-loop) [#]_ as follows::
-
- $ alice
- Alice 1.4 ("Kraftwerk 'Equaliser' Album") mastered 2007/04/24 
- ### loaded signature from x-alice:/lib/system/Print
- ### loaded signature from x-alice:/lib/tools/Inspector
- ### loaded signature from x-alice:/lib/distribution/Remote
-
-Now you can write your first mandatory "Hello world" program::
-
- -  print "Hello world\n";
- Hello world
- val it : unit = ()
-
-and you are ready to start. If you are an old timer Emacs user, you
-may also want to install (Aqua)Emacs and the sml-mode for Emacs (Alice
-has a custom version of it, that you can download from here_ ).
-
-.. _here: http://www.ps.uni-sb.de/alice/download/sml-mode-4.0+alice.zip
-
-.. [#] In principle, one may argue that choosing a language because of
-        its syntax is stupid and that one should look at its features,
-        libraries, reliability, etc; in practice, many languages are
-        more or less equivalent in terms of features, libraries and
-        reliability, so that the main factor for the choice of the
-        language is it syntax.  Also, when you are a beginner and you
-        need to write only simple programs, syntax is all that
-        matters.
-
-.. [#] Technically the Alice REPL is not an interpreter: the
-         expressions you enter are compiled on the fly and executed
-         immediately, not interpreted. However, the overall
-         user-experience is the same as if you had an
-         interpreter. This approach is commons in ML and Lisp implementations.
-
-It may be useful sometime to contrast Alice with more traditional ML
-implementations (especially to see if the error messages are more
-understandable with another compiler) so you want to run
-``apt-get install smlnj mlton`` as well.
- 
-Hello world
----------------------------------------
-
-In the previous section I have shown how the traditional "Hello world"
-program looks in ML.  ML is a language without statements (as usual in 
-functional languages; statements are actually a bad idea IMO, even 
-for imperative languages [#]_) so *print* is a  function taking a string in
-input and returning an empty tuple in output, as you
-can see from the last line of output
-
-``val it: unit = ()``
-
-The empty tuple is of type ``unit`` and it is the sole representative of that 
-type (i.e. it is a singleton). In general, any object has a type; 
-for instance, if you enter the number 42 at the prompt you will get 
-
-::
-
- - 42;
- val it: int = 42
-
-The REPL just prints a string representation of the value
-you entered, together with its type (in this case, int).
-
-A point to notice in the "Hello world" program
-is the lack of parenthesis: we wrote ``print
-"Hello world\n";`` and not ``print("Hello world\n")``. This is
-possible since the ``print`` function in ML takes only a *single*
-argument; actually *all* functions in SML takes a single argument!
-
-You may wonder how is it possible to program anything serious if all
-functions take a single argument: the answer is that the single
-argument can be of a composite type, for instance a tuple. So you may
-define functions like the following
-
-::
-
- - fun print2 (arg1, arg2)= (print arg1; print arg2);
- val print2 : string * string -> unit = _fn
-
-Here ``print2`` takes a single argument, which is a 2-tuple (a pair),
-and returns the null (unit) value. The interesting thing is that the
-compiler has been able to figure out by itself that the arguments must
-be of string type, since ``print`` expects a string, and that
-``print2`` will return an ``unit`` value, since ``print`` does so: we
-are seeing here the type -inferencer at work. We also see that a
-function is just a value as any other value, i.e. functions are first
-class objects, as usual in dynamics languages; its type is 
-``string * string -> unit``.
-
-Let us check that ``print2`` works as expected::
-
- - print2 ("hello ", "world");
- hello world
- val it: unit = ()
-
-If you want to print a generic number of arguments,  you can use a list::
-
- - fun printList lst = app print lst; 
- val printList : string list -> unit =_fn
- - printList["Hello ", "World", "!", "\n"];
- Hello World!
- val it : unit = ()
-
-The builtin function ``app`` apply the ``print`` function to each element of the
-list from left to right.
-
-ML does not have default arguments, so you cannot write the analogous
-of this Python function::
-
-  >>> def printUser(user="Michele"):
-  ...      print "Hello,", user
-  >>> printUser()
-  Hello, Michele
-  >>> printUser("Mario")
-  Hello, Mario
-
-In Python, ``printUser`` can be called with zero or one arguments, but in ML this
-is not possible, since functions with different arity are of a different type and
-ML does not support function overloading; however, you can however work around 
-this feature [#]_ by using  options. ML has a standard *option* type, used for
-objects which may have a NONE value; any object can be converted into an option 
-by wrapping it with SOME. An example will make it clear. Let me define::
-
- - fun printUser(userOpt: string option) = 
-      printList ["Hello, ", getOpt(userOpt, "Michele"), "\n"];
- val printUser : string option -> unit = _fn
-
-where *getOpt(opt, default)* is a builtin function which returns the
-value of the option, or the default if the option have value NONE. We
-may call *printUser* as follows::
-
- - printUser NONE;
- Hello, Michele
- - printUser (SOME "Mario");
- Hello, Mario
-
-The syntax is definitively ugly, and there are actually clever tricks
-to implement default arguments in a nicer way, but they are too
-advanced for this introduction.  But stay tuned for the next issues ;)
-
-.. [#] Incidentally, in current Python ``print`` is a statement and it
-        does not return anything, but in Python 3000 ``print`` will be
-        function returning None
-
-.. [#] The lack of function overloading may be seen as a feature or as
-        a limitation, depending on the reader.
+In the next installment I will show you "hello world" in SML as well as 
+a few other things, stay tuned!
 
 ----
 

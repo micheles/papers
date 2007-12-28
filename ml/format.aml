@@ -1,10 +1,8 @@
 (*
 A library implementing a very simple string interpolation facility. 
-It exports a single higher order function 'format' converting a template
-string into a 'string list -> string' function replacing the template 
-with the provided list of arguments. An example of usage is 
+An example of usage is 
 
-do print(format "The square of $ is $\n" ["3", "9"])
+   print(format "The square of $ is $\n" ["3", "9"])
 *)
 
 signature FORMAT = sig
@@ -22,7 +20,7 @@ structure Format = struct
   end
 
   val rec interp' =
-   fn (t :: [], [], acc) => concat(rev (t :: acc))
+   fn ([t], [], acc) => concat(rev (t :: acc))
     | (t :: templ, a :: args, acc) => interp'(templ, args, t :: a :: acc)
     | _ => raise ArityError "This should never happen"
 

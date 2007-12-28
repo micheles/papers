@@ -22,7 +22,9 @@ Smalltalk.  In such languages you here often the mantra *everything is
 an object* meaning that everything is a first class value which can
 created and inspected at runtime. Moreover, any object has a class,
 and classes themselves are objects, i.e. they are instances of
-metaclasses.  SML has a type system which is completely different from
+metaclasses.  The first step in order to learn the SML type system is to forget
+everything you know about object systems. 
+SML has a type system which is completely different from
 the object system of dynamic language. There a lots of things which
 are not first class values (structures, exceptions, signatures, ...)
 and even types are such: in SML any value has a type, but types itself
@@ -34,9 +36,8 @@ gives an error::
 
 Just as structures  types live in a separated namespace.  
 SML types are not classes in any OO sense of the term,
-you cannot introspect them, there are no methods and no inheritance, 
-thus the first step in order to learn the SML type system is to forget
-everything you know about OOP. Having said that, you can certainly
+you cannot introspect them, there are no methods and no inheritance.
+Having said that, you can certainly
 program in an OO style in ML,  but you don't use types for OOP, types are used
 internally by the compiler, but from the user's point of view they are just
 labels attached to values.
@@ -53,10 +54,11 @@ as follows::
  - datatype int_or_string = INT of int | STR of string;
  datatype int_or_string = INT of int | STR of string
 
-This definitions tells the compiler that the label ``int_or_string`` has to
-be used when showing the signature of objects of the newly defined types;
-but the important things are the constructors, which are able to convert (or *cast*)
-primitive values to values of the new type::
+This definitions tells the compiler that the label ``int_or_string``
+has to be used when showing the signature of objects of the newly
+defined types; but the important things are the constructors, which
+are able to convert (or *cast*) primitive values to values of the new
+type::
 
  - val v1 = INT 1;
  val v1 : int_or_string = INT 1
@@ -111,10 +113,97 @@ but we can define::
  - [INT 1, STR "two"];
  val it : int_or_string list = [INT 1, STR "two"]
 
-As Harper puts it, *heterogenity is a special case of homogenity*.
+As Harper puts it, *heterogenity is a special case of homogenity* [#]_.
 
-It is also possible to define parametric types, where the constructor(s) can
-accept any type as argument. For instance, we can define a parametric box type::
+.. [#] "Programming in Standard ML", section 10.4
+
+Composite types and recursive types
+--------------------------------------------------
+
+We may define composite types, i.e. types with
+*syntactic arity* greater than one, like the following::
+
+ - datatype string_int = STRING_INT of string * int;
+ datatype string_int = STRING_INT of string * int
+
+The uppercase identifier is called the constructors of the datatype, and can
+be used to make concrete instances of the type::
+
+ - STRING_INT("hello",  1);
+ val it : string_int = STRING_INT ("hello", 1)
+
+where the constructor is a first class value, being simply a function taking
+a pair ``(string, int)`` as input::
+
+ - STRING_INT;
+ val it  : string * int -> string_int = _fn
+
+Moreover, SML allows to define recursive types. For instance, a file system is a typical
+example of recursion, since directories can contains directories at any
+level of nesting. It can modeled with the following recursive datatype::
+
+  - datatype file_or_dir = File of string | Dir of string * file_or_dir list
+  datatype file_or_dir = Dir of string * file_or_dir list | File of string
+
+Here a file is identified by its pathname, whereas a directory is identified by
+its pathname and its contents, a list of files or directories. Here are a few
+example of usages::
+
+ - val f1 = File "file1";
+ val f1 : file_or_dir = File "file1"
+ -val f2 = File "file2"; 
+ val f2 : file_or_dir = File "file2"
+ - val d = Dir("dir", [f1, f2]);
+ val d : file_or_dir = Dir ("dir", [File "file1", File "file2"])
+ - val p = Dir("parent", [d, File "file3"]);
+  val p : file_or_dir =
+   Dir ("parent", [Dir ("dir", [File "file1", File "file2"]), File "file3"])
+
+Recursive datatypes are naturally associated with recursive functions;
+for instance you can pretty print the content of a directory with the
+following function::
+
+ val prettyPrint = let
+     val rec prettyPrint' = 
+      fn (File name, spaces) => print (spaces ^ name ^ "\n")
+       | (Dir (name, contents), spaces) => (
+         print (spaces ^ name ^ "\n"); 
+         app (fn c => prettyPrint'(c, spaces ^ "  ")) contents)
+ in 
+     fn f_or_d => prettyPrint' (f_or_d, "")
+ end
+
+ - do prettyPrint p
+ parent
+   dir
+     file1
+     file2
+   file3
+
+SML also allows to define types with syntactic arity zero, i.e.
+enumeration types, like the following one::
+
+ - datatype color = RED|GREEN|BLUE;
+ datatype color = BLUE | GREEN | RED
+
+For enumeration types the name "constructor" is rather improper, since constructor are
+just values::
+
+ - RED;
+ val it : color = RED
+
+ - GREEN;
+ val it : color = GREEN
+
+ - BLUE;
+ val it : color = BLUE
+
+Parametric types 
+---------------------------------------
+
+By far, the most interesting types in SML are the parametric types,
+where the constructor(s) can accept any type as argument. The simplest
+parametric type is the box type::
 
  - datatype 'a box = Box of 'a;
  datatype 'a box = Box of 'a
@@ -139,32 +228,12 @@ Notice that it is pretty easy to define a function extracting the inner value fr
 
   - fun unbox (Box x) = x;
 
-The builtin ``Ref`` type works as a box and the builtin``!`` function works
+The builtin ``ref`` type works as a box and the builtin``!`` function works
 as ``unbox``, the different is that our ``Box`` is immutable, i.e. we do not
 have an equivalent of the assigment function ``:=``.
 
-More on datatypes
------------------------------------------------------------
-
-We may define composite types, i.e. types with
-*syntactic arity* greater than one, like the following::
-
- - datatype string_int = STRING_INT of string * int;
- datatype string_int = STRING_INT of string * int
-
-The uppercase identifier is called the constructors of the datatype, and can
-be used to make concrete instances of the type::
-
- - STRING_INT("hello",  1);
- val it : string_int = STRING_INT ("hello", 1)
-
-where the constructor is a first class value, being simply a function taking
-a pair ``(string, int)`` as input::
-
- - STRING_INT;
- val it  : string * int -> string_int = _fn
-
-A more interesting example could be a *named_function* type corresponding
+A more interesting example of parametric type
+could be a *named_function* type corresponding
 to a pair *(function, name)*, where *function* can be of any functions, whereas 
 *name* is a string. 
 We can define it as follows::
@@ -187,23 +256,6 @@ Here is an example::
   (* giving a  name to the function x=>2*x *)
  val it = NAMED_FUNCTION (fn,"double") : (int,int) named_function
 
-SML also allows to define enumeration types, like the following one::
-
- - datatype color = RED|GREEN|BLUE;
- datatype color = BLUE | GREEN | RED
-
-but for enumeration types the name is rather improper, since they are
-just values::
-
- - RED;
- val it : color = RED
-
- - GREEN;
- val it : color = GREEN
-
- - BLUE;
- val it : color = BLUE
-
 Finally, SML let you define aliases for previously defined types,
 or builtin types, by using the ``type`` keyword::
 
@@ -215,9 +267,9 @@ or builtin types, by using the ``type`` keyword::
  - type ls = List.list;
     type ls = List.list
 
-This is especially convenient when writing signatures.
+This is especially convenient when writing (abstract) signatures.
 
-Poor man's polymorphism
+Runtime polymorphism
 -----------------------------------------------------------------
 
 Possibly the most used word in statically typed languages is *polymorphism*.
