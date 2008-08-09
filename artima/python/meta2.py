@@ -235,7 +235,7 @@ class MetaRecord(type):
             odic['all_slots'] = all_slots
             odic['all_names'] = tuple(n[:-5] for n, f in all_slots)
             odic['all_fields'] = fields = tuple(f for n, f in all_slots)
-            cls = super().__new__(mcl, name, bases, odic)
+            cls = super().__new__(mcl, name, bases, dict(odic))
             mcl._repository[fields] = cls
             for i, (n, v) in enumerate(all_slots):
                   setattr(cls, n[:-5], property(lambda self, i=i: self[i]))
@@ -279,3 +279,5 @@ class Record(tuple, metaclass=MetaRecord):
           slots = ['%s=%s' % (n, v) for n, v in zip(self.all_names, self)]
           return '<%s %s>' % (self.__class__.__name__, ', '.join(slots))
 
+if __name__ == '__main__':
+      import doctest; doctest.testmod()

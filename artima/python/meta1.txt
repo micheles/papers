@@ -143,7 +143,9 @@ is that the dictionary interface has changed in Python 3.0: the methods
 ``.iterkeys()``, ``.itervalues()`` and ``.iteritems()`` 
 were removed and the methods ``.keys()``, ``.values()``
 and ``.items()`` now return views instead of lists. Again, I have
-no time to discuss views right now.
+no time to discuss views right now, but you can look at the `relevant PEP`_.
+
+.. _relevant PEP: http://www.python.org/dev/peps/pep-3106/
 
 We still need to tell the metaclass to use an ``odict`` instead of ``dict``.
 To this aim, Python 3.0 recognizes a special (class)method
