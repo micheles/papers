@@ -22,10 +22,10 @@ also, I skipped C++ and Java
 since I switched directly to Python; finally, I skipped the GUI era and
 I started directly with Web programming. On the other hand, I also skipped
 the Object Oriented era so I needed to spend some time to catch up.
-The result of my catching up are my first papers on Python object
-model, which are relatively popular among Pythonistas,
-i.e. the `papers on meta-classes`_ with David Mertz
-and the essay about the `Python Method Resolution Order`_ written at the
+The result of my catching up are my first papers on the Python object
+model, which are relatively popular among Pythonistas: I mean
+the `papers on meta-classes`_ with David Mertz
+and the essay about the `Python Method Resolution Order`_, written at the
 end of 2002. Since then I had the time to see the difference between
 the theory and the practice, I have worked with large object oriented
 frameworks (Zope/Plone/Twisted) and I have got a lot of opinions about
@@ -36,7 +36,7 @@ software development and about how to keep things simple.
 .. _Stacktrace: http://www.stacktrace.it
 
 There are many reasons why I am starting this blog.
-For one, I like write papers/essays and I have written a lot
+For one, I like to write papers/essays and I have written a lot
 in the past years, publishing on IBM DeveloperWorks, O'Reilly, Pyzine
 and more recently on Stacktrace_. I was looking for a centralized place
 where to publish my thoughts without constraints of time, size,
