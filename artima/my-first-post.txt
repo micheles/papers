@@ -95,7 +95,7 @@ written.
 .. _anti-patterns: http://en.wikipedia.org/wiki/Antipattern
 .. _I use to write my own papers: http://stacktrace.it/articoli/2008/01/geek-publishing/
 
-Not it is time to say something about the title of this blog, *The
+Now it is time to say something about the title of this blog, *The
 Explorer*. There are many (good and bad) books on software development
 that talk about patterns, best practices, proven methodologies and all
 that. This is *not* my goal. These books are about the past, whereas I
