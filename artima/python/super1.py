@@ -35,7 +35,7 @@ and *release early, release often*. We will see how it goes.
 Introduction
 -------------------------------------------------------------
 
-``super`` is Python a built-in, first introduced in Python 2.2 and
+``super`` is a Python built-in, first introduced in Python 2.2 and
 slightly improved and fixed in later versions, which is often
 misunderstood by the average Python programmer. One of the reasons for
 that is the poor documentation of ``super``: at the time of this
@@ -57,13 +57,13 @@ Inheritance (MI) world. Also, the sentence about *unbound* is misleading,
 since it may easily lead the programmer to think about bound and unbound
 methods, whereas it has nothing to do with that concept. 
 IMNSHO ``super`` is one of the most trickiest and surprising Python 
-constructs, and we absolutely needs a document to shed light on its secrets. 
+constructs, and we absolutely need a document to shed light on its secrets. 
 The present paper is a first step in this direction: it aims to tell you 
 the *truth* about ``super``. At least the amount of truth
 I have discovered with my experimentations, which is certainly
 not the whole truth ;)
 
-A fair warning is in order here: this document is aimed to expert
+A fair warning is in order here: this document is aimed at expert
 Pythonistas. It assumes you are familiar with `new-style classes`_ and
 the `Method Resolution Order`_ (MRO); moreover a good understanding of
 descriptors_ would be extremely useful. Some parts also require good
@@ -134,7 +134,7 @@ correctly returns the value 2, not 0:
  >>> super(C,c).a
  2
 
-You may call ``A`` the superclass of ``C``, but this is not an useful
+You may call ``A`` the superclass of ``C``, but this is not a useful
 concept since the methods are resolved by looking at the classes
 in the MRO of ``C``, and not by looking at the classes in the MRO of ``A``
 (which in this case is ``[A,T, object]`` and does not contain ``B``). 
@@ -147,7 +147,7 @@ Bound and unbound (super) methods
 ----------------------------------------------------------------
 
 Having established that ``super`` cannot return the
-mythical superclass, we may ask ourselves what the hell is returning 
+mythical superclass, we may ask ourselves what the hell it is returning 
 ;) The truth is that ``super`` returns proxy objects.
 
 Informally speaking, a proxy is an object with
@@ -235,7 +235,7 @@ class C(B):
 
 I got the impression that in order to get unbound methods I needed to use
 the unbound ``super`` object. This is actually untrue. To understand how 
-bound/unbound methods works we need to talk about descriptors.
+bound/unbound methods work we need to talk about descriptors.
 
 ``super`` and descriptors
 ----------------------------------------------------
@@ -287,7 +287,7 @@ not an unbound one:
 
 The core developers changed the behavior of ``super`` again, making
 my life difficult while I was writing this paper :-/
-I cannot make the history of the bugs of ``super`` here, but if you
+I cannot trace the history of the bugs of ``super`` here, but if you
 are using an old version of Python and you find something weird with
 ``super``, I advice you to have a look at the Python bug tracker
 before thinking you are doing something wrong.
