@@ -286,7 +286,7 @@ not an unbound one:
 <bound method D.__repr__ of <instance of D>>
 
 The core developers changed the behavior of ``super`` again, making
-my life difficult when I was writing this paper :-/
+my life difficult while I was writing this paper :-/
 I cannot make the history of the bugs of ``super`` here, but if you
 are using an old version of Python and you find something weird with
 ``super``, I advice you to have a look at the Python bug tracker
