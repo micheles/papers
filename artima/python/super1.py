@@ -285,12 +285,29 @@ not an unbound one:
 >>> super(C, d).__repr__.__get__(None, D) # in Python 2.4+
 <bound method D.__repr__ of <instance of D>>
 
-The core developers changed the behavior of ``super`` again, making
+The core developers changed the behavior again, making
 my life difficult while I was writing this paper :-/
 I cannot trace the history of the bugs of ``super`` here, but if you
 are using an old version of Python and you find something weird with
 ``super``, I advice you to have a look at the Python bug tracker
 before thinking you are doing something wrong.
+In this case, to be correct, the change is not in ``super``, but in the
+descriptor implementation. In Python 2.2-2.3 you could
+get an unbound method from a bound one as follows::
+
+ >> d.__repr__.__get__(None, D) # in Python 2.2-2.3 
+ <unbound method D.__repr__>
+
+In Python 2.4 that does not work anymore:
+
+>>> d.__repr__.__get__(None, D) # in Python 2.4+ 
+<bound method D.__repr__ of <instance of D>>
+
+Still, you can get the unbound method by passing for the underlying
+function first:
+
+>>> d.__repr__.im_func.__get__(None, D) # in Python 2.4+ 
+<unbound method D.__repr__>
 
 .. _Method Resolution Order: http://www.python.org/download/releases/2.3/mro/
 .. _new-style classes: http://www.python.org/download/releases/2.2.3/descrintro/
