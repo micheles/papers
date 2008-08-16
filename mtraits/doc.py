@@ -148,7 +148,7 @@ get an ``OverridingError``:
 ...     include(Pack, Place, Grid)
 Traceback (most recent call last):
   ...
-OverridingError: Pack.{info, config, configure, slaves, forget} overriding names in Place
+OverridingError: Pack overrides names in Place: {info, config, configure, slaves, forget}
 
 The reason for the error is clear: both ``Pack`` and ``Place`` provide
 methods called ``{info, config, configure, slaves, forget}`` 
@@ -321,22 +321,7 @@ old-style class and the metaclass for ``TOSWidget2`` is just ``TOSMeta``:
 However, in general you may need to build your Trait Based Framework
 on top of pre-existing classes with a nontrivial metaclass, for
 instance Zope classes; in that case having a class decorator smart
-enough to figure out the right metaclass to use is a convenient. Here
-is an example using Plone classes:
-
->> from OSF.Folder import Folder
-
-
-when you call
-``super(<class>, <subclass>).method``
->> from zope.plone import BaseContent
->> class 
-
->> type(X)
-ExtensionClassMetaTOS
-
-
-<type 'ExtensionClass.ExtensionClass'>
+enough to figure out the right metaclass to use is a convenient.
 
 Why multiple inheritance is forbidden
 ----------------------------------------------------------
@@ -513,11 +498,16 @@ class Meta(type):
     pass
 
 def test_getattr():
-    class C:
-        __metaclass__ = TOSMeta
-        def __getattr__(self, name):
-            pass
-
+    try:
+        class C:
+            __metaclass__ = TOSMeta
+            def __getattr__(self, name):
+                pass
+    except OverridingError: # expected
+        pass
+    else:
+        raise RuntimeError("OverridingError not raised!")
+    
 def test_multi_include():
     class B(object):
         __metaclass__ = Meta

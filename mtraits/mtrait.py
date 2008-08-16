@@ -27,11 +27,9 @@ def check_overridden(mixins, exclude, raise_='error'):
     "Raise an OverridingError for common names not in the exclude set"
     for common, c1, c2 in find_common_names(mixins):
         overridden = ', '.join(common - exclude)
-        if ',' in overridden: # for better display of the names
-            overridden = '{%s}' % overridden
         if overridden:
-            msg = '%s.%s overriding names in %s' % (
-                c1.__name__, overridden, c2.__name__)
+            msg = '%s overrides names in %s: {%s}' % (
+                c1.__name__, c2.__name__, overridden)
             if raise_ == 'error':
                 raise OverridingError(msg)
             elif raise_ == 'warning':
