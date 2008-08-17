@@ -1,4 +1,5 @@
 import re, sys, inspect, types, warnings
+from noconflict import get_noconflict_metaclass
 
 class OverridingError(NameError):
     pass
@@ -34,6 +35,62 @@ def check_overridden(mixins, exclude, raise_='error'):
                 raise OverridingError(msg)
             elif raise_ == 'warning':
                 warnings.warn(msg, OverridingWarning, stacklevel=2)
+
+def getboundvalue(value, obj, objcls):
+    "Convert a value into a bound descriptor or do nothing"
+    try: # return the bound descriptor
+        return value.__get__(obj, objcls)
+    except AttributeError: # not a descriptor
+        return value
+
+# added to the instances of TOSMeta
+def __obj_getattribute__(obj, name, get=object.__getattribute__):
+    """
+    Lookup for TOS instances:
+    1. look at the instance dictionary;
+    2. look at the class dictionary;
+    3. look at the traits;
+    4. look at the base classes and to __getattr__
+    """
+    if name.startswith('__') and name.endswith('__'): # special name, do nothing
+        return get(obj, name)
+    try:
+        return vars(obj)[name]
+    except KeyError:
+        pass
+    objcls = type(obj)
+    try:
+        return getboundvalue(vars(objcls)[name], obj, objcls)
+    except KeyError:
+        pass
+    for boundtrait in obj.__traits__:
+        try:
+            return getattr(boundtrait, name)
+        except AttributeError:
+            pass
+    return get(obj, name)
+
+# added to TOSMeta
+def __cls_getattribute__(cls, name, get=type.__getattribute__):
+    """
+    Lookup for TOS classes:
+    1. look at the class dictionary;
+    2. look at the traits;
+    3. look at the base classes and the metaclass __getattr__
+    """
+    if (name.startswith('__') and name.endswith('__')) or name == 'mro': 
+        # special names, do nothing
+        return get(cls, name)
+    try:
+        return getboundvalue(vars(cls)[name], None, cls)
+    except KeyError:
+        pass
+    for boundtrait in cls.__traits__:
+        try:
+            return getattr(boundtrait, name)
+        except AttributeError:
+            pass
+    return get(cls, name)
 
 class Trait(object):
     """
@@ -94,110 +151,6 @@ class Trait(object):
     def __setstate__(self, inner):
         self.__init__(inner, inner.__name__)
 
-def __getattr__(obj, name):
-    "__getattr__ added by TOSMeta"
-    objcls = obj.__class__
-    for trait in obj.__traits__:
-        bt = trait.__get__(obj, objcls) # bound trait
-        try:
-            return getattr(bt, name)
-        except AttributeError:
-            continue
-    raise AttributeError(name)
-
-class TOSMeta(type):
-    """The metaclass for the Trait Object System. It is intended to be
-    called only indirectly via ``include``. It provides the following features
-    to its instances:
-    1. forbids multiple inheritance
-    2. checks for accidental overriding of __getattr__ and __getstate__
-    3. provides the class with the correct base __getattr__ and __getstate__
-    4. provides the basic empty __traits__ attribute
-    """
-
-    def __new__(mcl, name, bases, dic):
-        if len(bases) > 1:
-            raise TypeError(
-                'Multiple inheritance of bases %s is forbidden for TOS classes'
-                % str(bases))
-        elif oldstyle(bases): # ensure new-style class
-            bases += (object, )
-        for meth in ('__getattr__', '__getstate__'):
-            if meth in dic:
-                raise OverridingError('class %s defines %s' % (name, meth))
-        traits = getattr(bases[0], '__traits__', ())
-        if not traits: # the first time
-            dic['__getattr__'] = dic.get('__getattr__', __getattr__)
-            dic['__getstate__'] = dic.get('__getstate__', vars)
-            basemixins = ()
-        else:
-            basemixins = tuple(t._Trait__inner for t in traits)
-        mixins = dic.get('__mixins__', ())
-        if mixins:
-            commonset = set(basemixins) & set(mixins)
-            if commonset:
-                raise TypeError("Redundant mixins %s!", commonset)
-            mixins = basemixins + mixins
-            check_overridden(mixins, exclude=set(dic))
-            dic['__traits__'] = TraitContainer.from_(mixins)
-        return super(TOSMeta, mcl).__new__(mcl, name, bases, dic)
-
-    def __getattr__(cls, name):
-        for trait in cls.__traits__:
-            bt = trait.__get__(None, cls) # class bound trait
-            try:
-                return getattr(bt, name)
-            except AttributeError:
-                continue
-        raise AttributeError(name)
-
-cache = {type: TOSMeta, types.ClassType: TOSMeta} # metaclass cache
-
-def getrightmeta(metacls, mcl):
-    "Determine the right metaclass to use between metacls and mcl (=TOSMeta)"
-    if issubclass(metacls, mcl): # has TOSMeta functionality
-        return metacls
-    else: # add TOSMeta functionality
-        try:
-            return cache[metacls]
-        except KeyError:
-            cache[metacls] = type('TOS' + metacls.__name__, (mcl, metacls), {})
-            return cache[metacls]
-
-def new(mcl, objcls, mixins):
-    "Returns a class akin to objcls, but meta-enhanced with mcl (TOSMeta)"
-    dic = vars(objcls).copy()
-    dic['__mixins__'] = mixins
-    metacls = getrightmeta(type(objcls), mcl)
-    return metacls(objcls.__name__, objcls.__bases__, dic)
-
-def oldstyle(bases):
-    "Return True if there are not bases or all bases are old-style"
-    return not bases or set(map(type, bases)) == set([types.ClassType])
-
-def include(*mixins):
-    "Class decorator factory"
-    frame = sys._getframe(1)
-    if ('__module__' in frame.f_locals and not # we are in a class
-        '__module__' in frame.f_code.co_varnames):
-        # usage as a Python < 2.6 class decorator
-        mcl = frame.f_locals.get("__metaclass__")
-        def makecls(name, bases, dic):
-            if mcl:
-                cls = mcl(name, bases, dic)
-            elif oldstyle(bases):
-                cls = types.ClassType(name, bases, dic)
-            else: # there is at least a new style base
-                cls = type(name, bases, dic)
-            return new(TOSMeta, cls, mixins)
-        frame.f_locals["__metaclass__"] = makecls
-    else:
-        # usage as a Python >= 2.6 class decorator
-        def _include(cls):
-            return new(TOSMeta, cls, mixins)
-        _include.__name__ = 'include_%s>' % '_'.join(m.__name__ for m in mixins)
-        return _include
-
 class TraitContainer(object):
 
     @classmethod
@@ -218,7 +171,8 @@ class TraitContainer(object):
             return trait.__get__(self.__obj, self.__objcls)
 
     def __iter__(self):
-        return self.__traits.itervalues()
+        return (t.__get__(self.__obj, self.__objcls) 
+                for t in self.__traits.itervalues())
 
     def __len__(self):
         return len(self.__traits)
@@ -243,54 +197,75 @@ class TraitContainer(object):
     def __setstate__(self, dic):
         self.__init__(dic)
 
-def get_traits(obj):
-    "Returns a container of traits for introspection purposes"
-    return getattr(obj, '__traits__', ())
 
-class Super(object):
+def oldstyle(bases):
+    "Return True if all bases are old-style"
+    return set(map(type, bases)) == set([types.ClassType])
+
+class TOSMeta(type):
     """
-    A simple implementation of the super object valid for single inheritance
-    hierarchies.
+    The metaclass for the Trait Object System. It is intended to be
+    called only indirectly via ``include``. It provides the following features
+    to its instances:
+    1. forbids multiple inheritance
+    2. checks for accidental overriding of __getattribute__ and __getstate__
+    3. provides the class with the correct base __getattribute__ and 
+       __getstate__
+    4. provides the basic empty __traits__ attribute
     """
-    def __init__(self, obj=None, cls=None):
-        assert obj or cls, 'Super objects must be bound to something'
-        self.__obj = obj
-        self.__objcls = cls or obj.__class__
-    
-    def __getattribute__(self, name, get=object.__getattribute__):
-        obj, objcls = get(self, '_Super__obj'), get(self, '_Super__objcls')
-        attr = getattr(objcls.__bases__[0], name)
-        try: # return the bound descriptor
-            return attr.__get__(obj, objcls)
-        except AttributeError: # not a descriptor
-            return attr
+    def __new__(mcl, name, bases, dic):
+        if len(bases) > 1:
+            raise TypeError(
+                'Multiple inheritance of bases %s is forbidden for TOS classes'
+                % str(bases))
+        elif not bases or oldstyle(bases): # ensure new-style class
+            bases += (object, )
+        for meth in ('__getattribute__', '__getstate__'):
+            if meth in dic:
+                raise OverridingError('class %s defines %s' % (name, meth))
+        traits = getattr(bases[0], '__traits__', ())
+        if not traits: # the first time
+            dic['__getattribute__'] = dic.get('__getattribute__', 
+                                              __obj_getattribute__)
+            dic['__getstate__'] = dic.get('__getstate__', vars)
+            basemixins = ()
+        else:
+            basemixins = tuple(t._Trait__inner for t in traits)
+        mixins = dic.get('__mixins__', ())
+        if mixins:
+            commonset = set(basemixins) & set(mixins)
+            if commonset:
+                raise TypeError("Redundant mixins %s!", commonset)
+            mixins = basemixins + mixins
+            check_overridden(mixins, exclude=set(dic))
+            dic['__traits__'] = TraitContainer.from_(mixins)
+        return super(TOSMeta, mcl).__new__(mcl, name, bases, dic)
 
-import readline, rlcompleter, re
+    __getattribute__ = __cls_getattribute__
 
-try:
-    from IPython.completer import Completer as BaseCompleter
-except ImportError:
-    from rlcompleter import Completer as BaseCompleter
+def new(name, bases, dic, mixins, leftmetas):
+    "Returns a class akin to objcls, but meta-enhanced with metas"
+    metacls = get_noconflict_metaclass(bases, leftmetas, ())
+    dic['__mixins__'] = mixins
+    return metacls(name, bases, dic)
 
-class Completer(BaseCompleter):
-    def attr_matches(self, text):
-        m = re.match(r"(\w+(\.\w+)*)\.(\w*)", text)
-        if not m:
-            return
-        expr, attr = m.group(1, 3)
-        object = eval(expr, self.namespace)
-        words = dir(object)
-        if hasattr(object,'__class__'):
-            words.append('__class__')
-            words += rlcompleter.get_class_members(object.__class__)
-        if hasattr(object, '_Trait__dic'):
-            words += object._Trait__dic.keys()
-        matches = []
-        n = len(attr)
-        for word in words:
-            if word[:n] == attr and word != "__builtins__":
-                matches.append("%s.%s" % (expr, word))
-        return matches
-
-readline.set_completer(Completer().complete)
-readline.parse_and_bind("TAB: complete")
+def include(*mixins):
+    "Class decorator factory"
+    frame = sys._getframe(1)
+    if ('__module__' in frame.f_locals and not # we are in a class
+        '__module__' in frame.f_code.co_varnames):
+        # usage as a Python < 2.6 class decorator
+        mcl = frame.f_locals.get("__metaclass__")
+        def makecls(name, bases, dic):
+            if mcl:
+                return new(name, bases, dic, mixins, (TOSMeta, mcl))
+            else:
+                return new(name, bases, dic, mixins, (TOSMeta,))
+        frame.f_locals["__metaclass__"] = makecls
+    else:
+        # usage as a Python >= 2.6 class decorator
+        def _include(cls):
+            return new(cls.__name__, cls.__bases__, cls.__dict__.copy(), 
+                       mixins, (TOSMeta,))
+        _include.__name__ = 'include_%s>' % '_'.join(m.__name__ for m in mixins)
+        return _include
