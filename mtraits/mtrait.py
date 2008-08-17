@@ -1,5 +1,4 @@
 import re, sys, inspect, types, warnings
-from noconflict import get_noconflict_metaclass
 
 class OverridingError(NameError):
     pass
@@ -197,10 +196,13 @@ class TraitContainer(object):
     def __setstate__(self, dic):
         self.__init__(dic)
 
-
 def oldstyle(bases):
-    "Return True if all bases are old-style"
-    return set(map(type, bases)) == set([types.ClassType])
+    "Return True if there are no bases or all bases are old-style"
+    return not bases or set(map(type, bases)) == set([types.ClassType])
+
+def isTOSclass(cls):
+    "True if cls satisfies the TOS interface"
+    return hasattr(cls, '__traits__')
 
 class TOSMeta(type):
     """
@@ -211,14 +213,15 @@ class TOSMeta(type):
     2. checks for accidental overriding of __getattribute__ and __getstate__
     3. provides the class with the correct base __getattribute__ and 
        __getstate__
-    4. provides the basic empty __traits__ attribute
+    4. provides the basic empty __traits__ attribute and __mixins__.
     """
     def __new__(mcl, name, bases, dic):
+        dic = dic.copy()
         if len(bases) > 1:
             raise TypeError(
                 'Multiple inheritance of bases %s is forbidden for TOS classes'
                 % str(bases))
-        elif not bases or oldstyle(bases): # ensure new-style class
+        elif oldstyle(bases): # ensure new-style class
             bases += (object, )
         for meth in ('__getattribute__', '__getstate__'):
             if meth in dic:
@@ -239,15 +242,29 @@ class TOSMeta(type):
             mixins = basemixins + mixins
             check_overridden(mixins, exclude=set(dic))
             dic['__traits__'] = TraitContainer.from_(mixins)
-        return super(TOSMeta, mcl).__new__(mcl, name, bases, dic)
+        # since TOS hierarchies are single-inheritance, I don't need super
+        return mcl.__base__.__new__(mcl, name, bases, dic)
 
     __getattribute__ = __cls_getattribute__
 
-def new(name, bases, dic, mixins, leftmetas):
-    "Returns a class akin to objcls, but meta-enhanced with metas"
-    metacls = get_noconflict_metaclass(bases, leftmetas, ())
+known_metas = set([types.ClassType, type, TOSMeta])
+
+def new(mcl, name, bases, dic, mixins):
+    "Returns a class akin to objcls, but meta-enhanced with mcl or typ"
+    # there is only one base because of the single-inheritance constraint
+    try:
+        base = bases[0]
+    except IndexError:
+        base = object
+    typ = mcl or type(base)
+    if typ in (types.ClassType, type):
+        typ = TOSMeta
+    elif typ not in known_metas:
+        typ = type('_TOSMeta' + typ.__name__, (mcl,), dict(
+            __new__=TOSMeta.__new__, __getattribute__= __cls_getattribute__))
+        known_metas.add(typ)
     dic['__mixins__'] = mixins
-    return metacls(name, bases, dic)
+    return typ(name, bases, dic)
 
 def include(*mixins):
     "Class decorator factory"
@@ -257,15 +274,12 @@ def include(*mixins):
         # usage as a Python < 2.6 class decorator
         mcl = frame.f_locals.get("__metaclass__")
         def makecls(name, bases, dic):
-            if mcl:
-                return new(name, bases, dic, mixins, (TOSMeta, mcl))
-            else:
-                return new(name, bases, dic, mixins, (TOSMeta,))
+            return new(mcl, name, bases, dic, mixins)
         frame.f_locals["__metaclass__"] = makecls
     else:
         # usage as a Python >= 2.6 class decorator
         def _include(cls):
-            return new(cls.__name__, cls.__bases__, cls.__dict__.copy(), 
-                       mixins, (TOSMeta,))
+            return new(cls.__class__, cls.__name__, cls.__bases__, 
+                       cls.__dict__.copy(), mixins)
         _include.__name__ = 'include_%s>' % '_'.join(m.__name__ for m in mixins)
         return _include

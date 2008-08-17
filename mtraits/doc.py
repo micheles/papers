@@ -392,14 +392,31 @@ requires necessarily metaclasses.
 
 In theory you could build your trait objects yourself as explained in
 the previous paragraph, and you could implement the dispatch to traits
-by hand; in practice however it is much easier if you just rely on the magic of
-the ``include`` class decorator, which is doing a lot of work on your
-behalf. In particular, internally the class decorator works its magic
-by changing the metaclass of the original class to a subclass of
-``MetaTOS``, the basic class of the Trait Object System. ``MetaTOS``
-does a lot of work: in particular it adds a suitable ``__getattribute__``
-method to its instances. 
+by hand; however, in practice it is much easier if you just rely on the
+magic of the ``include`` class decorator, which is doing a lot of work
+on your behalf. In particular, internally the class decorator works
+its magic by changing the metaclass of the original class. Usually the
+metaclass is changed to ``TOSMeta``, the basic class of the Trait
+Object System. However in general not all TOS classes are
+instances of ``TOSMeta``. A class is a TOS class if it satisfies
+a given interface: the ``mtrait`` module provides a ``isTOSclass``
+utility function which performs the check:
 
+$$isTOSclass
+
+The check is *intentionally* loose, i.e. you can fool it by
+setting a fake ``__traits__`` attribute: it is there to
+prevent accidental mistakes, not to give any guarantee.
+On the other hand,
+the ``include`` class decorator ensures that the metaclass of the
+decorated class is a subclass of the metaclass of the undecorated
+class and that it adds the proper ``__traits__``,
+``__getattribute__``, ``__getstate__`` and ``__mixins__`` attributes,
+doing the same job as ``TOSMeta`` even if it is not necessarily a
+subclass of ``TOSMeta``.
+
+``TOSMeta`` does a lot of work: in particular it adds a
+suitable ``__getattribute__`` method to its instances.
 We need to override the
 ``__getattribute__`` method 
 since we want to change the attribute lookup rules: in regular
@@ -415,7 +432,7 @@ at the base class. Notice that is necessary to override
 level, to be able to manage both instance attributes and class
 attributes.
 
-``MetaTOS`` also adds a suitable ``__getstate_``
+``TOSMeta`` also adds a suitable ``__getstate_``
 method so that your objects stay pickleable if they were originally
 pickleable (adding ``__getattribute__`` without adding ``__getstate__`` would
 break pickle). Notice that the original class should not define
@@ -450,24 +467,24 @@ $$MyMetacls
 
 .. code-block:: python
 
- >>> class Base:
- ...     __metaclass__ = MyMetacls
- ...     include(Pack)
- ...
- >>> print type(Base)
- <class 'noconflict._TOSMetaMyMetacls'>
+$$Base2
 
 The ``include`` decorator automatically generates the right metaclass
-which avoids the dreaded `metaclass conflict`_, a daughter of
-``TOSMeta`` and ``MyMetacls``:
+which avoids the dreaded `metaclass conflict`_, a subclass of ``MyMetacls``:
 
 .. code-block:: python
 
- >>> print type(Base).__bases__
- (<class 'mtrait.TOSMeta'>, <class '__main__.MyMetacls'>)
+ >>> print type(Base2).__mro__
+ (<class 'mtrait._TOSMetaMyMetacls'>, <class '__main__.MyMetacls'>, <type 'type'>, <type 'object'>)
+ 
+ >>> Base2.__traits__
+ <Traits Pack bound to <class '__main__.Base2'>>
+ 
+ >>> Base2.greetings
+ 'hello!'
 
 The name is automatically generated from the name of the base
-metaclasses; moreover, a register of the generated metaclasses
+metaclass; moreover, a register of the generated metaclasses
 is kept, so that metaclasses are reused if possible.
 If you want to understand the details, you are welcome
 to give a look at the implementation, which is pretty small.
@@ -478,7 +495,7 @@ to give a look at the implementation, which is pretty small.
 Why multiple inheritance is forbidden
 ----------------------------------------------------------
 
-As I said, the mother metaclass of the Trait Object System ``MetaTOS`` forbids
+As I said, the mother metaclass of the Trait Object System ``TOSMeta`` forbids
 multiple inheritance and if you try to multiple inherit from a TOS
 class and another class you will get a ``TypeError``:
 
@@ -502,15 +519,14 @@ notes below): how can you prove that claim? Simply by writing code
 that does not use multiple inheritance and it is clearer and more
 mantainable that code using multiple inheritance. 
 
-I am releasing this
-trait implementation hoping you will help me to prove (or possibly
-disprove) the point.  You may see traits as a restricted form of
-multiple inheritance without method resolution order and without name
-clashes which does not pollute the namespace of the original class; it
-does not have cooperative methods either. Still I think these are
-acceptable restrictions since they give back in return many advantages
-in terms of simplicity: for instance, ``super`` becomes trivial, since
-each class has a single superclass.  
+I am releasing this trait implementation hoping you will help me to
+prove (or possibly disprove) the point.  You may see traits as a
+restricted form of multiple inheritance without method resolution
+order and without name clashes which does not pollute the namespace of
+the original class; it does not have cooperative methods either. Still
+I think these are acceptable restrictions since they give back in
+return many advantages in terms of simplicity: for instance, ``super``
+becomes trivial, since each class has a single superclass.
 
 We all know that the `current
 super in Python`_ is very far from trivial, instead. More importantly,
@@ -580,8 +596,34 @@ that explains why you inherit from them.
 .. _elsewhere: http://stacktrace.it/articoli/2008/06/i-pericoli-della-programmazione-con-i-mixin1/
 .. _PloneSite hierarchy: http://www.phyast.pitt.edu/~micheles/python/plone-hierarchy.png 
 
-Future work
+
+Discussion of some design decisions and future work
 --------------------------------------------------------
+
+The decision of having TOS classes which are not instances of TOSMeta
+has been a hard one. That was my original idea in version 0.1 of this
+module; however in version 0.2 I changed my mind and I made all TOS
+classes instances of TOSMeta. That implies that if your original class
+has a nontrivial metaclass, then the TOS class must inherit both from
+the original metaclass *and* ``TOSMeta``, i.e. multiple inheritance
+and cooperation of methods are required at the metaclass level.  I did
+not like it, since I am arguing here that you can do everything without
+multiple inheritance and cooperative methods; moreover using multiple
+inheritance at the metaclass level means that one has to solve the
+`metaclass conflict`_ in a general way. I did so, by using my own
+cookbook recipe, and all my tests passed.
+
+Neverthess, at the end, in version 0.3 I decided to go
+back to the original design. The metaclass conflict recipe is too
+complex, and I see it as a code smell (*if the implementation is hard
+to explain, it's a bad idea*), just another indication that multiple
+inheritance is a bad idea. On the other hand, in the original
+design it is possible to add the features of ``TOSMeta`` to the
+original metaclass by subclassing it with *single* inheritance
+and thus avoiding the conflict. The price to pay is that the
+TOS class is no more an instance of ``TOSMeta``, but this is
+not an issue: the important thing is that TOS classes perform
+the dispatch on their traits as ``TOSMeta`` would dictate.
 
 The Smalltalk implementation of traits provides method renaming 
 out of the box. The Python implementation has no facilities in
@@ -668,6 +710,13 @@ class Mixin(object):
 
 class MyMetacls(type):
     "A do-nothing metaclass for exemplification purposes"
+    def __new__(mcl, name, bases, dic):
+        dic['greetings'] = 'hello!'
+        return super(MyMetacls, mcl).__new__(mcl, name, bases, dic)
+
+class Base2:
+    __metaclass__ = MyMetacls
+    include(Pack)
 
 def test_getattr():
     try:
@@ -693,7 +742,7 @@ def test_multi_include():
     x = D(1)
     x.a
     x.cm()
-    x.sm()
+    #x.sm()
     print type(B), type(C)
 
 def test_Trait_pickle():
