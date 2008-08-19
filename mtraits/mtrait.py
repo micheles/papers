@@ -208,11 +208,6 @@ def oldstyle(bases):
     "Return True if there are no bases or all bases are old-style"
     return not bases or set(map(type, bases)) == set([types.ClassType])
 
-def isTOSclass(cls):
-    "True if cls satisfies the TOS interface"
-    # not check for __mixins__ and __getstate__ for the moment
-    return hasattr(cls, '__traits__') 
-
 class TOSMeta(type):
     """
     The metaclass for the Trait Object System. It is intended to be

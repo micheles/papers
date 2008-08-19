@@ -399,15 +399,14 @@ Internally the ``include`` class decorator works
 its magic by changing the metaclass of the original class. Usually the
 metaclass is changed to ``TOSMeta``, the basic class of the Trait
 Object System. However in general not all TOS classes are
-instances of ``TOSMeta``. A class is a TOS class if it satisfies
-a given interface: the ``mtrait`` module provides a ``isTOSclass``
-utility function which performs the check:
-
-$$isTOSclass
-
-The check is *intentionally* loose, i.e. you can fool it by
-setting a fake ``__traits__`` attribute: it is there to
-prevent accidental mistakes, not to give any guarantee.
+instances of ``TOSMeta``. In Python 2.6, thanks to
+the mechanism `Abstract Base Classes`_, it will be possible to
+register all TOS classes as instances of ``TOSMeta``: for
+the moment, instead, if you want to check if a class is a TOS
+class I suggest you to check for the existence of a
+``__traits__`` attribute. A check of this kind is loose, 
+i.e. you can fool it by setting a fake ``__traits__`` attribute:
+it is useful to prevent accidental mistakes, not to give any guarantee.
 On the other hand,
 the ``include`` class decorator ensures that the metaclass of the
 decorated class is a subclass of the metaclass of the undecorated
@@ -416,8 +415,6 @@ class; moreover, it adds the proper ``__traits__``,
 doing the same job as ``TOSMeta`` even if it is not necessarily a
 subclass of ``TOSMeta``.
 
-``TOSMeta`` does a lot of work: in particular it adds a
-suitable ``__getattribute__`` method to its instances.
 We need to override the
 ``__getattribute__`` method 
 since we want to change the attribute lookup rules: in regular
@@ -428,10 +425,16 @@ so overriding ``__getattr__`` would not be enough. Fortunately,
 the Python object model is powerful enough to allows users
 to change the rules of the game: by overriding ``__getattribute__``
 it is possible to lookup at the traits attributes *before* looking
-at the base class. Notice that is necessary to override
+at the base class. 
+
+Notice that is necessary to override
 ``__getattribute__`` both at the class level and at the metaclass
 level, to be able to manage both instance attributes and class
-attributes.
+attributes. That means that we are slowing down all attribute lookup,
+since the TOS lookup is implemented at pure Python level: nevertheless, 
+this is fine, since the goal of the ``mtrait`` module is experimentation, and
+it would be premature optimization to make if fast before making
+sure it is a good idea.
 
 ``TOSMeta`` also adds a suitable ``__getstate_``
 method so that your objects stay pickleable if they were originally
@@ -501,7 +504,7 @@ is kept, so that metaclasses are reused if possible.
 If you want to understand the details, you are welcome
 to give a look at the implementation, which is pretty short
 and simple, compared to the general recipe to remove
-the `metaclass conflict`_ in a true multiple inheritance situation.
+the metaclass conflict in a true multiple inheritance situation.
 
 .. _sqlalchemy: http://www.sqlalchemy.org/
 .. _metaclass conflict: http://code.activestate.com/recipes/204197/
@@ -666,6 +669,7 @@ implementation; it stands for *Meta* or for *My* or even for
 .. _PLT Scheme: http://www.cs.utah.edu/plt/publications/aplas06-fff.pdf
 
 """
+import time
 import cPickle as pickle
 from mtrait import *
 from Tkinter import *
@@ -753,6 +757,17 @@ def test_multi_include():
     x.cm()
     x.sm()
     print type(B), type(C)
+
+def timethis(thunk, N=10000):
+    t0 = time.time()
+    for i in xrange(N):
+        thunk()
+    return time.time() - t0
+
+def test_speed():
+    t1 = timethis(lambda : TOSWidget.size)
+    t2 = timethis(lambda : Widget.size)
+    print 'TOS lookup:', t1, 'Regular lookup', t2, 'Slowdown', int(t1/t2)
 
 def test_Trait_pickle():
     t = Trait(Mixin, Mixin.__name__)

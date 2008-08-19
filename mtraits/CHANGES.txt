@@ -1,4 +1,8 @@
 HISTORY
 -----------------------------
 
+0.4.0. Added proper support for retrieving descriptors
+0.3.0. Went back to TOS classes not instances of TOSMeta
+0.2.0. Made all TOS classes instances of TOSMeta and managed
+       metatype conflict resolution
 0.1.0. Initial release (2008-08-16)
