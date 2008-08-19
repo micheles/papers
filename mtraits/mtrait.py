@@ -6,10 +6,13 @@ class OverridingError(NameError):
 class OverridingWarning(Warning):
     pass
 
+def special(name):
+    "True if name has the form __XXX__"
+    return name.startswith('__') and name.endswith('__')
+
 def getnames(obj):
     "Get the nonspecial attributes in obj"
-    return set(name for name in dir(obj)
-               if not (name.startswith('__') and name.endswith('__')))
+    return set(name for name in dir(obj) if not special(name))
 
 def find_common_names(mixins):
     "Perform n*(n-1)/2 namespace overlapping checks on a set of n mixins"
@@ -34,13 +37,23 @@ def check_overridden(mixins, exclude, raise_='error'):
                 raise OverridingError(msg)
             elif raise_ == 'warning':
                 warnings.warn(msg, OverridingWarning, stacklevel=2)
-
-def getboundvalue(value, obj, objcls):
-    "Convert a value into a bound descriptor or do nothing"
+                    
+def get_from_vars(ob, name, obj, objcls):
+    "Get a bound attribute from vars(obj)"
+    value = vars(ob)[name]
     try: # return the bound descriptor
         return value.__get__(obj, objcls)
     except AttributeError: # not a descriptor
         return value
+                              
+def get_from_cls(cls, name, obj, objcls):
+    "Get a bound attribute from cls and its ancestors"
+    for subc in inspect.getmro(cls):
+        try:
+            return get_from_vars(subc, name, obj, objcls)
+        except KeyError:
+            continue
+    raise AttributeError(name)
 
 # added to the instances of TOSMeta
 def __obj_getattribute__(obj, name, get=object.__getattribute__):
@@ -51,7 +64,7 @@ def __obj_getattribute__(obj, name, get=object.__getattribute__):
     3. look at the traits;
     4. look at the base classes and to __getattr__
     """
-    if name.startswith('__') and name.endswith('__'): # special name, do nothing
+    if special(name): # regular lookup
         return get(obj, name)
     try:
         return vars(obj)[name]
@@ -59,11 +72,12 @@ def __obj_getattribute__(obj, name, get=object.__getattribute__):
         pass
     objcls = type(obj)
     try:
-        return getboundvalue(vars(objcls)[name], obj, objcls)
+        return get_from_vars(objcls, name, obj, objcls)
     except KeyError:
         pass
     for boundtrait in obj.__traits__:
         try:
+            #if name == 'sm': import pdb; pdb.set_trace()
             return getattr(boundtrait, name)
         except AttributeError:
             pass
@@ -77,11 +91,11 @@ def __cls_getattribute__(cls, name, get=type.__getattribute__):
     2. look at the traits;
     3. look at the base classes and the metaclass __getattr__
     """
-    if (name.startswith('__') and name.endswith('__')) or name == 'mro': 
-        # special names, do nothing
+    if special(name) or name == 'mro': 
+        # regular lookup
         return get(cls, name)
     try:
-        return getboundvalue(vars(cls)[name], None, cls)
+        return get_from_vars(cls, name, None, cls)
     except KeyError:
         pass
     for boundtrait in cls.__traits__:
@@ -91,6 +105,8 @@ def __cls_getattribute__(cls, name, get=type.__getattribute__):
             pass
     return get(cls, name)
 
+# saving functions into an object will break pickle, so you must
+# dispatch to the original classes
 class Trait(object):
     """
     Class for mixin dispatchers. Mixin dispatchers are instantiated through the 
@@ -102,10 +118,7 @@ class Trait(object):
     """
 
     def __init__(self, inner, name, obj=None, objcls=None):
-        if isinstance(inner, self.__class__): # already a trait
-            self.__inner = inner._Trait__inner
-        else:
-            self.__inner = inner
+        self.__inner = inner
         self.__name__ = name
         self.__obj = obj
         self.__objcls = objcls
@@ -116,18 +129,13 @@ class Trait(object):
 
     def __getattr__(self, name):
         "obj.dispatcher.method(args) returns mixin.method(obj, args)"
-        value = getattr(self.__inner, name)
-        try: # if (unbound) method, go back to the function
-            value = value.im_func
-        except AttributeError:
-            pass
         obj, objcls = self.__obj, self.__objcls
-        if obj or objcls:
-            try: # return the bound descriptor
-                return value.__get__(obj, objcls)
-            except AttributeError: # not a descriptor
-                pass
-        return value
+        if inspect.isclass(self.__inner):
+            return get_from_cls(self.__inner, name, obj, objcls)
+        try:
+            return get_from_vars(self.__inner, name, obj, objcls)
+        except KeyError:
+            raise AttributeError
 
     def __iter__(self):
         return iter(getnames(self.__inner))
@@ -202,7 +210,8 @@ def oldstyle(bases):
 
 def isTOSclass(cls):
     "True if cls satisfies the TOS interface"
-    return hasattr(cls, '__traits__')
+    # not check for __mixins__ and __getstate__ for the moment
+    return hasattr(cls, '__traits__') 
 
 class TOSMeta(type):
     """
@@ -233,7 +242,7 @@ class TOSMeta(type):
             dic['__getstate__'] = dic.get('__getstate__', vars)
             basemixins = ()
         else:
-            basemixins = tuple(t._Trait__inner for t in traits)
+            basemixins = getattr(bases[0], '__mixins__', ())
         mixins = dic.get('__mixins__', ())
         if mixins:
             commonset = set(basemixins) & set(mixins)
@@ -242,7 +251,7 @@ class TOSMeta(type):
             mixins = basemixins + mixins
             check_overridden(mixins, exclude=set(dic))
             dic['__traits__'] = TraitContainer.from_(mixins)
-        # since TOS hierarchies are single-inheritance, I don't need super
+        # TOS hierarchies are single-inheritance, I don't need super
         return mcl.__base__.__new__(mcl, name, bases, dic)
 
     __getattribute__ = __cls_getattribute__
@@ -263,6 +272,8 @@ def new(mcl, name, bases, dic, mixins):
         typ = type('_TOSMeta' + typ.__name__, (mcl,), dict(
             __new__=TOSMeta.__new__, __getattribute__= __cls_getattribute__))
         known_metas.add(typ)
+        # in Python 2.6 add something like
+        # ABCMeta.register(TOSMeta, typ) # issubclass(typ, TOSMeta)
     dic['__mixins__'] = mixins
     return typ(name, bases, dic)
 

@@ -7,6 +7,13 @@ r"""An implementation of traits in Python
 :Download: XXX
 :Licence: BSD
 :Status: XXX
+:Abstract: 
+
+ *The mtrait module provides an implementation of 
+ traits as units of composable behavior for Python. It is
+ argued that traits are better than multiple inheritance.
+ Implementing frameworks based on traits is left as an exercise
+ for the reader.*
 
 Motivation
 ------------------------------------------------
@@ -78,8 +85,8 @@ the features that Guido used to implement the object system (special
 method hooks, descriptors, metaclasses) are there, available to the
 end user to build her own object system.
 
-Such features are usually little used in the Python community for
-various good reasons: the object system is good enough as it is and there
+Such features are usually little used in the Python community, for
+many good reasons: the object system is good enough as it is and there
 is no reason to change it; moreover there is a strong opposition to
 change the language, because Python programmers believe in uniformity
 and in using common idioms; finally, it is difficult for application
@@ -123,8 +130,7 @@ properties:
 4. the ordering of traits is not important, i.e. enhancing a class 
    first with trait T1 and then with trait T2 or viceversa is the same;
 5. if traits T1 and T2 have names in common, enhancing a class both
-   with T1 and T2 raises an error unless unless you specify *explicitely*
-   how the overriding of the common names has to be made;
+   with T1 and T2 raises an error;
 6. if a trait has methods in common with the base class, then the
    trait methods have the precedence;
 7. a class can be seen both as a composition of traits and as an homogeneous
@@ -226,7 +232,7 @@ A few caveats
 As you see, in a lot of cases replacing mixins with traits is fairly
 straightforward: however, in some cases you can run into problems.
 For instance, rule 6 implies an attribute lookup different from
-the usual lookup. Consider the following example:
+the standard lookup. Consider the following example:
 
 .. code-block:: python
 
@@ -377,7 +383,7 @@ Traits play well with pydoc, ipython and the other tools used
 to introspect Python objects: try to type
 ``help(lbl)`` and you will see for yourself how it works.
 
-Beyond the looking glass
+The Trait Object System
 ----------------------------------------------------------------------
 
 The goal of the ``mtrait`` module it to modify the standard
@@ -388,13 +394,8 @@ and must forbid your from defining your own ``__getattribute__`` and
 ``__getstate__`` methods; these
 two fundamental properties must be preserved under inheritance (i.e. the
 son of a TOS class must be a TOS class) and therefore the implementation
-requires necessarily metaclasses.
-
-In theory you could build your trait objects yourself as explained in
-the previous paragraph, and you could implement the dispatch to traits
-by hand; however, in practice it is much easier if you just rely on the
-magic of the ``include`` class decorator, which is doing a lot of work
-on your behalf. In particular, internally the class decorator works
+necessarily requires metaclasses.
+Internally the ``include`` class decorator works
 its magic by changing the metaclass of the original class. Usually the
 metaclass is changed to ``TOSMeta``, the basic class of the Trait
 Object System. However in general not all TOS classes are
@@ -410,7 +411,7 @@ prevent accidental mistakes, not to give any guarantee.
 On the other hand,
 the ``include`` class decorator ensures that the metaclass of the
 decorated class is a subclass of the metaclass of the undecorated
-class and that it adds the proper ``__traits__``,
+class; moreover, it adds the proper ``__traits__``,
 ``__getattribute__``, ``__getstate__`` and ``__mixins__`` attributes,
 doing the same job as ``TOSMeta`` even if it is not necessarily a
 subclass of ``TOSMeta``.
@@ -420,8 +421,8 @@ suitable ``__getattribute__`` method to its instances.
 We need to override the
 ``__getattribute__`` method 
 since we want to change the attribute lookup rules: in regular
-Python, the usual rules are 1. look at the class 2. look at
-the base class and 3. look at ``__getattr__``; rules 6 instead
+Python, the usual rules are look at the class, look at
+the base class and look at ``__getattr__``; rules 6 instead
 says that traits must have the precedence over the base class,
 so overriding ``__getattr__`` would not be enough. Fortunately,
 the Python object model is powerful enough to allows users
@@ -447,7 +448,10 @@ the ``__metaclass__`` hook and specify the mixins directly with ``__mixins__``:
 
 $$TOSWidget2
 
-However, ``include`` does more than that, since it
+The magic of ``include``
+------------------------------------------------------
+
+``include`` does more than just dispatching to the ``__metaclass__`` hook: it
 takes care automatically of possible metaclass conflicts. In the case of
 Tkinter there is no such problem, since ``BaseWidget`` is just a traditional
 old-style class and the metaclass for ``TOSWidget2`` is just ``TOSMeta``:
@@ -463,31 +467,41 @@ instance Zope classes; in that case having a class decorator smart
 enough to figure out the right metaclass to use is a convenient
 facility. Here is an example:
 
-$$MyMetacls
+$$AddGreetings
+
+$$PackWidget
+
+The ``include`` decorator automatically generates the right metaclass as
+a subclass of ``AddGreetings``:
 
 .. code-block:: python
 
-$$Base2
-
-The ``include`` decorator automatically generates the right metaclass
-which avoids the dreaded `metaclass conflict`_, a subclass of ``MyMetacls``:
-
-.. code-block:: python
-
- >>> print type(Base2).__mro__
- (<class 'mtrait._TOSMetaMyMetacls'>, <class '__main__.MyMetacls'>, <type 'type'>, <type 'object'>)
+ >>> print type(PackWidget).__mro__
+ (<class 'mtrait._TOSMetaAddGreetings'>, <class '__main__.AddGreetings'>, <type 'type'>, <type 'object'>)
  
- >>> Base2.__traits__
- <Traits Pack bound to <class '__main__.Base2'>>
- 
- >>> Base2.greetings
+This trick avoids the dreaded `metaclass conflict`_. ``_TOSMetaAddGreetings``
+provides the same features of ``TOSMeta`` and in particular you may
+check that it sets the ``__traits__`` attribute correctly:
+
+ >>> PackWidget.__traits__
+ <Traits Pack bound to <class '__main__.PackWidget'>>
+
+On the other hand, ``_TOSMetaAddGreetings`` is a subclass of ``AddGreetings``
+which calls ``AddGreetings.__new__``, so the features provided by
+``AddGreetings`` are not lost either; in this example you may check
+that the greetings attribute is correctly set:
+
+ >>> PackWidget.greetings
  'hello!'
 
-The name is automatically generated from the name of the base
+The name of the generated metaclass
+is automatically generated from the name of the base
 metaclass; moreover, a register of the generated metaclasses
 is kept, so that metaclasses are reused if possible.
 If you want to understand the details, you are welcome
-to give a look at the implementation, which is pretty small.
+to give a look at the implementation, which is pretty short
+and simple, compared to the general recipe to remove
+the `metaclass conflict`_ in a true multiple inheritance situation.
 
 .. _sqlalchemy: http://www.sqlalchemy.org/
 .. _metaclass conflict: http://code.activestate.com/recipes/204197/
@@ -501,8 +515,9 @@ class and another class you will get a ``TypeError``:
 
 .. code-block:: python
 
- >>> class M: pass
- ... 
+ >>> class M:
+ ...     "An empty mixin"
+ ...
  >>> class Widget2(TOSWidget, M): #doctest: +ELLIPSIS
  ...     pass
  ...
@@ -513,11 +528,11 @@ class and another class you will get a ``TypeError``:
 This behavior is intentional: with this restriction you can simulate
 an ideal world in which Python did not support multiple
 inheritance. Suppose you want to claim that supporting multiple
-inheritance was a mistake and that Python would have been better
-without it (which is the position I tend to have nowadays, but see the
-notes below): how can you prove that claim? Simply by writing code
-that does not use multiple inheritance and it is clearer and more
-mantainable that code using multiple inheritance. 
+inheritance was a mistake and that Python would have been better off
+without it (which is the position I tend to have nowadays): how can
+you prove that claim? Simply by writing code that does not use
+multiple inheritance and it is clearer and more mantainable that code
+using multiple inheritance.
 
 I am releasing this trait implementation hoping you will help me to
 prove (or possibly disprove) the point.  You may see traits as a
@@ -526,11 +541,11 @@ order and without name clashes which does not pollute the namespace of
 the original class; it does not have cooperative methods either. Still
 I think these are acceptable restrictions since they give back in
 return many advantages in terms of simplicity: for instance, ``super``
-becomes trivial, since each class has a single superclass.
+becomes trivial, since each class has a single superclass, whereas
+we all know that the `current
+super in Python`_ is very far from trivial. 
 
-We all know that the `current
-super in Python`_ is very far from trivial, instead. More importantly,
-we all know that. many people use multiple inheritance incorrectly,
+More importantly, many people use multiple inheritance incorrectly,
 confusing the ``is-a`` relation with the ``has-a`` relation; with
 traits, there is no confusion. Since there is a single base class, you
 can associate the ``is-a`` relation with the base class whereas the
@@ -556,41 +571,26 @@ of ``C`` gets the new version of the method, which is pretty useful
 for debugging purposes. This feature is lost in the simplistic
 approach but not lost in the trait approach: the trait implementation
 is fully dynamic and if you change the mixin the instances will be
-changed too. This however, is a minor point. 
+changed too. This however, is a minor issue (I never
+used that feature much). 
 
-The real reason why just
-including methods in the class namespace is a bad idea is that it
-easily leads you into the problem of *namespace pollution*. I have
-discussed the issue elsewhere_: if you keep injecting methods into a
-class (both directly or via inheritance) you may end up having
-hundreds of methods flattened at the same level. A picture is worth a
-thousand words, so have a look at the `PloneSite hierarchy`_ if you
-want to understand the horror I would like to avoid with traits
-(the picture shows the number of
-nonspecial attributes defined per class in square brackets): in
-the Plone Site hierarchy there
-are 38 classes, 88 overridden names, 42 special names, 648
-non-special attributes and methods. It is a maintenance nighmare.
-The
-``mtrait`` implementation avoids name space pollution since each trait
-has its own namespace and you are guaranteed against name
+The real reason why just including methods in the class namespace is a
+bad idea is that it easily leads you into the problem of *namespace
+pollution*. I have discussed the issue elsewhere_: if you keep
+injecting methods into a class (both directly or via inheritance) you
+may end up having hundreds of methods flattened at the same level. A
+picture is worth a thousand words, so have a look at the `PloneSite
+hierarchy`_ if you want to understand the horror I would like to avoid
+with traits (the picture shows the number of nonspecial attributes
+defined per class in square brackets): in the Plone Site hierarchy
+there are 38 classes, 88 overridden names, 42 special names, 648
+non-special attributes and methods. It is a nighmare. 
+
+The ``mtrait`` implementation avoids name space pollution since each
+trait has its own namespace and you are guaranteed against name
 conflicts. Moreover, introspecting traits is much easier than
-introspecting inheritance hierarchies: even the autocompletion
-feature works best.
-
-*Note 1*: even if I think that a language would be better off without
-full multiple inheritance with cooperative methods, that does not mean
-that I am against interfaces. I think a class should be able to
-implement multiple interfaces at the same time, but this has nothing
-to do with multiple inheritance. However in Python (starting from
-Python 2.6) multiple inheritance is abused to simulate interface
-requirements so that if you want to implement many interfaces at the
-same time you are suggested to inherit from many abstract base classes
-at the same time.  In an ideal language without multiple inheritance
-you could just add an ``__interfaces__`` attribute to classes. In an
-ideal language interfaces would be abstract objects (a little more
-than a list of names) whereas in Python they are concrete classes and
-that explains why you inherit from them.
+introspecting inheritance hierarchies: even the autocompletion feature
+works best.
 
 .. _current super in Python: http://www.artima.com/weblogs/viewpost.jsp?thread=236275
 .. _elsewhere: http://stacktrace.it/articoli/2008/06/i-pericoli-della-programmazione-con-i-mixin1/
@@ -601,38 +601,46 @@ Discussion of some design decisions and future work
 --------------------------------------------------------
 
 The decision of having TOS classes which are not instances of TOSMeta
-has been a hard one. That was my original idea in version 0.1 of this
-module; however in version 0.2 I changed my mind and I made all TOS
-classes instances of TOSMeta. That implies that if your original class
-has a nontrivial metaclass, then the TOS class must inherit both from
-the original metaclass *and* ``TOSMeta``, i.e. multiple inheritance
-and cooperation of methods are required at the metaclass level.  I did
-not like it, since I am arguing here that you can do everything without
-multiple inheritance and cooperative methods; moreover using multiple
-inheritance at the metaclass level means that one has to solve the
-`metaclass conflict`_ in a general way. I did so, by using my own
-cookbook recipe, and all my tests passed.
+required some thinking. That was my original idea in version 0.1 of
+``mtrait``; however in version 0.2 I wanted to see what would happen
+if I made all TOS classes instances of TOSMeta. That implied that if
+your original class had a nontrivial metaclass, then the TOS class had
+to inherit both from the original metaclass *and* ``TOSMeta``,
+i.e. multiple inheritance and cooperation of methods was required at
+the metaclass level.  I did not like it, since I was arguing that
+you can do everything without multiple inheritance and cooperative
+methods; moreover using multiple inheritance at the metaclass level
+meant that one had to solve the metaclass conflict in a general
+way. I did so, by using my own cookbook recipe, and all my tests
+passed.
 
-Neverthess, at the end, in version 0.3 I decided to go
-back to the original design. The metaclass conflict recipe is too
-complex, and I see it as a code smell (*if the implementation is hard
-to explain, it's a bad idea*), just another indication that multiple
-inheritance is a bad idea. On the other hand, in the original
-design it is possible to add the features of ``TOSMeta`` to the
-original metaclass by subclassing it with *single* inheritance
-and thus avoiding the conflict. The price to pay is that the
-TOS class is no more an instance of ``TOSMeta``, but this is
-not an issue: the important thing is that TOS classes perform
-the dispatch on their traits as ``TOSMeta`` would dictate.
+Neverthess, at the end, in version 0.3 I decided to go back to the
+original design. The metaclass conflict recipe is too complex, and I
+see it as a code smell - *if the implementation is hard to explain,
+it's a bad idea* - just another indication that multiple inheritance
+is bad. In the original design it is possible to add
+the features of ``TOSMeta`` to the original metaclass by subclassing
+it with *single* inheritance and thus avoiding the conflict. 
 
-The Smalltalk implementation of traits provides method renaming 
-out of the box. The Python implementation has no facilities in
-this sense. In the future I may decide to give some support for
-renaming, or I may not. At the present you can just rename
-your methods by hand.
-Also, in the future I may decide to add some kind of adaptation mechanism
-or I may not: after all the primary goal of this implementation is semplicity
-and I don't want to clutter it with too many features.
+The price to pay is that the TOS class is no more an instance of
+``TOSMeta``, but this is a non-issue: the important thing is that TOS
+classes perform the dispatch on their traits as ``TOSMeta`` would
+dictate.  Moreover, starting from Python 2.6, thanks to `Abstract Base
+Classes`_, you may satisfy the ``isinstance(obj, cls)`` check even if
+``obj`` is not an instance of ``cls``, by registering a suitable base
+class (similarly for ``issubclass``). In our situation, that means
+that it is enough to register ``TOSMeta`` as base class of the
+original metaclass.
+
+Where to go from here? For the moment, I have no clear idea about the
+future. The Smalltalk implementation of traits provides method
+renaming out of the box. The Python implementation has no facilities
+in this sense. In the future I may decide to give some support for
+renaming, or I may not. At the present you can just rename your
+methods by hand.  Also, in the future I may decide to add some kind of
+adaptation mechanism or I may not: after all the primary goal of this
+implementation is semplicity and I don't want to clutter it with too
+many features.
 
 I am very open to feedback and criticism: I am releasing this module
 with the hope that it will be used in real life situations to gather
@@ -652,6 +660,7 @@ try them out.
 implementation; it stands for *Meta* or for *My* or even for
 *Michele*, at your will ;)
 
+.. _Abstract Base Classes: http://www.python.org/dev/peps/pep-3119/
 .. _traits: http://www.iam.unibe.ch/~scg/Research/Traits/
 .. _Traits - Composable Units of Behavior: http://www.iam.unibe.ch/%7Escg/Archive/Papers/Scha03aTraits.pdf
 .. _PLT Scheme: http://www.cs.utah.edu/plt/publications/aplas06-fff.pdf
@@ -680,9 +689,9 @@ class TOSWidget2(BaseWidget):
     forget = Pack.forget.im_func
     propagate = Pack.propagate.im_func
 
-label = TOSWidget(master=None, widgetName='label', cnf=dict(text="hello"))
-
-pickle.dumps(label)
+def test_label():
+    label = TOSWidget(master=None, widgetName='label', cnf=dict(text="hello"))
+    pickle.dumps(label)
 
 class HTTP(object):
     def GET(self):
@@ -708,15 +717,15 @@ class Mixin(object):
     def method(self):
         return self._helper() + 1
 
-class MyMetacls(type):
-    "A do-nothing metaclass for exemplification purposes"
+class AddGreetings(type):
+    "A metaclass a 'greetings' attribute for exemplification purposes"
     def __new__(mcl, name, bases, dic):
         dic['greetings'] = 'hello!'
-        return super(MyMetacls, mcl).__new__(mcl, name, bases, dic)
+        return super(AddGreetings, mcl).__new__(mcl, name, bases, dic)
 
-class Base2:
-    __metaclass__ = MyMetacls
-    include(Pack)
+class PackWidget(BaseWidget):
+    __metaclass__ = AddGreetings
+    include(Pack) # put this line AFTER the __metaclass__ hook!
 
 def test_getattr():
     try:
@@ -731,7 +740,7 @@ def test_getattr():
     
 def test_multi_include():
     class B(object):
-        __metaclass__ = MyMetacls
+        __metaclass__ = AddGreetings
         include(FTP)
     class C(B):
         include(HTTP)
@@ -742,7 +751,7 @@ def test_multi_include():
     x = D(1)
     x.a
     x.cm()
-    #x.sm()
+    x.sm()
     print type(B), type(C)
 
 def test_Trait_pickle():
@@ -832,4 +841,27 @@ PloneSite=app.rcare.__class__
 plot_classes(PloneSite.mro(), verbose=2)
 
 
+In theory you could build your trait objects yourself as explained in
+the previous paragraph, and you could implement the dispatch to traits
+by hand; however, in practice it is much easier if you just rely on the
+magic of the  class decorator, which is doing a lot of work
+on your behalf. In particular,
+
+
+*Note 1*: Python has somewhat of a schizofrenic attitude towards inheritance.
+Recent evolutions of the language
+
+even if I think that a language would be better off without
+full multiple inheritance with cooperative methods, that does not mean
+that I am against interfaces. I think a class should be able to
+implement multiple interfaces at the same time, but this has nothing
+to do with multiple inheritance. However in Python (starting from
+Python 2.6) multiple inheritance is abused to simulate interface
+requirements so that if you want to implement many interfaces at the
+same time you are suggested to inherit from many abstract base classes
+at the same time.  In an ideal language without multiple inheritance
+you could just add an ``__interfaces__`` attribute to classes. In an
+ideal language interfaces would be abstract objects (a little more
+than a list of names) whereas in Python they are concrete classes and
+that explains why you inherit from them.
 '''
