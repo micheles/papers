@@ -38,21 +38,19 @@ the reStructuredText and posts it to the blog.
 Everything is so incredibly simple compared to the publication process
 I was used to.
 
-In the past I have published many articles on
-Stacktrace_, which is an Italian webzine about programming and Internet
-technology.  Stacktrace uses Django_ as its underlying
-technology. Django is a framework which was created *exactly* for
-publishing articles on the Web so it should do that job well, you
-would think. Perhaps it does a good job for non-technical writers, the
-people it was written for.  But for developers, especially GUI
-impaired ones like myself, it made publication much more complex than
-needed. The edit page (I mean the admin page)
-was so complex that I renonced from the start to
-scrip it. Moreover, I could not submit reStructuredText directly:
-I had first to convert my source file into HTML and then post-process
-the output by stripping a may tags inserted by reST and not recognized
-by Django: I did so by writing and HTML parser for that, spending at
-least a full morning on the job.
+In the past I have published many articles on Stacktrace_, which is an
+Italian webzine about programming and Internet technology.  Stacktrace
+uses Django_ as its underlying technology. Django is a framework which
+was created *exactly* for publishing articles on the Web so it should
+do that job well, you would think. Perhaps it does a good job for
+non-technical writers, the people it was written for.  But for
+developers, especially GUI impaired ones like myself, it made
+publication much more complex than needed. The edit page (I mean the
+admin page) was so complex that I renonced from the start to scrip
+it. Moreover, I could not submit reStructuredText directly: I had
+first to convert my source file into HTML and then post-process the
+output by stripping many tags inserted by reST. I did so by writing
+and HTML parser for that, spending at least a full morning on the job.
 
 I know that I am not being fair with Django here and that
 there are reStructuredText plugins for Django: unfortunately,
