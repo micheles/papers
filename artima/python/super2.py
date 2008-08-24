@@ -145,7 +145,7 @@ If it was me, I would just remove the single argument syntax of
 ``super``, making it illegal. But this would probably break someone
 code, so I don't think it will ever happen in Python 2.X. 
 I did ask on the Python 3000 mailing list about removing unbound
-``super`` object (the title of the threas was
+``super`` object (the title of the thread was
 *let's get rid of unbound super*) and this was Guido's
 reply:
 
@@ -157,6 +157,60 @@ reply:
 
 Unfortunaly as of now unbound super objects are still around in Python
 3.0, but you should consider them morally deprecated.
+
+Bugs of unbound super objects in earlier versions of Python
+-----------------------------------------------------------------
+
+The unbound form of ``super`` is pretty buggy in Python 2.2 and Python 2.3.
+For instance, it does not play well with pydoc.
+Here is what happens with Python 2.3.4 (see also bug report 729103_):
+
+ >>> class B(object): pass
+ ... 
+ >>> class C(B):
+ ...     s=super(B)
+ ... 
+ >>> help(C)
+ Traceback (most recent call last):
+   ...
+   ... lots of stuff here
+   ...
+ File "/usr/lib/python2.3/pydoc.py", line 1198, in docother
+    chop = maxlen - len(line)
+ TypeError: unsupported operand type(s) for -: 'type' and 'int'
+
+In Python 2.2 you get an AttributeError instead, but still ``help``
+does not work.
+
+Moreover, an incompatibility between the unbound form of ``super`` and doctest
+in Python 2.2 and Python 2.3 was reported by Christian Tanzer (902628_).
+If you run the following
+
+::
+
+ class C(object):
+     pass
+
+  C.s = super(C)
+
+ if __name__ == '__main__':
+     import doctest, __main__; doctest.testmod(__main__)
+
+you will get a 
+
+::
+
+ TypeError: Tester.run__test__: values in dict must be strings, functions or classes; <super: <class 'C'>, NULL>
+
+Both issues are not directly related to ``super``: they are bugs
+with the ``inspect`` and ``doctest`` modules not recognizing descriptors
+properly. Nevertheless, as usual,  they
+are exposed by ``super`` which acts as a magnet for subtle bugs.
+Of course, there may be other bugs I am not aware of; if you know of other
+issues, just add a comment here.
+
+.. _729103: http://bugs.python.org/issue729103
+.. _902628: http://bugs.python.org/issue902628
 
 Appendix
 -------------------------------------------
