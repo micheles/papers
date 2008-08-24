@@ -1,18 +1,24 @@
 r"""
 Working with ``super`` is tricky, not only because of the quirks and
 bugs of ``super`` itself, but also because you are likely to run into
-some gray area of the Python language. For instance, there is a subtle
-pitfall which is not directly related to ``super`` but which is often
-encountered working with ``super``: the issue of the lookup rules
-for special methods, which are somewhat special.
+some gray area of the Python language itself. In particular, in order to
+understand how ``super`` works, you need to understand really well
+how attribute lookup works, including the tricky cases of
+special attributes and metaclass attributes.
+Moreover, even if you know perfectly well how ``super`` works,
+interacting with a third party library using (or not using) ``super``
+is still non-obvious. At the end, I am led to believe that the problem is not
+``super``, but the whole concept of multiple inheritance and cooperative
+methods in Python.
 
 Special attributes are special
 ----------------------------------------------------------------------------
 
-This came up at least three or four times in the newsgroup, and there 
-are various independent bug reports on sourceforge about it, so possibly 
+This issue came up at least three or four times in the Python
+newsgroup, and there 
+are various independent bug reports on sourceforge about it,
 you may face it too. Bjorn Pettersen was the first one who pointed out the
-problem to me (see also bug report SF 729913): the issue is that
+problem to me (see also bug report 729913_): the issue is that
 
 ``super(MyCls, self).__getitem__(5)``
 
@@ -20,11 +26,11 @@ works, but not
 
 ``super(MyCls, self)[5]``.
 
-The problem is general to all special methods, not only to ``__getitem__``,
-and the explanation for that has to do with the implementation of
+The problem is general to all special methods, not only to ``__getitem__``
+and it is a consequence of the implementation of
 attribute lookup for special methods. Clear explanations of what is
 going on are provided by Michael Hudson as a comment to the bug report:
-SF789262 and by Raymond Hettinger as a comment to the bug report SF805304.
+789262_ and by Raymond Hettinger as a comment to the bug report 805304_.
 Shortly put, this is not a problem of ``super`` per se, the problem is
 that the special call ``x[5]`` (using ``__getitem__`` as example) is
 converted to  ``type(x).__getitem__(x,5)``
@@ -39,6 +45,11 @@ the docs it is mentioned that special calling syntaxes (such as
 the ``[]`` call, the ``iter`` call, the ``repr`` call, etc. etc.)
 are special and bypass ``__getattribute__``. The advice is:
 just use the more explicit form and everything will work.
+
+.. _783528: http://bugs.python.org/issue783528
+.. _729913: http://bugs.python.org/issue729913
+.. _789262: http://bugs.python.org/issue789262
+.. _805304: http://bugs.python.org/issue805304
 
 ``super`` does not work with meta-attributes
 ----------------------------------------------------------------------
@@ -106,112 +117,161 @@ rationale for this behaviour in `my second article with David Mertz`_;
 in the case of ``__name__`` it is obvious though: you don't want
 all of your objects to have a name, even if all your classes do.
 
-When it comes to ``super`` don't trust even Guido himself!
----------------------------------------------------------------------------
 
-``super`` is so tricky that even Guido got is wrong. For instance,
-in order to explain how ``super`` works, Guido describes a
-"fully functional implementation of the super() built-in class in 
-pure Python" in "Unifying types and classes in Python 2.2", which
-I report here for your convenience:
-
-$$Super
-
-Unfortunately, this implementation is more harmful than helpful, since
-the current ``super`` DOES NOT work in the same way :-(
-Take for instance this example:
-
- >>> class C(object):
- ...    f = 'C.f'
- >>> class D(C):
- ...    f = 'D.f'
-
-Here the ``super`` works fine, 
-
- >>> print super(D, D()).f 
- C.f
-
-but the class ``Super`` described by Guido will raise an attribute
-error when invoked as ``Super(D, D()).f``.  Therefore ``Super`` is NOT 
-equivalent to the currently implemented ``super`` built-in.
-
-Miscellaneous ``super`` bugs in earlier versions of Python
------------------------------------------------------------------
-
-There are various ``super`` pitfalls currently undocumented of which
-the experienced Python programmer should be aware of.
-
-The unbound form of ``super`` does not play well with pydoc. 
-The problems is still there in Python 2.3.4 (see bug report SF729103)
-
- >>> class B(object): pass
- ... 
- >>> class C(B):
- ...     s=super(B)
- ... 
- >>> help(C)
- Traceback (most recent call last):
-   ...
-   ... lots of stuff here
-   ...
- File "/usr/lib/python2.3/pydoc.py", line 1198, in docother
-    chop = maxlen - len(line)
- TypeError: unsupported operand type(s) for -: 'type' and 'int'
-
-I have not yet clear what the cause is, but it is certainly quite
-tricky. An incompatibility between  ``super`` was reported by Christian Tanzer
-(SF902628); if you run the following, you will get a ``TypeError``::
-
-  class C(object):
-      pass
-
-  C.s = super(C) 
-
-  if __name__ == "__main__":
-      import doctest, __main__
-      doctest.testmod(__main__)
-
-BTW, I don't think this is related to ``super`` only since I have
-found similar problems when playing with descriptors and doctest
-some time ago (but I cannot reproduce the bug right now).
-
-Finally, there may be other bugs and pitfalls I am not aware of. Certainly
-there are many other issues and bugs in previous versions of Python that
-I have not mentioned here, since they have been fixed, but that you may
-encounter if you use earlier versions of Python.
+There are certainly other bugs and pitfalls which I have not mentioned here
+because I think are not worth mention, or because I have forgot them, or
+also because I am not aware of them all. So, be careful when you use
+``super``, especially in earlier versions of Python.
 
 .. _my second article with David Mertz: http://www-128.ibm.com/developerworks/linux/library/l-pymeta2 
+
+Remember to use super consistently
+--------------------------------------------------------------------
+
+Some years ago James Knight wrote an essay titled
+`Super considered harmful`_ where he points out a few shortcomings
+of ``super`` and he makes an important recommendation: 
+*use super consistently, and document that you use it, as it is part of the 
+external interface for your class, like it or not*.
+The issue is that a developer inheriting from a hierarchy written by somebody
+else has to know if the hierarchy uses ``super`` internally
+or not. For instance, consider this case, where the library author has
+used ``super`` internally:
+
+$$library_using_super
+
+If the application programmer knows that the library uses ``super`` internally,
+she will use ``super`` and everything will work just fine; but it she does not
+know if the library uses ``super`` she may be tempted to call ``A.__init__``
+and ``B.__init__`` directly, but this will end up in having ``B.__init__``
+called twice! 
+
+ >>> from library_using_super import A, B
+
+ >>> class C(A, B):
+ ...     def __init__(self):
+ ...         print "C",
+ ...         A.__init__(self)
+ ...         B.__init__(self)
+  
+ >>> c = C() 
+ C A B B
+
+On the other hand, if the library does *not* uses ``super`` internally,
+
+$$library_not_using_super
+
+the application programmer cannot use ``super`` either, otherwise
+``B.__init__`` will not be called:
+
+ >>> from library_not_using_super import A, B
+
+ >>> class C(A,B):
+ ...     def __init__(self):
+ ...         print "C",
+ ...         super(C, self).__init__()
+
+ >>> c = C()
+ C A
+
+So, if use classes coming from a library in a multiple inheritance
+situation, you must know if the classes were intended to be
+cooperative (using ``super``) or not. Library author should always
+document their usage of ``super``.
+
+Argument passing in cooperative methods can fool you
+----------------------------------------------------------------------
+
+James Knight devolves a paragraph to the discussion of argument passing
+in cooperative methods. Basically, if you want to be safe, all your cooperative
+methods should have a compatible signature. There are various ways of
+getting a compatible signature, for instance you could accept everything (i.e.
+your cooperative methods could have signature ``*args, **kw``) which is
+a bit too much for me, or all of your methods could have exactly the same
+arguments. The issue comes when you have default arguments, since your
+MRO can change if you change your hierarchy, and argument passing may
+break down. Here is an example:
+
+$$cooperation_ex
+
+>>> from cooperation_ex import D
+>>> d = D()
+D
+B with a=None
+C with a=None
+A
+
+This works, but it is fragile (you see what will happen if you change
+``D(B, C)`` with ``D(C, B)``?) and in general it is always difficult
+to figure out which arguments will be passed to each method and in
+which order so it is
+best just to use the same arguments everywhere (or not to use
+cooperative methods altogether, if you have no need for cooperation).
+There is no shortage of examples of trickiness in multiple inheritance
+hierarchies; for instance I remember a post from comp.lang.python
+about the `fragility of super`_ when changing the base class.
+
+Also, beware of situations in which you have
+some old style classes mixing with new style classes: the result may
+depend on the order of the base classes (see examples 2-2b and 2-3b
+in `Super considered harmful`_).
+
+Conclusion: is there life beyond super?
+-------------------------------------------------------
+
+In this series I have argued that ``super`` is tricky; I think
+nobody can dispute that. However the existence of dark corners is not
+a compelling argument against a language construct: after all, they
+are rare and there is an easy solution to their obscurity,
+i.e. documenting them. This is what I have being doing all along.
+On the other hand, one may wonder if all ``super`` warts aren't
+hints of some serious problem underlying. It may well
+be that the problem is not with ``super``, nor with cooperative
+methods: the problem may be with multiple inheritance itself.
+
+I personally liked super, cooperative methods and multiple inheritance
+for a couple of years, then I started working with Zope and my mind
+changed completely. Zope 2 did not use super at all but is a mess anyway,
+so the problem is multiple inheritance itself. Inheritance
+makes your code heavily coupled and difficult to follow (*spaghetti
+inheritance*).  I have not found a real life problem yet that I could
+not solve with single inheritance + composition/delegation in a better
+and more maintainable way than using multiple inheritance.
+Nowadays I am *very* careful when using multiple inheritance.
+
+People should be educated about the issues; moreover people should
+be aware that there are alternative to multiple inheritance in
+other languages. For instance Ruby uses 
+mixins (they are a restricted multiple inheritance without cooperative
+methods and with a well defined superclass, but they do not solve
+the issue of name conflicts and the issue with the ordering of
+the mixin classes); recently some people proposed the concepts
+of traits_ (restricted mixin where name conflicts must be solved explicitely
+and the ordering of the mixins does not matter) which is interesting.
+
+In CLOS multiple inheritance works better since (multi-)methods
+are defined outside classes and ``call-next-method`` is well integrated
+in the language; it is simpler to track down the ancestors
+of a single method than to wonder about the full class hierarchy.
+The language SML (which nobody except academics use, but would deserve
+better recognition) goes boldly in the direction of favoring composition over
+inheritance and uses functors to this aim.
+
+Recently I have written a trilogy of papers for Stacktrace discussing
+why multiple inheritance and mixins are a bad idea and suggesting
+alternatives. I plan to translate the series and to publish here in
+the future. For the moment you can use the Google Translator. The
+series starts from here_ and it is a recommended reading if you ever
+had troubles with mixins.
+
+.. _here: http://stacktrace.it/articoli/2008/06/i-pericoli-della-programmazione-con-i-mixin1/
+
+.. _Super considered harmful: http://fuhm.net/super-harmful/
+.. _fragility of super: http://tinyurl.com/3jqhx7
+.. _traits: http://www.iam.unibe.ch/~scg/Research/Traits/
 """
 
-class Super(object):
-    "Guido's implementation of super in http://www.python.org/download/releases/2.2.3/descrintro"
-    def __init__(self, type, obj=None):
-        self.__type__ = type
-        self.__obj__ = obj
-    def __get__(self, obj, type=None):
-        if self.__obj__ is None and obj is not None:
-            return Super(self.__type__, obj)
-        else:
-            return self
-    def __getattr__(self, attr):
-        if isinstance(self.__obj__, self.__type__):
-            starttype = self.__obj__.__class__
-        else:
-            starttype = self.__obj__
-        mro = iter(starttype.__mro__)
-        for cls in mro:
-            if cls is self.__type__:
-                break
-        # Note: mro is an iterator, so the second loop
-        # picks up where the first one left off!
-        for cls in mro:
-            if attr in cls.__dict__:
-                x = cls.__dict__[attr]
-                if hasattr(x, "__get__"):
-                    x = x.__get__(self.__obj__)
-                return x
-        raise AttributeError, attr
-
+import library_using_super, library_not_using_super, cooperation_ex
 
 if __name__ == '__main__':
-    import doctest; doctest.testmod()
+    import __main__, doctest; doctest.testmod(__main__)
