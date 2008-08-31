@@ -1,6 +1,9 @@
 HISTORY
 -----------------------------
 
+0.5.0. Major rewriting: abandoned the original idea of traits as
+       mechanism to control namespace pollution and added support for
+       method cooperation (2008-08-31);
 0.4.0. Added proper support for retrieving descriptors
 0.3.0. Went back to TOS classes not instances of TOSMeta
 0.2.0. Made all TOS classes instances of TOSMeta and managed
