@@ -582,10 +582,6 @@ Then, you can define your own enhanced include as follows:
 
 $$enhanced_include
 
-The syntax ``**{'MetaTOS': ExtendedMetaTOS}`` is ugly, but if you
-upgrade to Python 2.6 you will be able to use ``MetaTOS=ExtendedMetaTOS``
-since the parsing of keyword arguments has been improved.
-
 In simple cases using directly ``ThirdPartyMeta`` may work, but I strongly
 recommend to replace the call to super with ``__super`` even in 
 ``ThirdPartyMeta`` to make the cooperation robust.
@@ -799,7 +795,7 @@ class ExtendedMetaTOS(ThirdPartyMeta):
     __metaclass__ = include(MetaTOS)
 
 def enhanced_include(*traits):
-    return include(*traits, **{'MetaTOS': ExtendedMetaTOS})
+    return include(MetaTOS=ExtendedMetaTOS, *traits)
 
 class FrameworkMeta(type): # example metaclass
   def __new__(mcl, name, bases, dic):
