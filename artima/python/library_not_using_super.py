@@ -1,4 +1,4 @@
-"A library not using super"
+# library_not_using_super
 
 class A(object):
     def __init__(self):

@@ -145,7 +145,7 @@ If it was me, I would just remove the single argument syntax of
 ``super``, making it illegal. But this would probably break someone
 code, so I don't think it will ever happen in Python 2.X. 
 I did ask on the Python 3000 mailing list about removing unbound
-``super`` object (the title of the thread was
+super objects (the title of the thread was
 *let's get rid of unbound super*) and this was Guido's
 reply:
 

@@ -1,59 +1,51 @@
 """\
-Generic functions vs inheritance: a case study
-========================================================================
-
-Generic functions (aka multimethods) are a language construct coming
-from Common Lisp. As it happens, they are often regarded as something
-abstruse and of dubious utility in real life. I disagree with that
-position. In particular, just yesterday at work I had a good use case
-for generic functions and I thought it deserved a blog post.
-
-Managing Input/Output
----------------------------------------------------
-
-On the last few weeksmy collegues and me have been involved in a
-project to write a command line interface. We did so by leveraging con
-the ``cmd`` module in the standard library, to which we added a
-network layer using Twisted. In the end, we had classes
-interacting with the standard streams ``stdin``, ``stdout``,
-``stderr``, classes interacting with nonstandard streams, i.e. Twisted
-transports or a file-like wrapper to a database connection and classes
-with the ability to log on files. 
-All the I/O was line oriented and we basically needed three
-functions:
+In the last few weeks my collegues and me have been involved in a
+project which required a command line interface. We did so by
+leveraging on the ``cmd`` module in the standard Python library, to
+which we added a network layer using Twisted. In the end, we had
+classes interacting with the standard streams ``stdin``, ``stdout``,
+``stderr`` and classes interacting with nonstandard streams, i.e.  log
+files and Twisted transports and file-like wrappers to a database.  All
+the I/O was line oriented and we basically needed three functions:
 
 - ``print_out(self, text, *args)`` to print a line 
-  to ``self.stdout``
+  on ``self.stdout``
 
 - ``print_err(self, text, *args)`` to print a line 
-  to ``self.stderr``
+  on ``self.stderr``
 
 - ``readln_in(self)`` to read a line from ``self.stdin``
 
 Depending on the type of ``self``, ``self.stdout`` was
-``sys.stdout``, a Twisted transport, a logfile or a file-like
-wrapper to a database connection.
+``sys.stdout``, a Twisted transport, a log file or a file-like
+wrapper to a database.
 
 This is a problem that begs for generic functions. Unfortunately,
 nobody in the Python world uses them (with the exception of P. J. Eby)
-so I have decided to use a suboptimal design involving mixins instead.
+so for the moment we are using a suboptimal design involving mixins instead.
+I am not really happy with that.
+The aim of this blog post is to explain why a mixin solution is inferior
+to a generic functions solution.
+
+A mixin-oriented solution
+---------------------------------------------------------
 
 In the mixin solution, instead of generic functions one uses plain
-old methods, and collect them into a mixin class. In this specific
-case the class was called ``StdIOMixin``:
+old methods, stored into a mixin class. In this specific
+case let me call the class ``StdIOMixin``:
 
 $$StdIOMixin
 
-where ``write`` was the following helper function:
+where ``write`` is the following helper function:
 
 $$write
 
 ``StdIOMixin`` is there to be mixed with other classes, providing
-to them the ability to perform line-oriented I/O. By default, it
-works on the standard stream, but if the client class overrides
+them with the ability to perform line-oriented I/O. By default, it
+works on the standard streams, but if the client class overrides
 the attributes ``stdout``, ``stderr``, ``stdin`` with suitable file-like
 objects, it can be made to work with Twisted transports, files and 
-databases. For instance, here is an example were ``stdout`` and ``stderr``
+databases. For instance, here is an example where ``stdout`` and ``stderr``
 are overridden as files:
 
 $$FileIO
@@ -63,19 +55,17 @@ $$FileIO
 The design works and it looks elegant, but still I say that it is sub-optimal
 compared to generic functions.
 
-Issues of the mixin-based approach
------------------------------------------------------------
-
-The basic problem of the mixin approach is that it adds methods
-to the API of the client classes and therefore it adds to the learning
+The basic problem of this design is that it adds methods
+to the client classes and therefore it adds to the learning
 curve. Suppose you have four client classes - one managing standard
 stream, one managing files, one managing Twisted transports and one
 managing database connections - then you have to add the mixin four
 times. If you generate the documentation for your classes, the
 methods ``print_out``, ``print_err`` and ``readln_in`` will be
 documented four times. And this is not a shortcoming of pydoc:
-the three methods are effectively adding to your learning curve
+the three methods are effectively cluttering your application
 in a linear way, proportionally to the number of classes you have.
+
 Moreover, those methods will add to the pollution of your class namespace,
 with the potential risk on name collisions, especially in large frameworks.
 In large frameworks (i.e. Plone, where a class my have 700+ attributes)
@@ -83,15 +73,37 @@ this is a serious problem: for instance, you cannot even use
 auto-completion, since there are just too many completions. You must know
 that I am `very sensitive to namespace pollution`_ so I always favor
 approaches that can avoid it.
-Generic functions fit the bill perfectly. I am sure most people do not
-know about it, but Python ships with an implementation of generic
-functions in the standard library, in the ``pkgutil`` module (by P.J. Eby,
-unsurprisingly).
-The implementations is simple, but yet it is able to cover
-most practical uses of generic functions. In our example we need
+
+Also, suppose you only need the ``print_out`` functionality; the mixin
+approach naturally would invite you to include the entire
+``StdIOMixin``, importing in your class methods you don't need.  The
+alternative would be to create three mixin classes ``StdinMixin``,
+``StdoutMixin``, ``StderrMixin``, but most of the time you would need
+all of them; it seems overkill to complicate so much your inheritance
+hierarchy for a very simple functionality.
+
+`As you may know`_, I am always looking for solutions avoiding 
+(multiple) inheritance and 
+generic functions fit the bill perfectly.
+
+.. _As you may know: http://www.artima.com/weblogs/viewpost.jsp?thread=237121
+
+A generic functions solution
+-----------------------------------------------------------
+
+I am sure most people do not
+know about it, but Python 2.5 ships with an implementation of generic
+functions in the standard library, in the ``pkgutil`` module (by P.J. Eby).
+Currently, the implementation is only used
+internally in ``pkgutil`` and it is completely undocumented;
+therefore I never had the courage to use it in production, but
+it works well. Even if it is simple, it is able to cover
+most practical uses of generic functions. For instance, in our case we need
 three generic functions:
 
 ::
+
+ from pkgutil import simplegeneric
 
  @simplegeneric
  def print_out(self, text, *args):
@@ -130,8 +142,8 @@ Extending generic functions
 
 One advantage of methods with respect to ordinary functions is that they can
 be overridden in subclasses; however, generic functions can be overridden
-too and this is why they are also called multimethods. For instance,
-I could define a class ``AddTimeStamp`` and override ``print_out``
+too - this is why they are also called multimethods. For instance,
+you could define a class ``AddTimeStamp`` and override ``print_out``
 to add a time stamp when applied to instances of ``AddTimeStamp``.
 Here is how you would do it:
 
@@ -139,8 +151,8 @@ $$AddTimeStamp
 
 ::
 
- @print_out.register(AddTimeStamp)
- def override(self, text, *args):
+ @print_out.register(AddTimeStamp) # add an implementation to print_out
+ def impl(self, text, *args):
      "Implementation of print_out for AddTimeStamp instances"
      if args:
          text = text % args
@@ -154,20 +166,33 @@ and here in an example of use:
 The syntax  ``@print_out.register(AddTimeStamp)`` is not the most beatiful
 in the world, but its purposes should be clear: we are registering the
 implementation of ``print_out`` to be used for instances of ``AddTimeStamp``.
-That means that when ``print_out`` is invoked on an instance of 
+When ``print_out`` is invoked on an instance of 
 ``AddTimeStamp`` a time stamp is printed; otherwise, the default implementation
-is used. Since the implementation of ``simplegeneric`` is simple,
+is used. 
+
+Notice that since the implementation of ``simplegeneric`` is simple,
 the internal registry of implementations is not exposed and there is no 
-introspection API, but you cannot pretend too much from thirty lines of code 
-or so. In this example I have named the ``AddTimeStamp`` implementation
-``override`` but you have used any name, including ``print_out_AddTimeStamp``
+introspection API; moreover, ``simplegeneric`` works for single dispatch
+only and there is no explicit support for multimethod
+cooperation (i.e. ``call-next-method``, for the ones familiar with
+Common Lisp). Yet, you cannot pretend too much from thirty lines of code ;)
+
+In this example I have named the ``AddTimeStamp`` implementation 
+of ``print_out``
+``impl``,  but you could have used any valid Python identifier, 
+including ``print_out_AddTimeStamp``
 or ``_``, if you felt so. Since the name ``print_out`` is explicit in
 the decorator and since in practice you do not need to access the
 explicit implementation directly, I have settled for a generic name like
-``override``, but there is no standard convention since nobody uses
-generic functions in Python (yet). There were plan to add them to
-Python 3.0, but the proposal have been shifted to Python 3.1,
-with a syntax yet to define.
+``impl``. There is no standard convention since nobody uses
+generic functions in Python (yet). 
+
+
+There were plan to add geeeric functions to Python 3.0, but the
+proposal have been shifted to Python 3.1, with a syntax yet to
+define. Nevertheless, for people who don't want to wait,
+``pkgutil.simplegeneric`` is already there and you can start
+experimenting with generic functions right now.  Have fun!
 
 .. _very sensitive to namespace pollution: http://stacktrace.it/articoli/2008/08/i-pericoli-della-programmazione-con-i-mixin3/
 """

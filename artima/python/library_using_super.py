@@ -1,4 +1,4 @@
-"A library exposing classes A and B"
+# library_using_super
 
 class A(object):
     def __init__(self):
