@@ -56,7 +56,7 @@ superclass. There is no such a thing as *the superclass* in a Multiple
 Inheritance (MI) world. Also, the sentence about *unbound* is misleading,
 since it may easily lead the programmer to think about bound and unbound
 methods, whereas it has nothing to do with that concept. 
-IMNSHO ``super`` is one of the most trickiest and surprising Python 
+IMNSHO ``super`` is one of the most tricky and surprising Python 
 constructs, and we absolutely need a document to shed light on its secrets. 
 The present paper is a first step in this direction: it aims to tell you 
 the *truth* about ``super``. At least the amount of truth
