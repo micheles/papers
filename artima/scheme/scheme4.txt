@@ -1,32 +1,31 @@
-Just a note about Scheme resources for beginners ...
+Scheme resources for beginners
 -----------------------------------------------------------------
+
+The present series has the ambition to be a nearly self-consistent
+complement to the R6RS document. In theory you should be able
+to learn Scheme by reading my "Adventures" and the R6RS 
+only. In practice, however, having a look at other sources
+cannot hurt, so I will discuss here a few tutorials/textbooks
+you can find on the net and which are useful for Scheme beginners.
+There are many good texts, but none focused
+on my target of readers, i.e. experienced programmers coming
+from the scripting language world.
+I myself am the kind of persons that prefer learning from tutorials,
+articles and newsgroups more than from books, therefore
+I am not an expert on the existing bibiliografy. Here I will
+cite only a few resources, readers more knowledgeable are
+invited to post their recommendations as comments.
 
 .. image:: http://www.phyast.pitt.edu/~micheles/scheme/books.jpg
  :width: 176
 
-The present series has the ambition to be a self-consistent
-complement to the R6RS document. In theory you should be able
-to learn Scheme by reading my "Adventures" and the R6RS 
-only. In practice, however, having a look at other sources
-cannot hurt, so I will discuss here a few free textbooks/tutorials
-you can find on the net and which are useful for Scheme beginners.
-I was asked if there is a Scheme book that I recommend particularly.
-I think there are many good text, but nobody really focused
-on my target of readers, i.e. experienced programmers coming
-from the scripting language world.
-I myself are the kind of persons that prefer learning from tutorials,
-articles and newsgroups discussions more than from books, therefore
-I am really not an expert on the existing bibiliografy. Here I will
-cite only a few resources, readers more knowledgeable than me are
-invited to post their recommendations as comments to this episode.
-
 The main reference I used to learn Scheme when I started is
 `Teach Yourself Scheme in Fixnum Days`_ by Dorai Sitaram, 
 which has many good things going for it. It is a self-consistent
-report very well written, especially for the first part.
+tutorial on Scheme which is very well written, especially for the first part.
 It is very informative, but at the same time concise and readable
-by hobbyst Scheme programmers, i.e. by people using another language
-at work and not having plenty of free time at their disposal
+by hobbyist Scheme programmers like myself, i.e. by people using another language
+at work and not having too much free time at their disposal
 (I suppose that description fits the majority of my readers).
 On the other hand, `Teach Yourself Scheme in Fixnum Days`_ 
 is a bit old as a reference, and it completely ignores the modern
@@ -36,20 +35,20 @@ Schemers do not love. My aim in this series is to give a description
 of modern Scheme, updated to the R6RS document; moreover I want to
 discuss in detail modern macros.
 
-A more modern source (not covering the R6RS specification anyway)
+A more modern text (not covering the R6RS specification anyway)
 is `The Scheme Programming Language`_ (Third Edition) by
-R. Kent Dybvig. This is a very good book size tractation, and it
-is the best reference I have read on ``syntax-case`` macros, 
+R. Kent Dybvig. This is a very good book on Scheme in general.
+It is also the best reference I have read on ``syntax-case`` macros, 
 but it is book with several hundreds of dense pages, perhaps
-too much for a hobbyst Schemer.
+too much for a hobbyist Schemer.
 
-A very recent book about Scheme is `Programming
+A very recent book is `Programming
 Languages Application and Interpretation`_, by Shriram Krishnamurthi,
 which is also excellent, especially the part about continuations,
-but it is also very demanding from the reader, since it is a textbook
+but also very demanding from the reader, since it is a textbook
 for university students. Notice that even this book does not cover
-R6RS (to my knowledge there are text books covering the R6RS standard,
-since it is a too recent standard).  
+R6RS (to my knowledge there are no text books covering the R6RS standard,
+since it is too recent).  
 
 There is a habit of denoting Scheme books with their initials, so the
 two books I have just cited are also known as TSPL3 e PLAI; however,
@@ -67,8 +66,8 @@ with a great academical tradition. The problem is not the lack of
 books, is the lack of time to read them! This is one of the reasons
 why my *Adventures* are appearing as blog posts and not as a book:
 a short paper of 5-6 pages is much less scary than a big book
-of 500-600 pages. Morevoer blog posts are allowed to be much more
-informal than books, and easier to read.
+of 500-600 pages. Morevoer blog posts are allowed to keep a much more
+informal tone than books, so they are both easier to write and to read.
 
 .. _Structure and Interpretation of Computer Programs: http://mitpress.mit.edu/sicp/full-text/book/book.html
 .. _Programming Languages Application and Interpretation: http://www.cs.brown.edu/~sk/Publications/Books/ProgLangs/2007-04-26/ 
@@ -76,7 +75,7 @@ informal than books, and easier to read.
 .. _The Scheme Programming Language: http://www.scheme.com/tspl3/
 .. _How to Design Programs: http://www.htdp.org/2003-09-26/Book/
 
-... and finally a real Scheme program!
+A simple Scheme program
 ----------------------------------------------------------------------
 
 After so much talk, let me show you (finally!) 
@@ -85,6 +84,7 @@ There is a long tradition of giving the factional function as an
 example and I do not see a reason to break the tradition.
 Here is the Scheme code::
 
+  ;; fac.scm for Chicken Scheme
   (define (fac x)
      (if (= x 0) 1
       (* x
@@ -115,7 +115,7 @@ This trivial example already prooves what I have been saying all along:
    factorial and four at the end of the definition of ``n``. A
    typical program contains 3-4 parens per line. It should be
    noticed that all those parens are useless. By using the SRFI-49
-   the code could be written as
+   the code could have been written as
 
    ::
 
@@ -152,7 +152,7 @@ This trivial example already prooves what I have been saying all along:
    but readability never counted much in the Scheme world.
    Some Scheme implementations
    accepts the more readable name ``first`` as a synonimous of
-   ``car``, but this is not standard.
+   ``car``, but this is again not standard.
 
 4. 
    The result of ``fac`` depends on the implementation: some
@@ -188,9 +188,9 @@ In Ikarus (which is *R6RS-compliant*) one gets instead::
  976156518286253697920827223758251185210916864
  000000000000000000000000
  > (fac 1000)
- 4023872600 ... < moltissime altre cifre>
+ 4023872600 ... < many many other digits>
 
-After reading these first four episodes you may be tempted to quit;
+After reading these first episodes you may be tempted to quit;
 I am sure the readers who followed me up to this point had this
 question floating in their minds: *is it really worth it?*.
 Probably for most readers the answer is *no*. But this series is
