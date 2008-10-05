@@ -4,9 +4,9 @@ project which required a command line interface. We did so by
 leveraging on the ``cmd`` module in the standard Python library, to
 which we added a network layer using Twisted. In the end, we had
 classes interacting with the standard streams ``stdin``, ``stdout``,
-``stderr`` and classes interacting with nonstandard streams, i.e.  log
-files and Twisted transports and file-like wrappers to a database.  All
-the I/O was line oriented and we basically needed three functions:
+``stderr`` and classes interacting with nonstandard streams such as
+Twisted transports.  All the I/O was line oriented and we basically
+needed three methods:
 
 - ``print_out(self, text, *args)`` to print a line 
   on ``self.stdout``
@@ -18,7 +18,7 @@ the I/O was line oriented and we basically needed three functions:
 
 Depending on the type of ``self``, ``self.stdout`` was
 ``sys.stdout``, a Twisted transport, a log file or a file-like
-wrapper to a database.
+wrapper to a database. Likewise for ``self.stderr`` and ``self.stdin``.
 
 This is a problem that begs for generic functions. Unfortunately,
 nobody in the Python world uses them (with the exception of P. J. Eby)
@@ -186,7 +186,6 @@ the decorator and since in practice you do not need to access the
 explicit implementation directly, I have settled for a generic name like
 ``impl``. There is no standard convention since nobody uses
 generic functions in Python (yet). 
-
 
 There were plan to add geeeric functions to Python 3.0, but the
 proposal have been shifted to Python 3.1, with a syntax yet to
