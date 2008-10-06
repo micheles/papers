@@ -187,7 +187,7 @@ explicit implementation directly, I have settled for a generic name like
 ``impl``. There is no standard convention since nobody uses
 generic functions in Python (yet). 
 
-There were plan to add geeeric functions to Python 3.0, but the
+There were plan to add generic functions to Python 3.0, but the
 proposal have been shifted to Python 3.1, with a syntax yet to
 define. Nevertheless, for people who don't want to wait,
 ``pkgutil.simplegeneric`` is already there and you can start
