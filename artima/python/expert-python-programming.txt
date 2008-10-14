@@ -1,0 +1,181 @@
+"Expert Python Programming" - as the title implies - is intended for
+proficient Python programmers who want to become experts.
+In my opinion the target audience is very well chosen, since we
+do not need yet another beginners' book, whereas there are very
+few Python books intended specifically for skilled
+programmers.
+
+The book fullfills its goals exceptionally well: it definitely gives
+you enough hints and suggestions to turn you from a mere practictioner
+into a professional Python programmer (of course some effort on your
+part is required in order to reach that goal, but a book cannot
+perform miracles ;).
+
+In only 350 pages Tarek Ziadé covers an extremely wide range of
+topics.  "Expert Python Programming" is not just a book about Python,
+the language; it is also a book about Python, the platform: it covers
+all the major libraries and tools used to write and to deliver
+profession Python application.  It is the knowledge of such tools and
+techniques that make the difference between an amateur and a
+professional developer.
+
+Moreover, the book is a collection of best practices for modern
+software development, covering topics such as how to use a Distributed
+Version Control System, how to setup a buildbot for your tests, how to
+setup an automatic build of your documentation, etc.  Really a lot of
+good stuff that I have never found collected together in a single
+place.
+
+The thing that impressed me the most is how much this book is updated:
+basically it covers all the latest development in the Python community,
+even very recent ones like the Sphynx documentation system, to name
+just one which I think is extremely interesting and little known.
+
+I like very much the overall attitude of the book, especially the lack
+of verbosity.  There is a lot of really good information in a
+surprising small number of pages, since as the author says, "this book
+is not intended to replace inline resources, but rather aims at
+complementing them".  Other books I have seen contain thousands of
+pages of redundant information you can find in the manuals, whereas
+"Expert Python Programmer" is more like a guide through the jungle of
+the Python resources, just what a competent programmer needs.
+
+I follow the latest developments in the Python world very closely, so I did
+not expect to find something I did not know already, but I was very
+pleasantly surprised to discover I was wrong.
+
+Basically the book focuses on three topics: how to use Python at its
+best (about new and/or advanced Python constructs), how to write a
+professional Python application (with tips about IDEs, DVCS, testing
+frameworks, optimization techniques, etc) anf how to deliver and mantain
+an application (how to document the code with reStructuredText and Sphynx,
+how to distribute it with setuptools and other tools such as
+PasteScript, zc.buildout, builbots, how to set up a bug tracker with
+Trac, and more).
+
+The first chapter, about installing Python and setting up a
+confortable development environment, risked to be removed: as the
+author says in the preface "I almost removed this chapter since the
+book is not intended for beginners".  I am glad that it was was kept
+at the end: there is useful information there even for an expert Pythonista
+like myself (let me be a little immodest here).
+
+For instance, there are tips about how to get a
+nice working environment under Windows by using MinGW_ and MSYS_ which I
+have never used (I do not develop under Windows; in the past I have
+used Cygwin which is a little bit too pervasive IMO). If I needed to
+develop something on Windows in the future I would certainly take
+advantages of Tarek's tips.
+
+I liked the chapter about setuptools, since I learned a lot about how
+to make eggs for distributing Python code (at work all of our code
+is for internal usage, we do not distribute it, so I was pretty
+much ignorant about the subject the ``setup.py``). I plan to
+take advantages of setuptools to distribute a couple of Open Source
+libraries I am working on. I must confess that the ``setup.py`` script 
+for my own `decorator module`_ was contributed by an user, since I did not
+know how to use setuptools at the time.
+
+There is an entire chapter about choosing good names, and I am glad
+there is, since choosing good names is possibly the most difficult
+thing in programming. Moreover, the chapter gives a very good
+introduction to Python code style guide, the (in)famous PEP 8, and
+it cites Pylint_, a tool every Python developer should know about (the
+other is pychecker_, which is not cited, so I will cite it here ;).
+
+Whereas the chapters about coding conventions and documentation are
+for everyone, the book contains good advice for experts too: they will
+enjoy the chapters about profiling and debugging.  There is even a
+paragraph about `Guppy and Heapy`_, a tool to track memory usage I was
+never able to use (as the author says "Heapy is not easy to use and
+needs a bit of practice").  For people working with databases, there
+is also a nice introduction to SLQAlchemy, the major database toolkit
+for Python.
+
+The last chapter about patterns is definitely well written and it may
+appeal to pattern aficionados. I personally I am an not estimator of
+patterns. Instead of motivating my position, I will just report a
+`couple of citations from comp.lang.lisp`_ (you may substitute Lisp 
+with Python):
+
+.. _couple of citations from comp.lang.lisp: http://groups.google.com/group/comp.lang.lisp/msg/9d58f7bf2214b9fe
+
+.. highlights::
+
+  I remember when I read the original "Design Patterns" book, thinking
+  "wow, non-Lisp languages sure make you jump through all sorts of hoops
+  to do things we take for granted."  That's why they need to give names
+  to all the patterns, because you can't "just do it." -- *Barry Margolin*
+
+  Yeah, I remember having the same reaction - kind of sad when a language
+  is so broken that there is a list as long as your arm of collected
+  workarounds that are glorified as "design patterns." -- *Raffael Cavallaro*
+
+I must confess that I liked a lot the chapter about the MRO_, since my
+own paper is extensively cited there as "the reference document" about
+the subject. I certainly would not have expected such a result when I
+wrote it six years ago. At the time, I was just a hobbyist programmer
+who had freshly learned OOP and I wanted to give a very minor
+contribution to the Python documentation, since I could not give a
+contribution in code. It turns out, however, that there are very few
+programmers who are willing to give contribution to the documentation,
+so that whatever you write becomes "the reference document".  As a
+consequence, nowadays, every Python programmer who wants to call
+himself an expert (and there thousands of them) has to read my paper:
+frankly, this is quite flattering ;)
+
+Moreover, Tarek also talks about metaclasses and he cites the
+first paper of our (our here means David Mertz and me) trilogy.
+However, I would have cited the `original version`_ appeared in
+IBM DeveloperWorks and not the republished version appeared on
+OnLamp.
+
+I am glad about those citations since it looks like the time
+we spent in documenting such arcane features was well spent,
+somebody actually read the result of our efforts, and we did
+actually contributed something back to the community.
+
+On the other hand, Tarek writes a lot (and very well) about decorators
+but he does not cite my own own `decorator module`_. 
+Helas, you cannot win always ;) It does a very good job with
+descriptors instead.
+
+Tarek also gives very sound advice about tricky Python constructs,
+such as Python super_ (use it consistently) and multiple inheritance
+(do not use it). I also liked his advices about testing (both unittest
+and doctests) and documenting. Tarek is also a great fan of
+Documentation Driven Development, an idea `I started advertising at
+least from 2003`_.
+
+As a final note, I would like to see a couple of words about the
+publisher, PACKT_. I must admit I did not know it, probabily because
+they entered in business only few years ago and they do not sell many
+Python books. However, I have looked at their web site now, and I see
+that they have a really large offer especially about Web Development
+books.  If all their books are of the same quality as "Expert Python
+Programming", it is certainly a worthy publisher. I have not seen a
+single mispell in the entire book; moreover the paper, the cover, the
+pictures, the fonts and in general the look and feel are just fine.
+
+The book is certainly worth its money and more. It is also good to know
+that part of the revenue will go to the Python Software Foundation.
+In general I like very much their support for Open Source and their
+marketing strategy: it makes a lot of sense to me, I sincerely hope
+their business model will pay off, as it seems to be the case.
+
+All in all, "Expert Python Programming" is the best book in its category
+I have ever read. I definitely recommend it and I will ask the company
+to buy one for the office library. You are adviced to do the same!
+
+.. _original version: http://www.ibm.com/developerworks/linux/library/l-pymeta.html
+.. _super: http://www.artima.com/weblogs/viewpost.jsp?thread=236275
+.. _I started advertising at least from 2003: http://groups.google.com/group/comp.lang.python/msg/aaf3c0772849c9da?hl=en
+
+.. _decorator module: http://www.phyast.pitt.edu/~micheles/python/documentation.html
+.. _pychecker: http://pychecker.sourceforge.net/
+.. _Pylint: http://www.logilab.org/857
+.. _Guppy and Heapy: http://guppy-pe.sourceforge.net/
+.. _PACKT: http://www.packtpub.com/
+.. _MRO: http://www.python.org/download/releases/2.3/mro/
+.. _MSYS: http://www.mingw.org/wiki/msys
+.. _MinGW: http://www.mingw.org/
