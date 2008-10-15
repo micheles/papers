@@ -56,10 +56,11 @@ the most famous acronymous is certainly SICP, i.e. `Structure and
 Interpretation of Computer Programs`_, by Harold Abelson e Gerald Jay
 Sussman. This book has been used to teach Scheme to generations of
 students and it is considered a *cult*, but I personally do not know
-it, therefore I cannot comment. Another book I have not read but
-I have heard good things about is `How to Design Programs`_ by Fellesein, Findler, Flatt and Krishnamurthi, which is a textbook for first year
-college students. It is up to you to check it and to see if you like
-it.
+it, therefore I cannot comment. Another book I have not read but I
+have heard good things about is `How to Design Programs`_ by
+Fellesein, Findler, Flatt and Krishnamurthi, which is a textbook for
+first year college students. It is up to you to check it and to see if
+you like it.
 
 As you see, there are plenty of Scheme books, being Scheme a language
 with a great academical tradition. The problem is not the lack of
@@ -108,7 +109,7 @@ The equivalent in Python would be::
   n = int(sys.argv[-1])
   print fac(n),
 
-This trivial example already prooves what I have been saying all along:
+This trivial example already proves what I have been saying all along:
 
 1. 
    There are lots of parenthesis: five parens at the end of the

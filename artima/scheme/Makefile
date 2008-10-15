@@ -19,3 +19,6 @@ scheme4: scheme4.txt
 scheme5: scheme5.txt
 	rst scheme5.txt; $(POST) scheme5.txt 239699
 
+scheme6: scheme6.txt
+	rst scheme6.txt; $(POST) scheme6.txt 240198
+

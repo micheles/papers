@@ -1,14 +1,15 @@
-In order to speak of Scheme performance one needs to write at least
-a few benchmarks. This is not completely trivial, for at least a
-couple of reasons. The first reason is shallow, but it may be baffling
-for beginners: since there is no ``for`` loop in
-Scheme, how are we supposed to write a benchmark, which is
-usually based on running many times the same instructions and measuring
-the total time spent? We will see in a moment that there is an easy
-solution to this question (use recursion). On the other hand,
-there is a second more serious questuion: since there is no fully portable
-way to write a library in Scheme, how can we write a benchmark library?
-There is no real answer to this question, so we will restrict ourselves to R6RS-compliant Scheme implementations where there is a standard concept of library. 
+In order to speak of Scheme performance one needs to write at least a
+few benchmarks. This is not completely trivial, for at least a couple
+of reasons. The first reason is shallow, but it may be baffling for
+beginners: since there is no ``for`` loop in Scheme, how are we
+supposed to write a benchmark, which is usually based on running many
+times the same instructions and measuring the total time spent? We
+will see in a moment that there is an easy solution to this question
+(use recursion). On the other hand, there is a second more serious
+question: since there is no fully portable way to write a library in
+Scheme, how can we write a benchmark library?  There is no real answer
+to this question, so we will restrict ourselves to R6RS-compliant
+Scheme implementations where there is a standard concept of library.
 
 There are no ``for`` loops in Scheme
 -------------------------------------------------------
