@@ -1,19 +1,28 @@
 # ex.py
 
 class B(object):
-    def __init__(self, *args):
-        print "B.__init__"
-        super(B, self).__init__(*args)
+    def __repr__(self):
+        return '<instance of %s>' % self.__class__.__name__
+    def meth(self):
+        print "B.meth(%s)" % self
+    meth = classmethod(meth)
 
-class M(B, type):
-    def __init__(self, n, b, d):
-        print "M.__init__"
-        super(M, self).__init__(n, b, d)
-     
 class C(B):
-    __metaclass__ = M
-    def __init__(self):
-        print "C.__init__"
-        super(C, self).__init__()
+    def meth(self):
+        print "C.meth(%s)" % self
+        self.__super.meth()
+    meth = classmethod(meth)
+
+C._C__super = super(C)
+
+class D(C):
+    pass
+
+D._D__super = super(D)
+
+
+d=D()
+
+d.meth()
 
 

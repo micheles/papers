@@ -1,4 +1,4 @@
-"Expert Python Programming" - as the title implies - is intended for
+`Expert Python Programming`_ - as the title implies - is intended for
 proficient Python programmers who want to become experts.
 In my opinion the target audience is very well chosen, since we
 do not need yet another beginners' book, whereas there are very
@@ -12,7 +12,7 @@ part is required in order to reach that goal, but a book cannot
 perform miracles ;).
 
 In only 350 pages Tarek Ziadé covers an extremely wide range of
-topics.  "Expert Python Programming" is not just a book about Python,
+topics.  `Expert Python Programming`_ is not just a book about Python,
 the language; it is also a book about Python, the platform: it covers
 all the major libraries and tools used to write and to deliver
 profession Python application.  It is the knowledge of such tools and
@@ -37,7 +37,7 @@ surprising small number of pages, since as the author says, "this book
 is not intended to replace inline resources, but rather aims at
 complementing them".  Other books I have seen contain thousands of
 pages of redundant information you can find in the manuals, whereas
-"Expert Python Programmer" is more like a guide through the jungle of
+`Expert Python Programming`_ is more like a guide through the jungle of
 the Python resources, just what a competent programmer needs.
 
 I follow the latest developments in the Python world very closely, so I did
@@ -163,7 +163,7 @@ In general I like very much their support for Open Source and their
 marketing strategy: it makes a lot of sense to me, I sincerely hope
 their business model will pay off, as it seems to be the case.
 
-All in all, "Expert Python Programming" is the best book in its category
+All in all, `Expert Python Programming`_ is the best book in its category
 I have ever read. I definitely recommend it and I will ask the company
 to buy one for the office library. You are adviced to do the same!
 
@@ -179,3 +179,4 @@ to buy one for the office library. You are adviced to do the same!
 .. _MRO: http://www.python.org/download/releases/2.3/mro/
 .. _MSYS: http://www.mingw.org/wiki/msys
 .. _MinGW: http://www.mingw.org/
+.. _Expert Python Programming: http://www.packtpub.com/expert-python-programming/book

@@ -2,22 +2,23 @@ Benchmarks are useful in papers and blog posts, as a good trick to
 attract readers, but you should never make the mistake of believing
 them: as Mark Twain would say, *there are lies, damned lies, and
 benchmarks*.  The problem is not only that reality is different from
-benchmarks; the issue is that it is extremely easy to write a wrong
+benchmarks; the problem is that it is extremely easy to write a wrong
 benchmark or to give a wrong interpretation of it.
 
 In this episode I will show some of the dangers hidden under
 the factorial benchmark shown in the `previous episode`_,
-which still looks trivial and unquestionable.
-
+which on the surface looks trivial and unquestionable.
 If a benchmark so simple is so delicate, I leave to your imagination
-to figure out what may happen for complex benchmarks. The major
-advantages of benchmarks is that very often they make clear how
+to figure out what may happen for complex benchmarks. 
+
+The major
+advantage of benchmarks is that they make clear how
 wrong we are when we think that a solution is faster or slower than 
 another solution.
 
 .. _previous episode: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
 
-Beware of wasted time
+Beware of wasted cycles
 -------------------------------------------------------------
 
 .. image:: http://www.phyast.pitt.edu/~micheles/scheme/tartaruga.jpg
@@ -28,9 +29,9 @@ the time spent in the loop must be subtracted from the real
 computation time. If the the computation is complex enough, usually
 the time spent in the loop is negligible with respect to the time
 spent in the computation. However, there are situations where this
-assumption is simply not true.
+assumption is not true.
 
-In the factorial example you can measure the wasted time by subtracting
+In the factorial example you can measure the wasted cycles by subtracting
 from the total time the the time spent in the loop performing no
 operations (for instance by computing the factorial of zero, which
 contains no multiplications). On my MacBook the total time spent
@@ -70,21 +71,21 @@ wasted time. In a future episode we will consider this example again
 and we will see how to remove the time wasted in ``call`` by replacing
 it with a macro.
 
-Beware of cheating
+Beware of cheats
 -----------------------------------------------------
 
 .. image:: http://www.phyast.pitt.edu/~micheles/scheme/il+gatto+e+la+volpe.jpg
 
-The issue of wasted time is obvious enough; on the other hand, benchmarks
+The issue of wasted cycles is obvious enough; on the other hand, benchmarks
 are subject to less obvious effects. Here I will show a trick to improve
 dramatically the performance by cheating. Let us consider the factorial
 example, but using the Chicken Scheme compiler. Chicken works by
 compiling Scheme code into C code which is then compiled to machine
 code. Therefore, Chicken may leverage on all the dirty tricks on
 the underlying C compiler. In particular, Chicken exposes a benchmark
-mode where are consistency checks are disabled the the ``-O3`` 
+mode where consistency checks are disabled and the ``-O3`` 
 optiomization of gcc is enabled. By compiling the `factorial benchmark`_ in 
-in this way we can get incredible performances::
+in this way you can get incredible performances::
 
  $  csc -Ob fact.scm # csc = Chicken Scheme Compiler
  $ ./fact 7
@@ -132,16 +133,17 @@ Generally speaking, one should not try to optimize too much, since
 one could waste work and get the opposite effect, especially with
 modern compilers which are pretty smart.
 
-In order to give an example, suppose we want to optimize
-by hand the `factorial benchmark`_, by replacing the
-closure ``(call 10000000 (lambda () (fac n)))`` with the expression
-``(call 10000000 fac n)``. In theory we would expect a performance
-improvement since we can skip an indirection level by calling
-directly ``fac`` instead of a closure calling ``fac``.
-Actually, this is what happens with:
-for ``n=7``, the program runs in 3.07 secondi with the closure and in 2.95 seconds without.
+In order to give an example, suppose we want to optimize by hand the
+`factorial benchmark`_, by replacing the closure ``(call 10000000
+(lambda () (fac n)))`` with the expression ``(call 10000000 fac
+n)``. In theory we would expect a performance improvement since we can
+skip an indirection level by calling directly ``fac`` instead of a
+closure calling ``fac``.  Actually, this is what happens with: for
+``n=7``, the program runs in 3.07 secondi with the closure and in 2.95
+seconds without.
 
-In Chicken, instead, benchmark mode, a disaster happens::
+In Chicken - I am using Chicken 2.732 here - instead, a disaster happens
+when the benchmark mode is turned on::
 
  $  csc -Ob fact.scm
  $ ./fact 7
@@ -160,8 +162,8 @@ even if they are in any case much larger (7.07 seconds with
 the closure versus 6.88 seconds without). In other words, with
 the default option to use the closure has a little penalty, as
 you would expect, but in benchmark mode the closure improves the
-performance by ten times! I asked for an explation to to Felix Winkelmann, 
-Chicken's author, and here is what he said:
+performance by ten times! I asked for an explation to Chicken's author, 
+Felix Winkelmann, and here is what he said:
 
 *In the first case, the compiler can see that all references to fac
 are call sites: the value of "fac" is only used in positions where
@@ -179,7 +181,7 @@ where (apparently) insignificant changes may completely change the
 numbers you get. So, beware of benchmarks, unless you are a compiler
 expert (and in that case you must be twice as careful! ;)
 
-.. _factorial benchmark: fact.scm
+.. _factorial benchmark: http://www.phyast.pitt.edu/~micheles/scheme/fact.scm
 
 Recursion vs iteration
 ---------------------------------------------------------
@@ -213,8 +215,14 @@ serious advantages: if you run the script
      print fact(n)
 
 you will see a speed-up of circa 50% with respect to the recursive
-version for "small" numbers.
-If you execute the equivalent Scheme code, instead
+version for "small" numbers. Alternatively, you can get an iterative
+version of the factorial as ``reduce(operator.mul, range(1, n+1)``.
+This was suggested by Miki Tebeka in a comment to the previous episode
+and also gives a sensible speedup. However notice that ``reduce`` is not
+considered Pythonic and that Guido removed it from the builtins in 
+Python 3.0 - you can find it in ``functools`` now.
+
+If you execute the equivalent Scheme code,
 
 ::
 

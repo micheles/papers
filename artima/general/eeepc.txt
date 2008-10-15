@@ -1,0 +1,86 @@
+Recently I have received a beautiful EeePC 901, as a wedding present.
+The main user of this little wonder will be my wife, since `I already
+have a MacBook`_, but I plan to use it during our travels. Actually
+I am writing these notes on the eeePC while we are in train, coming back to home
+after visiting my folks 
+
+I spent a lot of time thinking about which model to buy: I wanted one
+since the 8.9 inches models came out a few months ago, but I was waiting
+for the new 10.2 inches model. Unfortunately, I have spent a couple of
+days googling, but I could not find a Linux model with the 10.2''
+display here in Italy and I did not want to wait, nor to buy a Windows
+one. I have `mentioned elsewhere`_ that I am really tired of buying
+laptops just to wipe out their operating system: for the first time
+the EeePC allows me to buy a Linux laptop and I want to take full
+advantage of this opportunity.
+
+Since the main user of this machine will be my wife,
+therefore I do not plan to install anything nontrivial on it, and
+I would be happy to keep the default Xandros distribution if it
+works fine. I have seen many advanced users criticizing Xandros,
+and probably they are right - if I was the main user, I 
+would probably install Ubuntu since it is my main operating system
+at work - but it must say that it is really easy to use for
+computer illiterate people.
+
+I bought the machine, I installed the battery without even looking at the
+manual, I powered on, and in seconds I was already surfing the Net with
+my wireless network. It was the first time in my life I had a similar
+experience with a Linux machine, and it was really heart warming ;)
+
+Today I tried to connect to a traditional (i.e. wirefull) LAN at my 
+parents home, and it also
+worked perfectly well at the first attempt without requiring any
+configuration at all.
+Audio, video, recognition of USB devices and an external monitor
+worked out of the box (actually I had to run a setup script to
+view certain .avi files, but the script was already installed on
+my machine and it was easy to find its existence with a bit of
+googling) and this is also something I was not used too.
+
+There is a set of very nice applications bundled with the netbook:
+in particular the StarOffice productivity suite. My wife has the
+need of a Word-like editor and she was happy with the StarOffice
+one.
+
+There is a self-update system provided by Xandros, which however does
+not look to be working perfectly well (it seems it cannot install
+some upgrades by Xandros itself ?) however I do not care much
+about that for the moment: we will see if it becomes a problem.
+The first day I used it,  couple of times the system became irresponsive 
+and I had to reboot it, but now it seems to work fine. The media player
+is very fluid and the audio pretty much decent for a machine this size
+and price.
+
+The things that worried me the most before bying the EeePC where
+the screen size and the keyboard size. The screen is very bright and
+readable: however it is tiring to look at it for many hours, so
+I will recommend my wife to connect thee EeePC to our external monitor
+if she has a lot of work to do. The keyboard is also very small and
+at the beginning it was difficult to write with it: I must say however
+that after a few hours of typing I am becoming proficient with it.
+Still, a bigger keyboard would be a nice thing to have.
+
+For this reason I have wondered a lot about buying a 904H model, which
+has a larger keyboard (but a display of the same size): this model
+is available with Linux, has a 160 GB traditional hard disk 
+it is also much cheaper than the 901. Still, at the end, I decided
+to buy the 901, which features an Atom processor and 7+ hours
+battery life. For my wife and me battery life is extremely important;
+moreover she wanted a very light machine and the 901 model weights 1.1 Kg, whereas
+the 904 model weights 1.45 Kg. The 901 is also smaller and fits in her small
+bag: for a men this may be less important and you may want to buy the 10.20''
+inches model instead, for just a few bucks more. 
+
+I was not sure about the
+solid state disk vs the traditional hard disk: at the same price the
+difference is between 20 GB of space vs 160GB of space, so initially
+I thought a traditional hard would have been a better choice.
+However, now that I have EeePC in hand I have changed my mind:
+the machine is so small that it is very easy to drop it accidentally
+and a solid state disk is much safer than a traditional hard disk.
+I feel much better having a solid state disk now.
+Moreover, I have already a couple of external hard disks, so disk
+real estate is not an issue for me.
+
+How fast is the EeePC?

@@ -79,7 +79,7 @@ metaprogramming capabilities of Python: such features are usually
 associated to languages with a strong academic tradition - Smalltalk,
 Scheme, Lisp - but actually the Python object model is no less
 powerful.  For instance, changing the object system from a multiple
-inheritance one to a trait-based one, with *different* lookup rules,
+inheritance one to a trait-based one, 
 can be done *within* the fundamental object system. The reason is that
 the features that Guido used to implement the object system (special
 method hooks, descriptors, metaclasses) are there, available to the
@@ -163,11 +163,11 @@ It is enough to replace the multiple inheritance syntax
   class Widget(BaseWidget, Grid, Pack, Place):
        pass
 
-with the ``__metaclass__`` hook:
+with the following syntax:
 
 .. code-block:: python
 
- class Widget(BaseWidget): # this syntax is backward-compatible
+ class Widget(BaseWidget):
      __metaclass__ = include(Pack, Place, Grid)
 
 I said that the conversion from mixins to traits was easy: but actually
@@ -380,7 +380,7 @@ a subclass of ``AddGreetings``:
  
 Incidentally, since TOS
 classes are guaranteed to be in a straight hierarchy, ``include`` is able
-to neatly avoid the dreaded `metaclass conflict`_ 
+to neatly avoid the dreaded `metaclass conflict`_.
 
 The important point is that ``_TOSAddGreetings`` provides the same features of
 ``MetaTOS``, even if it is not a subclass of it; on the
@@ -551,11 +551,11 @@ not a single other example of the need for super.*
 
 I have always felt the same. So, even if I have been unhappy with multiple
 inheritance for years, I could never dismiss it entirely
-because of the concerns for this use case. It is only after discovering
-the ``__super`` trick that I felt that traits are powerful enough
-to replace multiple inheritance without losing anything I care about.
+because of the concern for this use case. It is only after discovering
+cooperative traits that I felt the approach powerful enough
+to replace multiple inheritance without losing anything I cared about.
 
-Multiple inheritance at the metaclass level is comes out here and
+Multiple inheritance at the metaclass level comes out here and
 again when you are wearing the language implementor hat. For instance,
 if you try to implement an object system based on traits, you will have to do
 so at the metaclass level and there method cooperation has its place.
@@ -566,19 +566,19 @@ as a cooperative trait, so that it can be mixed-in with other metaclasses,
 in the case you are interoperating with a framework with a non-trivial
 meta object protocol. This is performed internally by ``include``.
 
-Metaclass cooperation is there to make your life easier. Suppose one
-of you, users of  the ``strait`` module, wants to enhance the ``include``
-mechanism using another a metaclass coming for a third party framework
-and therefore not inheriting from ``MetaTOS``:
+Metaclass cooperation is there to make the life of the users
+easier. Suppose one of you, users of the ``strait`` module, wants to
+enhance the ``include`` mechanism using another a metaclass coming for
+a third party framework and therefore not inheriting from ``MetaTOS``:
 
 $$ThirdPartyMeta
 
 The way to go is simple. First, you should mix-in ``MetaTOS`` in the 
 third party class:
 
-$$ExtendedMetaTOS
+$$EnhancedMetaTOS
 
-Then, you can define your own enhanced include as follows:
+Then, you can define your own enhanced ``include`` as follows:
 
 $$enhanced_include
 
@@ -791,11 +791,11 @@ class ThirdPartyMeta(type):
         print 'Using ThirdPartyMeta to create %s' % name
         return super(ThirdPartyMeta, mcl).__new__(mcl, name, bases, dic)
 
-class ExtendedMetaTOS(ThirdPartyMeta):
+class EnhancedMetaTOS(ThirdPartyMeta):
     __metaclass__ = include(MetaTOS)
 
 def enhanced_include(*traits):
-    return include(MetaTOS=ExtendedMetaTOS, *traits)
+    return include(MetaTOS=EnhancedMetaTOS, *traits)
 
 class FrameworkMeta(type): # example metaclass
   def __new__(mcl, name, bases, dic):

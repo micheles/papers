@@ -1,5 +1,5 @@
-POST = python ../post.py
-MINIDOC = python ~/trunk/ROnline/RCommon/Python/ms/tools/minidoc.py
+POST = python2.5 ../post.py
+MINIDOC = python2.5 ~/trunk/ROnline/RCommon/Python/ms/tools/minidoc.py
 
 default:
 	echo "Available python files:"; ls *.py
@@ -20,5 +20,5 @@ scheme5: scheme5.txt
 	rst scheme5.txt; $(POST) scheme5.txt 239699
 
 scheme6: scheme6.txt
-	rst scheme6.txt; $(POST) scheme6.txt 240198
+	$(POST) scheme6.txt 240198
 

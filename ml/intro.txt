@@ -125,8 +125,9 @@ points to the value ``3``, so all thunks return ``3``:
 >>> f3()
 3
 
-In Haskell, where there is no rebinding, the corresponding list comprehension would
-return three thunks, the first one returning ``1``, the second ``2``, the third ``3`` [#]_.
+In Haskell, where there is no rebinding, the corresponding list
+comprehension would return three thunks, the first one returning
+``1``, the second ``2``, the third ``3`` [#]_.
 
 .. [#] To get the same in Python you can recur to the default argument hack, i.e. you can
         rewrite ``f1, f2, f3 = [lambda i=i: i for i in (1, 2, 3)]``.
@@ -155,26 +156,25 @@ language theorists. I will say something more on that on the following articles.
 The world of functional languages
 ------------------------------------------------------------
 
-Often functional languages are classified according to their "purity", i.e. according to
-how hard they try to avoid mutation and side effects. That means that f
-unctional languages are not all equal: some are purer that others. 
-There are languages which have some support for functional
-programming, but are not considered functional (Python being an
-example); others, like Lisp, the grandfather of
-functional languages, that are pretty much regarded as impure
-nowadays; Scheme is somewhat perceived as more functional than Common
-Lisp, but this is debatable, and in any case it is not very pure;
-Standard ML (SML) is often perceived as purer than Scheme, but mostly
-because of syntactical convenience, not of technical merit; Haskell is
-possibly the purest functional language commonly used, but still can
-be used in an imperative way. This classification is sloppy and wrong
-in more than one way; nevertheless it is useful (in my personal
-opinion) in the sense that it gives and indication of how much the
-language departs from a mainstream imperative language, and how
-difficult it is to learn it. 
-Notice that there are no pure
-functional languages in use, since an absolutely pure language would
-have to rule out input and output and it would be pretty much useless.
+Often functional languages are classified according to their "purity",
+i.e. according to how hard they try to avoid mutation and side
+effects. That means that f unctional languages are not all equal: some
+are purer that others.  There are languages which have some support
+for functional programming, but are not considered functional (Python
+being an example); others, like Lisp, the grandfather of functional
+languages, that are pretty much regarded as impure nowadays; Scheme is
+somewhat perceived as more functional than Common Lisp, but this is
+debatable, and in any case it is not very pure; Standard ML (SML) is
+often perceived as purer than Scheme, but mostly because of
+syntactical convenience, not of technical merit; Haskell is possibly
+the purest functional language commonly used, but still can be used in
+an imperative way. This classification is sloppy and wrong in more
+than one way; nevertheless it is useful (in my personal opinion) in
+the sense that it gives and indication of how much the language
+departs from a mainstream imperative language, and how difficult it is
+to learn it.  Notice that there are no pure functional languages in
+use, since an absolutely pure language would have to rule out input
+and output and it would be pretty much useless.
 
 As always, one must be careful when distinguing the real benefits of
 purity (i.e. fewer bugs, simpler concurrency, better optimizations)
