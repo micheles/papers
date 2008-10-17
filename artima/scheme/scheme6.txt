@@ -244,9 +244,9 @@ In any case we are an order of magnituder over Python efficiency.
 If we consider benchmarks strongly dependent on function call
 efficiency, like the `Fibonacci benchmark`_ of Antonio Cangiano,
 the difference between Python and Scheme is even greater: on my
-rests Ikarus is *thirty* times faster than Python. Other implementations
+tests Ikarus is *thirty* times faster than Python. Other implementations
 of Scheme or other functional languages (ML, Haskell) can be even faster
-(io tried the SML/NJ implementation, which is *forty* times faster
+(I tried the SML/NJ implementation, which is *forty* times faster
 than Python 2.5). Of course those benchmarks have no meaning.
 With benchmarks one can prove that Python is faster than Python is
 faster than Fortran and C++ in matrix computations. If you do not believe
@@ -255,4 +255,4 @@ it, please read this_ ;)
 .. _this: http://matrixprogramming.com/MatrixMultiply/
 .. _Fibonacci benchmark: http://antoniocangiano.com/2007/11/28/holy-shmoly-ruby-19-smokes-python-away/
 
-That's all folks, see you for next episode!
+That's all folks, see you next episode!
