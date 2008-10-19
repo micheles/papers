@@ -1,6 +1,4 @@
 #|
-This episode and the next ones will be entirely devoted to macros.
-
 An introduction to Scheme macros
 ---------------------------------------------------------
 
@@ -14,9 +12,9 @@ I think that the correct way of looking at macros is to see
 them as a general facility to write compilers embedded in the Scheme
 language. 
 
-Actually, they were intended from the beginning to be used to to write
-(compiled) languages embedded in standard Scheme. The languages
-defined in this way can be very different from Scheme; for instance
+Actually, they were intended from the beginning with that goal.
+The languages
+defined through macros can be very different from Scheme; for instance
 you can define object oriented languages (object systems in Scheme or
 Lisp are typically built with macros) or even languages with static
 typing (the new language Typed Scheme, built on top of PLT Scheme, is
@@ -32,11 +30,10 @@ tradition of not caring about readability (many Scheme constructs are
 made to look more complex than they actually are).
 
 Scheme has two macro systems
-included in the *de jure* standard, plus other macro systems which are
-commonly used, the most famous being the ``define-macro`` system,
-which is a *de facto* standard, since it is available
+included in the *de jure* standard, plus a *de facto* standard
+based on ``define-macro`` system, which is available
 in all implementations and it is well known to everybody because of
-its strict similarity to Common Lisp ``defmacro``.
+its strict similarity to Common Lisp ``defmacro`` system.
 
 The two standard macro system are the one based on ``syntax-rules``,
 which allows to define hygienic macros only, and the one based
@@ -64,7 +61,7 @@ Why I am doing that? After all, why my readers should study my own
 version of macros when they surely will be better served off by
 learning the standard macrology used by everybody? I have spent
 *years* debating with myself this very question, but at the end
-I have decided to go this way for a series of reasons.
+I have decided to go this way for a series of reasons:
 
 1. I regard the existence of two separate macro systems in the same
    standard as a wart of Scheme and as a mistake made by the R6RS
@@ -83,13 +80,13 @@ I have decided to go this way for a series of reasons.
 4. starting from ``sweet-macros`` is much better from pedagogical
    purposes, especially for readers with a Common Lisp background,
    since it is easy to explain the relation with ``defmacro`` and
-   how to introduce non-hygienic identifiers.
+   how to introduce non-hygienic identifiers;
 
 5. my target readers are programmers coming from the scripting
    languages (Perl/Python/Ruby) world. For this kind of public, with
    no previous exposition to Scheme, bare ``syntax-case`` is
    just too hard, so I needed to dress it in nice clothes to make it
-   palatable to my audience.  
+   palatable to my audience;
 
 6. ``sweet-macros`` are intended to easier to use than ``syntax-case``
    macros, but they are also more powerful, since they provide
@@ -105,6 +102,18 @@ I have decided to go this way for a series of reasons.
    my own library of macros made "right": this is also a tribute to
    the power of Scheme macros, since you can "fix" them from within
    the standard macro framework.
+
+If you are an advanced reader - a Schemer knowing ``syntax-case/syntax-rules``
+or a Lisper knowing ``defmacro`` - I a am sure
+you will ask yourself what are the differences
+of ``sweet-macros`` with respect to the system you know.
+I will make a comparison of the various systems in
+the future, in episode #12 and later on. For the moment, you will have
+to wait. I do not want to confuse my primary target of readers 
+by discussing other macro systems right now.
+I also defer to episode #12 the delicate question *are macros a good idea?*.
+For the moment, focus on what macros are and how you can use them.
+Then you will decide if they are a good idea or not.
 
 Enter sweet-macros
 ---------------------------------------------
@@ -216,42 +225,13 @@ of the macro itself and that is a common convention.
 If you are not interested in the context (which is
 the usual case, unless you want to define a non-hygienic macro)
 you can discard it and use the special identifier ``_`` to make
-clear your intent.
-
-If you want another example, here is how you could implement
-the semantics of the ``for`` defined
-in the previous episode with a macro::
-
- (def-syntax for
-   (syntax-match (from to); 'from' and 'to' are keyword-like identifiers
-     (sub (for i from i0 to i1 action ...)
-        #'(let loop ((i ,i0))
-            (unless (>= i i1) action ... (loop (+ i 1)))))))
-
-This macro is actually pretty rough and subject to the multiple
-evaluation problem: we will discuss the issue in the next episode.
-The important point to notice here is that we where able to
-extend the Scheme compiler for within, with just a few lines of
-code: that is much simpler than writing an external compiler
-as a preprocessor, as we planned to do in the previous episode.
-Moreover, using pattern matching is much more readable than using
-quasiquotation and the splice syntax.
-
-``def-syntax`` internally is implemented in terms of ``syntax-match``,
-as you can see if you look at its source code::
-
- > (def-syntax <source>)
- (syntax-match ()
-  (sub (def-syntax (name . args) skel . rest)
-     #'(define-syntax name; define-syntax is the R6RS primitive
-        (syntax-match () 
-           (sub (name . args) skel . rest)))
-  (sub (def-syntax name transformer)
-     #'(define-syntax name transformer))
-    ))
+clear your intent. I leave as an exercise to check that if you
+invert the order of the clauses the macro does not work: you
+must remember to put the most specific clause *first*.
  
 In general you can get the source code for all the macros defined via
-``syntax-match`` (including macros defined via ``def-syntax``).
+``syntax-match``; that includes macros defined via ``def-syntax``,
+since internally ``def-syntax`` is implemented in terms of ``syntax-match``.
 For instance, the source code (of the transformer) of our original
 ``multi-define`` macro is the following::
 
@@ -275,6 +255,8 @@ the next episode, right?
 (def-syntax (multi-define (name ...) (value ...))
   #'(begin (define name value) ...))
 ;END
+
+(display (multi-define <patterns>))
 
 (multi-define () ())
 (multi-define (a) (1))
