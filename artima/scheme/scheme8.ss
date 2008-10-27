@@ -1,15 +1,8 @@
 #|
-In this episode we will explain the meaning of the *code is data*
-concept. To this aim we will discuss the  *quoting* operation which
-allows to convert a code fragment into a list of symbols and primitive
-values (i.e. converts code into data) and the *eval* operation which
-allows to execute any list of symbols and primitive values corresponding
-to valid code (i.e. converts data into code).
-
 Quoting
 ----------------------------------------------------------------
 
-A distinguishing feature of Lisp and derived languages is the existence
+A distinguishing feature of the Lisp family of languages is the existence
 of a quoting operator denoted with a quote ``'`` or with ``(quote )``,
 the first form being syntacting sugar for the second.
 The quoting operator works as follows:
@@ -26,16 +19,15 @@ The quoting operator works as follows:
  > ''a
  'a
 
-2. on composite objects (expressions)
-   the quoting operator converts a code fragment into a list:
-   for instance ``'(display "hello")`` denotes the list
+2. expressions are converted into lists;
+   for instance ``'(display "hello")`` is the list
 
 ::
 
  > (list 'display '"hello")
  (display "hello")
 
-whereas ``'(let ((x 1)) (* 2 x))`` denotes the list
+whereas ``'(let ((x 1)) (* 2 x))`` is the list
 
 ::
 
@@ -44,12 +36,12 @@ whereas ``'(let ((x 1)) (* 2 x))`` denotes the list
 
 et cetera.
 
-Every Scheme/Lisp programs admits a natural representation as
+Hence every Scheme/Lisp program admits a natural representation as
 a (nested) list of symbols and primitive values: *code is data*. On
 the other hand, every nested list of symbols and primitive values
-corresponding to a syntactically valid Schem/Lisp programs can be
-evalued, both at *runtime* with ``eval`` or at *compilation time*
-through macros. The consequences are fascinating: since every program
+corresponding to a syntactically valid Scheme/Lisp programs can be
+executed, both at *runtime* - with ``eval`` - or at *compilation time*
+- through macros. The consequences are fascinating: since every program
 is a list, it is possible to write programs that, by building lists,
 build other programs. Of course, you can do the same in other
 languages: for instance in Python you can generate strings
@@ -57,9 +49,9 @@ corresponding to valid source code and you can evaluate such strings
 with various mechanisms
 (``eval``, ``exec``, ``__import__``, ``compile``, etc). In C/C++
 you can generate a string, save it into a file and compile it to
-a dynamic library, then you can import it at runtime; moreover,
-you have the mechanism of pre-processor macros at your disposal
-for simpler things. The point is that there is no language where
+a dynamic library, then you can import it at runtime;
+you also have the mechanism of pre-processor macros at your disposal
+for working at compile time. The point is that there is no language where
 code generation is as convenient as in Scheme/Lisp where it is buil-in,
 thanks to*s*-expressions or, you wish, thanks to parenthesis.
 
@@ -82,20 +74,21 @@ In Scheme/Lisp, there is also a powerful form of *list interpolation*::
  > (say-hello "Michele")
     ("hello" "Michele")
 
-The *backquote* or *quasiquote* syntax ````` introduces a list to be
-interpolated (*template*) where it is possible to replace some
-variables with the *unquoting* operation, denotated by a *comma*. In
+The *backquote* or ``(quasiquote )`` syntax ````` introduces a list to be
+interpolated (*template*); it is possible to replace some
+variables within the template, by prepending to them the *unquoting*
+operator ``(unquote )`` or ``,``, denotated by a comma. In
 our case we are unquoting the user name, ``,user``.  The function
 ``say-hello`` takes the user name as a string and returns a list
 containing the string ``"hello"`` together with the username.
 
 There is another operator like ``unquote``, called
-``unquote-splice`` or *comma-at* and written ``,@``, which works as follows::
+``unquote-splice`` or comma-at and written ``,@``, which works as follows::
 
  > (let ((ls '(a b c))) `(func ,@ls))
  (func a b c)
 
-In practice ``,@ls`` "unpack" the list into its components: without
+In practice ``,@ls`` "unpack" the list ``ls`` into its components: without
 the splice operator we would get::
 
  > (let ((ls '(a b c))) `(func ,ls))
@@ -103,7 +96,7 @@ the splice operator we would get::
 
 The power of quasiquotation stands in the code/data equivalence:
 since Scheme/Lisp code is nothing else than a list, it is easy
-to execute code build by interpolating a list template.
+to build code by interpolating a list template.
 For instance, suppose we want to evaluate a Scheme expression
 in a given context, where the contexts is given as a list of
 binding, i.e. a list names/values::
@@ -111,7 +104,7 @@ binding, i.e. a list names/values::
  (eval-with-context '((a 1)(b 2) (c 3))
    '(* a  (+ b c)))
 
-How can we define ``eval-with-context``? The answer is ``eval``-uating
+How can we define ``eval-with-context``? The answer is by ``eval``-uating
 a template::
 
  (define (eval-with-context ctx expr)
@@ -122,7 +115,9 @@ known by the interpreter; in our case we declared that ``eval`` understands
 all the procedures and macros of the most recent RnRS standard (i.e.
 the R6RS standard). The environment specification has the same syntax
 of an ``import``, since in practice it is the same concept: it is
-possible to import in the ``eval`` environment user-define modules.
+possible to specify user-define modules as the ``eval`` environment.
+This is especially useful if you have security concerns, since you
+can run untrusted code in a stricter and safer subset of R6RS Scheme.
 
 ``eval`` is extremely powerful and sometimes it is the only possible
 solution, in particular when you want to execute generic code at
@@ -139,32 +134,33 @@ Programs writing programs
 
 Once you realize that code is nothing else than data, it becomes easy
 to write programs taking in input source code and generating in output
-source code, i.e. it is easy to write an interpreter or a compile. The
-difference is that in the first case the sourse code is converted and
-executed (interpret) expression by expression, whereas in the second
-case the code is converted (compiled) in blocks.
-For instance, suppose we want to convert the program
+source code, i.e. it is easy to write a compiler.
+For instance, suppose we want to convert the following code fragment
 
 ::
 
    (begin
     (define n 3)
     (display "begin program\n")
-    (for i from 1 to n (display i))
+    (for i from 1 to n (display i)); for is not defined in R6RS
     (display "\nend program\n"))  
 
-into the program
-
-::
+which is not a valid R6RS program into the following program, which is
+valid according to the R6RS standard::
 
    (begin
     (define n 3)
     (display "begin program\n")
-    (let loop (( i 1))
+    (let loop (( i 1)) ; for loop expanded into a named let
       (unless (>= i  n) (display i) (loop (add1 i))))
       (display "\nend program\n")))
 
-More in general, we want to convert
+``begin`` is the standard Scheme syntax to group multiple expressions
+into a single expression *without introducing a new scope* (you may
+introduce a new scope with ``let``) and *preserving the evaluation order*
+(in most functional languages the evaluation order is unspecified).
+
+More in general, we want to write a script which is able to convert
 
 ::
 
@@ -176,55 +172,32 @@ More in general, we want to convert
 
 where the expressions may be of kind ``for`` or any other kind not
 containing a subexpression of kind ``for``.
-``begin`` is the standard Scheme syntax to group multiple expressions
-into a single expression *without introducing a new scope* (you may
-introduce a new scope with ``let``) and *preserving the evaluation order*
-(in most functional languages the evaluation order is unspecified).
+Such a script can be thought of as a preprocessor
+expanding source code from an high level language with a primitive
+``for`` syntax into a low level language without a primitive
+``for``. Preprocessors of this kind are actually very primitive
+compilers, and Scheme syntax was basically invented to make the
+writing of compilers easy.
 
-You can write such a compiler as follows::
+In this case you can write a compiler expanding ``for`` expressions
+into named lets as follows:
 
- (import (rnrs) (only (ikarus) pretty-print))
-
- ;; a very low-level approach
- (define (convert-for-into-loop begin-list)
-   (assert (eq? 'begin (car begin-list)))
-   `(begin
-      ,@(map (lambda (expr)
-               (if (eq? 'for (car expr)) (apply convert-for (cdr expr)) expr))
-             (cdr begin-list))))
-
- (define (convert-for i from i0 to i1 . actions)
-   ;; from must be 'from and to must be 'to
-   (assert (and (eq? 'from from) (eq? 'to to)))
-   `(let loop ((i ,i0))
-      (unless (>= i i1) ,@actions (loop (+ i 1)))))
-
- (pretty-print
-  (convert-for-into-loop
-   '(begin
-      (define n 3)
-      (display "begin program\n")
-      (for i from 1 to n (display i))
-      (display "\nend program\n")))) 
+@@simple-compiler.ss
 
 Running the script you will see that it replaces the ``for`` expression
 with a *named let* indeed. It is not difficult to extend the compiler
 to make it able to manage sub-expressions (the trick is to use
 recursion) and structures more general than ``begin``: but I leave
-that as an useful exercise. In future episode we will talk of
-*code-walkers* and we will discuss how to convert generic source code.
-In general ``convert-for-into-loop`` can be thought of as a preprocessor
-expanding source code from an high level language with a primitive
-``for`` syntax into a low level language without a primitive
-``for``. Preprocessors of this kind (which are actually very primitive
-compilers) can be implemented externally
-to the language, but also internally, by using the buil-in mechanism
+that as an useful exercise. In a future episode I will talk of
+*code-walkers* and I will discuss how to convert generic source code.
+In general, one can convert s-expression based source code by using
+an external compiler, as we did here, or by using the buil-in mechanism
 provided by Scheme macros. Scheme macros are particularly powerful,
-since they feature extremely powerful pattern matching capabilities:
+since they feature extremely advanced pattern matching capabilities:
 the example I have just given, based on the primitive list operations
 ``car/cdr/map`` is absolutely primitive in comparison.
 
-The next episode will be devoted to macros entirely. Don't miss it!
+The next episode will be entirely devoted to macros. Don't miss it!
 
 Appendix: solution of the exercises
 ------------------------------------------------------------
@@ -268,7 +241,7 @@ in a matrix: given the rows, it returns the columns of the matrix.
 
 ;ZIP
 (define (zip . lists)
- (apply map (lambda x x) lists))
+ (apply map list lists))
 ;END
 
 (display (zip '(0 a) '(1 b) '(2 c)))
