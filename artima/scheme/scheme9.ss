@@ -3,9 +3,9 @@ An introduction to Scheme macros
 ---------------------------------------------------------
 
 Scheme macros have many faces. On one hand, you can see them
-as a general mechanism to extend the syntax of the base language.
-On the other hand, you can see them as a mechanism to reduce boilerplate.
-However, if you focus your attention on the fact that they work at
+as a general mechanism to extend the syntax of the base language;
+on the other hand, you can see them as a mechanism to reduce boilerplate.
+Moreover, if you focus your attention on the fact that they work at
 compile time, you can see them as a mechanism to perform arbitrary computations
 at compile time, including compile time checks.
 
@@ -159,13 +159,11 @@ First of all, you should download and install the sweet-macros library::
 
  $ wget http://www.phyast.pitt.edu/~micheles/scheme/sweet-macros.sls
 
-The installation procedure depends on your implementation; if you are using
-Ikarus
-you should put the library somewhere in you IKARUS_LIBRARY_PATH;
-if you are using PLT Scheme you must put it in your collects directory
-(on my Mac it is in ``/Users/micheles/Library/PLT Scheme/4.1/collects``)::
+The installation procedure depends on your implementation; if you are
+using Ikarus you should put the library somewhere in you
+IKARUS_LIBRARY_PATH; if you are using PLT Scheme you must install it::
 
- $ plt-r6rs --install sweet-macros.sls
+ $ plt-r6rs --install sweet-macros.sls ## NOT WORKING RIGHT NOW!!
 
 You can check that the installation went well by importing the
 library::
@@ -231,15 +229,33 @@ by using ``syntax-match``:
 
 $$MULTI-DEFINE2
 
-Here the identifier ``ctx`` denotes the context of the macro, a
+``syntax-match`` recognizes the literal identifier ``sub`` as a
+keyword when it appears in the right position, i.e. at the beginning
+of each clause. ``sub`` is there for two reasons:
+
+1. in my opinion it makes the code more readable: you should read a clause
+   ``(sub pattern skeleton)`` as *substitute a chunk of code matching the
+   pattern with the code obtained by expanding the pattern variables inside
+   the skeleton*;
+
+2. it makes ``syntax-match`` look different from ``syntax-case`` and
+   ``syntax-rules``, which is fine, ``syntax-match`` *is* a little
+   different from the Scheme standard macro systems.
+
+The identifier ``ctx`` that you see as first element of each pattern
+denotes the context of the macro, a
 concept that I will explain in a future installment; you can use any
 valid identitier for the context, including the name of the macro
 itself and that is a common convention.  If you are not interested in
 the context (which is the usual case) you can discard it and use the
-special identifier ``_`` to make clear your intent. I leave as an
+special identifier ``_`` to make clear your intent.
+
+I leave as an
 exercise to check that if you invert the order of the clauses the
 macro does not work: you must remember to put the most specific clause
-*first*.  In general you can get the source code for all the macros
+*first*.
+
+In general you can get the source code for all the macros
 defined via ``syntax-match``; that includes macros defined via
 ``def-syntax``, since internally ``def-syntax`` is implemented in
 terms of ``syntax-match``.  For instance, the source code (of the
@@ -251,8 +267,7 @@ transformer) of our original ``multi-define`` macro is the following::
      #'(begin (define name value) ...)))
 
 As you see, for better readability ``def-syntax`` use the name
-of the macro for the context, but it is important to realize
-that this is optional, any name will do.
+of the macro for the context, but any name would do.
 
 I have not explained everything there is to know about
 ``syntax-match``, but we need to leave something out for

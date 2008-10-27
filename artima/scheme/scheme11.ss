@@ -1,8 +1,4 @@
 #|
-
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/gears.gif
- :width: 240
-
 The problem of multiple evaluation
 -------------------------------------------------------------------
 
@@ -56,7 +52,7 @@ four times in the loop; it is clear that this fact can have
 dramatic effects (if the function has side effects) apart from
 being very inefficient.
 The solution is to save the value of ``end`` (and we could do the same
-for the value of ``start``, which is computed twice) in a variable:
+for the value of ``start``, which is computed twice) in a variable::
 
  (def-syntax (for i start end body ...)
     #'(let ((s start) (e end))
@@ -80,7 +76,9 @@ It is time to give a more practical example of Scheme macros.  In this
 paragraph, I will define a very simple unit test framework called
 *easy-test*.  The source code takes just a page:
 
-.. include-code:: easy-test.sls
+.. image:: http://www.phyast.pitt.edu/~micheles/scheme/feu_rouge.jpg
+
+@@easy-test.sls
 
 Notice the line
 ``(let ((expr (begin e1 e2 ...)) (expected expect))``: it is
@@ -119,101 +117,120 @@ for failed tests::
  ..
  'test 2+2=3' failed. Expected 3, got 4
 
-Appendix: a Pythonic ``for`` loop
--------------------------------------------------
+Appendix: comparison with other macro systems
+------------------------------------------------
 
-In this appendix I will give the solution to the exercise suggested
-at the end of `episode #10`_, i.e. implementing a Python-like ``for``
-loop.
+I am sure some of my readers are familiar with other Scheme
+macros systems, or with Common Lisp ``defmacro``. This section is for
+their benefit, to contrast ``sweet-macros`` with other macro systems
+they may be familiar with. If a your a total beginner to Scheme macros
+you may safely skip this section, that could engender some confusion.
 
-First of all, let me notice that Scheme already has the functionality
-of Python ``for`` loop (at least for lists) via the ``for-each``
-construct::
+The oldest system of macros available in Scheme is ``define-macro``,
+which closely resemble ``defmacro`` in Common Lisp. Usually ``define-macro``
+is available on all implementation, and if it is not, you can 
+always implement it yourself in terms of ``def-syntax`` in two-lines.
+However that requires a deeper knowledge of macros which I will 
+demand to the third cycle of my *Adventures*.
+``define-macro``
+does not offer pattern matching features, so if you need them
+as in our ``multi-define`` example you must implement them
+yourself. For instance, you could do the following::
 
- > (for-each (lambda (x y) (display x) (display y)) '(a x 1) '(b y 2))
- abxy12
+ (define-macro (multi-define names values)
+   `(begin ,@(map (lambda (n v) `(define ,n ,v)) names values)))
 
-The problem is that the syntax looks quite different from the Python
-equivalent::
+Note: if your system does not implement ``define-macro`` already, you can
+implement it yourself in terms of ``def-syntax`` in two-lines, but I
+will show how to do that in a future installment.
 
- >>> for (x, y) in (("a", "b"), ("x", "y"), (1, 2)): 
- ...     sys.stdout.write(x); sys.stdout.write(y)
+The simplest macro system in Scheme is ``syntax-rules``, which is based on
+pattern matching. With that system ``multi-define`` can be defined as
+follows::
 
-One problem is that the order of the list is completely different, but
-this is easy to fix with a ``transpose`` function:
+ (define-syntax multi-define
+   (syntax-rules ()
+    ((_ (name ...) (value ...))
+    (begin (define name value) ...)))) 
 
-$$TRANSPOSE
+This is basically the same definition as in the ``sweet-macro``
+system, a bit more verbose and without any introspection/debugging
+capability, but without funny ``#'`` characters (we will explain
+the meaning of the ``#'`` reader syntax in a future episode).
 
-[if you have read carefully `episode #8`_ you will notice the
-similarity between ``transpose`` and ``zip``].  The ``transpose``
-function works as follows::
+The most advanced system available in Scheme is ``syntax-case`` 
+which is also the most verbose macro system::
 
- > (transpose '((a b) (x y) (1 2)))
- ((a x 1) (b y 2))
+ (define-syntax multi-define
+  (lambda (x)
+   (syntax-case x ()
+    ((ctx (name ...) (value ...))
+    #'(begin (define name value) ...)))))
 
-Then there is the issue of hiding the ``lambda`` form, but this is an
-easy job for a macro::
+Here you see the funny ``#'`` syntax, as in the ``def-syntax``
+example, since ``sweet-macros`` are built directly on top
+of ``syntax-case``; you see however that ``def-syntax`` is
+much easier to read and also strictly more powerful, since
+it implements a stronger version of guarded patterns than 
+``syntax-case``.
 
-$$FOR
+Guarded patterns are a relative advanced feature and they
+are not available in the ``define-macro`` and in the ``syntax-rules``
+macro systems. They are present in the ``syntax-case`` macro system
+but in a slightly less powerful version, as fenders. Readers familiar with
+``syntax-case`` will be interested in knowing that internally
+``sweet-macros`` work by generating the appropriate fenders
+for ``syntax-case``; for instance our example is compiled
+down to something like
 
-(the ``1`` suffix means that this is version 1 of our macro, but we
-will improve it with successive versions). 
+::
 
-The important thing to notice in this implementation is the usage of a guard 
-with an ``else`` clause: that allows to
-introduce two different behaviours for the macro at the same time.
-If the pattern variable ``el`` is an identifier, then ``for`` is
-converted into a simple ``for-each``::
+ (define-syntax multi-define
+   (lambda (x)
+     (syntax-case x ()
+      ((multi-define (name ...) (value ...))
+       (= (length #'(name ...)) (length #'(value ...)))
+       #'(begin (define name value) ...))
+      ((multi-define (name ...) (value ...))
+       (syntax-violation 'multi-define 
+        "The number of names and values does not mismatch" 
+        #'((name ...) (value ...))))
+     ))) ;; plus other stuff for introspection
+       
+which is definitely less readable than the ``def-syntax`` version.
 
- > (for x in '(1 2 3) (display x))
- 123
+It is worth noticing that the position of the guards in
+``syntax-match`` (or ``def-syntax``) is *different* from the position of
+the fenders in ``syntax-case``. 
+This is not a gratuitous difference. I have spent a lot
+of time pondering if I should keep the original ordering or not and I
+have decided to change it because:
 
-On the other hand, if the pattern variable ``el`` is a list of
-identifiers and ``lst`` is a list of lists, then the macros
-also reorganize the arguments of the underlying ``for-each``
-expression, so that ``for`` works as Python's ``for``::
+1. I feel having the guard in the third position is more consistent;
+   in this way the first position in a ``syntax-match`` clause is
+   always kept by the pattern and the second  position is always
+   occupied by the skeleton, whereas in ``syntax-case`` sometimes
+   the second position is occupied by a skeleton and sometimes by
+   a fender and this is really ugly;
 
- > (for (x y) in '((a b) (x y) (1 2)) (display x) (display y))
- abxy12
+2. I have seen other functional languages with guarded patterns, and
+   they kept the guard in the third position;
 
+3. keeping the guard in the third position makes easier to write
+   higher order macros, i.e. macros expanding to ``syntax-match``
+   transformers;
 
-Incidentally, ``<literals>`` itself here is implemented as a literal
-identifier in ``syntax-match``, so you can use literals to "send
-commands" to a macro. I remind you from the precedent episode that
-``sweet-macros`` recognize commands like ``<patterns>`` and
-``<source>``::
+4. I see no reason to keep a strict compatibility with
+   ``syntax-case``: after all, ``sweet-macros`` are intended for users
+   knowing nothing about ``syntax-case``.
 
- > (for <patterns>)
- ((for el in lst do something ...))
-
- > (for <source>)
- (syntax-match (in)
-  (sub (for el in lst do something ...)
-    #'(for-each (lambda (el) do something ...) lst) (identifier? #'el)
-    #'(apply for-each (lambda el do something ...)
-        (transpose lst))))
-
-Generally speaking you can define macros responding to any pre-defined set of
-commands denoted by literal identifiers, i.e. you can
-define object-oriented macros in the message-passing sense.
-
-.. _episode #8:
-.. _episode #10:
-
-
+``sweet-macros`` are pretty sweet, however, and they may appeal to
+``syntax-case`` experts too; to avoid make them too similar to
+``syntax-case`` I have decided to use the ``sub`` syntax for each
+clause: in this case it is impossible to confuse a ``syntax-match``
+clause for a ``syntax-case`` clause, and it is obvious to the reader
+that she should not expect a one-to-one correspondence to
+``syntax-case``, nor the same ordering of the fenders.  Moreover, I
+find that the ``sub`` makes the clauses stand out more clearly
+and enhance readability.
 |#
-
-(import (rnrs) (sweet-macros) (easy-test))
-
-;TRANSPOSE
-(define (transpose llist) ; llist is a list of lists
-  (apply map (lambda x x) llist)) 
-;END
-
-;FOR
-(def-syntax for 
-  (syntax-match (in)
-   (sub (for el in lst do something ...)
-    #'(for-each (lambda (el) do something ...) lst) (identifier? #'el)
-    #'(apply for-each (lambda el do something ...) (transpose lst)))))
-;END

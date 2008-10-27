@@ -1,121 +1,8 @@
 #|
-In this episode I will give a comparison of sweet-macros with other
-Scheme macros, then I will give a general discussion about the utility of
-macros for application programmers.
-
-Comparison with other macro systems
-------------------------------------------------
-
-I am sure some of my readers are familiar with other Scheme
-macros systems, or with Common Lisp ``defmacro``. This section is for
-their benefit, to contrast ``sweet-macros`` with other macro systems
-they may be familiar with. If a your a total beginner to Scheme macros
-you may safely skip this section, that could engender some confusion.
-
-The oldest system of macros available in Scheme is ``define-macro``,
-which closely resemble ``defmacro`` in Common Lisp. ``define-macro``
-does not offer pattern matching features, so if you need them
-as in our ``multi-define`` example you must implement them
-yourself. For instance, you could do the following::
-
- (define-macro (multi-define names values)
-   `(begin ,@(map (lambda (n v) `(define ,n ,v)) names values)))
-
-Note: if your system does not implement ``define-macro`` already, you can
-implement it yourself in terms of ``def-syntax`` in two-lines, but I
-will show how to do that in a future installment.
-
-The simplest macro system in Scheme is ``syntax-rules``, which is based on
-pattern matching. With that system ``multi-define`` can be defined as
-follows::
-
- (define-syntax multi-define
-   (syntax-rules ()
-    ((_ (name ...) (value ...))
-    (begin (define name value) ...)))) 
-
-This is basically the same definition as in the ``sweet-macro``
-system, a bit more verbose and without any introspection/debugging
-capability, but without funny ``#'`` characters (we will explain
-the meaning of the ``#'`` reader syntax in a future episode).
-
-The most advanced system available in Scheme is ``syntax-case`` 
-which is also the most verbose macro system::
-
- (define-syntax multi-define
-  (lambda (x)
-   (syntax-case x ()
-    ((ctx (name ...) (value ...))
-    #'(begin (define name value) ...)))))
-
-Here you see the funny ``#'`` syntax, as in the ``def-syntax``
-example, since ``sweet-macros`` are built directly on top
-of ``syntax-case``; you see however that ``def-syntax`` is
-much easier to read and also strictly more powerful, since
-it supports guarded patterns out of the box.
-
-Guarded patterns are a relative advanced feature and they
-are not available in the ``define-macro`` and in the ``syntax-rules``
-macro systems. They are present in the ``syntax-case`` macro system
-but in a verbose version, as fenders. Readers familiar with
-``syntax-case`` will be interested in knowing that internally
-``sweet-macros`` work by generating the appropriate fenders
-for ``syntax-case``; for instance our example is compiled
-down to something like
-
-::
-
- (define-syntax multi-define
-   (lambda (x)
-     (syntax-case x ()
-      ((multi-define (name ...) (value ...))
-       (= (length #'(name ...)) (length #'(value ...)))
-       #'(begin (define name value) ...))
-      ((multi-define (name ...) (value ...))
-       (syntax-violation 'multi-define 
-        "The number of names and values does not mismatch" 
-        #'((name ...) (value ...))))
-     ))) ;; plus other stuff for introspection
-       
-which is definitely less readable than the ``def-syntax`` version.
-
-It is worth noticing that the position of the guards in
-``syntax-match`` (or ``def-syntax``) is *different* from the position of
-the fenders in ``syntax-case``. 
-This is not a gratuitous difference. I have spent a lot
-of time pondering if I should keep the original ordering or not and I
-have decided to change it because:
-
-1. I feel having the guard in the third position is more consistent;
-   in this way the first position in a ``syntax-match`` clause is
-   always kept by the pattern and the second  position is always
-   occupied by the skeleton, whereas in ``syntax-case`` sometimes
-   the second position is occupied by a skeleton and sometimes by
-   a fender and this is really ugly;
-
-2. I have seen other functional languages with guarded patterns, and
-   they kept the guard in the third position;
-
-3. keeping the guard in the third position makes easier to write
-   higher order macros, i.e. macros expanding to ``syntax-match``
-   transformers;
-
-4. I see no reason to keep a strict compatibility with
-   ``syntax-case``: after all, ``sweet-macros`` are intended for users
-   knowing nothing about ``syntax-case``.
-
-``sweet-macros`` are pretty sweet, however, and they may appeal to
-``syntax-case`` experts too; to avoid make them too similar to
-``syntax-case`` I have decided to use the ``sub`` syntax for each
-clause: in this case it is impossible to confuse a ``syntax-match``
-clause for a ``syntax-case`` clause, and it is obvious to the reader
-that she should not expect a one-to-one correspondence to
-``syntax-case``, nor the same ordering of the fenders.  Moreover, I
-find that the ``sub`` makes the clauses stand out more clearly
-and enhance readability.
-
 Are Scheme macros "just syntactic sugar"?
 ----------------------------------------------------
+
+.. image:: http://www.phyast.pitt.edu/~micheles/scheme/sugar.jpg
 
 There is a serious problem when teaching macros to beginners: the real
 power of macros is seen only when solving difficult problems, but you
@@ -180,22 +67,26 @@ your programs.
 About the usefulness of macros for application programmers
 -----------------------------------------------------------------------------
 
-From my previois observations, you may believe me to be a big fan of macros, and
-and an advocate of macros for enterprise programming, as a lot of Lispers.
-But actually I am not. On one hand, I cannot advocate Scheme for
-enterprise programming because of the lack of a standard library
-worth of its name. That was more of an issue with
-R5RS Scheme, but it is still a problem since Scheme has an extremely
-small standard library and no concept of *batteries included* a la
-Python. As a consequence, everybody has to invent its own collections
-of utilities, each collection a little bit different from the
-other. For instance, when I started learning Scheme I wrote a lot of
-little utilities; later one, I find out that I could find my same
-utilites, under different names and slightly different signatures, in
-various Scheme frameworks.  This never happened to me in Python to the
-same extend, since the standard library is already coding in an
-uniform way most of the useful idioms, so that everybody use the
-library and there is much less need to reinvent the wheel.
+From my previous observations, you may believe that I am a big fan of
+macros, an advocate of macros for enterprise programming, as a
+lot of Lispers are.  But actually I am not.
+
+On one hand, I cannot advocate
+Scheme for enterprise programming because of the lack of a standard
+library worth of its name. That was more of an issue with R5RS Scheme,
+but it is still a problem since Scheme has an extremely small standard
+library and no concept of *batteries included* a la Python. As a
+consequence, everybody has to invent its own collections of utilities,
+each collection a little bit different from the other.
+
+For instance,
+when I started learning Scheme I wrote a lot of little utilities;
+later one, I find out that I could find my same utilites, under
+different names and slightly different signatures, in various Scheme
+frameworks.  This never happened to me in Python to the same extend,
+since the standard library is already coding in an uniform way most of
+the useful idioms, so that everybody use the library and there is much
+less need to reinvent the wheel.
 
 On the other hand, I am not a macro aficionado like Paul Graham, who says:
 
@@ -205,7 +96,7 @@ On the other hand, I am not a macro aficionado like Paul Graham, who says:
  something wrong.  You should write the macro that will generate them
  and call that instead.*
 
-I think he is right in the first part of its analysis, but not in the
+I think Graham is right in the first part of its analysis, but not in the
 conclusion. I agree that patterns are a `code smell`_ and I think they denote
 a lack in the language or in its standard library. On the other hand,
 the real solution for an enterprise programmer is not to write
@@ -275,14 +166,108 @@ compile time checks are a good thing, but in practice people have
 learned to live without by relying on a good unit test coverage, which
 is needed anyway.
 
-So, there many possible alternatives to Scheme in the enterprise
-world, and that explain why the current situation is as it is.
-On the other, the enterprise programmer's job is sometimes quite
-boring, and you can risk brain atrophization, whereas for sure
-your incur in this risk if you keep reading my *Adventures* ;)
+On the other hand, one should not underestimate the downsides of
+macros.d Evaluation of code defined inside of the macro body at
+compile time or suspension of evaluation therein leads often to bugs
+that are hard to track. The behaviour of the code is generally not
+easy to understand and debugging macros is no fun.
+
+That should explain why the current situation about Scheme in the
+enterprise world is as it is. It is also true that
+the enterprise programmer's job is sometimes quite
+boring, and you can risk brain atrophy, whereas for sure
+you will not incur in this risk if you keep reading my *Adventures* ;)
 
 You may look at this series as a cure against senility!
 
 .. _code smell: http://en.wikipedia.org/wiki/Code_smell
 .. _GoF: http://en.wikipedia.org/wiki/Design_Patterns
+
+
+Appendix: a Pythonic ``for`` loop
+-------------------------------------------------
+
+In this appendix I will give the solution to the exercise suggested
+at the end of `episode #10`_, i.e. implementing a Python-like ``for``
+loop.
+
+First of all, let me notice that Scheme already has the functionality
+of Python ``for`` loop (at least for lists) via the ``for-each``
+construct::
+
+ > (for-each (lambda (x y) (display x) (display y)) '(a x 1) '(b y 2))
+ abxy12
+
+The problem is that the syntax looks quite different from the Python
+equivalent::
+
+ >>> for (x, y) in (("a", "b"), ("x", "y"), (1, 2)): 
+ ...     sys.stdout.write(x); sys.stdout.write(y)
+
+One problem is that the order of the list is completely different, but
+this is easy to fix with a ``transpose`` function:
+
+$$TRANSPOSE
+
+[if you have read carefully `episode #8`_ you will notice the
+similarity between ``transpose`` and ``zip``].  The ``transpose``
+function works as follows::
+
+ > (transpose '((a b) (x y) (1 2)))
+ ((a x 1) (b y 2))))
+
+Then there is the issue of hiding the ``lambda`` form, but this is an
+easy job for a macro:
+
+$$FOR
+
+(the ``1`` suffix means that this is version 1 of our macro, but we
+will improve it with successive versions). 
+
+The important thing to notice in this implementation is the usage of a guard 
+with an ``else`` clause: that allows to
+introduce two different behaviours for the macro at the same time.
+If the pattern variable ``el`` is an identifier, then ``for`` is
+converted into a simple ``for-each``::
+
+ > (for x in '(1 2 3) (display x))
+ 123
+
+On the other hand, if the pattern variable ``el`` is a list of
+identifiers and ``lst`` is a list of lists, then the macro
+also reorganizes the arguments of the underlying ``for-each``
+expression, so that ``for`` works as Python's ``for``::
+
+ > (for (x y) in '((a b) (x y) (1 2)) (display x) (display y))
+ abxy12
+
+
+.. _episode #8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
+.. _episode #10: http://www.artima.com/weblogs/viewpost.jsp?thread=240805
+
 |#
+
+(import (rnrs) (sweet-macros) (easy-test))
+
+;TRANSPOSE
+(define (transpose llist) ; llist is a list of lists
+  (apply map (lambda x x) llist)) 
+;END
+
+;TEST-TRANSPOSE
+(test ("transpose" (transpose '((a b) (x y) (1 2))) => '((a x 1) (b y 2))))
+;END
+
+;FOR
+(def-syntax for 
+  (syntax-match (in)
+   (sub (for el in lst do something ...)
+    #'(for-each (lambda (el) do something ...) lst) (identifier? #'el)
+    #'(apply for-each (lambda el do something ...) (transpose lst)))))
+;END
+
+(test (success print-nothing) (failure print-msg)
+      ("test 1+1=2" (+ 1 1) => 2)
+      ("test 2*1=2" (* 2 1) => 2)
+      ("test 2+2=3" (+ 2 2) => 3))
+
