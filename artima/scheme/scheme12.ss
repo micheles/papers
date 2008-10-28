@@ -244,7 +244,6 @@ expression, so that ``for`` works as Python's ``for``::
 
 .. _episode #8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
 .. _episode #10: http://www.artima.com/weblogs/viewpost.jsp?thread=240805
-
 |#
 
 (import (rnrs) (sweet-macros) (easy-test))
@@ -267,7 +266,7 @@ expression, so that ``for`` works as Python's ``for``::
 ;END
 
 (test (success print-nothing) (failure print-msg)
-      ("test 1+1=2" (+ 1 1) => 2)
-      ("test 2*1=2" (* 2 1) => 2)
-      ("test 2+2=3" (+ 2 2) => 3))
+      ("1+1=2" (+ 1 1) 2)
+      ("2*1=2" (* 2 1) 2)
+      ("2+2=3" (+ 2 2) 3))
 

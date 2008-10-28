@@ -94,40 +94,54 @@ is based on an idea of Jos Koot, is given below:
 ;; changed the order of the guard with respect to the original
 
 (library (list-match)
-  (export list-match)
+  (export let- list-match)
   (import (rnrs) (sweet-macros))
 
-(define (underscore? x)
-  (and (identifier? x) (free-identifier=? x #'_)))
+(def-syntax let-
+  (syntax-match ()
+    (sub (let- () lst body1 body2 ...)
+         #'(if (null? lst) (let () body1 body2 ...)
+               (error 'let- "Argument list not empty" lst)))
+    (sub (let- name value body1 body2 ...)
+         #'(let ((name value)) body1 body2 ...)
+         (identifier? #'name))
+    (sub (let- (arg1 arg2 ... . rest) lst body1 body2 ...)
+         #'(let ((ls lst))
+             (if (null? ls) (error 'let- "Arguments mismatch" 'lst)
+                 (let- arg1 (car ls)
+                       (let- (arg2 ... . rest) (cdr ls) body1 body2 ...)))))
+    ))
 
 (def-syntax list-match-aux
   (syntax-match (quote quasiquote)
-      (=> (_ obj pattern template)
-        #'(list-match-aux obj pattern template #t))
-      (=> (_ obj () template guard)
-        #'(and (null? obj) guard template))
-      (=> (_ obj underscore template guard)
-        #'(and guard template)
-        (underscore? #'underscore))
-      (=> (_ obj var template guard)
-        #'(let ((var obj)) (and guard template))
+      (sub (_ obj pattern action)
+           #'(list-match-aux obj pattern action #t))
+      (sub (_ obj () action guard)
+           #'(and (null? obj) guard action))
+      (sub (_ obj underscore action guard)
+           #'(and guard action)
+           (and (identifier? #'underscore)(free-identifier=? #'underscore #'_)))
+      (sub (_ obj var action guard)
+           #'(let ((var obj)) (and guard action))
         (identifier? #'var))
-      (=> (_ obj (quote datum) template guard)
-        #'(and (equal? obj (quote datum)) guard template))
-      (=> (_ obj (quasiquote datum) template guard)
-        #'(and (equal? obj (quasiquote datum)) guard template))
-      (=> (_ obj (kar . kdr) template guard)
-        #'(and (pair? obj)
-            (let ((kar-obj (car obj)) (kdr-obj (cdr obj)))
-              (list-match-aux kar-obj kar
-                 (list-match-aux kdr-obj kdr template guard)))))
-      (=> (_ obj const template guard)
-        #'(and (equal? obj const) guard template))))
+      (sub (_ obj (quote datum) action guard)
+           #'(and (equal? obj (quote datum)) guard action))
+      (sub (_ obj (quasiquote datum) action guard)
+           #'(and (equal? obj (quasiquote datum)) guard action))
+      (sub (_ obj (kar . kdr) action guard)
+           #'(and (pair? obj)
+                  (let ((kar-obj (car obj)) (kdr-obj (cdr obj)))
+                    (list-match-aux kar-obj kar
+                      (list-match-aux kdr-obj kdr action guard)))))
+      (sub (_ obj const action guard)
+           #'(and (equal? obj const) guard action))
+      ))
 
-(def-syntax (list-match expr (pattern template guard ...) ...)
-  #'(let ((obj expr))
-      (cond
-       ((list-match-aux obj pattern (list template) guard ...) => car) ...
-       (else (error 'list-match "pattern failure")))))
-
+(def-syntax list-match
+  (syntax-match (when)
+    (sub (list-match lst (when pattern action guard ...) ...)
+      #'(let ((ls lst))
+          (cond
+           ((list-match-aux ls pattern (list action) guard ...) => car) ...
+           (else (error 'list-match "pattern mismatch" ls)))))))
 )

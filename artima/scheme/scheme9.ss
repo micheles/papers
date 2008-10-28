@@ -2,10 +2,10 @@
 An introduction to Scheme macros
 ---------------------------------------------------------
 
-Scheme macros have many faces. On one hand, you can see them
-as a general mechanism to extend the syntax of the base language;
-on the other hand, you can see them as a mechanism to reduce boilerplate.
-Moreover, if you focus your attention on the fact that they work at
+Scheme macros have many faces. You can see them
+as a general mechanism to extend the syntax of the base language, and
+also as a mechanism to reduce boilerplate.
+On the other hand, if you focus your attention on the fact that they work at
 compile time, you can see them as a mechanism to perform arbitrary computations
 at compile time, including compile time checks.
 
@@ -105,7 +105,7 @@ If you are an advanced reader, i.e. a Schemer knowing
 ``syntax-case/syntax-rules`` or a Lisper knowing ``defmacro``, I a am
 sure you will ask yourself what are the differences of
 ``sweet-macros`` with respect to the system you know.  I will make a
-comparison of the various systems in the future, in episode #12 and
+comparison of the various systems in the future, in episode #11 and
 later on. For the moment, you will have to wait. I do not want to
 confuse my primary target of readers by discussing other macro systems
 right now.  I also defer to episode #12 the delicate question *are
@@ -150,7 +150,7 @@ implementation they are using. Therefore macros defined via ``syntax-match``
 (and that includes macros defined via ``def-syntax``) provide out of the box
 some introspection and debugging features. 
 
-Of course, readeres want to rely on the debugging
+Of course, readers who want to rely on the debugging
 tools of their implementation can do so; for instance
 I hear that DrScheme is pretty good
 for debugging but I have not tried it since I am an Emacs-addict.
@@ -239,7 +239,7 @@ of each clause. ``sub`` is there for two reasons:
    the skeleton*;
 
 2. it makes ``syntax-match`` look different from ``syntax-case`` and
-   ``syntax-rules``, which is fine, ``syntax-match`` *is* a little
+   ``syntax-rules``, which is fine, since ``syntax-match`` *is* a little
    different from the Scheme standard macro systems.
 
 The identifier ``ctx`` that you see as first element of each pattern

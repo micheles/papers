@@ -74,28 +74,42 @@ A micro-framework for unit tests
 
 It is time to give a more practical example of Scheme macros.  In this
 paragraph, I will define a very simple unit test framework called
-*easy-test*.  The source code takes just a page:
+*easy-test*. The source code takes just a page:
 
 .. image:: http://www.phyast.pitt.edu/~micheles/scheme/feu_rouge.jpg
 
 @@easy-test.sls
 
-Notice the line
-``(let ((expr (begin e1 e2 ...)) (expected expect))``: it is
-there to make sure that the input expression (``expr``) and the output
-expression (``expected``) are evalued only once.
-The usage of the framework is trivial::
+The core of the framework is the ``test`` macro, which is a bit different
+from the macros we have defined until now. The reason why the ``test``
+macro is different is that it expands into a ``lambda``-expression
+and therefore the arguments
+of the macro are evaluated only when the ``lambda`` function is called
+and not a definition time. In other words, we are using a pattern of
+delayed evaluation here. This is important, since we want to distinguish
+the definition of the tests from their execution. For instance, let me
+define a trivial test::
 
  > (import (easy-test))
- > (test (success print-nothing) (failure print-msg)
-      ("test 1+1=2" (+ 1 1) => 2)
-      ("test 2*1=2" (* 2 1) => 2)
-      ("test 2+2=3" (+ 2 2) => 3))
- 'test 2+2=3' failed. Expected 3, got 4
- (2 1)
+ > (define test1 (test "1+1=2" (+ 1 1) 2))
 
-The ``test`` macro returns a list with the number of passed tests
-and failed tests (in our case ``'(2 1)``). The framework provides
+The first argument of the macro is a string describing the test, which is
+nice to have in the error message for failed tests; the second argument
+is the expression to check and the third argument is the expected result.
+Macro application results in a function which is able to respond to
+the commands ``'descr`` (returning the description string), ``'values``
+(returning a list with the quoted input expression and the quoted
+expected output) and ``'run`` (returning the result of the test, as
+a boolean flag). In our example::
+
+ > (test1 'descr)
+ "1+1=2"
+ > (test1 'values)
+ (+ 1 1) 2)
+ > (test1 'run) ; the test passed
+ #t
+
+The framework provides
 three predefined functions ``print-nothing``,
 ``print-msg`` and ``print-dot`` to print feedback about how the
 tests are going; moreover, it is possible to define custom
@@ -103,19 +117,24 @@ reporting functions. A reporting function is simply a function
 with three arguments ``(descr
 expr expected)`` where ``descr`` is a string with the description of the test,
 ``expr`` is the expression to be checked and ``expected`` is the expected
-result.
+result. You can specify the reporting functions to use by defining
+a test runner as in this example::
 
-It is also possible to invoke the ``test`` macro without specifying the
-reporting functions: in this case the framework will use the default
-reporting functions, i.e. ``print-dot`` for successful tests and ``print-msg``
-for failed tests::
+ > (define run-quiet (runner print-nothing print-msg))
+ > (run-quiet
+     (test "1+1=2" (+ 1 1) 2)
+     (test "2*1=2" (* 2 1) 2)
+     (test "2+2=3" (+ 2 2) 3))
+ '2+2=3' failed. Expected 3, got 4
+ (2 1)
 
- > (define succ-fail (test  
-      ("test 1+1=2" (+ 1 1) => 2)
-      ("test 2*1=2" (* 2 1) => 2)
-      ("test 2+2=3" (+ 2 2) => 3)))
- ..
- 'test 2+2=3' failed. Expected 3, got 4
+The runner returns a list with the number of passed tests
+and failed tests (in our case ``'(2 1)``).
+
+It is also possible to use the default runner ``run``: in this case
+the framework will use the default reporting functions,
+i.e. ``print-dot`` for successful tests and ``print-msg`` for failed
+tests.
 
 Appendix: comparison with other macro systems
 ------------------------------------------------
@@ -234,3 +253,10 @@ that she should not expect a one-to-one correspondence to
 find that the ``sub`` makes the clauses stand out more clearly
 and enhance readability.
 |#
+(import (rnrs) (easy-test))
+
+(define succ-fail
+  (run 
+   (test "1+1=2" (+ 1 1) 2)
+   (test "2*1=2" (* 2 1) 2)
+   (test "2+2=3" (+ 2 2) 3)))

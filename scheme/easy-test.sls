@@ -1,7 +1,8 @@
 (library (easy-test)
-(export test print-nothing print-dot print-msg)
+(export test run-tests runner run print-nothing print-dot print-msg)
 (import (rnrs) (only (ikarus) printf) (sweet-macros))
 
+;; three helper functions
 (define (print-nothing descr expr expected)
   (display ""))
 
@@ -10,25 +11,36 @@
 
 (define (print-msg descr expr expected)
   (printf "\n'~a' failed. Expected ~a, got ~a\n" descr expected expr))
-  
-(def-syntax test
-  (syntax-match (success failure =>)
-    (=> (test (success print-success) (failure print-failure)
-           (descr e1 e2 ... => expect) ...)
-     #'(let ((n-success 0) (n-failure 0))
-        (let ((expr (begin e1 e2 ...)) (expected expect))
-         (if (equal? expr expected)
-             (begin
-               (set! n-success (+ 1 n-success))
-               (print-success descr expr expected))
-             (begin
-               (set! n-failure (+ 1 n-failure))
-               (print-failure descr expr expected))
-             ))
-       ...
-       (list n-success n-failure)))
-    (=> (test (descr e1 e2 ... => expect) ...)
-     #'(test (success print-dot) (failure print-msg)
-           (descr e1 e2 ... => expect) ...))
-  ))
+
+;; test macro
+(def-syntax (test description expr expected)
+  #'(lambda (cmd)
+      (case cmd
+        ((descr) description)
+        ((values) '(expr  expected))
+        ((run) (equal? expr expected))
+        (else (error 'test "Invalid command" cmd)))))
+
+;; full runner
+(define (run-tests print-success print-failure . tests)
+  (let loop ((tests tests) (success 0) (failure 0))
+    (if (null? tests)
+        (list success failure)
+        (let* ((test1 (car tests))
+               (descr (test1 'descr)) (vals (test1 'values)))
+          (if (test1 'run); the test succeeded
+              (begin
+                (apply print-success descr vals)
+                (loop (cdr tests) (+ 1 success) failure))
+              (begin
+                (apply print-failure descr vals)
+                (loop (cdr tests) success (+ 1 failure))))))))
+
+;; runner factory
+(define (runner print-success print-failure)
+  (lambda tests (apply run-tests print-success print-failure tests)))
+
+;; default runner
+(define run (runner print-dot print-msg))
+
 )
