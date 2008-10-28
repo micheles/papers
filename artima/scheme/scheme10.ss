@@ -6,8 +6,9 @@ If you try to write macros of your own, you will likely incur in
 some beginner's mistake, so I think it is worth warning my readers
 about a couple of common errors.
 
-The first one is forgetting the ``begin``
-expression in the line ``(begin (define name value) ...)``::
+The first one is forgetting the ``begin`` for macros expanding to
+multiple expressions. For instance, you could be tempted to write
+``multi-define`` as follows::
 
  > (def-syntax (multi-define-wrong (name ...) (value ...))
     #'((define name value) ...))
@@ -40,19 +41,21 @@ A second common mistake is to forget the sharp-quote
 (``#'``) syntax in the skeleton or in the guard.
 If you forget it - for instance if
 you write ``(begin (define name value) ...)`` instead of ``#'(begin
-(define name value) ...)`` - you will get a strange error message
-``reference to pattern variable outside a syntax form``. To understand
+(define name value) ...)`` - you will get a strange error message:
+*reference to pattern variable outside a syntax form*. To understand
 the message, you must understand what a *syntax form* is. That
 requires a rather detailed explanation that I will live for a future
-episode. For the moment, be content with a simplified explanation. A
-syntax form is a special type of quoted form: just as you write
-``'(some expression)`` or ``(quote (some expression))`` to keep
-unevalued a block of (valid or invalid) Scheme code, you can write
-``#'(some expression)`` or ``(syntax (some expression))`` to denote a
-block of (valid or invalid) Scheme code which is used in a macro and
-contains pattern variables. Pattern variables must always be written
-inside a ``syntax`` expression, so that they can be replaced with
-their right values when the macro is expanded at compile time.
+episode.
+
+For the moment, be content with a simplified explanation. A syntax
+form is a special type of quoted form: just as you write ``'(some
+expression)`` or ``(quote (some expression))`` to keep unevaluated a
+block of (valid or invalid) Scheme code, you can write ``#'(some
+expression)`` or ``(syntax (some expression))`` to denote a block
+of (valid or invalid) Scheme code which is intended to be used in a
+macro and contains pattern variables. Pattern variables must always be
+written inside a ``syntax`` expression, so that they can be replaced
+with their right values when the macro is expanded at compile time.
 
 Note: R6RS Scheme requires the syntax ``#'x`` to be interpreted as
 a shortcut for ``(syntax x)``; however there are R5RS implementation
@@ -93,13 +96,12 @@ $$MULTI-DEFINE
 
 The line ``(= (length #'(name ...)) (length #'(value ...)))`` is
 the guard of the pattern ``(multi-define (name ...) (value ...))``.
-It checks *at compile time* that the number of names
+The macro will expand the pattern ``#'(name ...)`` into a list
+*at compile time*, then it will check that the number of names
 matches the number of values; if the check is satified then
-the macro is expanded correctly, otherwise a ``syntax-violation``
+the skeleton is expanded, otherwise a ``syntax-violation``
 is raised (i.e. a *compile time* exception) with a nice
-error message.
-
-::
+error message::
 
  > (multi-define (a b c) (1 2))
  Unhandled exception:
