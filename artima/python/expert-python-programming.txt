@@ -70,7 +70,7 @@ advantages of Tarek's tips.
 I liked the chapter about setuptools, since I learned a lot about how
 to make eggs for distributing Python code (at work all of our code
 is for internal usage, we do not distribute it, so I was pretty
-much ignorant about the subject the ``setup.py``). I plan to
+much ignorant about the subject). I plan to
 take advantages of setuptools to distribute a couple of Open Source
 libraries I am working on. I must confess that the ``setup.py`` script 
 for my own `decorator module`_ was contributed by an user, since I did not
