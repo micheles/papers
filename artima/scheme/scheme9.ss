@@ -184,8 +184,14 @@ I have tried it in Ypsilon Scheme which however has a small bug
 so that it does not run there. You should always keep in mind than R6RS
 implementations are pretty young and that implementors are still working
 to make them really compatible.
-``sweet-macro`` itself is kind of an experimental library (*caveat emptor*!),
-but that's fine since in this blog we are interested in exploratory code. 
+I have also prepared an R5RS version which should work in Chicken Scheme,
+at least in the interpreter::
+
+ $ wget http://www.phyast.pitt.edu/~micheles/scheme/sweet-macros.scm
+
+However I have developed and tested ``sweet-macros`` in Ikarus only
+(*caveat emptor*!). Still, since the title of this blog is *The Explorer*,
+I think it is fine if we deal with exploratory code. 
 
 You can check that the installation went well by importing the
 library::
@@ -195,7 +201,7 @@ library::
 
 and by trying to define a macro.
 
-An example macro: ``multi-define``
+An example: ``multi-define``
 ---------------------------------------------------------------
 
 Here is a ``multi-define`` binding construct
