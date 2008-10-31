@@ -181,7 +181,8 @@ Actually, the multifile version of the library works also with Ikarus
 if you have a recent enough version (right now I am using the trunk,
 version 0.0.3+, revision 1654). I have not tried the library on Larceny;
 I have tried it in Ypsilon Scheme which however has a small bug
-so that it does not run there. You should always keep in mind than R6RS
+so that it does not run there (the bug is already fixed in the trunk).
+You should always keep in mind than R6RS
 implementations are pretty young and that implementors are still working
 to make them really compatible.
 I have also prepared an R5RS version which should work in Chicken Scheme,
