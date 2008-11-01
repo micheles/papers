@@ -1,10 +1,80 @@
 #|
-A couple of common beginner's mistakes
+``syntax-match`` and introspection features of sweet-macros
+-----------------------------------------------------------------
+
+In the last episode I have defined a very simple ``multi-define`` macro
+by using my own ``sweet-macros`` framework. I have also claimed
+that sweet macros provides introspection facilities, but I have not shown
+them. Here I will substain my claim. For instance, you can get
+the patterns accepted by ``multi-define`` as follows::
+
+ > (multi-define <patterns>)
+ ((multi-define (name ...) (value ...)))
+
+Since this is a simple macro it accepts only a single pattern. However,
+it is possible to define macros with multiple patterns by relying
+on the second form of ``def-syntax``, i.e.
+
+ ``(def-syntax name transformer)``
+
+where the transformer is a procedure which is typically built on
+top of ``syntax-match``. For instance, suppose we wanted to extend
+``multi-define`` to work also as a replacement of ``define``, i.e.
+suppose we want to accept the pattern ``(multi-define name value)``
+where ``name`` is an identifier. Here is how to do that
+by using ``syntax-match``:
+
+$$MULTI-DEFINE2
+
+``syntax-match`` recognizes the literal identifier ``sub`` as an expected
+keyword when it appears in the right position, i.e. at the beginning
+of each clause. ``sub`` is there for two reasons:
+
+1. in my opinion it makes the code more readable: you should read a clause
+   ``(sub pattern skeleton)`` as "substitute a chunk of code matching the
+   pattern with the code obtained by expanding the pattern variables inside
+   the skeleton";
+
+2. it makes ``syntax-match`` look different from ``syntax-case`` and
+   ``syntax-rules``, which is fine, since ``syntax-match`` *is* a little
+   different from the Scheme standard macro systems.
+
+The identifier ``ctx`` that you see as first element of each pattern
+denotes the context of the macro, a
+concept that I will explain in a future installment; you can use any
+valid identitier for the context, including the name of the macro
+itself - that is a common convention.  If you are not interested in
+the context (which is the usual case) you can discard it and use the
+special identifier ``_`` to make clear your intent.
+
+I leave as an
+exercise to check that if you invert the order of the clauses the
+macro does not work: you must remember to put the most specific clause
+*first*.
+
+In general you can get the source code for all the macros defined via
+``def-syntax`` and ``syntax-match``. For instance, the source code (of
+the transformer) of our original ``multi-define`` macro is the
+following::
+
+ > (multi-define <source>)
+ (syntax-match ()
+   (sub (multi-define (name ...) (value ...))
+     #'(begin (define name value) ...)))
+
+As you see, for better readability ``def-syntax`` use the name
+of the macro for the context, but any name would do.
+
+I have not explained everything there is to know about
+``syntax-match``, but we need to leave something out for
+the next episode, right?
+
+A couple of common mistakes
 -----------------------------------------------------------------
 
 If you try to write macros of your own, you will likely incur in
-some beginner's mistake, so I think it is worth warning my readers
-about a couple of common errors.
+mistakes. I think it is worth warning my readers
+about a couple of such common mistakes.
 
 The first one is forgetting the ``begin`` for macros expanding to
 multiple expressions. For instance, you could be tempted to write
@@ -24,7 +94,7 @@ If you try to use this macro, you will get an exception::
        form: (define a 1)
        subform: #f
 
-The problem is that Scheme interpreter interprets a pattern of the form
+The problem is that Scheme interprets a pattern of the form
 ``(func arg ...)`` as a function application, but in this case
 ``func`` is the definition ``(define a 1)`` which is certainly not an
 function, it is not even an expression!
@@ -37,14 +107,13 @@ You will get exactly the same error if you try to print a definition
 ``(display (define a 1))``: since a definition does not return anything,
 you cannot print it.
 
-A second common mistake is to forget the sharp-quote
-(``#'``) syntax in the skeleton or in the guard.
+A second common mistake is to forget the sharp-quote ``#'``.
 If you forget it - for instance if
 you write ``(begin (define name value) ...)`` instead of ``#'(begin
 (define name value) ...)`` - you will get a strange error message:
 *reference to pattern variable outside a syntax form*. To understand
 the message, you must understand what a *syntax form* is. That
-requires a rather detailed explanation that I will live for a future
+requires a rather detailed explanation that I will leave for a future
 episode.
 
 For the moment, be content with a simplified explanation. A syntax
@@ -64,13 +133,13 @@ a shortcut for ``(syntax x)``; however there are R5RS implementation
 with a different meaning). If you want to be fully portable
 you should use the extended form ``(syntax x)``. However, all the
 code in this series is intended to work on R6RS Schemes, therefore
-I will always use the shortcut notation ``#'`` which is way more
-readable.
+I will always use the shortcut notation ``#'`` which in my opinion
+is *ways* more readable.
 
 Guarded patterns
 ----------------------------------------------------------------
 
-There a few things I did not explain fully when introducing the
+There are a few things I did not explain when introducing the
 ``multi-define`` macro.  For instance, what happens if the number of
 the identifiers does not match the number of the values?  Of course,
 you get an error::
@@ -96,7 +165,7 @@ $$MULTI-DEFINE
 
 The line ``(= (length #'(name ...)) (length #'(value ...)))`` is
 the guard of the pattern ``(multi-define (name ...) (value ...))``.
-The macro will expand the pattern ``#'(name ...)`` into a list
+The macro will expand the patterns in the guard into lists
 *at compile time*, then it will check that the number of names
 matches the number of values; if the check is satified then
 the skeleton is expanded, otherwise a ``syntax-violation``
@@ -129,8 +198,7 @@ the semantics of the ``for`` loop discussed in `episode #8`_ with a macro
 $$FOR
 
 Here the R6RS primitive ``syntax->datum`` is used to convert the
-syntax objects (we will say more about syntax objects in the future)
-``#'from`` and ``#'to`` into regular Scheme objects
+syntax objects ``#'from`` and ``#'to`` into regular Scheme objects
 so that they can be compared for equality
 with the literal identifiers ``'from`` and ``'to``.
 
@@ -147,9 +215,9 @@ error *at compilation time*::
         subform: #f
 
 Still, I say that this is an abuse of
-guarded patterns, since ``syntax-match`` provides a builtin
-mechanism just for this purpose. Moreover this macro is
-subject to the multiple evaluation problem which will be discussed
+guarded patterns, since ``syntax-match`` provides a built-in
+mechanism just for that purpose. Moreover this macro is
+subject to the multiple evaluation problem which I will discuss
 in the next episode: thus I do not recommend it as an example
 of good style when writing macros. Still, I have written it here
 to compare it with our approach in `episode #8`_:
@@ -158,11 +226,8 @@ extend the Scheme compiler for within, with just a few lines of
 code: that is much simpler than writing an external compiler
 as a preprocessor, as we planned to do before.
 
-Moreover, using pattern matching is much more readable than using
-quasiquotation and the splice syntax, especially if you take full
-advantage of the features of ``syntax-match``.  In particular, even if
-I did not mention it before, ``syntax-match`` allows for literal
-identifiers to be recognized in the patterns as keywords. This is what
+``syntax-match`` has the built-in capability of recognizing literal
+identifiers in the patterns as if they were keywords. This is what
 the empty parenthesis are for. If you write ``(syntax-match (lit ...)
 clause ...)`` the identifiers listed in ``(lit ...)`` will be treated
 as literal identifiers in the macro scope. Literal identifiers can be
@@ -198,64 +263,6 @@ should be treated as a literal identifier. I will give the solution
 in episode 12, so you will have some time to play. Have fun!
 
 .. _episode #8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
-
-Macros as performance hacks
--------------------------------------------------------------
-
-Apart for their relevance as syntactic sugar (the examples of ``multi-define``
-and ``for`` speak clearly), macros are also very
-relevant for performance reasons. The point is that macros are
-instructions for the compiler and as such they are expanded 
-*at compilation time*. Therefore in some cases it is possible to
-avoid expensive computations at runtime.
-That may have enourmous impact on the performance of an
-application.
-
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme//salvador-dali-clock.jpg
-
-For instance, let me consided again the higher order
-function ``call`` I introduced in `episode #5`_ when
-discussing benchmark. That function has an issue: it is
-called at each iteration in the inner loop and therefore it wastes
-time. However, it is possible to replace the higher order function
-with a macro, therefore avoiding the cost of a function call.
-Here is the code for a ``repeat`` macro doing the job of ``call``:
-
-@@repeat-macro.sls
-
-To check that the macro is effectively more efficient, I did measure
-the time spent in summing 1+1 ten million of times::
- 
- $ rlwrap ikarus 
- Ikarus Scheme version 0.0.3+ (revision 1622, build 2008-10-11)
- Copyright (c) 2006-2008 Abdulaziz Ghuloum
-
- > (import (repeat))
- (time (call 10000000 + 1 1))
- running stats for (call 10000000 + 1 1):
-    no collections
-    444 ms elapsed cpu time, including 0 ms collecting
-    442 ms elapsed real time, including 0 ms collecting
-    32 bytes allocated
-
- > (import (repeat-macro))
- > (repeat 10000000 (+ 1 1))
- running stats for (repeat 10000000 (+ 1 1)):
-    no collections
-    64 ms elapsed cpu time, including 0 ms collecting
-    64 ms elapsed real time, including 0 ms collecting
-    0 bytes allocated
-
-As you see, avoiding the function call makes a lot of difference
-(the benchmark is 7 times faster!) since the great majority of the
-time was wasted in calling the benchmarking
-function and not the real addition.
-
-Here the improvement is spectacular since summing two integers is a
-very fast operation: replacing ``call`` with ``repeat`` in the
-benchmark factorial does not make a big difference.
-
-.. _episode #5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
 
 |#
 
@@ -306,3 +313,13 @@ benchmark factorial does not make a big difference.
  )
 
 (display (syntax-expand (for2 i from 1 to 5 (display i))))
+
+;MULTI-DEFINE2
+(def-syntax multi-define2
+  (syntax-match ()
+   (sub (ctx (name ...) (value ...))
+     #'(begin (define name value) ...))
+   (sub (ctx name value)
+     #'(define name value))
+  ))
+;END
