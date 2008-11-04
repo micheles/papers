@@ -1,9 +1,9 @@
 #!r6rs
 ;;; sweet-macros
-;;; Version: 0.11
+;;; Version: 0.2
 ;;; Author: Michele Simionato
 ;;; Email: michele.simionato@gmail.com
-;;; Date: 29-Oct-2008
+;;; Date: 04-Nov-2008
 ;;; Licence: BSD
 
 (library (sweet-macros helper1)
@@ -37,11 +37,9 @@
 (define-syntax syntax-match
   (lambda (x)
    (syntax-case x (sub)
-    ((_ (literal ...) (sub patt skel . rest) ...)
-     #'(lambda (x)
-       (syntax-match x (literal ...)
-         (sub patt skel . rest) ...)))
-    ((_ x (literal ...) (sub patt skel . rest) ...)
+    ((self (literal ...) (sub patt skel . rest) ...)
+     #'(lambda (x) (self x (literal ...) (sub patt skel . rest) ...)))
+    ((self x (literal ...) (sub patt skel . rest) ...)
      (and (identifier? #'x) (for-all identifier? #'(literal ...)))
      #'(guarded-syntax-case x
        (<literals> <patterns> <source> <transformer> literal ...)
@@ -50,11 +48,9 @@
        ((ctx <patterns>)
         #''((... (... patt)) ...))
        ((ctx <source>)
-        #''(syntax-match (literal ...)
-              (... (... (sub patt skel . rest))) ...))
+        #''(self (literal ...) (... (... (sub patt skel . rest))) ...))
        ((ctx <transformer>)
-        #'(syntax-match (literal ...)
-              (... (... (sub patt skel . rest))) ...))
+        #'(self (literal ...) (... (... (sub patt skel . rest))) ...))
        (patt skel . rest) ...))
     )))
 )
