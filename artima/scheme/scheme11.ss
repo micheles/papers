@@ -67,14 +67,75 @@ by extending it to accept a generic step. You can find other
 examples in the Italian `original version`_ of this article,
 which is quite different and uses ``syntax-rules``.
 
+.. image:: http://www.phyast.pitt.edu/~micheles/scheme/gears.gif
+   :width: 240
+
 .. _original version: http://stacktrace.it/2008/04/le-avventure-di-un-pythonista-schemeland8/
+
+Taking advantage of multiple evaluation
+-------------------------------------------------------------
+
+Sometimes we may make good use of the multiple evaluation "feature".
+For instance, let me consided again the higher order
+function ``call`` I introduced in `episode #5`_ when
+discussing benchmark. That function has an issue: it is
+called at each iteration in the inner loop and therefore it wastes
+time. However, it is possible to replace the higher order function
+with a macro, therefore avoiding the cost of a function call.
+Here is the code for a ``repeat`` macro doing the job of ``call``:
+
+@@repeat-macro.sls
+
+``repeat`` expands into a loop and therefore the body is evaluated ``n``
+times, which is exactly what we need for a benchmark.
+To check that the macro is effectively more efficient, I did measure
+the time spent in summing 1+1 ten million of times by using the following
+script:
+
+@@repeat-benchmark.ss
+
+I took the number ``n`` from the command line arguments
+in order to fool the compiler: if I hard coded ``(+ 1 1)`` the compiler
+would replace it with 2 at compilation time, therefore not performing
+the computation! (in the original version of this episode I made that
+mistake, thanks to Aziz Ghuloum for pointing it out).
+The output of the script is the following::
+
+ $ scheme-script repeat-benchmark.ss 1
+ running stats for (call 10000000 + 1 n):
+     no collections
+     396 ms elapsed cpu time, including 0 ms collecting
+     394 ms elapsed real time, including 0 ms collecting
+     32 bytes allocated
+ running stats for (repeat 10000000 (+ 1 n)):
+     no collections
+     40 ms elapsed cpu time, including 0 ms collecting
+     40 ms elapsed real time, including 0 ms collecting
+     0 bytes allocated
+
+As you see, avoiding the function call makes a lot of difference
+(the benchmark is 10 times faster!) since the great majority of the
+time was wasted in calling the benchmarking
+function and not in the real addition.
+Here the improvement is spectacular since summing two integers is a
+very fast operation: replacing ``call`` with ``repeat`` in the
+benchmark factorial does not make a big difference.
+
+.. _episode #5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
 
 A micro-framework for unit tests
 -----------------------------------------------------------------
 
 It is time to give a more practical example of Scheme macros.  In this
 paragraph, I will define a very simple unit test framework called
-*easy-test*. The source code takes just a page:
+``easy-test``.
+
+Clearly, there are already unit test frameworks
+available for Scheme, including two SRFIs (64_ and 78_); my interests
+here is not in testing, it is in the implementation, which is
+a pedagogical exercise in macrology.
+
+The source code takes just a page:
 
 .. image:: http://www.phyast.pitt.edu/~micheles/scheme/feu_rouge.jpg
 
@@ -86,7 +147,7 @@ macro is different is that it expands into a ``lambda``-expression
 and therefore the arguments
 of the macro are evaluated only when the ``lambda`` function is called
 and not a definition time. In other words, we are using a pattern of
-delayed evaluation here. This is important, since we want to distinguish
+*delayed evaluation* here. This is important, since we want to distinguish
 the definition of the tests from their execution. For instance, let me
 define a trivial test::
 
@@ -100,7 +161,16 @@ Macro application results in a function which is able to respond to
 the commands ``'descr`` (returning the description string), ``'values``
 (returning a list with the quoted input expression and the quoted
 expected output) and ``'run`` (returning the result of the test, as
-a boolean flag). In our example::
+a boolean flag). This is implemented via the `case expression`_ in
+the ``test`` macro::
+
+ (case cmd
+   ((descr) description)
+   ((values) '(expr  expected))
+   ((run) (equal? expr expected))
+   (else (error 'test "Invalid command" cmd)))
+
+Here is how it works in our example::
 
  > (test1 'descr)
  "1+1=2"
@@ -136,122 +206,9 @@ the framework will use the default reporting functions,
 i.e. ``print-dot`` for successful tests and ``print-msg`` for failed
 tests.
 
-Appendix: comparison with other macro systems
-------------------------------------------------
-
-I am sure some of my readers are familiar with other Scheme
-macros systems, or with Common Lisp ``defmacro``. This section is for
-their benefit, to contrast ``sweet-macros`` with other macro systems
-they may be familiar with. If a your a total beginner to Scheme macros
-you may safely skip this section, that could engender some confusion.
-
-The oldest system of macros available in Scheme is ``define-macro``,
-which closely resemble ``defmacro`` in Common Lisp. Usually ``define-macro``
-is available on all implementation, and if it is not, you can 
-always implement it yourself in terms of ``def-syntax`` in two-lines.
-However that requires a deeper knowledge of macros which I will 
-demand to the third cycle of my *Adventures*.
-``define-macro``
-does not offer pattern matching features, so if you need them
-as in our ``multi-define`` example you must implement them
-yourself. For instance, you could do the following::
-
- (define-macro (multi-define names values)
-   `(begin ,@(map (lambda (n v) `(define ,n ,v)) names values)))
-
-Note: if your system does not implement ``define-macro`` already, you can
-implement it yourself in terms of ``def-syntax`` in two-lines, but I
-will show how to do that in a future installment.
-
-The simplest macro system in Scheme is ``syntax-rules``, which is based on
-pattern matching. With that system ``multi-define`` can be defined as
-follows::
-
- (define-syntax multi-define
-   (syntax-rules ()
-    ((_ (name ...) (value ...))
-    (begin (define name value) ...)))) 
-
-This is basically the same definition as in the ``sweet-macro``
-system, a bit more verbose and without any introspection/debugging
-capability, but without funny ``#'`` characters (we will explain
-the meaning of the ``#'`` reader syntax in a future episode).
-
-The most advanced system available in Scheme is ``syntax-case`` 
-which is also the most verbose macro system::
-
- (define-syntax multi-define
-  (lambda (x)
-   (syntax-case x ()
-    ((ctx (name ...) (value ...))
-    #'(begin (define name value) ...)))))
-
-Here you see the funny ``#'`` syntax, as in the ``def-syntax``
-example, since ``sweet-macros`` are built directly on top
-of ``syntax-case``; you see however that ``def-syntax`` is
-much easier to read and also strictly more powerful, since
-it implements a stronger version of guarded patterns than 
-``syntax-case``.
-
-Guarded patterns are a relative advanced feature and they
-are not available in the ``define-macro`` and in the ``syntax-rules``
-macro systems. They are present in the ``syntax-case`` macro system
-but in a slightly less powerful version, as fenders. Readers familiar with
-``syntax-case`` will be interested in knowing that internally
-``sweet-macros`` work by generating the appropriate fenders
-for ``syntax-case``; for instance our example is compiled
-down to something like
-
-::
-
- (define-syntax multi-define
-   (lambda (x)
-     (syntax-case x ()
-      ((multi-define (name ...) (value ...))
-       (= (length #'(name ...)) (length #'(value ...)))
-       #'(begin (define name value) ...))
-      ((multi-define (name ...) (value ...))
-       (syntax-violation 'multi-define 
-        "The number of names and values does not mismatch" 
-        #'((name ...) (value ...))))
-     ))) ;; plus other stuff for introspection
-       
-which is definitely less readable than the ``def-syntax`` version.
-
-It is worth noticing that the position of the guards in
-``syntax-match`` (or ``def-syntax``) is *different* from the position of
-the fenders in ``syntax-case``. 
-This is not a gratuitous difference. I have spent a lot
-of time pondering if I should keep the original ordering or not and I
-have decided to change it because:
-
-1. I feel having the guard in the third position is more consistent;
-   in this way the first position in a ``syntax-match`` clause is
-   always kept by the pattern and the second  position is always
-   occupied by the skeleton, whereas in ``syntax-case`` sometimes
-   the second position is occupied by a skeleton and sometimes by
-   a fender and this is really ugly;
-
-2. I have seen other functional languages with guarded patterns, and
-   they kept the guard in the third position;
-
-3. keeping the guard in the third position makes easier to write
-   higher order macros, i.e. macros expanding to ``syntax-match``
-   transformers;
-
-4. I see no reason to keep a strict compatibility with
-   ``syntax-case``: after all, ``sweet-macros`` are intended for users
-   knowing nothing about ``syntax-case``.
-
-``sweet-macros`` are pretty sweet, however, and they may appeal to
-``syntax-case`` experts too; to avoid make them too similar to
-``syntax-case`` I have decided to use the ``sub`` syntax for each
-clause: in this case it is impossible to confuse a ``syntax-match``
-clause for a ``syntax-case`` clause, and it is obvious to the reader
-that she should not expect a one-to-one correspondence to
-``syntax-case``, nor the same ordering of the fenders.  Moreover, I
-find that the ``sub`` makes the clauses stand out more clearly
-and enhance readability.
+.. _64: http://srfi.schemers.org/srfi-64/srfi-64.html
+.. _78: http://srfi.schemers.org/srfi-78/srfi-78.html
+.. _case expression: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_384
 |#
 (import (rnrs) (easy-test))
 
@@ -260,3 +217,7 @@ and enhance readability.
    (test "1+1=2" (+ 1 1) 2)
    (test "2*1=2" (* 2 1) 2)
    (test "2+2=3" (+ 2 2) 3)))
+
+(def-syntax (define-macro (name . args) (body1 body2 ...))
+  (datum->syntax #'name (apply (lambda args body1 body2 ...)
+                               (syntax->datum #'args))))
