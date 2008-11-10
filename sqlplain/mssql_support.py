@@ -1,5 +1,6 @@
 import sys
 import _mssql
+import pymssql as dbapi2
 from pymssql import OperationalError, pymssqlCursor as Cursor
 
 class Connection(object):

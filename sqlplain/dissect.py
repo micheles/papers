@@ -41,7 +41,7 @@ def dissect(uri):
         d['host'], d['port'] = d['server'], None
     return d
 
-def get_connect_params(uri):
+def get_driver_connect_params(uri):
     """
     Determine the database type (and therefore the driver to use) from
     the URI and returns the right connection factory, as well as its
@@ -54,4 +54,4 @@ def get_connect_params(uri):
         params = d['database']
     else:
         params = d['user'], d['password'], d['host'], d['port'], d['database']
-    return driver.connect, params
+    return driver.dbapi2, driver.connect, params

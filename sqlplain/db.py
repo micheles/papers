@@ -1,17 +1,33 @@
-import sys
+import sys, re
 from operator import itemgetter
 try:
     from collections import namedtuple
 except ImportError:
     from sqlplain.namedtuple import namedtuple
 
-from sqlplain.dissect import get_connect_params
+from sqlplain.dissect import get_driver_connect_params
 
 class TupleList(list):
     "Used as result of execute"
     header = None
     rowcount = None
-    
+    import re
+
+STRING_OR_COMMENT = re.compile("('[^']*'|--.*\n)")
+
+def qmark2pyformat(sql):
+    """
+    Take a SQL template and replace question marks with pyformat-style
+    placeholders (%s), except in strings and comments.
+    """
+    out = []
+    for i, chunk in enumerate(STRING_OR_COMMENT.split(sql)):
+        if i % 2 == 0: # real sql code
+            out.append(chunk.replace('?', '%s'))
+        else: # string or comment
+            out.append(chunk)
+    return ''.join(out)
+
 class DB(object):
     """
     A lazy callable object returning recordsets. It is lazy since the
@@ -27,7 +43,7 @@ class DB(object):
         return cls(configurator.get_uri(alias))
                    
     def __init__(self, uri, autocommit=True, threadlocal=False):
-        self.connect, params = get_connect_params(uri)
+        self.driver, self.connect, params = get_driver_connect_params(uri)
         self.args = params, autocommit
         self._conn = None
         self.chatty = False
@@ -45,6 +61,8 @@ class DB(object):
             self.commit = commit.__get__(self)
 
     def _raw_execute(self, templ, args, ntuple):
+        if self.driver.paramstyle == 'pyformat':
+            templ = qmark2pyformat(templ)
         cursor = self.curs
         if self.chatty:
             print cursor.rowcount, templ, args
