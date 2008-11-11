@@ -7,7 +7,7 @@ by using my own ``sweet-macros`` framework. I have also claimed
 that sweet macros provides introspection facilities, but I have not shown
 them. Here I will substain my claim.
 
-For of all, let me show how you can get
+First of all, let me show how you can get
 the patterns accepted by ``multi-define``::
 
  > (multi-define <patterns>)
