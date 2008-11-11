@@ -5,14 +5,16 @@
 In the last episode I have defined a very simple ``multi-define`` macro
 by using my own ``sweet-macros`` framework. I have also claimed
 that sweet macros provides introspection facilities, but I have not shown
-them. Here I will substain my claim. For instance, you can get
-the patterns accepted by ``multi-define`` as follows::
+them. Here I will substain my claim.
+
+For of all, let me show how you can get
+the patterns accepted by ``multi-define``::
 
  > (multi-define <patterns>)
  ((multi-define (name ...) (value ...)))
 
-Since this is a simple macro it accepts only a single pattern. However,
-it is possible to define macros with multiple patterns by relying
+Since ``multi-define`` is a simple macro it accepts only a single pattern.
+However, it is possible to define macros with multiple patterns by relying
 on the second form of ``def-syntax``, i.e.
 
  ``(def-syntax name transformer)``
