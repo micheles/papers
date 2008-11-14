@@ -4,7 +4,7 @@ The problem of multiple evaluation
 
 In `episode #10`_ I gave an example of a macro implementing
 a C-like ``for`` loop and I said that it was suffering from the
-problem of multiple evaluation. Heree I explain what the
+problem of multiple evaluation. Here I explain what the
 problem is and how to cure it. In order to understand the issue,
 you must always remember that macros *expand* code at compile time,
 but they not *evaluate* it: that means that pattern variables do *not*
