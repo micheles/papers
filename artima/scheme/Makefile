@@ -1,5 +1,5 @@
 POST = python2.5 ../post.py
-RST = python2.5 ~/md/scripts/scheme2rst.py -r
+RST = python2.5 ../../scheme2rst.py -r
 
 default:
 	echo "Available python files:"; ls *.py

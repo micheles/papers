@@ -268,10 +268,11 @@ the R6RS standard, but many other are still available only in the SRFI-1_ .
      (range n0 n 1))
     ((n0 n s); three-argument syntax
      (assert (and (for-all number? (list n0 n s)) (not (zero? s))))
-     (let ((cmp (if (> s 0) >= <=)))
+     (let ((cmp (if (positive? s) >= <=)))
        (let loop ((i n0) (acc '()))
          (if (cmp i n) (reverse acc)
              (loop (+ i s) (cons i acc))))))))
 ;END
 
 (display (range 3))
+(display (range 5 0 -1))

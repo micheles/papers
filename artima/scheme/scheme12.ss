@@ -1,11 +1,26 @@
 #|
+The point about macros
+-----------------------------------------------------------
+
+In the previous three episodes I have given a few examples of
+macros:
+
+- macros expanding to definitions (i.e. ``multi-define``);
+- macros expanding to plain expressions (i.e. ``for``);
+- macros expanding to functions (i.e. ``test``).
+
+It is now the time to make the point and to raise the question
+"are macros really useful for the application programmer?".
+
+
+
 Are Scheme macros "just syntactic sugar"?
 ----------------------------------------------------
 
 .. image:: http://www.phyast.pitt.edu/~micheles/scheme/sugar.jpg
 
 There is a serious problem when teaching macros to beginners: the real
-power of macros is seen only when solving difficult problems, but you
+power of macros is only seen when solving difficult problems, but you
 cannot use those problems as teaching examples.
 As a consequence, virtually all existing introductions to macros (including
 my own) are forced to use very trivial examples about how to modify
@@ -26,16 +41,7 @@ when writing code. In particular, in Scheme, you must get used to
 recursion and accumulators, not to imperative loops, there is no way
 out.
 
-So, the ability of macros to pervert the language is a potential
-issue for beginners. On the other hand, there are cases where perverting
-the language may have sense. For instance, suppose you are
-translating to Scheme a library in another language with a ``for``
-loop. Suppose you want to spend a minimal effort in the translation
-and that for any reason you want to stay close to the original
-implementation. Then, it makes sense to leverage on the macro facility
-to add the ``for`` loop to the language syntax with a minimal effort. 
-
-The problem is that it is very use to abuse macros. Generally speaking,
+The problem is that it is very easy to abuse macros. Generally speaking,
 the adaptibility of the Scheme language via the general mechanism of
 macros is a double-edged sword.  There is no doubts that it increases
 the programmer expressivity, but it can also make programs more
@@ -49,6 +55,16 @@ same concepts with different syntaxes and the maintenance of programs
 written by other people is made more difficult without any clear
 benefit.  This is a very delicate point which is source of endless
 debates on the newsgroups, so I will have to handle it with care.
+
+On one hand, there are cases
+where perverting the language may have sense. For instance, suppose
+you are translating to Scheme a library in another language with a
+``for`` loop. Suppose you want to spend a minimal effort in the
+translation and that for any reason you want to stay close to the
+original implementation - for instance, for simplifying maintenance.
+Then, it makes sense to leverage on the macro
+facility to add the ``for`` loop to the language syntax with a minimal
+effort.
 
 At this level, even the second effect enters in the game: lots of
 people understimate macros as mere syntactic sugar, by forgetting that
@@ -167,7 +183,7 @@ learned to live without by relying on a good unit test coverage, which
 is needed anyway.
 
 On the other hand, one should not underestimate the downsides of
-macros.d Evaluation of code defined inside of the macro body at
+macros. Evaluation of code defined inside of the macro body at
 compile time or suspension of evaluation therein leads often to bugs
 that are hard to track. The behaviour of the code is generally not
 easy to understand and debugging macros is no fun.
@@ -250,7 +266,9 @@ expression, so that ``for`` works as Python's ``for``::
 
 ;TRANSPOSE
 (define (transpose llist) ; llist is a list of lists
-  (apply map (lambda x x) llist)) 
+  (if (and (pair? llist) (not (list? (car llist))))
+      (error 'transpose "Not a list of lists" llist))
+  (apply map list llist)) 
 ;END
 
 ;TEST-TRANSPOSE
@@ -261,8 +279,13 @@ expression, so that ``for`` works as Python's ``for``::
 (def-syntax for 
   (syntax-match (in)
    (sub (for el in lst do something ...)
-    #'(for-each (lambda (el) do something ...) lst) (identifier? #'el)
-    #'(apply for-each (lambda el do something ...) (transpose lst)))))
+        #'(for-each (lambda (el) do something ...) lst)
+        (identifier? #'el))
+   (sub (for (el ...) in lst do something ...)
+        #'(apply for-each (lambda (el ...) do something ...) (transpose lst))
+        (for-all identifier? #'(el ...))
+        (syntax-violation 'for "Non identifier" #'(el ...)))
+   ))
 ;END
 
 (test (success print-nothing) (failure print-msg)
