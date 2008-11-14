@@ -178,7 +178,7 @@ error message::
  Unhandled exception:
   Condition components:
     1. &who: multi-define
-    2. &message: "The number of names and values does not mismatch"
+    2. &message: "Names and values do not match"
     3. &syntax:
         form: ((a b c) (1 2))
         subform: #f
@@ -291,8 +291,8 @@ in episode 12, so you will have some time to play. Have fun!
   (def-syntax (multi-define (name ...) (value ...))  ; the pattern
     #'(begin (define name value) ...)                ; the skeleton
     (= (length #'(name ...)) (length #'(value ...))) ; the guard
-     (syntax-violation 'multi-define 
-      "Names and values do not mismatch" 
+     (syntax-violation 'multi-define
+      "Names and values do not match" 
       #'((name ...) (value ...))))
 ;END
 

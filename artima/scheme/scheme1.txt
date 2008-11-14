@@ -155,12 +155,12 @@ issue by introducing a new standard, much bigger than the previous
 ones, the hotly debated R6RS ( `Revised Report 6 on the Algorithmic
 language Scheme`_).  The preparation of this standard has generated
 endless suffering in the Scheme community, since a significant
-minority has seen it as a betrial of the spirit of Scheme.  Nowadays
+minority has seen it as a betrayal of the spirit of Scheme.  Nowadays
 Scheme is no more a little language: the R6RS requires a module
 system, a condition system, advanced macrology, a standard library,
 unicode support and many other features not requested before.  Not
 only it is difficult to write a new implementation, it is also
-difficult to take and old R5RS implementation and to make it compatible
+difficult to take an old R5RS implementation and to make it compatible
 with the new standard. Since R6RS is relatively recent (it was
 published in September 2007) there are few implementations of it. The
 first were `Larceny`_ and `Ikarus`_; now there is also
