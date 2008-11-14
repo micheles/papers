@@ -1,1 +1,1 @@
-from sqlplain.db import DB
+from sqlplain.connection import Connection

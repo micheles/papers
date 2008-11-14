@@ -51,7 +51,10 @@ class ConfigObj(UserDict.DictMixin):
                 self._keys.append(sect)
         finally:
             cfg.close()
-            
+
+    def __getitem__(self, name):
+        return getattr(self, name)
+    
     def iteritems(self):
         for k in self._keys:
             yield k, getattr(self, k)
@@ -72,18 +75,17 @@ class ConfigObj(UserDict.DictMixin):
         f.close()
             
 class _Configurator(object): # singleton
-    initialized = False
+    _initialized = False
     
     def _initialize(self):
-        self.conf_file = os.environ.get(
+        self._conf_file = os.environ.get(
             'SQLPLAIN', os.path.expanduser('~/.sqlplain'))
-        self.conf_obj = ConfigObj(file(self.conf_file))
-        self.uri = self.conf_obj['uri']
-        self.initialized = True
+        self._conf_obj = ConfigObj(file(self._conf_file))
+        self._initialized = True
 
-    def get_uri(self, alias):
-        if not self.initialized:
+    def __getattr__(self, name):
+        if not self._initialized:
             self._initialize()
-        return self.uri[alis]
-    
+        return self._conf_obj[name]
+
 configurator = _Configurator()
