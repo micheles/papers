@@ -165,7 +165,7 @@ implementations do not enable readline by default for reason of
 license, so you have
 to download the readline-dev headers, edit the Makefile and
 recompile everything by hand. This may be annoying, so I suggest
-you to use rlwrap_ instead, which can be installed with ``apt-get``
+you to use rlwrap_ instead, which can be installed with
 ``apt-get`` in Debian/Ubuntu or with``fink`` on the Mac.
 
 .. _readline: http://tiswww.case.edu/php/chet/readline/rltop.html
@@ -176,7 +176,7 @@ command line program (such as an interactive Scheme interpreter)
 that does not support it. It is enough to type ``rlwrap <scheme-executable>``
 and your REPL magically gains readline line editing, persistent
 history and completion; moreover, you get *parens matching* for free,
-which is invaluable in Sche,e programming. I make heavy usage of all
+which is invaluable in Scheme programming. I make heavy usage of all
 these features.
 
 By the way, I see now that I have used the term REPL
