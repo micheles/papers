@@ -1,1 +1,1 @@
-from sqlplain.connection import Connection, do, getone
+from sqlplain.connection import Connection, do

@@ -83,5 +83,5 @@ class URI(dict):
     def __str__(self):
         if self['dbtype'] == 'sqlite':
             return 'sqlite:///' + self['database']
-        t = '%(dbtype)s://%(user)s:%(password)s@%(server)s/%(database)s'
+        t = '%(dbtype)s://%(user)s:xxxxx@%(server)s/%(database)s'
         return t % self

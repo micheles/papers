@@ -25,7 +25,6 @@ class TupleList(list):
     "Used as result of Connection.execute"
     header = None
     rowcount = None
-    import re
 
 def transact(action, conn, *args, **kw):
     "Run a function in a transaction"
@@ -44,7 +43,7 @@ def dry_run(action, conn, *args, **kw):
     finally:
         conn.rollback()
 
-class Storage(object):
+class _Storage(object):
     "A place where to store low level connection and cursor"
 
     @classmethod
@@ -57,12 +56,14 @@ class Storage(object):
         return self
     
     def getconnection(self):
+        "Return the low level connection"
         conn = self._conn
         if conn is None:
             conn = self._conn = self.connect(*self.args)
         return conn
     
     def getcursor(self):
+        "Return the low level cursor"
         curs = self._curs
         if curs is None:
             curs = self._curs = self.getconnection().cursor()
@@ -78,7 +79,7 @@ class Storage(object):
             self._conn.close()
             self._conn = None
         
-class ThreadLocalStorage(threading.local, Storage):
+class _ThreadLocalStorage(threading.local, _Storage):
     "A threadlocal object where to store low level connection and cursor"
 
 class Connection(object):
@@ -102,9 +103,9 @@ class Connection(object):
         self.autocommit = autocommit
         self.threadlocal = threadlocal
         if threadlocal:
-            self._store = ThreadLocalStorage.new(connect, args)
+            self._storage = _ThreadLocalStorage.new(connect, args)
         else:
-            self._store = Storage.new(connect, args)
+            self._storage = _Storage.new(connect, args)
         if not self.autocommit:
             def rollback(self): return self.conn.rollback()
             def commit(self): return self.conn.commit()
@@ -112,7 +113,8 @@ class Connection(object):
             self.commit = commit.__get__(self)
         self.errors = (self.driver.OperationalError,
                        self.driver.ProgrammingError,
-                       self.driver.InterfaceError)
+                       self.driver.InterfaceError,
+                       self.driver.DatabaseError)
         
     def _execute(self, cursor, templ, args):
         """
@@ -136,10 +138,10 @@ class Connection(object):
             return cursor.fetchall()
 
     def execute(self, templ, args=(), ntuple=None):
-        cursor = self.curs # make a new connection if needed
+        res = self._execute(self.curs, templ, args)    
+        cursor = self.curs # needed to make the reset work
         if self.chatty:
             print cursor.rowcount, templ, args
-        res = self._execute(cursor, templ, args)    
         if isinstance(res, list):
             fields = map(itemgetter(0), cursor.description)
             if ntuple is None:
@@ -153,16 +155,17 @@ class Connection(object):
         return res
 
     def getone(self, templ, args=()):
+        "Use this methods for queries returning a scalar result"
         rows = self._execute(self.curs, templ, args)
         if len(rows) != 1 or len(rows[0]) != 1:
-            raise ValueError("Expected to get a singleton result, got %s"
+            raise ValueError("Expected to get a scalar result, got %s"
                              % rows)
         return rows[0][0]
 
     def close(self):
         """The next time you will call an active method, a fresh new
         connection will be instantiated"""
-        self._store.close()
+        self._storage.close()
         
     def __repr__(self):
         return "<Connection %s, autocommit=%s>" % (self.uri, self.autocommit)
@@ -170,41 +173,45 @@ class Connection(object):
     @property
     def conn(self):
         "Return the low level underlying connection"
-        return self._store.getconnection()
+        return self._storage.getconnection()
    
     @property
     def curs(self):
         "Return the low level underlying cursor"
-        return self._store.getcursor()
+        return self._storage.getcursor()
 
-class PConnection(Connection):
-    """
-    A persistent connection class for use in multithreaded applications.
-    The underlying connections are stored in a threadlocal object, and
-    the .execute method has a resetting feature.
-    """
+class RConnection(Connection):
+    "A resettable connection class"
     
     ## _execute a query, by retrying it once when losing connection
     def _execute(self, cursor, templ, args):
-        _execute = super(PConnection, self)._execute
+        _execute = super(RConnection, self)._execute
         try:
             return _execute(cursor, templ, args)
         except self.errors, e: # missing connection
-            print e, 'resetting connection ...'
-            self.close()
-            return _execute(cursor, templ, args)
+            self.close() # resetting connection ...
+            return _execute(self.curs, templ, args)
 
 ### utility functions
- 
+
 def do(templ):
+    """
+    Wrap a query template. Return a closure with arguments
+    (dbconn, *query_args).
+    """
     def _do(conn, *args):
         return conn.execute(templ, args)
     _do.__name__ = templ
     return _do
 
-
-def getone(templ):
+def _one(templ):
+    """
+    Wrap a query template which is expected to return a scalar result.
+    Raise a ValueError otherwise.
+    """
     def _getone(conn, *args):
         return conn.getone(templ, args)
     _getone.__name__ = templ
     return _getone
+
+do.one = _one
