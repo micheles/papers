@@ -2,18 +2,32 @@
 
 Notice: createdb and dropdb are not transactional.
 """
-__all__ = 'existsdb dropdb createdb'.split()
 
 import os
 from sqlplain.uri import URI
-from sqlplain.connection import Connection, openclose
+from sqlplain.connection import Connection, transact, do
 
-# helper
+def openclose(uri, templ, *args, **kw):
+    "Open a connection, perform an action and close the connection"
+    unexpected = set(kw) - set(['autocommit'])
+    if unexpected:
+        raise ValueError('Received unexpected keywords: %s' % unexpected)
+    autocommit = kw.get('autocommit', True)
+    conn = Connection(uri, autocommit)
+    try:
+        if autocommit:
+            return conn.execute(templ, args)
+        else:
+            return transact(Connection.execute, conn, templ, args)
+    finally:
+        conn.close()
+
 def call(procname, uri):
+    "Call a procedure by name, passing to it an URI string"
     proc = globals()[procname + '_' + uri['dbtype']]
     return proc(uri)
 
-############################# exists_db ############################
+################################ exists_db ###############################
 
 def existsdb_sqlite(uri):
     fname = uri['database']
@@ -38,7 +52,7 @@ def existsdb_mssql(uri):
 def existsdb(uri):
     return call('existsdb', URI(uri))
 
-############################# dropdb ##################################
+############################### dropdb ###################################
 
 def dropdb_sqlite(uri):
     fname = uri['database']
@@ -56,7 +70,7 @@ def dropdb_mssql(uri):
 def dropdb(uri):
     call('drop_db', URI(uri))
     
-############################# createdb #####################################3
+############################# createdb ###################################
 
 def createdb_sqlite(uri):
     "Do nothing, since the db is automatically created"
@@ -75,3 +89,20 @@ def createdb(uri, drop=False):
         call('dropdb', uri)
     call('createdb', uri)
     return Connection(uri)
+
+########################## schema management ###########################
+
+## the folling routines are postgres-only
+
+setschema = do('SET search_path TO ?')
+
+existsschema = do("SELECT nspname FROM pg_namespace WHERE nspname=?")
+
+def dropschema(db, schema):
+    db.execute('DROP SCHEMA %s' % schema)
+
+def createschema(db, schema, drop=False):
+    if drop and existsschema(db, schema):        
+        dropschema(db, schema)
+    db.execute('CREATE SCHEMA %s' % schema)
+    setschema(db, schema)

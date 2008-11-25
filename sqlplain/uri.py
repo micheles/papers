@@ -4,6 +4,7 @@ A couple of utilities to convert an uri into a pair
 """
 
 import os
+from sqlplain.configurator import configurator
 
 SUPPORTED_DBTYPES = 'mssql', 'postgres', 'sqlite'
 
@@ -25,9 +26,15 @@ class URI(dict):
         if isinstance(uri, URI): # do nothing
             self.update(uri)
             return
-        assert uri and isinstance(uri, str) and \
-               uri.startswith(SUPPORTED_DBTYPES), \
-               'You passed an invalid uri string: %r' % uri
+        assert uri and isinstance(uri, str), '%r is not a valid string!' % uri
+        if not '://' in uri: # assume it is an alias
+            try:
+                uri = configurator.uri[uri]
+            except KeyError:
+                raise NameError(
+                    '%s is not a valid URI, not a recognized alias' % uri)
+        if not uri.startswith(SUPPORTED_DBTYPES):
+            raise NameError('Invalid URI %s' % uri)
         dbtype, partial_uri = uri.split('://')
         if dbtype == 'sqlite': # strip a leading slash, since according to
             # SQLAlchemy conventions full_uri starts with three slashes or more

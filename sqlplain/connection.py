@@ -5,7 +5,6 @@ try:
 except ImportError:
     from sqlplain.namedtuple import namedtuple
 from sqlplain.uri import URI
-from sqlplain.configurator import configurator
 
 STRING_OR_COMMENT = re.compile("('[^']*'|--.*\n)")
 
@@ -27,23 +26,6 @@ class TupleList(list):
     header = None
     rowcount = None
     import re
-
-def _execute(dbtype, cursor, templ, args):
-    """
-    Call a dbapi2 cursor; return the rowcount or a list of tuples.
-    """
-    if dbtype == 'sqlite':
-        execute = cursor.executescript
-    else:
-        execute = cursor.execute
-    if args:
-        execute(templ, args)
-    else:
-        execute(templ)
-    if cursor.description is None: # after an update
-        return cursor.rowcount
-    else: # after a select
-        return cursor.fetchall()
 
 def transact(action, conn, *args, **kw):
     "Run a function in a transaction"
@@ -110,10 +92,6 @@ class Connection(object):
     There easy however a chatty method for easy of debugging.
     """
     
-    @classmethod
-    def connect(cls, alias, autocommit=True, threadlocal=False):
-        return cls(configurator.uri[alias], autocommit, threadlocal)
-                   
     def __init__(self, uri, autocommit=True, threadlocal=False):
         self.uri = URI(uri)
         self.dbtype = self.uri['dbtype']
@@ -132,27 +110,54 @@ class Connection(object):
             def commit(self): return self.conn.commit()
             self.rollback = rollback.__get__(self)
             self.commit = commit.__get__(self)
-
-    def execute(self, templ, args=(), ntuple=None):
+        self.errors = (self.driver.OperationalError,
+                       self.driver.ProgrammingError,
+                       self.driver.InterfaceError)
+        
+    def _execute(self, cursor, templ, args):
+        """
+        Call a dbapi2 cursor; return the rowcount or a list of tuples.
+        """
         if self.driver.paramstyle == 'pyformat':
             templ = qmark2pyformat(templ)
+        try:
+            if args:
+                cursor.execute(templ, args)
+            #elif self.dbtype == 'sqlite':
+            #    cursor.executescript(templ)
+            else:
+                cursor.execute(templ)
+        except Exception, e:
+            tb = sys.exc_info()[2]
+            raise e.__class__, '%s\nQUERY WAS:%s%s' % (e, templ, args), tb    
+        if cursor.description is None: # after an update
+            return cursor.rowcount
+        else: # after a select
+            return cursor.fetchall()
+
+    def execute(self, templ, args=(), ntuple=None):
         cursor = self.curs # make a new connection if needed
         if self.chatty:
             print cursor.rowcount, templ, args
-        try:
-            res = _execute(self.dbtype, cursor, templ, args)
-        except Exception, e:
-            tb = sys.exc_info()[2]
-            raise e.__class__, '%s\nQUERY WAS:%s%s' % (e, templ, args), tb      
+        res = self._execute(cursor, templ, args)    
         if isinstance(res, list):
             fields = map(itemgetter(0), cursor.description)
-            Ntuple = ntuple or namedtuple('DBTuple', fields)
+            if ntuple is None:
+                Ntuple = namedtuple('DBTuple', fields)
+            elif isinstance(ntuple, str):
+                Ntuple = namedtuple(ntuple, fields)
+            else:
+                Ntuple = ntuple
             res = TupleList(Ntuple(*row) for row in res)
             res.header = Ntuple(*fields)
         return res
 
-    def one(self, templ, args=()):
-        return _execute(self.curs, templ, args)[0][0]
+    def getone(self, templ, args=()):
+        rows = self._execute(self.curs, templ, args)
+        if len(rows) != 1 or len(rows[0]) != 1:
+            raise ValueError("Expected to get a singleton result, got %s"
+                             % rows)
+        return rows[0][0]
 
     def close(self):
         """The next time you will call an active method, a fresh new
@@ -179,26 +184,27 @@ class PConnection(Connection):
     the .execute method has a resetting feature.
     """
     
-    ## execute a query, by retrying it once when losing connection
-    def execute(self, templ, args=(), ntuple=None):
-        execute = super(PConnection, self).execute
+    ## _execute a query, by retrying it once when losing connection
+    def _execute(self, cursor, templ, args):
+        _execute = super(PConnection, self)._execute
         try:
-            return execute(templ, args, ntuple)
-        except self.driver.OperationalError, e: # missing connection
-            self.close() # print e, 'resetting connection ...'
-            return execute(templ, args, ntuple)
+            return _execute(cursor, templ, args)
+        except self.errors, e: # missing connection
+            print e, 'resetting connection ...'
+            self.close()
+            return _execute(cursor, templ, args)
 
-def openclose(uri, templ, *args, **kw):
-    "Open a connection, perform an action and close the connection"
-    unexpected = set(kw) - set(['autocommit'])
-    if unexpected:
-        raise ValueError('Received unexpected keywords: %s' % unexpected)
-    autocommit = kw.get('autocommit', True)
-    conn = Connection(uri, autocommit)
-    try:
-        if autocommit:
-            return conn.execute(templ, args)
-        else:
-            return transact(Connection.execute, conn, templ, args)
-    finally:
-        conn.close()
+### utility functions
+ 
+def do(templ):
+    def _do(conn, *args):
+        return conn.execute(templ, args)
+    _do.__name__ = templ
+    return _do
+
+
+def getone(templ):
+    def _getone(conn, *args):
+        return conn.getone(templ, args)
+    _getone.__name__ = templ
+    return _getone
