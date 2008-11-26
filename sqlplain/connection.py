@@ -25,7 +25,7 @@ class TupleList(list):
     "Used as result of LazyConn.execute"
     header = None
     rowcount = None
-
+    
 def transact(action, conn, *args, **kw):
     "Run a function in a transaction"
     try:
@@ -75,10 +75,16 @@ class _Storage(object):
         """The next time you will call an active method, a fresh new
         connection will be instantiated"""
         if self._curs:
-            self._curs.close()
+            try:
+                self._curs.close()
+            except: # ignore if already closed
+                pass
             self._curs = None
         if self._conn:
-            self._conn.close()
+            try:
+                self._conn.close()
+            except: # ignore if already closed
+                pass
             self._conn = None
         
 class _ThreadLocalStorage(threading.local, _Storage):
@@ -94,19 +100,19 @@ class LazyConn(object):
 
     retry = True
     
-    def __init__(self, uri, autocommit=True, threadlocal=False):
+    def __init__(self, uri, isolation_level=None, threadlocal=False):
         self.uri = URI(uri)
         self.dbtype = self.uri['dbtype']
         self.driver, connect, params = self.uri.get_driver_connect_params()
-        args = params, autocommit
+        args = params, isolation_level
         self.chatty = False
-        self.autocommit = autocommit
+        self.isolation_level = isolation_level
         self.threadlocal = threadlocal
         if threadlocal:
             self._storage = _ThreadLocalStorage.new(connect, args)
         else:
             self._storage = _Storage.new(connect, args)
-        if not self.autocommit:
+        if self.isolation_level is not None:
             def rollback(self): return self._conn.rollback()
             def commit(self): return self._conn.commit()
             self.rollback = rollback.__get__(self, self.__class__)
@@ -176,14 +182,25 @@ class LazyConn(object):
                              % rows)
         return rows[0][0]
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_class, exc, tb):
+        if self.isolation_level is not None: # transactional
+            if exc_class:
+                self.rollback()
+                raise exc_class, exc, tb
+            else:
+                self.commit()
+
     def close(self):
         """The next time you will call an active method, a fresh new
         connection will be instantiated"""
         self._storage.close()
         
     def __repr__(self):
-        return "<%s %s, autocommit=%s>" % (
-            self.__class__.__name__, self.uri, self.autocommit)
+        return "<%s %s, isolation_level=%s>" % (
+            self.__class__.__name__, self.uri, self.isolation_level)
 
     @property
     def _conn(self):
@@ -195,3 +212,28 @@ class LazyConn(object):
         "Return the low level underlying cursor"
         return self._storage.curs
     
+
+class NullObject(object):
+    '''Implements the NullObject pattern.
+    
+    >>> n = NullObject()
+    >>> n.dosomething(1,2,3)
+    '''
+    def __getattr__(self, name):
+        return lambda *a, **k: None
+    def __repr__(self):
+        return 'None'
+    def __nonzero__(self):
+        return False
+    def __iter__(self):
+        return ()
+    def __call__(self, *a, **k):
+        return None
+
+class FakeConn(object):
+    def __init__(self, iodict):
+        self.iodict = iodict
+        self.conn = NullObject()
+        self.curs = NullObject()
+    def execute(self, templ, args=()):
+        return self.iodict[(templ,) + args]

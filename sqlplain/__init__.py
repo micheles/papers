@@ -1,4 +1,4 @@
-from sqlplain.connection import LazyConn
+from sqlplain.connection import LazyConn, transact, dry_run
 
 ### utility functions
 

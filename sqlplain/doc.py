@@ -63,7 +63,7 @@ plain old SQL queries, without any support from Python.
 
 .. _Django philosophy: http://docs.djangoproject.com/en/dev/misc/design-philosophies/#misc-design-philosophies
 
-sqlplain in five minutes
+sqlplain for the impatient
 ---------------------------------------------------------------
 
 Enough with the introduction: here is how you can run a query on a
@@ -115,6 +115,14 @@ ships with its own version of namedtuples (I have just copied Raymond
 Hettinger's recipe from the Python Cookbook site) which is used if
 you are running an early version of Python.
 
+An important thing to notice is that ``sqlplain`` uses the so-called
+qmark param-style, i.e. the place holder for parametric queries is
+the question mark ``?`` for *all* supported database drivers, even
+if the underlying low level driver uses the pyformat param-style
+(both pymssql and psycogpg uses the pyformat param-style, which is
+a terrible choice, since it collides for the usage of ``%s`` in Python
+string templates).
+
 The ``execute`` method is smart enough: if you run it again,
 the previously instantiated DB API2 connection and cursors are
 re-used, i.e. it does not recreate a connection for each query.
@@ -144,21 +152,15 @@ the number of rows affected by the query.
 The configuration file
 --------------------------------------------------------------
 
-Lazy connections are intended to be used as global variables
-(do not believe people saying that globals are evil: Python is full of
-globals, modules are global variables, classes are global variables, and
-there is nothing wrong in having lazy connection as globals): you
-are supposed to instantiate your lazy connections at the beginning
-of your module, so that the underlying low level database driver
-is imported when your module is imported. There is however an
-obvious problem with hard coding the credentials of your database
-(including the password): this is solved thanks to an aliasing mechanism
-builtin in ``sqlplain``. In brief, as argument of a lazy connection
+Passing the URI to a lazy connection can be annoying, since URIs
+are quite verbose. This problem is solved by the builtin aliasing mechanism
+of ``sqlplain``. The trick is the following: as argument of a lazy connection
 you can use a true uri, i.e. anything starting with ``mssql://`` or
-``postgres://`` or ``sqlite://`` or an alias, i.e. a plain Python name
+``postgres://`` or ``sqlite://`` or also an alias, i.e. a plain Python name
 (I recommend to use lowercase letters, digits and underscores only,
 even if this is not forced). The alias is interpreted by looking
 at the ``sqlplain`` configuration file.
+
 The location of the configuration file is determined by the environment
 variable ``$SQLPLAIN``: if empty or missing, the configuration file is
 assumed to be located in ``~/.sqlplain`` where ``~`` means the current
@@ -172,12 +174,20 @@ configuration file::
  bookdb: mssql://pyadmin:secret@localhost/bookdb
  testdb: sqlite:///:memory:
 
-The configuration file is read when the lazy connection is instantiated
-(i.e. usually at import time): if an alias is found, the corresponding true
+The configuration file is read when the lazy connection is instantiated:
+if an alias is found, the corresponding true
 uri is parsed and the correct database driver is loaded, otherwise a
 ``NameError``
 is raised. If the configuration file is missing, an ``ImportError`` is raised.
-By all means, the configuration file is part of your application and
+
+Lazy connections can be used as global variables
+(do not believe people saying that globals are evil: Python is full of
+globals, modules are global variables, classes are global variables, and
+there is nothing wrong in having lazy connection as globals). If
+you instantiate your lazy connections at the beginning
+of your module, then the underlying low level database driver
+is imported when your module is imported. If you follow this pattern,
+then, the configuration file is part of your application and
 you should consider it as required Python code, even if for sake of simplicity
 it uses the traditional .INI format. If you distribute code based on sqlplain,
 the user is supposed to edit the configuration file by setting the correct
@@ -186,13 +196,32 @@ application to set the configuration file if you don't want your users
 to touch the .INI file directly (you could set it at installation time,
 or write a small GUI to edit the configuration file).
 
+A typical way to pass the URI is to read it from the command line::
+
+ $ cat example_sqlplain_app.py
+ import sqlplain
+
+ def main(db):
+     # do something with the lazy connection db
+    
+ if __name__ == '__main__':
+    main(sys.argv[1]) # add argument parsing at will
+
+This works if ``sys.argv[1]`` is a valid URI or a valid alias.
+However, if you are writing functional tests and you invoke them
+with (say) nose, you cannot use this pattern since ``sys.argv[1]``
+is the test file. When writing nose tests it makes sense to
+use a global lazy connection, instantiated at the top of your
+testing script, something like ``testdb = LazyConn('testdb')`` where
+``testdb`` is an alias to the database used for your automatic tests.
+
 Transactions
 --------------------------------------------------------------
 
 By default ``sqlplain`` works in autocommit mode. If you want to use
 transactions, you must specify the isolation level. When running
 in transactional mode, two bound methods ``commit`` and ``rollback``
-are dynamically added to the lazy connection instance:
+are dynamically added to the lazy connection instance::
 
  >> bookdb = LazyConn('mssql://pyadmin:secret@localhost/bookdb', autocommit=False)
  >> bookdb.commit
@@ -201,11 +230,83 @@ are dynamically added to the lazy connection instance:
  >> bookdb.rollback
  <bound method LazyConn.rollback of <LazyConn mssql://pyadmin:xxxxx@localhost/bookdb, autocommit=False>>
 
+For convenience, ``sqlplain`` provides a ``transact`` utility coding
+the ``rollback/commit`` pattern for you:
+    
+$$transact
 
+Moreover, there is a ``dry_run`` functionality to try out a procedure
+non-destructively:
+
+$$dry_run
+    
+Retry-once connections
+--------------------------------------------------------
+
+Lazy connections have a feature which I have not discussed yet: if
+a query raises an error, ``sqlplain`` tries to execute it a second
+time with a fresh connection, and sometimes the second attempt may
+succeed. The reason is that
+sometimes a correct query fails due to network issues or other
+problems (for instance somebody restarted the database server and
+the existing connection has become obsolete) which are transitory:
+so the first time the query fails because the connection is
+in a bad state, but the second time it succeeds since the fresh
+connection is an good state. Of course, if the network outage or
+the other error persists, there will be an error even at the second
+attempt and the exception will be raised (we all know that
+*errors should never pass silently*). By default this feature is
+turned on, but you may disable it by setting the ``.retry`` attribute
+of the lazy connection object (or class) to ``False``.
+
+Allocated connections take resources on the server even if
+they are not used, therefore you may want to close an unused connection
+- it will be automatically re-reopened at the first call of ``.execute``
+anyway - by calling the ``.close()`` (closing twice a connection will
+not raise an error).
+
+In Python 2.5+ you can use the ``with`` statement and the
+``contextlib.closing`` function to make sure a connection is closed
+after the execution of a given block of code, by using the pattern
+
+::
+    
+  with closing(cx):
+      do_something(cx)
+
+
+Automatic tests
+--------------------------------------------------------------
+
+``sqlplain`` is a very poor toolkit compared to other database toolkits;
+this is done on purpose. Nevertheless, it provides a few convenient
+functions to work with a database directly, collected in the ``util``
+module. They are the following:
+
+-  openclose(uri, templ, *args, **kw):
+
+    exists_db drop_db create_db(uri, drop=False),
+    make_db(alias=None, uri=None, dir=None):
+
+
+Moreover, there are a few utilities to manage database schemas, which
+are a PostgreSQL-only feature: ``set_schema(db, name), exists_schema(db, name),
+drop_schema(db, name), create_schema(db, schema, drop=False), make_schema``.
+
+An example project using sqlplain: books
+--------------------------------------------------
+
+In this section I discuss a toy project realized with sqlplain, i.e.
+an archive of the books I have read. I did start keeping track of
+the books I read more than twenty years ago, and writing a program
+to make statistics about my books was one of my first programs ever.
+It is nice to come back to the same problem after twenty years, now that I
+know SQL ;)
+I will implement the project by using a test first approach.
 
 """
 
-from sqlplain import LazyConn, do
+from sqlplain import LazyConn, do, transact, dry_run
  
 if __name__ == '__main__':
     pass

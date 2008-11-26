@@ -3,11 +3,18 @@ import _mssql
 import pymssql as dbapi2
 from pymssql import OperationalError, pymssqlCursor as Cursor
 
-class Connection(object):
+ISOLATION_LEVELS = (
+    None, 'read committed', 'repeatable read', 'serializable')
 
-    def __init__(self, cnx):
+class BaseConnection(object):
+
+    def __init__(self, cnx, isolation_level=None):
        self._cnx = cnx
-
+       self.isolation_level = isolation_level
+       assert isolation_level in ISOLATION_LEVELS
+       if isolation_level:
+           cnx.query("set transaction isolation level " + isolation_level)
+       
     def cursor(self):
         if self._cnx is None:
             raise OperationalError("Closed connection")
@@ -21,10 +28,10 @@ class Connection(object):
         self._cnx.close()
         self._cnx = None
 
-class TransactionalConnection(Connection):
+class TransactionalConnection(BaseConnection):
     
-    def __init__(self, cnx):
-        self._cnx = cnx
+    def __init__(self, cnx, isolation_level):
+        super(TransactionalConnection, self).__init__(cnx, isolation_level)
         try:
             self._cnx.query("begin tran")
             self._cnx.fetch_array()
@@ -53,7 +60,7 @@ class TransactionalConnection(Connection):
         except Exception, e:
             raise OperationalError("can't rollback: %s" % e)
         
-class AutoCommitConnection(Connection):
+class AutoCommitConnection(BaseConnection):
 
     def commit(self):
         raise NotImplementedError('You are in auto_commit mode!')
@@ -61,7 +68,7 @@ class AutoCommitConnection(Connection):
     def rollback(self):
         raise NotImplementedError('You are in auto_commit mode!')
 
-def connect(params, autocommit=True):
+def connect(params, isolation_level=None):
     user, pwd, host, port, db = params
     port = port or 1433
     if sys.platform != 'win32': # on linux 
@@ -70,9 +77,8 @@ def connect(params, autocommit=True):
         host = '%s:%s' % (host, port) # add the port
     _conn = _mssql.connect(host, user, pwd)
     _conn.select_db(db)
-    if autocommit:
+    if isolation_level is None:
         conn = AutoCommitConnection(_conn)
     else:
-        conn = TransactionalConnection(_conn)
+        conn = TransactionalConnection(_conn, isolation_level)
     return conn
-

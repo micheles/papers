@@ -5,17 +5,17 @@ Notice: create_db and drop_db are not transactional.
 
 import os
 from sqlplain.uri import URI
-from sqlplain.connection import LazyConn, transact, do
+from sqlplain import LazyConn, transact, do
 
 def openclose(uri, templ, *args, **kw):
     "Open a connection, perform an action and close the connection"
-    unexpected = set(kw) - set(['autocommit'])
+    unexpected = set(kw) - set(['isolation_level'])
     if unexpected:
         raise ValueError('Received unexpected keywords: %s' % unexpected)
-    autocommit = kw.get('autocommit', True)
-    conn = LazyConn(uri, autocommit)
+    isolation_level = kw.get('isolation_level', None)
+    conn = LazyConn(uri, isolation_level)
     try:
-        if autocommit:
+        if isolation_level is None:
             return conn.execute(templ, args)
         else:
             return transact(LazyConn.execute, conn, templ, args)
@@ -99,7 +99,7 @@ set_schema = do('SET search_path TO ?')
 exists_schema = do("SELECT nspname FROM pg_namespace WHERE nspname=?")
 
 def drop_schema(db, schema):
-    db.execute('DROP SCHEMA %s' % schema)
+    db.execute('DROP SCHEMA %s CASCADE' % schema)
 
 def create_schema(db, schema, drop=False):
     if drop and exists_schema(db, schema):        
