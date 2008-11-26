@@ -1,7 +1,7 @@
 import os, sys, subprocess, re
 from sqlplain.configurator import configurator
-from sqlplain.connection import Connection
-from sqlplain.util import createdb, createschema
+from sqlplain.connection import LazyConn
+from sqlplain.util import create_db, create_schema
 from sqlplain.namedtuple import namedtuple
 
 VERSION = re.compile(r'(\d[\d\.-]+)')
@@ -21,12 +21,12 @@ def collect(directory, exts):
                 sql.append(Chunk(version, fname, code))
     return sorted(sql)
 
-def makedb(alias=None, uri=None, dir=None):
+def make_db(alias=None, uri=None, dir=None):
     if alias is not None and uri is None:
         uri = configurator.uri[alias]
     if alias is not None and dir is None:
         dir = configurator.dir[alias]
-    db = createdb(uri, drop=True)
+    db = create_db(uri, drop=True)
     chunks = collect(dir, ('.sql', '.py'))
     for chunk in chunks:
         if chunk.fname.endswith('.sql'):
@@ -34,13 +34,13 @@ def makedb(alias=None, uri=None, dir=None):
         elif chunk.fname.endswith('.py'):
             exec chunk.code in {}
         
-def makeschema(alias=None, schema=None, uri=None, dir=None):
+def make_schema(alias=None, schema=None, uri=None, dir=None):
     if alias is not None and uri is None:
         uri = configurator.uri[alias]
     if alias is not None and dir is None:
         dir = configurator.dir[alias]
-    db = Connection(uri)
-    schema = createschema(db, schema, drop=True)
+    db = LazyConn(uri)
+    schema = create_schema(db, schema, drop=True)
     chunks = collect(dir, ('.sql', '.py'))
     for chunk in chunks:
         if chunk.fname.endswith('.sql'):

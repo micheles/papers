@@ -1,11 +1,11 @@
 """
 
-Notice: createdb and dropdb are not transactional.
+Notice: create_db and drop_db are not transactional.
 """
 
 import os
 from sqlplain.uri import URI
-from sqlplain.connection import Connection, transact, do
+from sqlplain.connection import LazyConn, transact, do
 
 def openclose(uri, templ, *args, **kw):
     "Open a connection, perform an action and close the connection"
@@ -13,12 +13,12 @@ def openclose(uri, templ, *args, **kw):
     if unexpected:
         raise ValueError('Received unexpected keywords: %s' % unexpected)
     autocommit = kw.get('autocommit', True)
-    conn = Connection(uri, autocommit)
+    conn = LazyConn(uri, autocommit)
     try:
         if autocommit:
             return conn.execute(templ, args)
         else:
-            return transact(Connection.execute, conn, templ, args)
+            return transact(LazyConn.execute, conn, templ, args)
     finally:
         conn.close()
 
@@ -29,11 +29,11 @@ def call(procname, uri):
 
 ################################ exists_db ###############################
 
-def existsdb_sqlite(uri):
+def exists_db_sqlite(uri):
     fname = uri['database']
-    return fname == ':memory:' or os.path.exists(fname)
+    return fname == ':memory:' or os.path.exists_(fname)
 
-def existsdb_postgres(uri):
+def exists_db_postgres(uri):
     dbname = uri['database']
     for row in openclose(
         uri.copy(database='template1'), 'SELECT datname FROM pg_database'):
@@ -41,7 +41,7 @@ def existsdb_postgres(uri):
             return True
     return False
 
-def existsdb_mssql(uri):
+def exists_db_mssql(uri):
     dbname = uri['database']
     master = uri.copy(database='master')
     for row in openclose(master, 'sp_databases', autocommit=False):
@@ -49,60 +49,60 @@ def existsdb_mssql(uri):
             return True
     return False
     
-def existsdb(uri):
-    return call('existsdb', URI(uri))
+def exists_db(uri):
+    return call('exists_db', URI(uri))
 
-############################### dropdb ###################################
+############################### drop_db ###################################
 
-def dropdb_sqlite(uri):
+def drop_db_sqlite(uri):
     fname = uri['database']
     if fname != ':memory:':
         os.remove(fname)
     
-def dropdb_postgres(uri):
+def drop_db_postgres(uri):
     openclose(uri.copy(database='template1'),
               'DROP DATABASE %(database)s' % uri)
 
-def dropdb_mssql(uri):
+def drop_db_mssql(uri):
     openclose(uri.copy(database='master'),
               'DROP DATABASE %(database)s' % uri)
   
-def dropdb(uri):
+def drop_db(uri):
     call('drop_db', URI(uri))
     
-############################# createdb ###################################
+############################# create_db ###################################
 
-def createdb_sqlite(uri):
+def create_db_sqlite(uri):
     "Do nothing, since the db is automatically created"
 
-def createdb_postgres(uri):
+def create_db_postgres(uri):
     openclose(uri.copy(database='template1'),
               'CREATE DATABASE %(database)s' % uri)
 
-def createdb_mssql(uri):
+def create_db_mssql(uri):
     openclose(uri.copy(database='master'),
               'CREATE DATABASE %(database)s' % uri)
 
-def createdb(uri, drop=False):
+def create_db(uri, drop=False):
     uri = URI(uri)
-    if drop and existsdb(uri):        
-        call('dropdb', uri)
-    call('createdb', uri)
-    return Connection(uri)
+    if drop and exists_db(uri):        
+        call('drop_db', uri)
+    call('create_db', uri)
+    return LazyConn(uri)
 
 ########################## schema management ###########################
 
 ## the folling routines are postgres-only
 
-setschema = do('SET search_path TO ?')
+set_schema = do('SET search_path TO ?')
 
-existsschema = do("SELECT nspname FROM pg_namespace WHERE nspname=?")
+exists_schema = do("SELECT nspname FROM pg_namespace WHERE nspname=?")
 
-def dropschema(db, schema):
+def drop_schema(db, schema):
     db.execute('DROP SCHEMA %s' % schema)
 
-def createschema(db, schema, drop=False):
-    if drop and existsschema(db, schema):        
-        dropschema(db, schema)
+def create_schema(db, schema, drop=False):
+    if drop and exists_schema(db, schema):        
+        drop_schema(db, schema)
     db.execute('CREATE SCHEMA %s' % schema)
-    setschema(db, schema)
+    set_schema(db, schema)

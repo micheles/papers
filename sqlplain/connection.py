@@ -22,7 +22,7 @@ def qmark2pyformat(sql):
     return ''.join(out)
 
 class TupleList(list):
-    "Used as result of Connection.execute"
+    "Used as result of LazyConn.execute"
     header = None
     rowcount = None
 
@@ -55,18 +55,20 @@ class _Storage(object):
         self._curs = None
         return self
     
-    def getconnection(self):
+    @property
+    def conn(self):
         "Return the low level connection"
         conn = self._conn
         if conn is None:
             conn = self._conn = self.connect(*self.args)
         return conn
-    
-    def getcursor(self):
+
+    @property
+    def curs(self):
         "Return the low level cursor"
         curs = self._curs
         if curs is None:
-            curs = self._curs = self.getconnection().cursor()
+            curs = self._curs = self.conn.cursor()
         return curs
         
     def close(self):
@@ -82,23 +84,21 @@ class _Storage(object):
 class _ThreadLocalStorage(threading.local, _Storage):
     "A threadlocal object where to store low level connection and cursor"
 
-class Connection(object):
+class LazyConn(object):
     """
-    A lazy callable object returning recordsets. It is lazy since the
-    database connection is performed at calling time, not at inizialization
-    time.  The connection factory must return (memoized) connections.
-    DBI objects can also be used to perform
-    actions on the database, via the 'execute' method.
-    Notice that this class does not manage any kind of logging, on purpose.
-    There easy however a chatty method for easy of debugging.
+    A lazy connection object. It is lazy since the database connection
+    is performed at execution time, not at inizialization time. Notice
+    that this class does not manage any kind of logging, on purpose.
+    There is however a chatty method for easy of debugging.
     """
+
+    retry = True
     
     def __init__(self, uri, autocommit=True, threadlocal=False):
         self.uri = URI(uri)
         self.dbtype = self.uri['dbtype']
         self.driver, connect, params = self.uri.get_driver_connect_params()
         args = params, autocommit
-        self._conn = None
         self.chatty = False
         self.autocommit = autocommit
         self.threadlocal = threadlocal
@@ -107,16 +107,16 @@ class Connection(object):
         else:
             self._storage = _Storage.new(connect, args)
         if not self.autocommit:
-            def rollback(self): return self.conn.rollback()
-            def commit(self): return self.conn.commit()
-            self.rollback = rollback.__get__(self)
-            self.commit = commit.__get__(self)
+            def rollback(self): return self._conn.rollback()
+            def commit(self): return self._conn.commit()
+            self.rollback = rollback.__get__(self, self.__class__)
+            self.commit = commit.__get__(self, self.__class__)
         self.errors = (self.driver.OperationalError,
                        self.driver.ProgrammingError,
                        self.driver.InterfaceError,
                        self.driver.DatabaseError)
         
-    def _execute(self, cursor, templ, args):
+    def _raw_execute(self, cursor, templ, args):
         """
         Call a dbapi2 cursor; return the rowcount or a list of tuples.
         """
@@ -137,9 +137,23 @@ class Connection(object):
         else: # after a select
             return cursor.fetchall()
 
+    def _execute(self, cursor, templ, args):
+        """
+        _raw_execute a query, by retrying it once with a fresh connection
+        in case of error if the .retry flag is set.
+        """
+        raw_execute = self._raw_execute
+        if not self.retry:
+            return raw_execute(cursor, templ, args)
+        try:
+            return raw_execute(cursor, templ, args)
+        except self.errors, e: # maybe bad connection
+            self.close() # reset connection and try
+            return raw_execute(self._curs, templ, args)
+
     def execute(self, templ, args=(), ntuple=None):
-        res = self._execute(self.curs, templ, args)    
-        cursor = self.curs # needed to make the reset work
+        res = self._execute(self._curs, templ, args)    
+        cursor = self._curs # needed to make the reset work
         if self.chatty:
             print cursor.rowcount, templ, args
         if isinstance(res, list):
@@ -156,7 +170,7 @@ class Connection(object):
 
     def getone(self, templ, args=()):
         "Use this methods for queries returning a scalar result"
-        rows = self._execute(self.curs, templ, args)
+        rows = self._execute(self._curs, templ, args)
         if len(rows) != 1 or len(rows[0]) != 1:
             raise ValueError("Expected to get a scalar result, got %s"
                              % rows)
@@ -168,50 +182,16 @@ class Connection(object):
         self._storage.close()
         
     def __repr__(self):
-        return "<Connection %s, autocommit=%s>" % (self.uri, self.autocommit)
+        return "<%s %s, autocommit=%s>" % (
+            self.__class__.__name__, self.uri, self.autocommit)
 
     @property
-    def conn(self):
+    def _conn(self):
         "Return the low level underlying connection"
-        return self._storage.getconnection()
+        return self._storage.conn
    
     @property
-    def curs(self):
+    def _curs(self):
         "Return the low level underlying cursor"
-        return self._storage.getcursor()
-
-class RConnection(Connection):
-    "A resettable connection class"
+        return self._storage.curs
     
-    ## _execute a query, by retrying it once when losing connection
-    def _execute(self, cursor, templ, args):
-        _execute = super(RConnection, self)._execute
-        try:
-            return _execute(cursor, templ, args)
-        except self.errors, e: # missing connection
-            self.close() # resetting connection ...
-            return _execute(self.curs, templ, args)
-
-### utility functions
-
-def do(templ):
-    """
-    Wrap a query template. Return a closure with arguments
-    (dbconn, *query_args).
-    """
-    def _do(conn, *args):
-        return conn.execute(templ, args)
-    _do.__name__ = templ
-    return _do
-
-def _one(templ):
-    """
-    Wrap a query template which is expected to return a scalar result.
-    Raise a ValueError otherwise.
-    """
-    def _getone(conn, *args):
-        return conn.getone(templ, args)
-    _getone.__name__ = templ
-    return _getone
-
-do.one = _one
