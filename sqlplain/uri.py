@@ -42,6 +42,7 @@ class URI(dict):
             self['user'] = ''
             self['password'] = ''
             self['database'] = partial_uri[1:]
+            self['host'] = 'localhost'
             return
         elif not ('@' in partial_uri and '/' in partial_uri and \
                   ':' in partial_uri):

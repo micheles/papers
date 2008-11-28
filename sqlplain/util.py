@@ -5,7 +5,20 @@ Notice: create_db and drop_db are not transactional.
 
 import os
 from sqlplain.uri import URI
-from sqlplain import LazyConn, transact, do
+from sqlplain import lazyconnect, transact, do
+from sqlplain.namedtuple import namedtuple
+
+def insert(ntuple):
+    name = ntuple.__name__
+    csfields = ','.join(ntuple._fields)
+    qmarks = ','.join('?'*len(ntuple._fields))
+    templ = 'INSERT INTO %s (%s) VALUES (%s)' % (name, csfields, qmarks)
+    def _insert(conn, row):
+        if isinstance(row, dict):
+            row = ntuple(**row)        
+        return conn.execute(templ, row)
+    _insert.__name__ = templ
+    return _insert
 
 def openclose(uri, templ, *args, **kw):
     "Open a connection, perform an action and close the connection"
@@ -13,12 +26,12 @@ def openclose(uri, templ, *args, **kw):
     if unexpected:
         raise ValueError('Received unexpected keywords: %s' % unexpected)
     isolation_level = kw.get('isolation_level', None)
-    conn = LazyConn(uri, isolation_level)
+    conn = lazyconnect(uri, isolation_level)
     try:
         if isolation_level is None:
             return conn.execute(templ, args)
         else:
-            return transact(LazyConn.execute, conn, templ, args)
+            return transact(conn.__class__.execute, conn, templ, args)
     finally:
         conn.close()
 
@@ -31,7 +44,7 @@ def call(procname, uri):
 
 def exists_db_sqlite(uri):
     fname = uri['database']
-    return fname == ':memory:' or os.path.exists_(fname)
+    return fname == ':memory:' or os.path.exists(fname)
 
 def exists_db_postgres(uri):
     dbname = uri['database']
@@ -83,12 +96,16 @@ def create_db_mssql(uri):
     openclose(uri.copy(database='master'),
               'CREATE DATABASE %(database)s' % uri)
 
-def create_db(uri, drop=False):
+def create_db(uri, force=False, **kw):
     uri = URI(uri)
-    if drop and exists_db(uri):        
-        call('drop_db', uri)
+    if exists_db(uri):
+        if force:
+            call('drop_db', uri)
+        else:
+            raise RuntimeError(
+                'There is already a database %s!' % uri)
     call('create_db', uri)
-    return LazyConn(uri)
+    return lazyconnect(uri, **kw)
 
 ########################## schema management ###########################
 
@@ -101,8 +118,8 @@ exists_schema = do("SELECT nspname FROM pg_namespace WHERE nspname=?")
 def drop_schema(db, schema):
     db.execute('DROP SCHEMA %s CASCADE' % schema)
 
-def create_schema(db, schema, drop=False):
-    if drop and exists_schema(db, schema):        
+def create_schema(db, schema, force=False):
+    if force and exists_schema(db, schema):        
         drop_schema(db, schema)
     db.execute('CREATE SCHEMA %s' % schema)
     set_schema(db, schema)

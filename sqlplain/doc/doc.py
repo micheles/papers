@@ -73,22 +73,23 @@ on SQL Server, and a superuser ``pyadmin`` with password ``secret`` which
 all permissions on the ``bookdb``. Suppose the database contains a table
 called ``book`` containing books with title, author, publication date,
 and other information. Suppose I want to retrieve all the books by Isaac
-Asimov. That can be done with the following code:
+Asimov. That can be done with the following code::
 
- >> from sqlplain import LazyConn
- >> bookdb = LazyConn('mssql://pyadmin:secret@localhost/bookdb')
+ >> from sqlplain import lazyconnect
+ >> bookdb = lazyconnect('mssql://pyadmin:secret@localhost/bookdb')
  >> bookdb.execute("SELECT * FROM book WHERE author LIKE ?", ('%Asimov%',))
 
-Here is the explanation. The first line import the ``LazyConn`` class from
-``sqlplain``: instances of ``LazyConn`` are *lazy connection* objects.
-A lazy connection is a wrapper over an ordinary DB API 2 connection:
-the connection is lazy in the sense that the real DB API 2 connection
-is instantiated only when needed, i.e. when the ``execute`` method is
-called. Just instantiating ``bookdb`` does not open any connection:
-however instantiating ``LazyConn`` involves parsing the connection
-string or uri (in this case ``mssql://pyadmin:secret@localhost/bookdb``)
-and importing the corresponding database driver (in this case ``pymssql``)
-which must be installed in your system, otherwise you get an ``ImportError``.
+Here is the explanation. The first line import the ``LazyConnection``
+class from ``sqlplain``: instances of ``LazyConnection`` are *lazy
+connection* objects.  A lazy connection is a wrapper over an ordinary
+DB API 2 connection: the connection is lazy in the sense that the real
+DB API 2 connection is instantiated only when needed, i.e. when the
+``execute`` method is called. Just instantiating ``bookdb`` does not
+open any connection: however instantiating ``LazyConnection`` involves
+parsing the connection string or uri (in this case
+``mssql://pyadmin:secret@localhost/bookdb``) and importing the
+corresponding database driver (in this case ``pymssql``) which must be
+installed in your system, otherwise you get an ``ImportError``.
 
 The syntax of the URI is the same as in SQLAlchemy (I did copy from
 SQLAlchemy; even Storm uses the same convention and I see no reason
@@ -140,7 +141,7 @@ in rare circumstances.
 
 You can ``execute`` a ``SELECT`` query, or other types of queries, such
 as ``UPDATE/INSERT/DELETE``; in those cases ``execute`` does not return
-a list of named tuples, it returns a number instead:
+a list of named tuples, it returns a number instead::
 
  >> bookdb.execute("UPDATE book SET author=? WHERE author like ?",
      ('Isaac Asimov', '%Asimov%'))
@@ -148,6 +149,21 @@ a list of named tuples, it returns a number instead:
 
 The number is the DB API 2 ``rowcount`` attribute of the cursor, i.e.
 the number of rows affected by the query.
+
+Allocated connections take resources on the server even if
+they are not used, therefore you may want to close an unused connection
+- it will be automatically re-reopened at the first call of ``.execute``
+anyway - by calling the ``.close()`` (closing twice a connection will
+not raise an error).
+
+In Python 2.5+ you can use the ``with`` statement and the
+``contextlib.closing`` function to make sure a connection is closed
+after the execution of a given block of code, by using the pattern
+
+::
+    
+  with closing(cx):
+      do_something(cx)
 
 The configuration file
 --------------------------------------------------------------
@@ -212,7 +228,7 @@ However, if you are writing functional tests and you invoke them
 with (say) nose, you cannot use this pattern since ``sys.argv[1]``
 is the test file. When writing nose tests it makes sense to
 use a global lazy connection, instantiated at the top of your
-testing script, something like ``testdb = LazyConn('testdb')`` where
+testing script, something like ``testdb = lazyconnect('testdb')`` where
 ``testdb`` is an alias to the database used for your automatic tests.
 
 Transactions
@@ -220,15 +236,11 @@ Transactions
 
 By default ``sqlplain`` works in autocommit mode. If you want to use
 transactions, you must specify the isolation level. When running
-in transactional mode, two bound methods ``commit`` and ``rollback``
-are dynamically added to the lazy connection instance::
+in transactional mode, your lazy connection is an instance of
+``TransactionalConnection``, a subclass of ``LazyConnection``
+with methods ``commit`` and ``rollback``
 
- >> bookdb = LazyConn('mssql://pyadmin:secret@localhost/bookdb', autocommit=False)
- >> bookdb.commit
- <bound method LazyConn.commit of <LazyConn mssql://pyadmin:xxxxx@localhost/bookdb, autocommit=False>>
-
- >> bookdb.rollback
- <bound method LazyConn.rollback of <LazyConn mssql://pyadmin:xxxxx@localhost/bookdb, autocommit=False>>
+ >> bookdb = lazyconnect('mssql://pyadmin:secret@localhost/bookdb', autocommit=False)
 
 For convenience, ``sqlplain`` provides a ``transact`` utility coding
 the ``rollback/commit`` pattern for you:
@@ -259,31 +271,54 @@ attempt and the exception will be raised (we all know that
 turned on, but you may disable it by setting the ``.retry`` attribute
 of the lazy connection object (or class) to ``False``.
 
-Allocated connections take resources on the server even if
-they are not used, therefore you may want to close an unused connection
-- it will be automatically re-reopened at the first call of ``.execute``
-anyway - by calling the ``.close()`` (closing twice a connection will
-not raise an error).
+Threadlocal connections
+-------------------------------------------------------
 
-In Python 2.5+ you can use the ``with`` statement and the
-``contextlib.closing`` function to make sure a connection is closed
-after the execution of a given block of code, by using the pattern
+The typical user of ``sqlplain`` is expected to write simple programs,
+for instance scripts for extracting statistics from a database, or
+import scripts, or maintenance scripts. The idea is to provide a simple
+library to perform simple tasks. User wanted something more sophisticated
+(for instance people writing a server program connected to a database
+and managing many users) are expected to use a more sophisticated
+database toolkit. This is the reason why ``sqlplain`` does not provide
+a connection pool and it will never provide one. You are supposed to
+use the connection pool of your database driver (for instance psycopg2
+provides one), the connection pool of SQLAlchemy, or a custom made one.
+Having said so, ``sqlplain`` provides some support for server programs.
+The reason is that I often need to wrap a script with a Web interface,
+and at work we use Pylons as web framework. Pylons comes with the Paste
+Web server which is fine for usage in our local intranet. The Paste
+server is a multithreaded server which internally manages a pool of threads.
+To make ``sqlplain`` to work in this situation, you must set the threadlocal
+flag: doing so ensure that each thread gets its own lower level
+connection, independent from the connections of the other threads. 
 
-::
-    
-  with closing(cx):
-      do_something(cx)
+ >> conn = lazyconnect('sqlite:///:memory:', threadlocal=True)
 
+Here in an example script showing multiple threads writing on a sqlite
+database; if you forget to set the ``threadlocal`` flag, you will likely
+incur in errors (for instance I get ``OperationalError: database is locked``).
 
-Automatic tests
+$$threadlocal_ex
+
+I have been using this approach for one year in production on linux
+without problems, however, only in situations of low concurrency
+and only in autocommit mode. You should consider the multithread
+support of ``sqlplain`` as experimental and there is no guarantee
+it will work in your settings. Also, the multithreading support is
+very low in my list of priorities (I am in the camp of people who
+are against thread) and what it is there is the minimun I needed
+to do in order make my scripts work with the Paste server.
+
+Utilities
 --------------------------------------------------------------
 
 ``sqlplain`` is a very poor toolkit compared to other database toolkits;
 this is done on purpose. Nevertheless, it provides a few convenient
 functions to work with a database directly, collected in the ``util``
-module. They are the following:
+module. They are the following::
 
--  openclose(uri, templ, *args, **kw):
+    openclose(uri, templ, *args, **kw):
 
     exists_db drop_db create_db(uri, drop=False),
     make_db(alias=None, uri=None, dir=None):
@@ -292,6 +327,13 @@ module. They are the following:
 Moreover, there are a few utilities to manage database schemas, which
 are a PostgreSQL-only feature: ``set_schema(db, name), exists_schema(db, name),
 drop_schema(db, name), create_schema(db, schema, drop=False), make_schema``.
+
+``sqlplain`` provide some limited introspection features (the introspection
+features are likely to be enhanced in future versions). For the moment,
+the only things you can do is to introspect a table or a view and to
+return a named tuple with the names of the fields:
+
+    
 
 An example project using sqlplain: books
 --------------------------------------------------
@@ -306,7 +348,5 @@ I will implement the project by using a test first approach.
 
 """
 
-from sqlplain import LazyConn, do, transact, dry_run
- 
-if __name__ == '__main__':
-    pass
+from sqlplain.doc import threadlocal_ex
+from sqlplain import transact, dry_run

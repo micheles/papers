@@ -2,11 +2,16 @@ from decorator import __call__
     
 class Memoize(object):
 
-    fullregistry = {}
+    registry = {}
+    
+    @classmethod
+    def clear(cls, cacheclass=object):
+        for func in cls.registry:
+            if issubclass(func.cacheclass, cacheclass):
+                func.cache.clear()
     
     def __init__(self, cacheclass):
         self.cacheclass = cacheclass
-        self.fullregistry.setdefault(self.cacheclass, [])
         
     def call(self, func, *args, **kw):
         try:
@@ -18,24 +23,14 @@ class Memoize(object):
     def __call__(self, func):
         new = __call__(self, func)
         new.cache = {}
+        new.cacheclass = self.cacheclass
         self.registry.append(new)
         return new
-    
-    @property
-    def registry(self):
-        return self.fullregistry[self.cacheclass]
 
-    @classmethod
-    def clear(cls, cacheclass=None):
-        if cacheclass is None:
-            cls.fullregistry = {}; return
-        for cc, functions in cls.fullregistry.items():
-            if issubclass(cc, cacheclass):
-                for func in functions:
-                    func.cache.clear()
+memoize = Memoize(object)
 
 if __name__ == '__main__': # test
     
-    @Memoize(object)
+    @memoize
     def f():
         return 1

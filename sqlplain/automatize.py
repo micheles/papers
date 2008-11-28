@@ -39,7 +39,7 @@ def make_schema(alias=None, schema=None, uri=None, dir=None):
         uri = configurator.uri[alias]
     if alias is not None and dir is None:
         dir = configurator.dir[alias]
-    db = LazyConn(uri)
+    db = lazyconnect(uri)
     schema = create_schema(db, schema, drop=True)
     chunks = collect(dir, ('.sql', '.py'))
     for chunk in chunks:

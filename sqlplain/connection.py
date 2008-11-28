@@ -1,10 +1,14 @@
 import sys, re, threading
-from operator import itemgetter
+from operator import attrgetter
 try:
     from collections import namedtuple
 except ImportError:
     from sqlplain.namedtuple import namedtuple
 from sqlplain.uri import URI
+
+Field = namedtuple(
+    'Field',
+    'name type_code display_size internal_size precision scale null_ok')
 
 STRING_OR_COMMENT = re.compile("('[^']*'|--.*\n)")
 
@@ -25,6 +29,7 @@ class TupleList(list):
     "Used as result of LazyConn.execute"
     header = None
     rowcount = None
+    descr = None
     
 def transact(action, conn, *args, **kw):
     "Run a function in a transaction"
@@ -48,25 +53,24 @@ class _Storage(object):
 
     @classmethod
     def new(cls, connect, args):
-        self = cls()
-        self.connect = connect
-        self.args = args
-        self._conn = None
-        self._curs = None
-        return self
+        "Make a subclass of _Storage and instantiate it"
+        subc = type('%sSubclass' % cls.__name__, (cls,),
+                    dict(connect=staticmethod(connect), args=args))
+        return subc()
     
     @property
     def conn(self):
         "Return the low level connection"
-        conn = self._conn
+        conn = getattr(self, '_conn', None)
         if conn is None:
-            conn = self._conn = self.connect(*self.args)
+            connect, args = self.__class__.connect, self.__class__.args
+            conn = self._conn = connect(*args)
         return conn
 
     @property
     def curs(self):
         "Return the low level cursor"
-        curs = self._curs
+        curs = getattr(self, '_curs', None)
         if curs is None:
             curs = self._curs = self.conn.cursor()
         return curs
@@ -74,13 +78,13 @@ class _Storage(object):
     def close(self):
         """The next time you will call an active method, a fresh new
         connection will be instantiated"""
-        if self._curs:
+        if getattr(self, '_curs', False):
             try:
                 self._curs.close()
             except: # ignore if already closed
                 pass
             self._curs = None
-        if self._conn:
+        if getattr(self, '_conn', False):
             try:
                 self._conn.close()
             except: # ignore if already closed
@@ -90,7 +94,7 @@ class _Storage(object):
 class _ThreadLocalStorage(threading.local, _Storage):
     "A threadlocal object where to store low level connection and cursor"
 
-class LazyConn(object):
+class LazyConnection(object):
     """
     A lazy connection object. It is lazy since the database connection
     is performed at execution time, not at inizialization time. Notice
@@ -112,11 +116,6 @@ class LazyConn(object):
             self._storage = _ThreadLocalStorage.new(connect, args)
         else:
             self._storage = _Storage.new(connect, args)
-        if self.isolation_level is not None:
-            def rollback(self): return self._conn.rollback()
-            def commit(self): return self._conn.commit()
-            self.rollback = rollback.__get__(self, self.__class__)
-            self.commit = commit.__get__(self, self.__class__)
         self.errors = (self.driver.OperationalError,
                        self.driver.ProgrammingError,
                        self.driver.InterfaceError,
@@ -124,7 +123,8 @@ class LazyConn(object):
         
     def _raw_execute(self, cursor, templ, args):
         """
-        Call a dbapi2 cursor; return the rowcount or a list of tuples.
+        Call a dbapi2 cursor; return the rowcount or a list of tuples,
+        plus an header (None in the case of the rowcount).
         """
         if self.driver.paramstyle == 'pyformat':
             templ = qmark2pyformat(templ)
@@ -137,11 +137,12 @@ class LazyConn(object):
                 cursor.execute(templ)
         except Exception, e:
             tb = sys.exc_info()[2]
-            raise e.__class__, '%s\nQUERY WAS:%s%s' % (e, templ, args), tb    
-        if cursor.description is None: # after an update
-            return cursor.rowcount
+            raise e.__class__, '%s\nQUERY WAS:%s%s' % (e, templ, args), tb
+        descr = cursor.description
+        if descr is None: # after an update
+            return None, cursor.rowcount
         else: # after a select
-            return cursor.fetchall()
+            return descr, cursor.fetchall()
 
     def _execute(self, cursor, templ, args):
         """
@@ -158,40 +159,31 @@ class LazyConn(object):
             return raw_execute(self._curs, templ, args)
 
     def execute(self, templ, args=(), ntuple=None):
-        res = self._execute(self._curs, templ, args)    
+        descr, res = self._execute(self._curs, templ, args)    
         cursor = self._curs # needed to make the reset work
         if self.chatty:
-            print cursor.rowcount, templ, args
-        if isinstance(res, list):
-            fields = map(itemgetter(0), cursor.description)
+            print(cursor.rowcount, templ, args)
+        if descr:
+            fields = [Field(*d) for d in descr]
+            header = [f.name for f in fields]
             if ntuple is None:
-                Ntuple = namedtuple('DBTuple', fields)
+                Ntuple = namedtuple('DBTuple', header)
             elif isinstance(ntuple, str):
-                Ntuple = namedtuple(ntuple, fields)
+                Ntuple = namedtuple(ntuple, header)
             else:
                 Ntuple = ntuple
             res = TupleList(Ntuple(*row) for row in res)
-            res.header = Ntuple(*fields)
+            res.descr = fields
+            res.header = Ntuple(*header)
         return res
 
     def getone(self, templ, args=()):
         "Use this methods for queries returning a scalar result"
-        rows = self._execute(self._curs, templ, args)
+        descr, rows = self._execute(self._curs, templ, args)
         if len(rows) != 1 or len(rows[0]) != 1:
             raise ValueError("Expected to get a scalar result, got %s"
                              % rows)
         return rows[0][0]
-
-    def __enter__(self):
-        return self
-
-    def __exit__(self, exc_class, exc, tb):
-        if self.isolation_level is not None: # transactional
-            if exc_class:
-                self.rollback()
-                raise exc_class, exc, tb
-            else:
-                self.commit()
 
     def close(self):
         """The next time you will call an active method, a fresh new
@@ -199,8 +191,7 @@ class LazyConn(object):
         self._storage.close()
         
     def __repr__(self):
-        return "<%s %s, isolation_level=%s>" % (
-            self.__class__.__name__, self.uri, self.isolation_level)
+        return "<%s %s>" % (self.__class__.__name__, self.uri)
 
     @property
     def _conn(self):
@@ -212,6 +203,31 @@ class LazyConn(object):
         "Return the low level underlying cursor"
         return self._storage.curs
     
+class TransactionalConnection(LazyConnection):
+    """
+    Add commit and rollback methods to a LazyConnection, as well
+    as a with statement interface.
+    """
+
+    def rollback(self):
+        return self._conn.rollback()
+
+    def commit(self):
+        return self._conn.commit()
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_class, exc, tb):
+        if exc_class:
+            self.rollback()
+            raise exc_class, exc, tb
+        else:
+            self.commit()
+        
+    def __repr__(self):
+        return "<%s %s, isolation_level=%s>" % (
+            self.__class__.__name__, self.uri, self.isolation_level)
 
 class NullObject(object):
     '''Implements the NullObject pattern.

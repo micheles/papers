@@ -4,9 +4,10 @@ import pymssql as dbapi2
 from pymssql import OperationalError, pymssqlCursor as Cursor
 
 ISOLATION_LEVELS = (
-    None, 'read committed', 'repeatable read', 'serializable')
+    None, 'READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ',
+    'SERIALIZABLE')
 
-class BaseConnection(object):
+class Connection(object):
 
     def __init__(self, cnx, isolation_level=None):
        self._cnx = cnx
@@ -28,7 +29,7 @@ class BaseConnection(object):
         self._cnx.close()
         self._cnx = None
 
-class TransactionalConnection(BaseConnection):
+class TransactionalConnection(Connection):
     
     def __init__(self, cnx, isolation_level):
         super(TransactionalConnection, self).__init__(cnx, isolation_level)
@@ -59,14 +60,6 @@ class TransactionalConnection(BaseConnection):
             self._cnx.fetch_array()
         except Exception, e:
             raise OperationalError("can't rollback: %s" % e)
-        
-class AutoCommitConnection(BaseConnection):
-
-    def commit(self):
-        raise NotImplementedError('You are in auto_commit mode!')
-
-    def rollback(self):
-        raise NotImplementedError('You are in auto_commit mode!')
 
 def connect(params, isolation_level=None):
     user, pwd, host, port, db = params
@@ -78,7 +71,7 @@ def connect(params, isolation_level=None):
     _conn = _mssql.connect(host, user, pwd)
     _conn.select_db(db)
     if isolation_level is None:
-        conn = AutoCommitConnection(_conn)
+        conn = Connection(_conn)
     else:
         conn = TransactionalConnection(_conn, isolation_level)
     return conn

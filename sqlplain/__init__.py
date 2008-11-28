@@ -1,4 +1,15 @@
-from sqlplain.connection import LazyConn, transact, dry_run
+from sqlplain.connection import LazyConnection, TransactionalConnection, \
+     transact, dry_run
+
+def lazyconnect(uri, isolation_level=None, threadlocal=False, conn_class=None):
+    if conn_class is None and isolation_level is None:
+        conn_class = LazyConnection
+    elif conn_class is None and isolation_level is not None:
+        conn_class = TransactionalConnection        
+    return conn_class(uri, isolation_level, threadlocal)
+    
+def inspect(db, name):
+    return db.execute('SELECT * FROM %s WHERE 1=0;' % name, ntuple=name).header
 
 ### utility functions
 
