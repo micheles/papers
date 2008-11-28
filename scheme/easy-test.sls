@@ -2,6 +2,15 @@
 (export test run-tests runner run print-nothing print-dot print-msg)
 (import (rnrs) (only (ikarus) printf) (sweet-macros))
 
+;; test macro
+(def-syntax (test description expr expected)
+  #'(lambda (cmd)
+      (case cmd
+        ((descr) description)
+        ((values) '(expr  expected))
+        ((run) (equal? expr expected))
+        (else (error 'test "Invalid command" cmd)))))
+
 ;; three helper functions
 (define (print-nothing descr expr expected)
   (display ""))
@@ -12,15 +21,6 @@
 (define (print-msg descr expr expected)
   (printf "\n'~a' failed. Expected ~a, got ~a\n" descr expected expr))
 
-;; test macro
-(def-syntax (test description expr expected)
-  #'(lambda (cmd)
-      (case cmd
-        ((descr) description)
-        ((values) '(expr  expected))
-        ((run) (equal? expr expected))
-        (else (error 'test "Invalid command" cmd)))))
-
 ;; full runner
 (define (run-tests print-success print-failure . tests)
   (let loop ((tests tests) (success 0) (failure 0))
@@ -28,11 +28,11 @@
         (list success failure)
         (let* ((test1 (car tests))
                (descr (test1 'descr)) (vals (test1 'values)))
-          (if (test1 'run); the test succeeded
-              (begin
+          (if (test1 'run)
+              (begin; the test succeeded
                 (apply print-success descr vals)
                 (loop (cdr tests) (+ 1 success) failure))
-              (begin
+              (begin; the test failed
                 (apply print-failure descr vals)
                 (loop (cdr tests) success (+ 1 failure))))))))
 

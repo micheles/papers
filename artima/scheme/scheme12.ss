@@ -8,7 +8,7 @@ There is a serious problem when teaching macros to beginners: the real
 power of macros is only seen when solving difficult problems, but you
 cannot use those problems as teaching examples.  As a consequence,
 virtually all beginner's introductions to macros are dumbed down:
-usually they just show off a few trivial examples about how to
+usually they just show a few trivial examples about how to
 modify the Scheme syntax to resemble some other language. I did the same
 too. This way of teaching macros has two negative effects:
 
@@ -18,7 +18,7 @@ too. This way of teaching macros has two negative effects:
 2. beginners can easily dismiss macros as mere
    syntactic sugar.
 
-The first effect is the most dangerous: the fact you can implement a C-like
+The first effect is the most dangerous: the fact that you can implement a C-like
 ``for`` loop in Scheme does not mean that you should use it! I
 strongly believe that learning a language means learning its idioms:
 learning a new language means that you must change the way you think
@@ -27,7 +27,7 @@ recursion and accumulators, not to imperative loops, there is no other
 way around.
 
 Actually, there are cases
-where perverting the language may have businner sense. For instance, suppose
+where perverting the language may have business sense. For instance, suppose
 you are translating a library from another language with a
 ``for`` loop to Scheme. If you want to spend a minimal effort in the
 translation and if for any reason you want to stay close to the
@@ -35,48 +35,46 @@ original implementation (for instance, for simplifying maintenance),
 then it makes sense to leverage on the macro
 facility and to add the ``for`` loop to the language syntax.
 
-The problem is that it is very easy to abuse the mechanism. Generally speaking,
-the adaptibility of the Scheme language via the general mechanism of
-macros is a double-edged sword.  There is no doubts that it increases
-the programmer expressivity, but it can also make programs more
-difficult to read. Yes, the language allows you to invent your own
-idioms that nobody else uses, but perhaps this is not such a good idea
-if you care about other people reading your code. For that reason
-macros in the Python community have always been viewed with suspicion:
-I am also pretty confident that they will never enter in the
-language.
+The problem is that it is very easy to abuse the mechanism. Generally
+speaking, the adaptibility of the Scheme language is a double-edged
+sword.  There is no doubts that it increases the programmer
+expressivity, but it can also make programs more difficult to
+read. The language allows you to invent your own idioms that
+nobody else uses, but perhaps this is not such a good idea if you care
+about other people reading your code. For this reason macros in the
+Python community have always been viewed with suspicion: I am also
+pretty confident that they will never enter in the language.
 
-Moreover, even the second effect enters in the game: lots of
+The second effect (dismissing macros) is less serious: lots of
 people understimate macros as mere syntactic sugar, by forgetting that
-all Turing complete language differs solely on syntactic sugar.
+all Turing complete language differ solely on syntactic sugar.
 Moreover, thinking too much about the syntactic sugar aspect make them
 blind to others and more important aspects of macros: in particular,
 the fact that macros are actually *compilers*.
 
 That means that you can implement
-with macros both *compile time checks* (as I have stressed in episode
-#10, when talking about guarded patterns) and *compile time computations*
-(I have not discussed this point yet, but in a future episode I will
-show how you can perform generic computations at compile time) with substantial
+with macros both *compile time checks* (as I have stressed in `episode #10`_,
+when talking about guarded patterns) and *compile time computations*
+(I have not discussed this point yet) with substantial
 benefits for what concerns both the reliability and the performance of
 your programs. In `episode #11`_ I have already shown how
 you can use macros to avoid expensive function calls in benchmarks
-and the example generalize to other examples.
+and the example generalizes to any other situations.
 
 In general, since macros allows you to customize the evaluation mechanism
 of the language, you can do with macros things which are impossible
-without them: one of such examples is the ``test`` macro discussed
+without them: such an example is the ``test`` macro discussed
 in `episode #11`_. I strongly suggest you to read the third comment
 to that episode, whereas it is argued that it is impossible to
 implement an equivalent functionality in Python.
 
-So, you should not underestimated the power of macros; on the other
+So, you should not underestimate the power of macros; on the other
 hand, you should also not underestimate the complication of macros.
 Recently I have started a `thread on comp.lang.scheme`_ with 180+ messages
 about the issues I have encountered when porting my ``sweet-macros``
 library between different Scheme implementations, and the thread ended
 up discussing a lot of hairy points about macros (expand-time vs run-time,
-separate compilation, and all that).
+multiple instantiation of modules, separate compilation, and all that).
 
 .. _thread on comp.lang.scheme: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/8927053ede92fd27?hl=en#
 
@@ -88,13 +86,13 @@ even ignoring the issue with macros, I cannot advocate
 Scheme for enterprise programming because of the lack of a standard
 library worth of its name. This was more of an issue with R5RS Scheme,
 but it is still a problem since Scheme has an extremely small standard
-library and no concept of *batteries included* such as Python. As a
+library and no concept of *batteries included* à la Python. As a
 consequence, everybody has to invent its own collections of utilities,
 each collection a little bit different from the other.
 
 For instance,
-when I started learning Scheme I wrote a lot of little utilities;
-later one, I find out that I could find my same utilites, under
+when I started learning Scheme I wrote a lot of utilities;
+later one, I find out that I could find the same utilites, under
 different names and slightly different signatures, in various Scheme
 frameworks.  This never happened to me in Python to the same extend,
 since the standard library is already coding in an uniform way most of
@@ -109,14 +107,14 @@ On the other hand, I am not a macro aficionado like Paul Graham, who says:
  something wrong.  You should write the macro that will generate them
  and call that instead.*
 
-I think Graham is right in the first part of its analysis, but not in the
-conclusion. I agree that patterns are a `code smell`_ and I think they denote
-a lack in the language or in its standard library. On the other hand,
-the real solution for the enterprise programmer is not to write
-her own macro which nobody knows, but to have the feature included in the
-language by an authoritative source (for instance Guido van Rossum
-in the case of Python) so that *all* users of the language get
-the benefit in an uniform way.
+I think Graham is right in the first part of its analysis, but not in
+the conclusion. I agree that patterns are a `code smell`_ and I think
+that they denote a lack in the language or in its standard library. On
+the other hand, the real solution for the enterprise programmer is not
+to write her own macro which nobody knows, but to have the feature
+included in the language by an authoritative source (for instance
+Guido van Rossum in the case of Python) so that *all* users of the
+language get the benefit in an uniform way.
 
 This happened recently in Python, with the ternary operator, with the
 ``try .. except .. finally`` statement, with
@@ -125,15 +123,15 @@ cases. The Scheme way in which everybody writes his own language
 makes sense for the academic researcher, for the solitary hacker,
 or for very small team of programmers, but not for the enterprise.
 
-Notice that I am talking about specialized newly invented
+Notice that I am not talking about specialized newly invented
 constructs: I am talking about *patterns* and by definition, according
 to the GoF_, a pattern cannot be new, it must be a tried and tested solution
 to a common problem. If something is so common and well known
 to be a pattern, it
 also deserves to be in the standard library of the language, or
-in a de facto standard framework. This
+in a standard framework. This
 works well for scripting languages, which have a fast evolution,
-and less well in languages designed by committed, where you can
+and less well in languages designed by committee, where you can
 wait years and years for any modernization of the language/library
 (we all know Paul Graham is coming from Common Lisp, so his position
 is understandable).
@@ -141,16 +139,16 @@ is understandable).
 In my opinion - and your are free to disagree of course - the
 enterprise programmer is much better served by a language without
 macros but with a very complete library where all useful constructs
-have been alredy codified.
-After all in 99.9% of the time the enterprise
-programmer has to do with already solved problems, it is not by
+have been codified already.
+After all, 99.9% of the times the enterprise
+programmer has to do with already solved problems: it is not by
 chance that frameworks are so used in the enterprise world. Notice
 that by "enterprise programmer" I mean the framework *user*, not
 the framework *writer*.
 
 Take my case for instance: at work I am doing some Web programming,
-and I just use one of major Python web frameworks (there already
-too many of them!); I do quite of lot of interaction with database,
+and I just use one of the major Python web frameworks (there already
+too many of them!); I do quite of lot of interaction with databases,
 and I just use the standard or *de facto* standard drivers/libraries
 provided for the task at hand; I also do some scripting task:
 then I use the standard library a lot. For all the task I

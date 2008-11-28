@@ -109,7 +109,10 @@ is based on an idea of Jos Koot, is given below:
          #'(let ((ls lst))
              (if (null? ls) (error 'let- "Arguments mismatch" 'lst)
                  (let- arg1 (car ls)
-                       (let- (arg2 ... . rest) (cdr ls) body1 body2 ...)))))
+                       (let- (arg2 ... . rest) (cdr ls) body1 body2 ...))))
+         (for-all identifier? #'(arg1 arg2 ...))
+         (syntax-violation 'let- "Found non identifier in formals"
+           #'(arg1 arg2 ...) (remp identifier? #'(arg1 arg2 ...))))
     ))
 
 (def-syntax list-match-aux

@@ -12,6 +12,15 @@ SNIPPET = re.compile(r'\n;\s*([-A-Z\d_/!\?]+)\s*\n(.*?)\n\s*;END', re.DOTALL)
 SNIPPETNAME = re.compile(r'\n\$\$([-A-Z\d_/!\?]+)\n')
 INCLUDE = re.compile(r'@@([-\w\d_\.]+)')
 
+PATH = os.environ['IKARUS_LIBRARY_PATH']
+
+def include(fname):
+    try:
+        txt = file(fname).read()
+    except IOError:
+        txt = file(os.path.join(PATH, fname)).read()
+    return txt
+
 def indent(text):
     return '\n'.join('  ' + ln for ln in text.splitlines())
 
@@ -30,7 +39,7 @@ def scheme2rst(fname, codeblock=False):
         name = mo.group(1)
         return templ % indent(snippet[name])
     def include_file(mo):
-        return templ % indent(file(mo.group(1)).read())
+        return templ % indent(include(mo.group(1)))
     rst = INCLUDE.sub(include_file, SNIPPETNAME.sub(repl, text))
     rstfile = os.path.splitext(fname)[0] + '.rst'
     file(rstfile, 'w').write(rst)

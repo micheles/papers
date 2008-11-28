@@ -5,11 +5,7 @@
 
 (define range 
   (case-lambda 
-    ((n)
-     (cond
-      ((list? n) (range 0 (length n) 1))
-      ((vector? n) (range 0 (vector-length n) 1))
-      (else (range 0 n 1))))
+    ((n) (range 0 n 1))
     ((n0 n)
      (range n0 n 1))
     ((n0 n s)
@@ -21,7 +17,7 @@
                (loop (+ i s) (cons i acc)))))))))
  
  (define (enumerate lst)
-   (list lst (range lst)))
+   (list (range (length lst)) lst))
 
  (define (zip . lists)
   (apply map list lists))
@@ -29,51 +25,36 @@
  (define (transpose llist)
   (apply map list llist))
 
- (def-syntax block
-   (syntax-match (is)
-    (sub (block)
-        #'(void))
-    (sub (block (name is value) rest ...)
-        #'(let ((name value)) (block rest ...)))
-    (sub (block rest ...)
-        #'(begin rest ...))
-    ))
-
- ;; ex. (fold right (cons x a) (a '()) (x in '(a b c))) sub (a b c)
  (def-syntax fold
-   (syntax-match (left right in -> seed)
-     (sub (fold left acc -> acc1 (item in items) ... (seed acc0))
-      #'(fold-left (lambda (acc item ...) acc1) acc0 items ...)
-      (for-all identifier? #'(acc item ...)))
-     (sub (fold right acc -> acc1 (item in items) ... (seed acc0))
-      #'(fold-right (lambda (item ... acc) acc1) acc0 items ...)
-      (for-all identifier? #'(acc item ...)))
-     (sub (fold acc -> acc1 (item in items) ...)
-      #'(reverse (fold left acc -> acc1 (item in items) ... (seed '()))))
+   (syntax-match (left right in)
+     (sub (fold left acc seed next (x ...) in llist)
+          #'(apply fold-left (lambda (acc x ...) next) seed llist))
+     (sub (fold right acc seed next (x ...) in llist)
+          #'(apply fold-right (lambda (x ... acc) next) seed llist))
      ))
 
  ;; ex. (list-of (+ (* i 3) j) (i in (range 3)) (j in (range 3)))
-(def-syntax _list-of
+(def-syntax list-of-aux
   (syntax-match (in is)
   
-    (sub (_list-of expr acc)
+    (sub (list-of-aux expr acc)
      #'(cons expr acc))
   
-    (sub (_list-of expr acc (var in lst) rest ...)
+    (sub (list-of-aux expr acc (var in lst) rest ...)
      #'(let loop ((ls lst))
          (if (null? ls) acc
-             (let ((var (car ls)))
-               (_list-of expr (loop (cdr ls)) rest ...)))))
+             (let- ((var (car ls)))
+               (list-of-aux expr (loop (cdr ls)) rest ...)))))
    
-    (sub (_list-of expr acc (var is exp) rest ...)
-     #'(let ((var exp)) (_list-of expr acc rest ...)))
+    (sub (list-of-aux expr acc (var is exp) rest ...)
+     #'(let- ((var exp)) (list-of-aux expr acc rest ...)))
   
-    (sub (_list-of expr acc pred? rest ...)
-     #'(if pred? (_list-of expr acc rest ...) acc))
+    (sub (list-of-aux expr acc pred? rest ...)
+     #'(if pred? (list-of-aux expr acc rest ...) acc))
   ))
 
 (def-syntax (list-of expr rest ...)
-  #'(_list-of expr '() rest ...))
+  #'(list-of-aux expr '() rest ...))
 
 ;; check if the elements of a list are distinct according to eq?
 (define (distinct? eq? items)
@@ -86,14 +67,14 @@
    (else (distinct? eq? rest))))
 
 ;; compute the permutations of a list of distinct elements
-(define (perm lst)
+(define (perm eq? lst)
   (cond
    ((null? lst) '()); empty list
    ((null? (cdr lst)) (list lst)); single element list
    (else; multi-element list 
     (list-of (cons el ls)
-      (el in lst)
-      (ls in (perm (list-of e (e in lst) (not (eq? e el)))))))))
+             (el in lst)
+             (ls in (perm eq? (remp (lambda (e) (eq? el e)) lst)))))))
 
 ;; ex: (remove-dupl '(1 2 3 1 5 2 4))
 (define (remove-dupl eq? lst)
