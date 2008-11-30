@@ -42,3 +42,6 @@ second-cycle: second-cycle.txt
 
 12: scheme12.ss
 	$(RST) scheme12.ss; $(POST) scheme12.rst 240836
+
+third-cycle: third-cycle.txt
+	$(POST) third-cycle.txt 243830

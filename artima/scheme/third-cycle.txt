@@ -1,17 +1,17 @@
-`Episode #12`_ closes the second cycle of my *Adventures*.  I have
-discussed at length Scheme macros, spending six episodes on the
-subject. However, there is so much to say about Scheme macros that six
-episodes are not enough to make them justice. Therefore I plan to
-write a whole new cycle to discuss the deeper aspects of macros, such
-as the hygiene issue, higher order macros and advanced
-techniques. However, in this moment I think it is a good idea if I
-pause for a while from macros, in order to give to my readers some
-time to digest them. 
+`Episode #12`_ closed the second cycle of my *Adventures*.  
+
+In that cycle I discussed at length Scheme macros, spending six
+episodes on the subject. However, there is so much to say about macros
+that six episodes are not enough to make them justice. Therefore I
+plan to write a whole new cycle to discuss the deeper aspects of
+macros, such as the hygiene issue, higher order macros and 
+advanced macrology techniques. However, in this moment I think it is
+a good idea if I pause for a while from macros, in order to give to my
+readers some time to digest them.
 
 The third cycle of the *Adventures* will
-not concerns macros. Instead, it will discuss another
-interesting topic, i.e. the functional features of Scheme. 
-It should be easier to follow since nowadays functional
+concern a completely different topic: the functional features of Scheme. 
+It should be easier to follow than the second cycle since nowadays functional
 programming is becoming popular (all scripting languages have some
 support for functional programming, a lot of functional constructs
 entered in the latest version of C#, Scala is getting traction
@@ -26,11 +26,10 @@ and for higher order functions, and it features pattern matching.
 Scheme has all of those things and more, since it is a multiparadigm 
 language.
 
-I will devolve the next six episodes of the *Adventures* to the
-exploration of these topics. However, you
-will need to have patience since I have a few Python-related
-papers to publish first, and the third cycle will
-probably start next year.
+I will devolve the next episodes of the *Adventures* to the
+exploration of those topics. However, you will need to have patience
+since I have a few Python-related papers to publish first, and the
+third cycle will probably start next year.
 
 Have fun!
 
