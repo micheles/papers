@@ -1,0 +1,50 @@
+I am thinking about releasing a new version of the ``decorator`` module,
+completely rewritten from scratch. The new implementation takes half
+the lines of the original one and it is much more general, so I like
+it more. However, there is an issue of compatibility with the past
+and I am asking here for feedback from my users. 
+
+I have already broken backward compatibility in the
+past, with version 2.0 of the module, and I could break it again
+in version 3.0. However, the breakage in version 2.0 was very
+minor and at the time the module had very few users so that nobody
+ever complained.
+
+Nowadays there are a lot of people using it and there are frameworks
+relying on it (such as Pylons) so I am relectant
+to break compatibility, even in minor ways.
+
+I want to ask people how do they use the module.
+If you just use the ``decorator`` function, that will continue
+to work as before and I do not think I will ever break that
+functionality - actually I am thinking of enhancing it.
+
+However, over the time I have added other
+utilities to the module - I am referring to ``getinfo`` and ``new_wrapper`` -
+and I would like to get rid of them. Actually I would like to deprecate
+them in decorator 3.0 and to remove them in decorator 3.1 or later on,
+after a grace period of one year or so.
+
+Also, I would like to remove a new feature introduced in version 2.3,
+i.e. the direct support to decorator factories. I added it in haste
+and now I have changed my mind. Is there anybody using that
+functionality? I want to offer an alternative which does not
+involve magically adding a ``__call__`` method to a class.
+
+In general I want to remove a few things because I feel they add to
+the learning curve without offering a compelling benefit, or because I
+think the new implementation offer better ways to do the same job.
+
+If nobody uses those features I will remove them; on the other hand,
+if this is too much of a breakage, I will just start a new project
+with a different name. The old ``decorator`` module will continue
+to live forever, but the developement on it will stop and the new
+things will go in the new module.
+
+Personally, I would like to keep the name, and to add some support
+for Python 3.0: decorator 3.0 sounds good for Python 3.0, and
+the change I have in mind is the same kind of change which happened
+for Python 3.0, i.e. a simplification more than an addition of new
+features.
+
+What do you people think?
