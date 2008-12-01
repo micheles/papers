@@ -1,29 +1,20 @@
-import sys, re, threading
+import sys, threading, itertools
 from operator import attrgetter
 try:
     from collections import namedtuple
 except ImportError:
     from sqlplain.namedtuple import namedtuple
 from sqlplain.uri import URI
+from sqlplain.sql_support import qmark2pyformat
 
 Field = namedtuple(
     'Field',
     'name type_code display_size internal_size precision scale null_ok')
 
-STRING_OR_COMMENT = re.compile("('[^']*'|--.*\n)")
+counter = itertools.count(1)
 
-def qmark2pyformat(sql):
-    """
-    Take a SQL template and replace question marks with pyformat-style
-    placeholders (%s), except in strings and comments.
-    """
-    out = []
-    for i, chunk in enumerate(STRING_OR_COMMENT.split(sql)):
-        if i % 2 == 0: # real sql code
-            out.append(chunk.replace('?', '%s'))
-        else: # string or comment
-            out.append(chunk)
-    return ''.join(out)
+def noname():
+    return 'noname%d' % counter.next()
 
 class TupleList(list):
     "Used as result of LazyConn.execute"
@@ -126,8 +117,6 @@ class LazyConnection(object):
         Call a dbapi2 cursor; return the rowcount or a list of tuples,
         plus an header (None in the case of the rowcount).
         """
-        if self.driver.paramstyle == 'pyformat':
-            templ = qmark2pyformat(templ)
         try:
             if args:
                 cursor.execute(templ, args)
@@ -158,14 +147,24 @@ class LazyConnection(object):
             self.close() # reset connection and try
             return raw_execute(self._curs, templ, args)
 
-    def execute(self, templ, args=(), ntuple=None):
-        descr, res = self._execute(self._curs, templ, args)    
+    def execute(self, templ, args=(), ntuple=None, getone=False):
+        if self.driver.paramstyle == 'pyformat':
+            qmarks, templ = qmark2pyformat(templ) # cached
+            if qmarks != len(args): # especially useful for mssql
+                raise TypeError("Expected %d arguments, got %d: %s" % (
+                    qmarks, len(args), args))
+        descr, res = self._execute(self._curs, templ, args)
+        if getone: # you expect to get a scalar result
+            if len(res) != 1 or len(res[0]) != 1:
+                raise ValueError("Expected to get a scalar result, got %s"
+                                 % res)
+            return res[0][0]
         cursor = self._curs # needed to make the reset work
         if self.chatty:
             print(cursor.rowcount, templ, args)
         if descr:
             fields = [Field(*d) for d in descr]
-            header = [f.name for f in fields]
+            header = [f.name or noname() for f in fields]
             if ntuple is None:
                 Ntuple = namedtuple('DBTuple', header)
             elif isinstance(ntuple, str):
@@ -176,14 +175,6 @@ class LazyConnection(object):
             res.descr = fields
             res.header = Ntuple(*header)
         return res
-
-    def getone(self, templ, args=()):
-        "Use this methods for queries returning a scalar result"
-        descr, rows = self._execute(self._curs, templ, args)
-        if len(rows) != 1 or len(rows[0]) != 1:
-            raise ValueError("Expected to get a scalar result, got %s"
-                             % rows)
-        return rows[0][0]
 
     def close(self):
         """The next time you will call an active method, a fresh new

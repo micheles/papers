@@ -1,6 +1,8 @@
 """
 SQLPLAIN, an opinionated database library
 
+.. contents::
+
 Introduction
 ---------------------------------------------------------------
 
@@ -73,7 +75,9 @@ on SQL Server, and a superuser ``pyadmin`` with password ``secret`` which
 all permissions on the ``bookdb``. Suppose the database contains a table
 called ``book`` containing books with title, author, publication date,
 and other information. Suppose I want to retrieve all the books by Isaac
-Asimov. That can be done with the following code::
+Asimov. That can be done with the following code:
+
+.. code-block:: python
 
  >> from sqlplain import lazyconnect
  >> bookdb = lazyconnect('mssql://pyadmin:secret@localhost/bookdb')
@@ -94,7 +98,9 @@ installed in your system, otherwise you get an ``ImportError``.
 The syntax of the URI is the same as in SQLAlchemy (I did copy from
 SQLAlchemy; even Storm uses the same convention and I see no reason
 to change it). Internally ``LazyConn`` instantiates an URI object
-which is a dictionary::
+which is a dictionary:
+
+.. code-block:: python
 
  >> bookdb.uri
  {'database': 'bookdb',
@@ -130,9 +136,11 @@ re-used, i.e. it does not recreate a connection for each query.
 You can access the low level connection and cursor via the
 properties ``._conn`` and ``._curs``:
 
->> bookdb._conn
+.. code-block:: python
 
->> bookdb._curs
+ >> bookdb._conn
+
+ >> bookdb._curs
 
 There is an underscore, meaning that you are not supposed to access
 those attributes directly. Notice that calling twice
@@ -141,7 +149,9 @@ in rare circumstances.
 
 You can ``execute`` a ``SELECT`` query, or other types of queries, such
 as ``UPDATE/INSERT/DELETE``; in those cases ``execute`` does not return
-a list of named tuples, it returns a number instead::
+a list of named tuples, it returns a number instead:
+
+.. code-block:: python
 
  >> bookdb.execute("UPDATE book SET author=? WHERE author like ?",
      ('Isaac Asimov', '%Asimov%'))
@@ -151,19 +161,48 @@ The number is the DB API 2 ``rowcount`` attribute of the cursor, i.e.
 the number of rows affected by the query.
 
 Allocated connections take resources on the server even if
-they are not used, therefore you may want to close an unused connection
-- it will be automatically re-reopened at the first call of ``.execute``
-anyway - by calling the ``.close()`` (closing twice a connection will
-not raise an error).
+they are not used, therefore you may want to close an unused connection:
+
+
+.. code-block:: python
+
+ >> bookdb.close()
+
+Notice that closing twice a connection will
+not raise an error.
+
+Any closed connection will be automatically re-reopened at the first
+call of ``.execute``. 
 
 In Python 2.5+ you can use the ``with`` statement and the
 ``contextlib.closing`` function to make sure a connection is closed
 after the execution of a given block of code, by using the pattern
 
-::
-    
+.. code-block:: python
+ 
   with closing(cx):
       do_something(cx)
+
+Lazy connections have an interesting feature: if
+a query raises an error, ``sqlplain`` tries to execute it a second
+time with a fresh connection, and sometimes the second attempt may
+succeed. The reason is that
+sometimes a correct query fails due to network issues or other
+problems (for instance somebody restarted the database server and
+the existing connection has become obsolete) which are transitory:
+so the first time the query fails because the connection is
+in a bad state, but the second time it succeeds since the fresh
+connection is in a good state. Of course, if the network outage or
+the other error persists, there will be an error even at the second
+attempt and the exception will be raised (we all know that
+*errors should never pass silently*). By default this feature is
+turned on, but you may disable it (if you do not want to retry
+every failed query) by setting the ``.retry`` attribute
+of the lazy connection object (or class) to ``False``.
+
+Retrying connections are good when writing long running programs, such as
+user interfaces (CLI, GUI and Web): in such a situations
+errors are trapped.
 
 The configuration file
 --------------------------------------------------------------
@@ -212,7 +251,9 @@ application to set the configuration file if you don't want your users
 to touch the .INI file directly (you could set it at installation time,
 or write a small GUI to edit the configuration file).
 
-A typical way to pass the URI is to read it from the command line::
+A typical way to pass the URI is to read it from the command line:
+
+.. code-block:: python
 
  $ cat example_sqlplain_app.py
  import sqlplain
@@ -240,37 +281,30 @@ in transactional mode, your lazy connection is an instance of
 ``TransactionalConnection``, a subclass of ``LazyConnection``
 with methods ``commit`` and ``rollback``
 
- >> bookdb = lazyconnect('mssql://pyadmin:secret@localhost/bookdb', autocommit=False)
+.. code-block:: python
 
-For convenience, ``sqlplain`` provides a ``transact`` utility coding
-the ``rollback/commit`` pattern for you:
-    
+ >> bookdb = lazyconnect('mssql://pyadmin:secret@localhost/bookdb',
+                         isolation_level='SERIALIZABLE')
+
+Transactional connections have support the ``with`` statement,
+therefore if you are using a recent enough version of Python (2.5+) you can
+write
+
+.. code-block:: python
+
+  with booksb: # will begin a transaction and commit or rollback it
+      do_something
+      
+Otherwise, ``sqlplain`` provides a ``transact`` higher order function coding
+the ``rollback/commit`` pattern:
+
 $$transact
 
-Moreover, there is a ``dry_run`` functionality to try out a procedure
+There is also a ``dry_run`` functionality to try out a procedure
 non-destructively:
 
 $$dry_run
-    
-Retry-once connections
---------------------------------------------------------
-
-Lazy connections have a feature which I have not discussed yet: if
-a query raises an error, ``sqlplain`` tries to execute it a second
-time with a fresh connection, and sometimes the second attempt may
-succeed. The reason is that
-sometimes a correct query fails due to network issues or other
-problems (for instance somebody restarted the database server and
-the existing connection has become obsolete) which are transitory:
-so the first time the query fails because the connection is
-in a bad state, but the second time it succeeds since the fresh
-connection is an good state. Of course, if the network outage or
-the other error persists, there will be an error even at the second
-attempt and the exception will be raised (we all know that
-*errors should never pass silently*). By default this feature is
-turned on, but you may disable it by setting the ``.retry`` attribute
-of the lazy connection object (or class) to ``False``.
-
+      
 Threadlocal connections
 -------------------------------------------------------
 
@@ -309,6 +343,123 @@ it will work in your settings. Also, the multithreading support is
 very low in my list of priorities (I am in the camp of people who
 are against thread) and what it is there is the minimun I needed
 to do in order make my scripts work with the Paste server.
+
+SQL template functions
+--------------------------------------------------------------
+
+``sqlplain`` allows you to litter you source code with scattered
+SQL queries, but also offers you the possibility to collect
+your queries in a common place. For instance, you could write
+all of your SQL templates in a file called ``queries.py``
+like the following
+
+$$queries
+
+The ``sqlplain.do`` utility converts a SQL template into a Python
+function with signature ``(conn, arg1, ...,  argN)`` where ``conn``
+is a ``sqlplain`` connection and arg1, ..., argN are arguments
+in correspondence with the question marks in the template.
+Moreover, the docstring of the generated functions is set to the
+SQL template, unless you specify a different docstring. That
+means that the built-in ``help`` functionality (as well as
+documentation tools) play well with the generated functions.
+Here are a few examples:
+
+.. code-block:: python
+
+ >> from queries import *
+ >> help(get_authors)
+ Help on function sqlquery in module queries:
+
+ sqlquery(conn)
+     SELECT author FROM book
+ Help on function sqlquery in module queries:
+ 
+ >> help(get_titles)
+ sqlquery(conn, arg1)
+     SELECT title FROM book WHERE author=?
+ 
+ >> help(set_uppercase_titles)
+ Help on function sqlquery in module queries:
+ 
+ sqlquery(conn, arg1, arg2)
+     UPDATE book SET title=upper(title)
+     WHERE author like ? AND pubdate=?
+
+By default all the functions generated by ``do`` have the name
+``sqlquery``, but is possible to specify a different name; it
+is even possible to specify the names of the arguments. For
+instance, we could have defined ``set_uppercase_titles`` as
+follows:
+
+.. code-block:: python
+
+ >> set_uppercase_titles = do('''
+ UPDATE book SET title=upper(title)
+ WHERE author like ? AND pubdate=?
+ ''', name='set_uppercase_titles', args='author, pubdate')
+
+ >> help(set_uppercase_titles)
+ Help on function set_uppercase_titles in module queries:
+
+ set_uppercase_titles(conn, author, pubdate)
+     UPDATE book SET title=upper(title)
+     WHERE author like ? AND pubdate=?
+
+Setting the function name and the argument names explicitly is a good idea
+if you want to have readable error messages in case of errors.
+
+Memoization
+-------------------------------------------------------------
+
+In my day job often I have to work with heavy queries
+which results must be cached. Since this is a common requirement,
+I have decided to provide a simple caching facility in ``sqlplain``.
+The core functionality is provided by the ``Memoize`` class
+in ``sqlplain.memoize``. ``Memoize`` takes in input a new-style class
+(the cache type) and returns a decorator object which is able to
+memoize functions. The cache type is attached as an attribute
+to the memoized function. Moreover any memoized function has
+a .cache attribute (a dictionary <function args> -> <function result>)
+which is looked up when the function is called a second time.
+If the second time the function is called with the same arguments
+the result is retrieved from the cache.
+
+A global registry of the memoized
+functions is kept in memory and there is a classmethod
+``Memoize.clear(cachetype=object)`` which is able to clear the cache.
+If you specify the cachetype, only the functions with a cache type
+which is a subclass of the specified one will be affected.
+If you do not specify the cachetype, by default ``object`` will be
+assumed, therefore *all* caches for all memoized functions will be
+cleared.
+
+Here is an example of use:
+
+$$cache_ex
+
+Here the cache of ``f1`` is cleared, but the cache of
+``f2`` is not cleared.
+
+According to the goal of keeping things simple, ``sqlplain``
+does not provide the concept of cache expiration, and you are
+expected to clear the cache by hand. Anyway, it is pretty easy to schedule
+a cache cleaner function to be run periodically (which of course depends on
+the framework you are using) and you can implement it yourself.
+
+``sqlplain`` tries to make your life easier when you are interested
+in caching simple queries: to this goal, the ``do`` utilities has a
+``cachetype`` default argument which you can set to enable caching::
+
+ >> get_title = do('select title from book where author=?', cachetype=ShortType)
+
+Internally ``do`` generates a Python function from the SQL template and
+memoize it by using ``Memoize(cachetype)``; this is the reason why
+the resulting function has a ``.cachetype`` attribute::
+
+ >> get_title.cachetype
+ <class __main__.ShortType at 0x9ebc32c>
+
 
 Utilities
 --------------------------------------------------------------
@@ -350,3 +501,4 @@ I will implement the project by using a test first approach.
 
 from sqlplain.doc import threadlocal_ex
 from sqlplain import transact, dry_run
+import queries, cache_ex

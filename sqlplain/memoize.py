@@ -1,29 +1,30 @@
-from decorator import __call__
-    
+from sqlplain.python import decorator
+
 class Memoize(object):
 
-    registry = {}
+    registry = []
     
     @classmethod
-    def clear(cls, cacheclass=object):
+    def clear(cls, cachetype=object):
         for func in cls.registry:
-            if issubclass(func.cacheclass, cacheclass):
+            if issubclass(func.cachetype, cachetype):
                 func.cache.clear()
     
-    def __init__(self, cacheclass):
-        self.cacheclass = cacheclass
+    def __init__(self, cachetype):
+        self.cachetype = cachetype
         
     def call(self, func, *args, **kw):
+        key = args, frozenset(kw.iteritems())
         try:
-            return func.cache[args]
+            return func.cache[key]
         except KeyError:
-            res = func.cache[args] = self.func(*args, **kw)
+            res = func.cache[key] = func(*args, **kw)
             return res
 
     def __call__(self, func):
-        new = __call__(self, func)
-        new.cache = {}
-        new.cacheclass = self.cacheclass
+        func.cache = {}
+        new = decorator(self.call, func)
+        new.cachetype = self.cachetype
         self.registry.append(new)
         return new
 
