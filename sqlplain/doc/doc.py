@@ -406,6 +406,26 @@ follows:
      UPDATE book SET title=upper(title)
      WHERE author like ? AND pubdate=?
 
+It is also possible to set default values for some arguments,
+by passing a tuple of defaults. The defaults refer to the rightmost
+arguments: in this example with are setting the default value for
+the last argument, i.e. pubdate:
+
+.. code-block:: python
+
+ >> set_uppercase_titles = do('''
+ UPDATE book SET title=upper(title)
+ WHERE author like ? AND pubdate=?
+ ''', name='set_uppercase_titles', args='author, pubdate',
+                              defaults=('2008-12-01',))
+
+ >> help(set_uppercase_titles)
+ Help on function set_uppercase_titles in module queries:
+
+ set_uppercase_titles(conn, author, pubdate='2008-12-01')
+     UPDATE book SET title=upper(title)
+     WHERE author like ? AND pubdate=?
+
 Setting the function name and the argument names explicitly is a good idea
 if you want to have readable error messages in case of errors.
 

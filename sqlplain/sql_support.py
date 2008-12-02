@@ -1,5 +1,5 @@
 import re, sys
-from sqlplain.python import makefn
+from sqlplain.python import makefn, FuncData
 from sqlplain.memoize import Memoize
 
 STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
@@ -47,11 +47,14 @@ def do(templ, name='sqlquery', args=None, defaults=None, doc=None,
     """
     if args is None:
         args = ', '.join(extract_argnames(templ))
-    if args: args += ','
-    body = 'return conn.execute(templ, %s getone=getone)' % args
-    caller = sys._getframe(1).f_globals['__name__']
-    func = makefn(name, 'conn, ' + args, body, defaults=defaults,
-                  doc=doc or templ, module=caller, templ=templ, getone=getone)
+    if args:
+        args += ','
+    src = '''def %(name)s(conn, %(args)s):
+    return conn.execute(templ, %(args)s getone=getone)''' % locals()
+    fd = FuncData(name=name, signature=args, defaults=defaults,
+                  doc=doc or templ,
+                  module=sys._getframe(1).f_globals['__name__'])
+    func = makefn(src, fd, templ=templ, getone=getone)
     if cachetype:
         return Memoize(cachetype)(func)
     else:
