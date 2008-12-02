@@ -11,7 +11,7 @@ minor and at the time the module had very few users so that nobody
 ever complained.
 
 Nowadays there are a lot of people using it and there are frameworks
-relying on it (such as Pylons) so I am relectant
+relying on it (such as Pylons) so I am reluctant
 to break compatibility, even in minor ways.
 
 I want to ask people how do they use the module.
