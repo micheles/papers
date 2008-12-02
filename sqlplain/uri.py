@@ -23,9 +23,8 @@ class URI(dict):
 
         In the case of mssql, the host may contain an instance name.
         """
-        if isinstance(uri, URI): # do nothing
+        if isinstance(uri, URI): # copy data from uri
             self.update(uri)
-            return
         assert uri and isinstance(uri, str), '%r is not a valid string!' % uri
         if not '://' in uri: # assume it is an alias
             try:
@@ -33,6 +32,8 @@ class URI(dict):
             except KeyError:
                 raise NameError(
                     '%s is not a valid URI, not a recognized alias' % uri)
+            #else:
+            #    uri.dir = configurator.dir.get(uri)
         if not uri.startswith(SUPPORTED_DBTYPES):
             raise NameError('Invalid URI %s' % uri)
         dbtype, partial_uri = uri.split('://')

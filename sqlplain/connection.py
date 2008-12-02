@@ -144,7 +144,8 @@ class LazyConnection(object):
         try:
             return raw_execute(cursor, templ, args)
         except self.errors, e: # maybe bad connection
-            self.close() # reset connection and try
+            self.close() # reset connection and retry
+            print '%s, retrying' % e
             return raw_execute(self._curs, templ, args)
 
     def execute(self, templ, args=(), ntuple=None, getone=False):

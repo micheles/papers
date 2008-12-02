@@ -1,14 +1,50 @@
 """
-
 Notice: create_db and drop_db are not transactional.
 """
 
-import os
+import os, sys
 from sqlplain.uri import URI
 from sqlplain import lazyconnect, transact, do
 from sqlplain.namedtuple import namedtuple
 
+VERSION = re.compile(r'(\d[\d\.-]+)')
+Chunk = namedtuple('Chunk', 'version fname code')
+
+def collect(directory, exts):
+    '''
+    Read the files with a given set of extensions from a directory
+    and returns them ordered by version number.
+    '''
+    sql = []
+    for fname in os.listdir(directory):
+        if fname.endswith(exts) and not fname.startswith('_'):
+            version = VERSION.search(fname)
+            if version:
+                code = file(os.path.join(directory, fname)).read()
+                sql.append(Chunk(version, fname, code))
+    return sorted(sql)
+
+# dispatch on the database type
+
+def _call_with_uri(procname, uri, *args):
+    "Call a procedure by name, passing to it an URI string"
+    proc = globals().get(procname + '_' + uri['dbtype'])
+    if proc is None:
+       raise NameError('Missing procedure %s, database not supported' %
+                       proc.__name__) 
+    return proc(uri, *args)
+
+def _call_with_conn(procname, conn, *args):
+    proc = globals().get(procname + '_' + conn.dbtype)
+    if proc is None:
+       raise NameError('Missing procedure %s, database not supported' %
+                       proc.__name__) 
+    return proc(conn, *args)
+
+# exported utilities
+
 def insert(ntuple):
+    "Return a procedure inserting a row or a dictionary into a table"
     name = ntuple.__name__
     csfields = ','.join(ntuple._fields)
     qmarks = ','.join('?'*len(ntuple._fields))
@@ -17,8 +53,14 @@ def insert(ntuple):
         if isinstance(row, dict):
             row = ntuple(**row)        
         return conn.execute(templ, row)
-    _insert.__name__ = templ
+    _insert.__doc__ = templ
+    _insert.__module__ = sys._getframe(1).f_globals['__name__']
     return _insert
+
+def insert_into(name, fields):
+    return insert(namedtuple(name, fields))
+
+insert.into = insert_into
 
 def openclose(uri, templ, *args, **kw):
     "Open a connection, perform an action and close the connection"
@@ -35,77 +77,44 @@ def openclose(uri, templ, *args, **kw):
     finally:
         conn.close()
 
-def call(procname, uri):
-    "Call a procedure by name, passing to it an URI string"
-    proc = globals()[procname + '_' + uri['dbtype']]
-    return proc(uri)
-
-################################ exists_db ###############################
-
-def exists_db_sqlite(uri):
-    fname = uri['database']
-    return fname == ':memory:' or os.path.exists(fname)
-
-def exists_db_postgres(uri):
-    dbname = uri['database']
-    for row in openclose(
-        uri.copy(database='template1'), 'SELECT datname FROM pg_database'):
-        if row[0] == dbname:
-            return True
-    return False
-
-def exists_db_mssql(uri):
-    dbname = uri['database']
-    master = uri.copy(database='master')
-    for row in openclose(master, 'sp_databases', autocommit=False):
-        if row[0] == dbname:
-            return True
-    return False
-    
 def exists_db(uri):
-    return call('exists_db', URI(uri))
+    "Check is a database exists"
+    return _call_with_uri('exists_db', URI(uri))
 
-############################### drop_db ###################################
-
-def drop_db_sqlite(uri):
-    fname = uri['database']
-    if fname != ':memory:':
-        os.remove(fname)
-    
-def drop_db_postgres(uri):
-    openclose(uri.copy(database='template1'),
-              'DROP DATABASE %(database)s' % uri)
-
-def drop_db_mssql(uri):
-    openclose(uri.copy(database='master'),
-              'DROP DATABASE %(database)s' % uri)
-  
 def drop_db(uri):
-    call('drop_db', URI(uri))
-    
-############################# create_db ###################################
+    "Drop an existing database"
+    _call_with_uri('drop_db', URI(uri))
 
-def create_db_sqlite(uri):
-    "Do nothing, since the db is automatically created"
-
-def create_db_postgres(uri):
-    openclose(uri.copy(database='template1'),
-              'CREATE DATABASE %(database)s' % uri)
-
-def create_db_mssql(uri):
-    openclose(uri.copy(database='master'),
-              'CREATE DATABASE %(database)s' % uri)
-
-def create_db(uri, force=False, **kw):
+def create_db(uri, force=False, scriptdir=None, **kw):
+    """
+    Create the database specified by uri. If the database exists already
+    an error is raised, unless force is True: in that case the database
+    is dropped and recreated.
+    """
     uri = URI(uri)
     if exists_db(uri):
         if force:
-            call('drop_db', uri)
+            _call_with_uri('drop_db', uri)
         else:
             raise RuntimeError(
                 'There is already a database %s!' % uri)
-    call('create_db', uri)
-    return lazyconnect(uri, **kw)
+    _call_with_uri('create_db', uri)
+    db = lazyconnect(uri, **kw)
+    if scriptdir:
+        chunks = collect(dir, ('.sql', '.py'))
+        for chunk in chunks:
+            if chunk.fname.endswith('.sql'):
+                db.execute(chunk.code)
+            elif chunk.fname.endswith('.py'):
+                exec chunk.code in {}
+    return db
+
+def bulk_insert(conn, file, table, sep='\t'):
+    return _call_with_conn('bulk_insert', conn, file, table, sep)
+
+def exists_table(conn, tname):
+    "Check if a table exists"
+    return _call_with_conn(conn, tname)
 
 ########################## schema management ###########################
 
@@ -119,6 +128,11 @@ def drop_schema(db, schema):
     db.execute('DROP SCHEMA %s CASCADE' % schema)
 
 def create_schema(db, schema, force=False):
+    """
+    Create the specified schema. If the schema exists already
+    an error is raised, unless force is True: in that case the schema
+    is dropped and recreated.
+    """
     if force and exists_schema(db, schema):        
         drop_schema(db, schema)
     db.execute('CREATE SCHEMA %s' % schema)
