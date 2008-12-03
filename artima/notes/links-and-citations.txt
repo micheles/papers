@@ -1,3 +1,5 @@
 #Why I Hate Frameworks
 http://discuss.joelonsoftware.com/default.asp?joel.3.219431.12
 
+-- SQL injection
+http://blog.michaeltrier.com/assets/2008/10/8/exploits_of_a_mom.jpg

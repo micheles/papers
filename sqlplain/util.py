@@ -43,25 +43,6 @@ def _call_with_conn(procname, conn, *args):
 
 # exported utilities
 
-def insert(ntuple):
-    "Return a procedure inserting a row or a dictionary into a table"
-    name = ntuple.__name__
-    csfields = ','.join(ntuple._fields)
-    qmarks = ','.join('?'*len(ntuple._fields))
-    templ = 'INSERT INTO %s (%s) VALUES (%s)' % (name, csfields, qmarks)
-    def _insert(conn, row):
-        if isinstance(row, dict):
-            row = ntuple(**row)        
-        return conn.execute(templ, row)
-    _insert.__doc__ = templ
-    _insert.__module__ = sys._getframe(1).f_globals['__name__']
-    return _insert
-
-def insert_into(name, fields):
-    return insert(namedtuple(name, fields))
-
-insert.into = insert_into
-
 def openclose(uri, templ, *args, **kw):
     "Open a connection, perform an action and close the connection"
     unexpected = set(kw) - set(['isolation_level'])
