@@ -10,7 +10,7 @@ def drop_db_postgres(uri):
 
 def exists_table_postgres(conn, tname):
     return conn.execute('SELECT count(*) FROM pg_tables WHERE name=?',
-                        tname, getone=True)
+                        tname, scalar=True)
 
 def bulk_insert_postgres(conn, file, table, sep='\t', null='\N', columns=None):
     conn._curs.copy_from(file, table, sep, null, columns)

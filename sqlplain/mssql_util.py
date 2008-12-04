@@ -5,7 +5,7 @@ def bulk_insert_mssql(uri, file, table, sep='\t'):
     
 def exists_table_mssql(conn, tname):
     return conn.execute('SELECT count(*) FROM sysobjects WHERE name=?',
-                        tname, getone=True)
+                        tname, scalar=True)
 
 def exists_db_mssql(uri):
     dbname = uri['database']

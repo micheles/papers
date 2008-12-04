@@ -93,7 +93,7 @@ class LazyConnection(object):
     There is however a chatty method for easy of debugging.
     """
 
-    retry = True
+    retry = False
     
     def __init__(self, uri, isolation_level=None, threadlocal=False):
         self.uri = URI(uri)
@@ -148,17 +148,18 @@ class LazyConnection(object):
             print '%s, retrying' % e
             return raw_execute(self._curs, templ, args)
 
-    def execute(self, templ, args=(), ntuple=None, getone=False):
+    def execute(self, templ, args=(), ntuple=None, scalar=False):
         if self.driver.paramstyle == 'pyformat':
             qmarks, templ = qmark2pyformat(templ) # cached
             if qmarks != len(args): # especially useful for mssql
                 raise TypeError("Expected %d arguments, got %d: %s" % (
                     qmarks, len(args), args))
         descr, res = self._execute(self._curs, templ, args)
-        if getone: # you expect to get a scalar result
+        if scalar: # you expect to get a scalar result
             if len(res) != 1 or len(res[0]) != 1:
-                raise ValueError("Expected to get a scalar result, got %s"
-                                 % res)
+                raise ValueError(
+                    "Expected to get a scalar result, got %s\nQUERY WAS:%s%s\n"
+                    % (res, templ, args))
             return res[0][0]
         cursor = self._curs # needed to make the reset work
         if self.chatty:

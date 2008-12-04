@@ -41,7 +41,7 @@ def extract_argnames(templ):
     return ['arg%d' % i for i in range(1, qmarks + 1)]
             
 def do(templ, name='sqlquery', args=None, defaults=None, doc=None,
-       getone=False, cachetype=None):
+       scalar=False):
     """
     Compile a SQL query template down to a Python function.
     """
@@ -50,12 +50,9 @@ def do(templ, name='sqlquery', args=None, defaults=None, doc=None,
     if args:
         args += ','
     src = '''def %(name)s(conn, %(args)s):
-    return conn.execute(templ, %(args)s getone=getone)''' % locals()
+    return conn.execute(templ, %(args)s scalar=scalar)''' % locals()
     fd = FuncData(name=name, signature=args, defaults=defaults,
                   doc=doc or templ,
                   module=sys._getframe(1).f_globals['__name__'])
-    func = makefn(src, fd, templ=templ, getone=getone)
-    if cachetype:
-        return Memoize(cachetype)(func)
-    else:
-        return func
+    return makefn(src, fd, templ=templ, scalar=scalar)
+

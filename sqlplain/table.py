@@ -1,15 +1,15 @@
-import sys
+import sys, UserDict
 from sqlplain.namedtuple import namedtuple
 
-def tabletuple(name, dfields, kfields):
+def tabletuple(name, kfields, dfields):
     """
     Returns a namedtuple with attributes ._kfields, ._dfields and properties
     ._kvalues, .dvalues. This is needed to send records to a database table
     with a primary key
     """
     ttuple = namedtuple(name, dfields + ' ' + kfields)
-    ktuple = namedtuple(name + '_key', kfields)
-    dtuple = namedtuple(name + '_data', dfields)
+    ttuple._ktuple = ktuple = namedtuple(name + '_key', kfields)
+    ttuple._dtuple = dtuple = namedtuple(name + '_data', dfields)
     ttuple._kfields = ktuple._fields
     ttuple._dfields = dtuple._fields
     ttuple._kvalues = property(
@@ -18,8 +18,47 @@ def tabletuple(name, dfields, kfields):
         lambda self: dtuple(*[getattr(self, n) for n in self._dfields]))
     return ttuple
 
-# used only in select, insert/delete, update/update_or_insert
-def queryfn(ttuple, templ, name):
+def select(ttuple):
+    """
+    Returns a function with signature (conn, key) - where key can be
+    a dictionary or a tabletuple - returning a single row.
+    """
+    name = ttuple.__name__
+    csfields = ','.join(ttuple._fields)
+    clause = ' AND '.join('%s=?' % field for field in ttuple._kfields)
+    templ = 'SELECT %s FROM %s WHERE %s' % (csfields, name, clause)
+    def _execute(conn, row=None, **kw):
+        row = row or {}
+        if isinstance(row, dict):
+            row.update(kw)
+            row = ttuple._ktuple(**row)        
+        res = conn.execute(templ, row, ttuple)
+        if len(res) != 1:
+            raise KeyError('Got %s instead of a single row' % res)
+        return res[0]
+    _execute.__name__ = '%s_select' % ttuple.__name__
+    _execute.__doc__ = templ
+    _execute.__module__ = sys._getframe(2).f_globals['__name__']
+    return _execute
+
+def delete(ttuple):
+    "Return a procedure inserting a row or a dictionary into a table"
+    name = ttuple.__name__
+    clause = ' AND '.join('%s=?' % field for field in ttuple._kfields)
+    templ = 'DELETE FROM %s WHERE %s' % (name, clause)
+    def _execute(conn, row=None, **kw):
+        row = row or {}
+        if isinstance(row, dict):
+            row.update(kw)
+            row = ttuple._ktuple(**row)        
+        return conn.execute(templ, row, ttuple)
+    _execute.__name__ = '%s_select' % ttuple.__name__
+    _execute.__doc__ = templ
+    _execute.__module__ = sys._getframe(2).f_globals['__name__']
+    return _execute
+
+# used only in update and insert
+def _updater(ttuple, templ, name):
     """
     Returns a function with signature (conn, row) where row can be
     a dictionary or a namedtuple/tabletuple.
@@ -29,20 +68,11 @@ def queryfn(ttuple, templ, name):
         if isinstance(row, dict):
             row.update(kw)
             row = ttuple(**row)        
-        return conn.execute(templ, row)
+        return conn.execute(templ, row,)
     _execute.__name__ = '%s_%s' % (ttuple.__name__, name)
     _execute.__doc__ = templ
     _execute.__module__ = sys._getframe(2).f_globals['__name__']
-    return _execute    
-
-def select(ttuple):
-    name = ttuple.__name__
-    csfields = ','.join(ttuple._dfields)
-    clause = ' '.join('AND %s=?' % field for field in ttuple._kfields)
-    templ = 'SELECT %s FROM %s' % (name, csfields)
-    if clause:
-        templ += ' WHERE 1=1 ' + clause
-    return queryfn(ttuple, templ, 'select')
+    return _execute
 
 def insert(ttuple):
     "Return a procedure inserting a row or a dictionary into a table"
@@ -50,24 +80,15 @@ def insert(ttuple):
     csfields = ','.join(ttuple._fields)
     qmarks = ','.join('?'*len(ttuple._fields))
     templ = 'INSERT INTO %s (%s) VALUES (%s)' % (name, csfields, qmarks)
-    return queryfn(ttuple, templ, 'insert')
-
-def delete(ttuple):
-    "Return a procedure inserting a row or a dictionary into a table"
-    name = ttuple.__name__
-    clause = ' '.join('AND %s=?' % field for field in ttuple._fields)
-    templ = 'DELETE FROM %s ' % name
-    if clause:
-        templ += 'WHERE 1=1 ' + clause
-    return queryfn(ttuple, templ, 'delete')
+    return _updater(ttuple, templ, 'insert')
 
 def update(ttuple):
     "Returns a procedure updating a row"
     name = ttuple.__name__
     set = ', '.join('%s=?' % field for field in ttuple._dfields)
-    where = ' '.join('AND %s=?' % field for field in ttuple._kfields)
-    templ = 'UPDATE %s SET %s WHERE 1=1 %s' % (name, set, where)
-    return queryfn(ttuple, templ, 'update')
+    where = ' AND '.join('%s=?' % field for field in ttuple._kfields)
+    templ = 'UPDATE %s SET %s WHERE %s' % (name, set, where)
+    return _updater(ttuple, templ, 'update')
 
 def update_or_insert(ttuple):
     "Returns a procedure updating or inserting a row"
@@ -81,21 +102,51 @@ def update_or_insert(ttuple):
     up_or_ins.__name__ = '%s_update_or_insert' % ttuple.__name__
     return up_or_ins
 
-## probably remove this
-class Table(object):
-    def __init__(self, name, dfields, kfields=''):
-        self.tuplecls = tt = tabletuple(name, dfields, kfields)
-        self.select = select(tt)
-        self.insert = insert(tt)
-        self.delete = delete(tt)
-        self.update = update(tt)
-        self.update_or_insert = update_or_insert(tt)
+for factory in select, delete, insert, update, update_or_insert:
+    def row(name, kfields, dfields='', factory=factory):
+        return factory(tabletuple(name, kfields, dfields))
+    factory.row = row
+    # insert.row('book', 'title author')
+    # update.row('book', 'title author', 'pubdate')
+    # delete.row('book', 'title author')
+    
+def table(name, kfields, dfields):
+    _tt = tabletuple(name, dfields, kfields)
+    _select = select(_tt)
+    _insert = insert(_tt)
+    _delete = delete(_tt)
+    _update = update(_tt)
+    _update_or_insert = update_or_insert(_tt)
+    
+    class Table(UserDict.DictMixin):
+        tuplecls = _tt
+        def __init__(self, conn):
+            self.conn = conn
+        def __getitem__(self, key):
+            return self.select(key)
+        def __setitem__(self, key, val):
+            self.update_or_insert(val + key)
+        def keys(self):
+            kfields = ', '.join(_tt._kfields)
+            return self.conn.execute('SELECT %s FROM %s' % (kfields, name))
+        def insert(self, row):
+            return _insert(self.conn, row)
+        def delete(self, row):
+            return _delete(self.conn, row)
+        def select(self, row):
+            return _select(self.conn, row)
+        def update(self, row):
+            return _update(self.conn, row)
+        def update_or_insert(self, row):
+            return _update_or_insert(self.conn, row)
 
-# book = Table('book', kfields='title author', dfields='pubdate')
-# book.select(conn, author='A')
-# book.insert(conn, title='T', author='A', pubdate='P')
-# book.insert(conn, title='T', author='A', pubdate='P')
-# or insert('book', 'title author')(title="T", author="A")
+    return Table
+
+# book = Table('book', 'title author', 'pubdate')(conn)
+# book.select(author='A')
+# book.insert(title='T', author='A', pubdate='P')
+# book.update(title='T', author='A', pubdate='P')
+# or insert('book', 'title author')(conn, title="T", author="A")
 
 if __name__ == '__main__':
     tt = tabletuple('tt', 'x y', 'a,b')(1, 2, 3, 4)
