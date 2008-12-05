@@ -429,10 +429,26 @@ the last argument, i.e. pubdate:
 Setting the function name and the argument names explicitly is a good idea
 if you want to have readable error messages in case of errors.
 
+``sqlplain`` tries to make your life easier, so it provides five
+SQL template functions in addition to ``do``; they are
+
+``select_row, delete_row, insert_row, update_row, update_or_insert_row``.
+
+They are all intended to be used on tables with a primary key.
+Instead of an explanation, I will give examples::
+
+    select_book = select_row('book', 'title author')
+    select_book(bookdb, title='T', author='A')
+
+``select_row`` raises an error if the corresponding queries
+returns no result (you are looking for a missing record) or
+if it returns multiple results (it means that your primary key specification
+was incomplete).
+
 Memoization
 -------------------------------------------------------------
 
-In my day job often I have to work with heavy queries
+Very often I have to work with heavy queries
 which results must be cached. Since this is a common requirement,
 I have decided to provide a simple caching facility in ``sqlplain``.
 The core functionality is provided by the ``Memoize`` class
@@ -471,14 +487,10 @@ the framework you are using) and you can implement it yourself.
 in caching simple queries: to this goal, the ``do`` utilities has a
 ``cachetype`` default argument which you can set to enable caching::
 
- >> get_title = do('select title from book where author=?', cachetype=ShortType)
+ >> def cached_short(templ):
+     return Memoize(ShortType)(do(templ))
 
-Internally ``do`` generates a Python function from the SQL template and
-memoize it by using ``Memoize(cachetype)``; this is the reason why
-the resulting function has a ``.cachetype`` attribute::
-
- >> get_title.cachetype
- <class __main__.ShortType at 0x9ebc32c>
+ >> get_title = cached_short('select title from book where author=?')
 
 
 Utilities

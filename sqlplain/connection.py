@@ -155,7 +155,7 @@ class LazyConnection(object):
                 raise TypeError("Expected %d arguments, got %d: %s" % (
                     qmarks, len(args), args))
         descr, res = self._execute(self._curs, templ, args)
-        if scalar: # you expect to get a scalar result
+        if scalar: # you expect a scalar result
             if len(res) != 1 or len(res[0]) != 1:
                 raise ValueError(
                     "Expected to get a scalar result, got %s\nQUERY WAS:%s%s\n"

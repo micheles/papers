@@ -7,7 +7,7 @@ def tabletuple(name, kfields, dfields):
     ._kvalues, .dvalues. This is needed to send records to a database table
     with a primary key
     """
-    ttuple = namedtuple(name, dfields + ' ' + kfields)
+    ttuple = namedtuple(name, kfields + ' ' + dfields)
     ttuple._ktuple = ktuple = namedtuple(name + '_key', kfields)
     ttuple._dtuple = dtuple = namedtuple(name + '_data', dfields)
     ttuple._kfields = ktuple._fields
@@ -105,13 +105,16 @@ def update_or_insert(ttuple):
 for factory in select, delete, insert, update, update_or_insert:
     def row(name, kfields, dfields='', factory=factory):
         return factory(tabletuple(name, kfields, dfields))
-    factory.row = row
-    # insert.row('book', 'title author')
-    # update.row('book', 'title author', 'pubdate')
-    # delete.row('book', 'title author')
+    name = '%s_row' % factory.__name__
+    row.__name__ = name
+    globals()[name] = row
+    # insert_book = insert_row('book', 'title author')
+    # insert_book(conn, title='T', author='A')
+    # update_row('book', 'title author', 'pubdate')
+    # delete_row('book', 'title author')
     
 def table(name, kfields, dfields):
-    _tt = tabletuple(name, dfields, kfields)
+    _tt = tabletuple(name, kfields, dfields)
     _select = select(_tt)
     _insert = insert(_tt)
     _delete = delete(_tt)
@@ -129,16 +132,16 @@ def table(name, kfields, dfields):
         def keys(self):
             kfields = ', '.join(_tt._kfields)
             return self.conn.execute('SELECT %s FROM %s' % (kfields, name))
-        def insert(self, row):
-            return _insert(self.conn, row)
-        def delete(self, row):
-            return _delete(self.conn, row)
-        def select(self, row):
-            return _select(self.conn, row)
-        def update(self, row):
-            return _update(self.conn, row)
-        def update_or_insert(self, row):
-            return _update_or_insert(self.conn, row)
+        def insert(self, row=None, **kw):
+            return _insert(self.conn, row, **kw)
+        def delete(self, row=None, **kw):
+            return _delete(self.conn, row, **kw)
+        def select(self, row=None, **kw):
+            return _select(self.conn, row, **kw)
+        def update(self, row=None, **kw):
+            return _update(self.conn, row, **kw)
+        def update_or_insert(self, row=None, **kw):
+            return _update_or_insert(self.conn, row, **kw)
 
     return Table
 

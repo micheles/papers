@@ -7,6 +7,7 @@ STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
 templ_cache = {}
 
 # used in .execute
+## try to remove the cache and see if there is any speed difference
 def qmark2pyformat(templ):
     # this is small hack instead of a full featured SQL parser
     """
@@ -24,8 +25,9 @@ def qmark2pyformat(templ):
             out.append(chunk.replace('?', '%s'))
         else: # string or comment
             out.append(chunk)
-    templ_cache[templ] = qmarks, templ
-    return qmarks, ''.join(out)
+    new_templ = ''.join(out)
+    templ_cache[templ] = qmarks, new_templ
+    return qmarks, new_templ
 
 # used in 'do' queries
 def extract_argnames(templ):
