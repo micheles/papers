@@ -1,4 +1,4 @@
-import sys, threading, itertools
+import sys, threading, itertools, string
 from operator import attrgetter
 try:
     from collections import namedtuple
@@ -120,8 +120,6 @@ class LazyConnection(object):
         try:
             if args:
                 cursor.execute(templ, args)
-            #elif self.dbtype == 'sqlite':
-            #    cursor.executescript(templ)
             else:
                 cursor.execute(templ)
         except Exception, e:
@@ -178,6 +176,18 @@ class LazyConnection(object):
             res.header = Ntuple(*header)
         return res
 
+    def executescript(self, sql, *dicts, **kw):
+        "A driver-independent method to execute sql templates"
+        d = {}
+        for dct in dicts + (kw,):
+            d.update(dct)
+        if d:
+            sql = string.Template(sql).substitute(d) 
+        if self.dbtype == 'sqlite':
+            self._curs.executescript(sql)
+        else: # psycopg and pymssql are already able to execute chunks
+            self.execute(sql)
+            
     def close(self):
         """The next time you will call an active method, a fresh new
         connection will be instantiated"""

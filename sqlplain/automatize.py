@@ -1,12 +1,23 @@
 import os, sys, subprocess, re
 from sqlplain.configurator import configurator
-from sqlplain.connection import LazyConn
 from sqlplain.util import create_db, create_schema
 from sqlplain.namedtuple import namedtuple
 
 VERSION = re.compile(r'(\d[\d\.-]+)')
 Chunk = namedtuple('Chunk', 'version fname code')
 
+try:
+    CalledProcessError = subprocess.CalledProcessError
+except AttributeError:
+    class CalledProcessError(Exception): pass
+    
+def getoutput(commandlist):
+    po = subprocess.Popen(commandlist, stdout=subprocess.PIPE)
+    out, err = po.communicate()
+    if po.returncode or err:
+        raise CalledProcessError('%s [return code %d]' % (err, po.returncode))
+    return out
+    
 def collect(directory, exts):
     '''
     Read the files with a given set of extensions from a directory

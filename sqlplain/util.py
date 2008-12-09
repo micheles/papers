@@ -2,7 +2,7 @@
 Notice: create_db and drop_db are not transactional.
 """
 
-import os, sys
+import os, sys, re
 from sqlplain.uri import URI
 from sqlplain import lazyconnect, transact, do
 from sqlplain.namedtuple import namedtuple
@@ -10,36 +10,13 @@ from sqlplain.namedtuple import namedtuple
 VERSION = re.compile(r'(\d[\d\.-]+)')
 Chunk = namedtuple('Chunk', 'version fname code')
 
-def collect(directory, exts):
-    '''
-    Read the files with a given set of extensions from a directory
-    and returns them ordered by version number.
-    '''
-    sql = []
-    for fname in os.listdir(directory):
-        if fname.endswith(exts) and not fname.startswith('_'):
-            version = VERSION.search(fname)
-            if version:
-                code = file(os.path.join(directory, fname)).read()
-                sql.append(Chunk(version, fname, code))
-    return sorted(sql)
-
-# dispatch on the database type
-
-def _call_with_uri(procname, uri, *args):
-    "Call a procedure by name, passing to it an URI string"
-    proc = globals().get(procname + '_' + uri['dbtype'])
+def _call(procname, uri_or_conn, *args, **kw):
+    "Call a procedure by name, by dispatching on the database type"
+    dbtype = uri_or_conn.dbtype
+    proc = globals().get(procname + '_' + dbtype)
     if proc is None:
-       raise NameError('Missing procedure %s, database not supported' %
-                       proc.__name__) 
-    return proc(uri, *args)
-
-def _call_with_conn(procname, conn, *args):
-    proc = globals().get(procname + '_' + conn.dbtype)
-    if proc is None:
-       raise NameError('Missing procedure %s, database not supported' %
-                       proc.__name__) 
-    return proc(conn, *args)
+        raise NameError('Missing procedure %s for %s' % (procname, dbtype))
+    return proc(uri_or_conn, *args, **kw)
 
 # exported utilities
 
@@ -60,11 +37,26 @@ def openclose(uri, templ, *args, **kw):
 
 def exists_db(uri):
     "Check is a database exists"
-    return _call_with_uri('exists_db', URI(uri))
+    return _call('exists_db', URI(uri))
 
 def drop_db(uri):
     "Drop an existing database"
-    _call_with_uri('drop_db', URI(uri))
+    _call('drop_db', URI(uri))
+
+# helper for createdb
+def _collect(directory, exts):
+    '''
+    Read the files with a given set of extensions from a directory
+    and returns them ordered by version number.
+    '''
+    sql = []
+    for fname in os.listdir(directory):
+        if fname.endswith(exts) and not fname.startswith('_'):
+            version = VERSION.search(fname)
+            if version:
+                code = file(os.path.join(directory, fname)).read()
+                sql.append(Chunk(version, fname, code))
+    return sorted(sql)
 
 def create_db(uri, force=False, scriptdir=None, **kw):
     """
@@ -73,29 +65,40 @@ def create_db(uri, force=False, scriptdir=None, **kw):
     is dropped and recreated.
     """
     uri = URI(uri)
+    uri.import_driver() # import the driver
     if exists_db(uri):
         if force:
-            _call_with_uri('drop_db', uri)
+            _call('drop_db', uri)
         else:
             raise RuntimeError(
                 'There is already a database %s!' % uri)
-    _call_with_uri('create_db', uri)
+    _call('create_db', uri)
     db = lazyconnect(uri, **kw)
+    scriptdir = uri.scriptdir or scriptdir
     if scriptdir:
-        chunks = collect(dir, ('.sql', '.py'))
+        chunks = _collect(scriptdir, ('.sql', '.py'))
         for chunk in chunks:
             if chunk.fname.endswith('.sql'):
-                db.execute(chunk.code)
+                db.executescript(chunk.code)
             elif chunk.fname.endswith('.py'):
                 exec chunk.code in {}
     return db
 
 def bulk_insert(conn, file, table, sep='\t'):
-    return _call_with_conn('bulk_insert', conn, file, table, sep)
+    return _call('bulk_insert', conn, file, table, sep)
 
 def exists_table(conn, tname):
     "Check if a table exists"
-    return _call_with_conn(conn, tname)
+    return _call('exists_table', conn, tname)
+
+def drop_table(conn, tname, force=False):
+    """
+    Drop a table. If the table does not exist, raise an error, unless
+    force is True.
+    """
+    if not exists_table(tname) and force:
+        return # do not raise an error
+    return conn.execute('DROP TABLE %s' % tname)
 
 ########################## schema management ###########################
 

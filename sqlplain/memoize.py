@@ -1,4 +1,4 @@
-from sqlplain.python import decorator
+from decorator import decorator
 
 class Memoize(object):
 

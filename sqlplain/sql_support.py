@@ -1,5 +1,5 @@
 import re, sys
-from sqlplain.python import makefn, FuncData
+from decorator import makefn, FuncData
 from sqlplain.memoize import Memoize
 
 STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")

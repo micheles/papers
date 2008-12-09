@@ -1,3 +1,4 @@
+import os
 from sqlplain.util import openclose
 
 def exists_table_sqlite(conn, tname):
