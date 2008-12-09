@@ -1,5 +1,5 @@
 import re, sys
-from decorator import makefn, FuncData
+from decorator import makefn, Function
 from sqlplain.memoize import Memoize
 
 STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
@@ -53,7 +53,7 @@ def do(templ, name='sqlquery', args=None, defaults=None, doc=None,
         args += ','
     src = '''def %(name)s(conn, %(args)s):
     return conn.execute(templ, %(args)s scalar=scalar)''' % locals()
-    fd = FuncData(name=name, signature=args, defaults=defaults,
+    fd = Function(name=name, signature=args, defaults=defaults,
                   doc=doc or templ,
                   module=sys._getframe(1).f_globals['__name__'])
     return makefn(src, fd, templ=templ, scalar=scalar)
