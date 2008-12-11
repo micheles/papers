@@ -1,13 +1,11 @@
-import re, sys
+import re
 from decorator import FunctionMaker
-from sqlplain.memoize import Memoize
 
 STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
 
 templ_cache = {}
 
 # used in .execute
-## try to remove the cache and see if there is any speed difference
 def qmark2pyformat(templ):
     # this is small hack instead of a full featured SQL parser
     """
@@ -52,11 +50,8 @@ def do(templ, name='sqlquery', args=None, defaults=None, doc=None,
     if args:
         args += ','
     src = '''def %(name)s(conn, %(args)s):
-    # templ=%(templ)r
-    # scalar=%(scalar)r
     return conn.execute(templ, %(args)s scalar=scalar)''' % locals()
     fun = FunctionMaker(name=name, signature=args, defaults=defaults,
-                        doc=doc or templ,
-                        module=sys._getframe(1).f_globals['__name__'])
-    return fun.make(src, save_source=True, templ=templ, scalar=scalar)
+                        doc=doc or templ)
+    return fun.make(src, templ=templ, scalar=scalar)
 
