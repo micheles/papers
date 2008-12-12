@@ -24,10 +24,10 @@ def f3():
 def test_cache():
     assert not f1.cache
     f1()
-    assert f1.cache == {((), frozenset([])): 1}
+    assert f1.cache == {(): 1}
     f1()
-    assert f1.cache == {((), frozenset([])): 1}
+    assert f1.cache == {(): 1}
     f2()
     Memoize.clear(ShortTime)
     assert not f1.cache
-    assert f2.cache == {((), frozenset([])): 2}
+    assert f2.cache == {(): 2}

@@ -3,6 +3,9 @@ SQLPLAIN, an opinionated database library
 
 .. contents::
 
+sqlplain: core
+=================================================================
+
 Introduction
 ---------------------------------------------------------------
 
@@ -331,8 +334,6 @@ To make ``sqlplain`` to work in this situation, you must set the threadlocal
 flag: doing so ensure that each thread gets its own lower level
 connection, independent from the connections of the other threads. 
 
- >> conn = lazyconnect('sqlite:///:memory:', threadlocal=True)
-
 Here in an example script showing multiple threads writing on a sqlite
 database; if you forget to set the ``threadlocal`` flag, you will likely
 incur in errors (for instance I get ``OperationalError: database is locked``).
@@ -348,14 +349,52 @@ very low in my list of priorities (I am in the camp of people who
 are against thread) and what it is there is the minimun I needed
 to do in order make my scripts work with the Paste server.
 
+Utilities
+--------------------------------------------------------------
+
+``sqlplain`` is a very poor toolkit compared to other database toolkits;
+this is done on purpose. Nevertheless, it provides a few convenient
+functions to work with a database directly, collected in the ``util``
+module. They are the following::
+
+    openclose(uri, templ, *args, **kw):
+
+    exists_db drop_db create_db(uri, drop=False),
+    make_db(alias=None, uri=None, dir=None):
+
+
+Moreover, there are a few utilities to manage database schemas, which
+are a PostgreSQL-only feature: ``set_schema(db, name), exists_schema(db, name),
+drop_schema(db, name), create_schema(db, schema, drop=False), make_schema``.
+
+``sqlplain`` provide some limited introspection features (the introspection
+features are likely to be enhanced in future versions). For the moment,
+the only things you can do is to introspect a table or a view and to
+return a named tuple with the names of the fields:
+
+sqlplain: extensions
+=================================================================
+
+``sqlplain`` is designed as a small core - just a lightweight wrapper
+over the standard DB API 2 interface - and a set of extensions.
+Future versions of ``sqlplain`` may offer additional extensions, but
+for the moment very little is provided. I am committed to keep the
+whole of ``sqlplain`` small - as I said, well under the 5% of the
+codebase of sqlalchemy - so even the extension part is guaranteed to
+stay small in the foreseeable future.
+
 SQL template functions
 --------------------------------------------------------------
 
 ``sqlplain`` allows you to litter you source code with scattered
-SQL queries, but also offers you the possibility to collect
-your queries in a common place. For instance, you could write
-all of your SQL templates in a file called ``queries.py``
-like the following
+SQL queries, but does not force you to do so.
+Actually, it offers the possibility to collect
+your queries in a common place. Moreover, it provided a mechanism
+to dynamically generate queries by adding clauses to a base
+template.
+
+Let me show how it works. You can write all of your SQL templates
+in a file called ``queries.py`` like the following
 
 $$queries
 
@@ -364,8 +403,7 @@ function with signature ``(conn, arg1, ...,  argN)`` where ``conn``
 is a ``sqlplain`` connection and arg1, ..., argN are arguments
 in correspondence with the question marks in the template.
 Moreover, the docstring of the generated functions is set to the
-SQL template, unless you specify a different docstring. That
-means that the built-in ``help`` functionality (as well as
+SQL template. That means that the built-in ``help`` functionality (as well as
 documentation tools) play well with the generated functions.
 Here are a few examples:
 
@@ -433,6 +471,70 @@ the last argument, i.e. pubdate:
 Setting the function name and the argument names explicitly is a good idea
 if you want to have readable error messages in case of errors.
 
+Dynamic generation of SQL templates
+--------------------------------------------------------------
+
+There many situations where the ability to generate SQL templates
+at runtime is handy; a typical use case is writing a select
+box. You can find an industrial strength solution of this problem
+(generating SQL queries from Python) in sqlalchemy and in other ORMs.
+However, the philosophy of ``sqlplain`` is to keep things simple
+and primitive as much as possible. Therefore, ``sqlplain`` does even try
+to implement a general database-independent solution.
+Personally, I am not even convinced that a general
+database-independent solution is a good thing to have.
+A design goal of ``sqlplain`` is to keep the generate queries
+close to what you would write by hand, and to forget about
+database independence.
+SQL template functions provide a ``clause`` attribute, which is function
+adding a template fragment to the original template, and returning
+a new SQL template function. Here is an example of use:
+
+$$make_select
+
+Notice that SQL template functions are functional in spirit:
+they are not objects and adding a template fragment result
+in a *new* function, there is no mutation involved. One advantage
+of this approach is that different threads can safely generate
+different SQL template functions from the same original function,
+without interferring each other.
+Also, SQL template functions are plain old functions: they are not
+callable objects in the sense of instances of a custom class with
+a ``__call__`` method. Still, SQL template functions have non-trivial
+attributes, such as the ``clause`` attribute, which would be a method
+if I had chosen a more object oriented implementation. But I feel that
+plain functions are easier to inspect and
+to manage and I wanted to avoid the complication of inheritance.
+
+Here are a few examples of usage:
+
+.. code-block:: python
+
+ >>> select_books = do('SELECT * FROM book')
+ >>> print customize_select(select_books).__doc__
+ SELECT * FROM book WHERE true
+
+ >>> print customize_select(select_books, author='Asimov%').__doc__
+ SELECT * FROM book WHERE true AND author LIKE 'Asimov%'
+
+ >>> print customize_select(select_books, author='Asimov%', pubdate='2008-11-12').__doc__
+ SELECT * FROM book WHERE true AND pubdate > '2008-11-12' AND author like Asimov%
+
+ >>> print customize_select(select_books, author='?', pubdate='2008-11-12').__doc__
+ SELECT * FROM book WHERE true AND pubdate > '2008-11-12' AND author like ?
+
+In this last example the generated function has an additional argument
+with respect to the original one, since there is a question mark in
+the query template. ``sqlplain`` takes care of that automatically.
+Of course the mechanism is very primitive and one could write
+something more sophisticated on top of it, but for the moment it
+works well enough for my needs. Future versions of ``sqlplain``
+could offer additional functionality for generating SQL templates,
+or could not.
+
+Tables
+------------------------------------------------------------
+
 ``sqlplain`` tries to make your life easier, so it provides five
 SQL template functions in addition to ``do``; they are
 
@@ -495,31 +597,6 @@ in caching simple queries: to this goal, the ``do`` utilities has a
      return Memoize(ShortType)(do(templ))
 
  >> get_title = cached_short('select title from book where author=?')
-
-
-Utilities
---------------------------------------------------------------
-
-``sqlplain`` is a very poor toolkit compared to other database toolkits;
-this is done on purpose. Nevertheless, it provides a few convenient
-functions to work with a database directly, collected in the ``util``
-module. They are the following::
-
-    openclose(uri, templ, *args, **kw):
-
-    exists_db drop_db create_db(uri, drop=False),
-    make_db(alias=None, uri=None, dir=None):
-
-
-Moreover, there are a few utilities to manage database schemas, which
-are a PostgreSQL-only feature: ``set_schema(db, name), exists_schema(db, name),
-drop_schema(db, name), create_schema(db, schema, drop=False), make_schema``.
-
-``sqlplain`` provide some limited introspection features (the introspection
-features are likely to be enhanced in future versions). For the moment,
-the only things you can do is to introspect a table or a view and to
-return a named tuple with the names of the fields:
-
     
 
 An example project using sqlplain: books
@@ -536,5 +613,15 @@ I will implement the project by using a test first approach.
 """
 
 from sqlplain.doc import threadlocal_ex
-from sqlplain import transact, dry_run
+from sqlplain import transact, dry_run, do
 import queries, cache_ex
+
+def customize_select(queryfunction, pubdate=None, author=None, title=None):
+    clause = ''
+    if pubdate:
+        clause += ' AND pubdate > %r' % pubdate
+    if author:
+        clause += ' AND author like %s' % author
+    if title:
+        clause += ' AND title LIKE %s' % title
+    return queryfunction.clause('WHERE true' + clause) 

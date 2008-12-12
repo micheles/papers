@@ -14,7 +14,10 @@ class Memoize(object):
         self.cachetype = cachetype
         
     def call(self, func, *args, **kw):
-        key = args, frozenset(kw.iteritems())
+        if kw:
+            key = args, frozenset(kw.iteritems())
+        else:
+            key = args
         try:
             return func.cache[key]
         except KeyError:
