@@ -1,4 +1,4 @@
-import re
+import re, inspect
 from decorator import FunctionMaker
 
 STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
@@ -53,5 +53,7 @@ def do(templ, name='sqlquery', args=None, defaults=None, doc=None,
     return conn.execute(templ, %(args)s scalar=scalar)''' % locals()
     fun = FunctionMaker(name=name, signature=args, defaults=defaults,
                         doc=doc or templ)
-    return fun.make(src, templ=templ, scalar=scalar)
+    comment = '\n# scalar = %s\n# templ=\n%s\n' % (scalar, '\n'.join(
+        '## ' + line for line in templ.splitlines()))
+    return fun.make(src, dict(templ=templ, scalar=scalar), addsource=comment)
 

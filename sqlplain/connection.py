@@ -249,10 +249,22 @@ class NullObject(object):
     def __call__(self, *a, **k):
         return None
 
-class FakeConn(object):
+class FakeConnection(object):
     def __init__(self, iodict):
         self.iodict = iodict
-        self.conn = NullObject()
-        self.curs = NullObject()
+        self._conn = NullObject()
+        self._curs = NullObject()
     def execute(self, templ, args=()):
         return self.iodict[(templ,) + args]
+    def executescript(self, templ, *dicts, **kw):
+        pass
+    def commit(self):
+        pass
+    def rollback(self):
+        pass
+    def close(self):
+        pass
+    def __enter__(self):
+        return self
+    def __exit_(self, exctype, exc, tb):
+        pass

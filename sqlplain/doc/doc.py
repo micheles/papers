@@ -235,11 +235,13 @@ uri is parsed and the correct database driver is loaded, otherwise a
 ``NameError``
 is raised. If the configuration file is missing, an ``ImportError`` is raised.
 
-Lazy connections can be used as global variables
-(do not believe people saying that globals are evil: Python is full of
-globals, modules are global variables, classes are global variables, and
-there is nothing wrong in having lazy connection as globals). If
-you instantiate your lazy connections at the beginning
+Lazy connections can be used as global variables.
+
+.. (do not believe people saying that globals are evil: Python is full of
+   globals, modules are global variables, classes are global variables, and
+   there is nothing wrong in having lazy connection as globals)
+
+If you instantiate your lazy connections at the beginning
 of your module, then the underlying low level database driver
 is imported when your module is imported. If you follow this pattern,
 then, the configuration file is part of your application and
@@ -266,12 +268,14 @@ A typical way to pass the URI is to read it from the command line:
 
 This works if ``sys.argv[1]`` is a valid URI or a valid alias.
 However, if you are writing functional tests and you invoke them
-with (say) nose, you cannot use this pattern since ``sys.argv[1]``
-is the test file. When writing nose tests it makes sense to
+with (say) nose_, you cannot use this pattern since ``sys.argv[1]``
+is the name of the file to be tested. When writing nose tests it makes sense to
 use a global lazy connection, instantiated at the top of your
 testing script, something like ``testdb = lazyconnect('testdb')`` where
 ``testdb`` is an alias to the database used for your automatic tests.
 
+.. _nose: http://somethingaboutorange.com/mrl/projects/nose/
+ 
 Transactions
 --------------------------------------------------------------
 
