@@ -52,10 +52,9 @@ def do(templ, name='sqlquery', args=None, defaults=None, scalar=False):
     return conn.execute(templ, %(args)s scalar=scalar)''' % locals()
     fun = FunctionMaker(name=name, signature=args, defaults=defaults,
                         doc=templ)
-    comment = '\n# scalar = %s\n# templ=\n%s\n' % (scalar, '\n'.join(
-        '## ' + line for line in templ.splitlines()))
-    def clause(templ_chunk, name=name):
-        return do(templ + ' ' + templ_chunk, name, scalar=scalar)
-    return fun.make(src, dict(templ=templ, scalar=scalar), addsource=comment,
+    fn = fun.make(src, dict(templ=templ, scalar=scalar), addsource=True,
                     templ=templ, clause=clause)
-
+    comment = '# scalar = %s\n# templ=\n%s\n' % (scalar, '\n'.join(
+        '## ' + line for line in templ.splitlines()))
+    fn.__source__ = '%s\n%s' % (comment, fn.__source__)
+    return fn
