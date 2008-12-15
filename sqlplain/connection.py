@@ -147,11 +147,22 @@ class LazyConnection(object):
             return raw_execute(self._curs, templ, args)
 
     def execute(self, templ, args=(), ntuple=None, scalar=False):
+        if self.dbtype == 'mssql':
+            # converts unicode arguments to utf8
+            lst = []
+            for a in args:
+                if isinstance(a, unicode):
+                    lst.append(a.encode('utf8'))
+                else:
+                    lst.append(a)
+            args = tuple(lst)
+                              
         if self.driver.paramstyle == 'pyformat':
             qmarks, templ = qmark2pyformat(templ) # cached
             if qmarks != len(args): # especially useful for mssql
                 raise TypeError("Expected %d arguments, got %d: %s" % (
                     qmarks, len(args), args))
+        
         descr, res = self._execute(self._curs, templ, args)
         if scalar: # you expect a scalar result
             if len(res) != 1 or len(res[0]) != 1:

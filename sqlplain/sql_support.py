@@ -53,7 +53,7 @@ def do(templ, name='sqlquery', args=None, defaults=None, scalar=False):
     fun = FunctionMaker(name=name, signature=args, defaults=defaults,
                         doc=templ)
     fn = fun.make(src, dict(templ=templ, scalar=scalar), addsource=True,
-                    templ=templ, clause=clause)
+                    templ=templ)
     comment = '# scalar = %s\n# templ=\n%s\n' % (scalar, '\n'.join(
         '## ' + line for line in templ.splitlines()))
     fn.__source__ = '%s\n%s' % (comment, fn.__source__)
