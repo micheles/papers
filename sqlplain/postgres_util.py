@@ -1,6 +1,18 @@
 from sqlplain.util import openclose
 from sqlplain.automatize import getoutput
 
+GET_PKEYS = '''\
+SELECT attname FROM pg_attribute
+WHERE attrelid = (
+   SELECT indexrelid FROM pg_index AS i
+   WHERE i.indrelid = (SELECT oid FROM pg_class WHERE relname=?)
+   AND i.indisprimary = 't')
+ORDER BY attnum
+'''
+
+def get_kfields_postgres(conn, tname):
+    return [x.attname for x in conn.execute(GET_PKEYS, (tname,))]
+
 def create_db_postgres(uri):
     openclose(uri.copy(database='template1'),
               'CREATE DATABASE %(database)s' % uri)

@@ -67,8 +67,8 @@ def _updater(ttuple, templ, name):
         row = row or {}
         if isinstance(row, dict):
             row.update(kw)
-            row = ttuple(**row)        
-        return conn.execute(templ, row,)
+            row = ttuple(**row)
+        return conn.execute(templ, row._dvalues + row._kvalues)
     _execute.__name__ = '%s_%s' % (ttuple.__name__, name)
     _execute.__doc__ = templ
     _execute.__module__ = sys._getframe(2).f_globals['__name__']
@@ -112,8 +112,13 @@ for factory in select, delete, insert, update, update_or_insert:
     # insert_book(conn, title='T', author='A')
     # update_row('book', 'title author', 'pubdate')
     # delete_row('book', 'title author')
-    
-def table(name, kfields, dfields):
+
+def readtable(conn, name):
+    kfields = get_kfields(conn, name)
+    dfields = get_fields(conn, name, exclude_kfields=True)
+    return table(name, kfields, dfields)(conn)
+
+def tablecls(name, kfields, dfields):
     _tt = tabletuple(name, kfields, dfields)
     _select = select(_tt)
     _insert = insert(_tt)
@@ -123,23 +128,41 @@ def table(name, kfields, dfields):
     
     class Table(UserDict.DictMixin):
         tuplecls = _tt
+
         def __init__(self, conn):
             self.conn = conn
+
         def __getitem__(self, key):
             return self.select(key)
+
         def __setitem__(self, key, val):
             self.update_or_insert(val + key)
+
         def keys(self):
             kfields = ', '.join(_tt._kfields)
             return self.conn.execute('SELECT %s FROM %s' % (kfields, name))
+
+        def values(self):
+            fields = ', '.join(_tt._fields)
+            return self.conn.execute('SELECT %s FROM %s' % (fields, name),
+                                     ntuple=_tt)
+        
         def insert(self, row=None, **kw):
             return _insert(self.conn, row, **kw)
+        insert.templ = _insert.__doc__
+        
         def delete(self, row=None, **kw):
             return _delete(self.conn, row, **kw)
+        delete.templ = _delete.__doc__
+        
         def select(self, row=None, **kw):
             return _select(self.conn, row, **kw)
+        delete.templ = _delete.__doc__
+
         def update(self, row=None, **kw):
             return _update(self.conn, row, **kw)
+        update.templ = _update.__doc__
+        
         def update_or_insert(self, row=None, **kw):
             return _update_or_insert(self.conn, row, **kw)
 

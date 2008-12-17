@@ -87,10 +87,6 @@ def create_db(uri, force=False, scriptdir=None, **kw):
 def bulk_insert(conn, file, table, sep='\t'):
     return _call('bulk_insert', conn, file, table, sep)
 
-def exists_table(conn, tname):
-    "Check if a table exists"
-    return _call('exists_table', conn, tname)
-
 def drop_table(conn, tname, force=False):
     """
     Drop a table. If the table does not exist, raise an error, unless
@@ -99,6 +95,25 @@ def drop_table(conn, tname, force=False):
     if not exists_table(tname) and force:
         return # do not raise an error
     return conn.execute('DROP TABLE %s' % tname)
+
+########################## introspection routines ######################
+
+def exists_table(conn, tname):
+    "Check if a table exists"
+    return _call('exists_table', conn, tname)
+
+def get_descr(conn, name):
+    return conn.execute('SELECT * FROM %s WHERE 1=0;' % name).descr
+    
+def get_fields(conn, tname):
+    return [x.name for x in get_descr(conn, tname)]
+
+def get_kfields(conn, tname):
+    return  _call('get_kfields', conn, tname)
+
+def get_dfields(conn, name):
+    kfields = set(get_kfields(conn, name))
+    return [f.name for f in get_descr(conn, name) if f.name not in kfields]
 
 ########################## schema management ###########################
 

@@ -8,6 +8,3 @@ def lazyconnect(uri, isolation_level=None, threadlocal=False, conn_class=None):
     elif conn_class is None and isolation_level is not None:
         conn_class = TransactionalConnection        
     return conn_class(uri, isolation_level, threadlocal)
-    
-def inspect(db, name):
-    return db.execute('SELECT * FROM %s WHERE 1=0;' % name, ntuple=name).header

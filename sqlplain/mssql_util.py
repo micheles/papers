@@ -1,5 +1,8 @@
 from sqlplain.util import openclose
 
+def get_kfields_mssql(conn, table):
+    return [x.COLUMN_NAME for x in conn.execute('sp_pkeys %s' % table)]
+
 def bulk_insert_mssql(uri, file, table, sep='\t'):
     conn.execute('BULK INSERT %s FROM ? SEPARATOR=%s' % (table, sep), file)
     

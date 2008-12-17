@@ -1,6 +1,15 @@
 import os
 from sqlplain.util import openclose
 
+def get_info(conn, tname):
+    """
+    Returns a list of namedtuples [(cid, name, type, notnull, dflt_value, pk)]
+    """
+    return conn.execute('PRAGMA table_info(%s)' % tname)
+
+def get_kfields_sqlite(conn, tname):
+    return [x.name for x in get_info(conn, tname) if x.pk]
+
 def exists_table_sqlite(conn, tname):
     res = conn.execute('PRAGMA table_info(%s)' % tname)
     return len(res)
