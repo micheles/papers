@@ -1,4 +1,5 @@
-import sys, UserDict
+import sys
+from sqlplain import util
 from sqlplain.namedtuple import namedtuple
 
 def tabletuple(name, kfields, dfields):
@@ -36,7 +37,7 @@ def select(ttuple):
         if len(res) != 1:
             raise KeyError('Got %s instead of a single row' % res)
         return res[0]
-    _execute.__name__ = '%s_select' % ttuple.__name__
+    _execute.__name__ = '_%s_select' % ttuple.__name__
     _execute.__doc__ = templ
     _execute.__module__ = sys._getframe(2).f_globals['__name__']
     return _execute
@@ -52,12 +53,12 @@ def delete(ttuple):
             row.update(kw)
             row = ttuple._ktuple(**row)        
         return conn.execute(templ, row, ttuple)
-    _execute.__name__ = '%s_select' % ttuple.__name__
+    _execute.__name__ = '_%s_delete' % ttuple.__name__
     _execute.__doc__ = templ
     _execute.__module__ = sys._getframe(2).f_globals['__name__']
     return _execute
 
-# used only in update and insert
+# used only in update
 def _updater(ttuple, templ, name):
     """
     Returns a function with signature (conn, row) where row can be
@@ -69,7 +70,24 @@ def _updater(ttuple, templ, name):
             row.update(kw)
             row = ttuple(**row)
         return conn.execute(templ, row._dvalues + row._kvalues)
-    _execute.__name__ = '%s_%s' % (ttuple.__name__, name)
+    _execute.__name__ = '_%s_%s' % (ttuple.__name__, name)
+    _execute.__doc__ = templ
+    _execute.__module__ = sys._getframe(2).f_globals['__name__']
+    return _execute
+
+# used only in insert
+def _inserter(ttuple, templ, name):
+    """
+    Returns a function with signature (conn, row) where row can be
+    a dictionary or a namedtuple/tabletuple.
+    """
+    def _execute(conn, row=None, **kw):
+        row = row or {}
+        if isinstance(row, dict):
+            row.update(kw)
+            row = ttuple(**row)
+        return conn.execute(templ, row)
+    _execute.__name__ = '_%s_%s' % (ttuple.__name__, name)
     _execute.__doc__ = templ
     _execute.__module__ = sys._getframe(2).f_globals['__name__']
     return _execute
@@ -80,7 +98,7 @@ def insert(ttuple):
     csfields = ','.join(ttuple._fields)
     qmarks = ','.join('?'*len(ttuple._fields))
     templ = 'INSERT INTO %s (%s) VALUES (%s)' % (name, csfields, qmarks)
-    return _updater(ttuple, templ, 'insert')
+    return _inserter(ttuple, templ, 'insert')
 
 def update(ttuple):
     "Returns a procedure updating a row"
@@ -99,74 +117,74 @@ def update_or_insert(ttuple):
         if n == 0:
             n = ins(conn, row, **kw)
         return n
-    up_or_ins.__name__ = '%s_update_or_insert' % ttuple.__name__
+    up_or_ins.__name__ = '_%s_update_or_insert' % ttuple.__name__
     return up_or_ins
 
-for factory in select, delete, insert, update, update_or_insert:
-    def row(name, kfields, dfields='', factory=factory):
-        return factory(tabletuple(name, kfields, dfields))
-    name = '%s_row' % factory.__name__
-    row.__name__ = name
-    globals()[name] = row
+#for factory in select, delete, insert, update, update_or_insert:
+#    def row(name, kfields, dfields='', factory=factory):
+#        return factory(tabletuple(name, kfields, dfields))
+#    name = '%s_row' % factory.__name__
+#    row.__name__ = name
+#    globals()[name] = row
     # insert_book = insert_row('book', 'title author')
     # insert_book(conn, title='T', author='A')
     # update_row('book', 'title author', 'pubdate')
     # delete_row('book', 'title author')
 
-def readtable(conn, name):
-    kfields = get_kfields(conn, name)
-    dfields = get_fields(conn, name, exclude_kfields=True)
-    return table(name, kfields, dfields)(conn)
+class Table(object):
+    @classmethod
+    def type_(cls, name, kfields, dfields):
+        "Ex. Book = Table.type_('book', 'serial', 'title author')"
+        tt = tabletuple(name, kfields, dfields)
+        d = dict(tt=tt)
+        for nam in ('insert', 'delete', 'select', 'update', 'update_or_insert'):
+            methodname = nam + '_row'
+            privatemethod = globals()[nam](tt)
+            privatename = privatemethod.__name__
+            d[privatename] = staticmethod(privatemethod)
+            d['%s_templ' % name] = privatemethod.__doc__
+        return type(name.capitalize(), (cls,), d)
 
-def tablecls(name, kfields, dfields):
-    _tt = tabletuple(name, kfields, dfields)
-    _select = select(_tt)
-    _insert = insert(_tt)
-    _delete = delete(_tt)
-    _update = update(_tt)
-    _update_or_insert = update_or_insert(_tt)
+    @classmethod
+    def from_(cls, conn, name):
+        "Ex. book = Table.from_(mydb, 'book')"
+        kfields = util.get_kfields(conn, name)
+        dfields = util.get_dfields(conn, name)
+        return cls.type_(name, kfields, dfields)(conn)
+
+    def __init__(self, conn):
+        self.tt # raise AttributeError if not initialized correctly
+        self.conn = conn
+
+    def __contains__(self, key):
+        pass
+        
+    def keys(self):
+        kfields = ', '.join(self.tt._kfields)
+        return self.conn.execute(
+            'SELECT %s FROM %s' % (kfields, name))
+
+    def allrows(self, clause=''):
+        fields = ', '.join(self.tt._fields)
+        return self.conn.execute(
+            'SELECT %s FROM %s %s' % (fields, name, clause), ntuple=self.tt)
+
+    # keep the following five methods explicit for inspectability purposes
     
-    class Table(UserDict.DictMixin):
-        tuplecls = _tt
+    def insert_row(self, row=None, **kw):
+        return self._insert_row(self.conn, row, **kw)
 
-        def __init__(self, conn):
-            self.conn = conn
+    def delete_row(self, row=None, **kw):
+        return self._delete_row(self.conn, row, **kw)
 
-        def __getitem__(self, key):
-            return self.select(key)
+    def select_row(self, row=None, **kw):
+        return self._select_row(self.conn, row, **kw)
 
-        def __setitem__(self, key, val):
-            self.update_or_insert(val + key)
+    def update_row(self, row=None, **kw):
+        return self._update_row(self.conn, row, **kw)
 
-        def keys(self):
-            kfields = ', '.join(_tt._kfields)
-            return self.conn.execute('SELECT %s FROM %s' % (kfields, name))
-
-        def values(self):
-            fields = ', '.join(_tt._fields)
-            return self.conn.execute('SELECT %s FROM %s' % (fields, name),
-                                     ntuple=_tt)
-        
-        def insert(self, row=None, **kw):
-            return _insert(self.conn, row, **kw)
-        insert.templ = _insert.__doc__
-        
-        def delete(self, row=None, **kw):
-            return _delete(self.conn, row, **kw)
-        delete.templ = _delete.__doc__
-        
-        def select(self, row=None, **kw):
-            return _select(self.conn, row, **kw)
-        delete.templ = _delete.__doc__
-
-        def update(self, row=None, **kw):
-            return _update(self.conn, row, **kw)
-        update.templ = _update.__doc__
-        
-        def update_or_insert(self, row=None, **kw):
-            return _update_or_insert(self.conn, row, **kw)
-
-    return Table
+    def update_or_insert_row(self, row=None, **kw):
+        return self._update_or_insert_row(self.conn, row, **kw)
 
 # book = Table('book', 'title author', 'pubdate')(conn)
 # book.select(author='A')
@@ -179,9 +197,10 @@ if __name__ == '__main__':
     print tt._kvalues, tt._dvalues
     print tt.__class__.mro()
 
-    b = Table('book', 'pubdate', 'title author')
-    help(b.select)
-    help(b.insert)
-    help(b.delete)
-    help(b.update)
-    help(b.update_or_insert)
+    Book = Table.type('book', 'pubdate', 'title author')
+    help(Book._book_select)
+    #help(Book.select_row)
+    #help(Book.insert_row)
+    #help(Book.delete_row)
+    #help(Book.update_row)
+    #help(Book.update_or_insert_row)

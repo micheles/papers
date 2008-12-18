@@ -96,6 +96,12 @@ def drop_table(conn, tname, force=False):
         return # do not raise an error
     return conn.execute('DROP TABLE %s' % tname)
 
+############################### Inserter ###############################
+
+class Inserter(object):
+    def __init__(self, ntuple, conn):
+        pass
+    
 ########################## introspection routines ######################
 
 def exists_table(conn, tname):
