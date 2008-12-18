@@ -532,6 +532,17 @@ works well enough for my needs. Future versions of ``sqlplain``
 could offer additional functionality for generating SQL templates,
 or could not.
 
+Utilities: the inserter
+--------------------------------------------------------------
+
+'''
+insert = util.Inserter.object(conn, 'book').insert_row
+insert(title=t, author=a)
+insert = util.Inserter.type('book', 'title author').insert_row
+insert(conn, (title, author))
+'''
+
+
 Tables
 ------------------------------------------------------------
 
@@ -613,10 +624,11 @@ I will implement the project by using a test first approach.
 """
 
 from sqlplain.doc import threadlocal_ex
-from sqlplain import transact, dry_run, do
+from sqlplain import transact, dry_run, do, util
 import queries, cache_ex
 
 def customize_select(queryfunction, pubdate=None, author=None, title=None):
+    templ = queryfunction.templ
     clause = ''
     if pubdate:
         clause += ' AND pubdate > %r' % pubdate
@@ -624,4 +636,4 @@ def customize_select(queryfunction, pubdate=None, author=None, title=None):
         clause += ' AND author like %s' % author
     if title:
         clause += ' AND title LIKE %s' % title
-    return queryfunction.clause('WHERE true' + clause) 
+    return do(templ + ' WHERE true' + clause)

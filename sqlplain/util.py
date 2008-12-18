@@ -6,6 +6,7 @@ import os, sys, re
 from sqlplain.uri import URI
 from sqlplain import lazyconnect, transact, do
 from sqlplain.namedtuple import namedtuple
+from sqlplain.connection import connmethod
 
 VERSION = re.compile(r'(\d[\d\.-]+)')
 Chunk = namedtuple('Chunk', 'version fname code')
@@ -84,9 +85,6 @@ def create_db(uri, force=False, scriptdir=None, **kw):
                 exec chunk.code in {}
     return db
 
-def bulk_insert(conn, file, table, sep='\t'):
-    return _call('bulk_insert', conn, file, table, sep)
-
 def drop_table(conn, tname, force=False):
     """
     Drop a table. If the table does not exist, raise an error, unless
@@ -98,9 +96,43 @@ def drop_table(conn, tname, force=False):
 
 ############################### Inserter ###############################
 
+def insert(ttuple):
+    "Return a procedure inserting a row or a dictionary into a table"
+    name = ttuple.__name__
+    csfields = ','.join(ttuple._fields)
+    qmarks = ','.join('?'*len(ttuple._fields))
+    templ = 'INSERT INTO %s (%s) VALUES (%s)' % (name, csfields, qmarks)
+    def insert_row(conn, row=None, **kw):
+        row = row or {}
+        if isinstance(row, dict):
+            row.update(kw)
+            row = ttuple(**row)
+        return conn.execute(templ, row)
+    insert_row.__doc__ = insert_row.templ = templ
+    return insert_row
+
 class Inserter(object):
-    def __init__(self, ntuple, conn):
-        pass
+    @classmethod
+    def type(cls, name, fields):
+        "Ex. Book = Table.type('book', 'serial', 'title author')"
+        tt = namedtuple(name, fields)
+        ins = connmethod(insert(tt))
+        return type(name.capitalize(), (cls,), dict(tt=tt, insert_row=ins))
+
+    @classmethod
+    def object(cls, conn, name):
+        "Ex. book = Table.object(mydb, 'book')"
+        fields = util.get_fields(conn, name)
+        return cls.type(name, fields)(conn)
+
+    @connmethod
+    def insert_from(conn, file, table, sep='\t'):
+        'Populate a table by reading a file-like object'
+        return _call('bulk_insert', conn, file, table, sep)
+
+    def __init__(self, conn):
+        self.tt # raise AttributeError if not initialized correctly
+        self.conn = conn
     
 ########################## introspection routines ######################
 
