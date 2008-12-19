@@ -1,7 +1,15 @@
-import sys
+import sys, string
 from sqlplain import util
 from sqlplain.namedtuple import namedtuple
 from sqlplain.connection import connmethod
+
+def tolist(fields):
+    'Convert a comma or space separated string (or an iterable) to a list'
+    if isinstance(fields, list):
+        return fields
+    elif isinstance(fields, basestring):
+        fields = fields.replace(',', ' ').split()
+    return list(fields)
 
 def tabletuple(name, kfields, dfields):
     """
@@ -9,7 +17,8 @@ def tabletuple(name, kfields, dfields):
     ._kvalues, .dvalues. This is needed to send records to a database table
     with a primary key
     """
-    ttuple = namedtuple(name, kfields + ' ' + dfields)
+    kfields, dfields = tolist(kfields), tolist(dfields)
+    ttuple = namedtuple(name, kfields + dfields)
     ttuple._ktuple = ktuple = namedtuple(name + '_key', kfields)
     ttuple._dtuple = dtuple = namedtuple(name + '_data', dfields)
     ttuple._kfields = ktuple._fields
@@ -60,15 +69,23 @@ def delete(ttuple):
 def update(ttuple):
     "Returns a procedure updating a row"
     name = ttuple.__name__
-    set = ', '.join('%s=?' % field for field in ttuple._dfields)
     where = ' AND '.join('%s=?' % field for field in ttuple._kfields)
-    templ = 'UPDATE %s SET %s WHERE %s' % (name, set, where)
+    templ = string.Template('UPDATE %s SET $set WHERE %s' % (name, where))
     def update_row(conn, row=None, **kw):
-        row = row or {}
-        if isinstance(row, dict):
-            row.update(kw)
-            row = ttuple(**row)
-        return conn.execute(templ, row._dvalues + row._kvalues)
+        if row is None:
+            row = {}
+        elif hasattr(row, '_asdict'):
+            row = row._asdict()
+        row.update(kw)
+        kvalues, dvalues, dfields = [], [], []
+        for f, v in row.iteritems():
+            if f in ttuple._kfields:
+                kvalues.append(v)
+            else:
+                dvalues.append(v)
+                dfields.append(f)
+        sql = templ.substitute(set=', '.join('%s=?' % f for f in dfields))
+        return conn.execute(sql, dvalues + kvalues)
     update_row.__doc__ = update_row.templ = templ
     return update_row
 
@@ -101,7 +118,7 @@ class Table(object):
         "Ex. book = Table.object(mydb, 'book')"
         kfields = util.get_kfields(conn, name)
         dfields = util.get_dfields(conn, name)
-        return cls.type_(name, kfields, dfields)(conn)
+        return cls.type(name, kfields, dfields)(conn)
 
     def __init__(self, conn):
         self.tt # raise AttributeError if not initialized correctly

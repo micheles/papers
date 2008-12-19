@@ -46,10 +46,8 @@ def do(templ, name='sqlquery', args=None, defaults=None, scalar=False):
     """
     if args is None:
         args = ', '.join(extract_argnames(templ))
-    if args:
-        args += ','
     src = '''def %(name)s(conn, %(args)s):
-    return conn.execute(templ, %(args)s scalar=scalar)''' % locals()
+    return conn.execute(templ, (%(args)s), scalar=scalar)''' % locals()
     fun = FunctionMaker(name=name, signature=args, defaults=defaults,
                         doc=templ)
     fn = fun.make(src, dict(templ=templ, scalar=scalar), addsource=True,

@@ -90,10 +90,24 @@ def drop_table(conn, tname, force=False):
     Drop a table. If the table does not exist, raise an error, unless
     force is True.
     """
-    if not exists_table(tname) and force:
+    if not exists_table(conn, tname) and force:
         return # do not raise an error
     return conn.execute('DROP TABLE %s' % tname)
 
+def copy_table(conn, src, dest, force=False):
+    """
+    Copy src into dest by using SELECT INTO; dest must be a valid tablename.
+    If force is True and dest is an already existing table, dest is
+    destroyed and recreated.
+    """
+    query = "SELECT * INTO %s FROM %s" % (dest, src)
+    if force and exists_table(conn, dest):
+        drop_table(conn, dest)
+    n = conn.execute(query)
+    kfields = ', '.join(get_kfields(conn, src))
+    conn.execute('ALTER TABLE %s ADD PRIMARY KEY (%s)' % (dest, kfields))
+    return n
+    
 ############################### Inserter ###############################
 
 def insert(ttuple):
