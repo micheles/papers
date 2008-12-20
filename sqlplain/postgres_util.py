@@ -25,11 +25,14 @@ def exists_table_postgres(conn, tname):
     return conn.execute('SELECT count(*) FROM pg_tables WHERE name=?',
                         tname, scalar=True)
 
-def bulk_insert_postgres(conn, file, table, sep='\t', null='\N', columns=None):
-    conn._curs.copy_from(file, table, sep, null, columns)
+# apparently copy_from from psycopg2 is buggy for large files
+def bulk_insert_postgres(conn, fname, table, sep=',', null='\N'):
+    templ = "COPY %s FROM ? WITH DELIMITER ? NULL ?"
+    return conn.execute(templ % table, (fname, sep, null))
 
-def dump_postgres(conn, file, table, sep='\t', null='\N', columns=None):
-    conn._curs.copy_to(file, table, sep, null, columns)
+def dump_postgres(conn, fname, table, sep='\t', null='\N'):
+    templ = "COPY %s TO ? WITH DELIMITER ? NULL ?"
+    return conn.execute(templ % table, (fname, sep, null))
 
 def exists_db_postgres(uri):
     dbname = uri['database']

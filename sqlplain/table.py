@@ -29,7 +29,23 @@ def tabletuple(name, kfields, dfields):
         lambda self: dtuple(*[getattr(self, n) for n in self._dfields]))
     return ttuple
 
-insert = util.insert
+# note: the methods of the Table classes
+# are completely external to the class except for the .conn attribute
+
+def insert(ttuple):
+    "Return a procedure inserting a row or a dictionary into a table"
+    name = ttuple.__name__
+    csfields = ','.join(ttuple._fields)
+    qmarks = ','.join('?'*len(ttuple._fields))
+    templ = 'INSERT INTO %s (%s) VALUES (%s)' % (name, csfields, qmarks)
+    def insert_row(conn, row=None, **kw):
+        row = row or {}
+        if isinstance(row, dict):
+            row.update(kw)
+            row = ttuple(**row)
+        return conn.execute(templ, row)
+    insert_row.__doc__ = insert_row.templ = templ
+    return insert_row
 
 def select(ttuple):
     """
@@ -46,8 +62,10 @@ def select(ttuple):
             row.update(kw)
             row = ttuple._ktuple(**row)        
         res = conn.execute(templ, row, ttuple)
-        if len(res) != 1:
-            raise KeyError('Got %s instead of a single row' % res)
+        if not res:
+            raise KeyError('Missing record for %s' % str(row))
+        elif len(res) > 1:
+            raise RuntimeError('Got %s instead of a single row' % res)
         return res[0]
     select_row.__doc__ = select_row.templ = templ
     return select_row
@@ -101,12 +119,55 @@ def update_or_insert(ttuple):
     update_or_insert_row.__doc__ = update_or_insert_row.templ = None
     return update_or_insert_row
 
-class Table(object):
+class DTable(object):
+    """
+    A simple table class for database tables without a primary key.
+    The only methods are insert_row, bulk_insert, delete, truncate, select.
+    """
+    @classmethod
+    def type(cls, name, fields):
+        "Ex. Insert = DTable.type('book', 'serial', 'title author')"
+        tt = namedtuple(name, fields)
+        def bulk_insert(conn, file, sep='\t'):
+            'Populate a table by reading a file-like object'
+            return util._call('bulk_insert', conn, file, name, sep)
+        dic = dict(
+            tt = tt,
+            name = tt.__name__,
+            insert_row = connmethod(insert(tt)),
+            bulk_insert = connmethod(bulk_insert),
+            )
+        return type(name.capitalize(), (cls,), dic)
+
+    @classmethod
+    def object(cls, conn, name):
+        "Ex. insert = DTable.object(mydb, 'book')"
+        fields = util.get_fields(conn, name)
+        return cls.type(name, fields)(conn)
+
+    def __init__(self, conn):
+        self.tt # raise AttributeError if not initialized correctly
+        self.conn = conn
+
+    def select(self, clause=''):
+        fields = ', '.join(self.tt._fields)
+        return self.conn.execute(
+            'SELECT %s FROM %s %s' % (fields, self.name, clause),
+            ntuple=self.tt)
+
+    def delete(self, clause=''):
+        return self.conn.execute('DELETE FROM ' + self.name + ' ' + clause)
+
+    def truncate(self):
+        return self.conn.execute('TRUNCATE TABLE %s' % self.name)
+
+
+class KTable(DTable):
     @classmethod
     def type(cls, name, kfields, dfields):
         "Ex. Book = Table.type('book', 'serial', 'title author')"
         tt = tabletuple(name, kfields, dfields)
-        d = dict(tt=tt)
+        d = dict(tt=tt, name=name)
         for nam in ('insert', 'delete', 'select', 'update', 'update_or_insert'):
             func = globals()[nam](tt)
             cmethod = connmethod(func)
@@ -126,25 +187,18 @@ class Table(object):
 
     def __contains__(self, key):
         pass
-        
+    
     def keys(self):
-        name = self.tt.__name__
         kfields = ', '.join(self.tt._kfields)
         return self.conn.execute(
-            'SELECT %s FROM %s' % (kfields, name))
-
-    def allrows(self, clause=''):
-        name = self.tt.__name__
-        fields = ', '.join(self.tt._fields)
-        return self.conn.execute(
-            'SELECT %s FROM %s %s' % (fields, name, clause), ntuple=self.tt)
+            'SELECT %s FROM %s' % (kfields, self.name))
 
 if __name__ == '__main__':
     tt = tabletuple('tt', 'x y', 'a,b')(1, 2, 3, 4)
     print tt._kvalues, tt._dvalues
     print tt.__class__.mro()
 
-    Book = Table.type('book', 'pubdate', 'title author')
+    Book = KTable.type('book', 'pubdate', 'title author')
     from sqlplain import lazyconnect
     conn = lazyconnect('srs_dev')
     book = Book(conn)

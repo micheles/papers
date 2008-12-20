@@ -287,10 +287,6 @@ class connmethod(object):
     """
     def __init__(self, func):
         self._func = func
-        self.__name__ = func.__name__
-        #self.__doc__ = func.__doc__
-        #self.__dict__ = func.__dict__
-        #self.__module__ = func.__module__
     def __get__(self, obj, objcls):
         if obj is None: # called from the class
             return self._func
