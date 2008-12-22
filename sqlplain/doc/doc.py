@@ -490,7 +490,7 @@ SQL template functions provide a ``clause`` attribute, which is function
 adding a template fragment to the original template, and returning
 a new SQL template function. Here is an example of use:
 
-$$make_select
+$$customize_select
 
 Notice that SQL template functions are functional in spirit:
 they are not objects and adding a template fragment result
@@ -518,10 +518,7 @@ Here are a few examples of usage:
  SELECT * FROM book WHERE true AND author LIKE 'Asimov%'
 
  >>> print customize_select(select_books, author='Asimov%', pubdate='2008-11-12').__doc__
- SELECT * FROM book WHERE true AND pubdate > '2008-11-12' AND author like Asimov%
-
- >>> print customize_select(select_books, author='?', pubdate='2008-11-12').__doc__
- SELECT * FROM book WHERE true AND pubdate > '2008-11-12' AND author like ?
+ SELECT * FROM book WHERE true AND pubdate > '2008-11-12' AND author LIKE 'Asimov%'
 
 In this last example the generated function has an additional argument
 with respect to the original one, since there is a question mark in
@@ -532,19 +529,113 @@ works well enough for my needs. Future versions of ``sqlplain``
 could offer additional functionality for generating SQL templates,
 or could not.
 
-Utilities: the inserter
+Populating a table
 --------------------------------------------------------------
 
-'''
-insert = util.Inserter.object(conn, 'book').insert_row
-insert(title=t, author=a)
-insert = util.Inserter.type('book', 'title author').insert_row
-insert(conn, (title, author))
-'''
+``sqlplain`` provides two utilities to populate a table:
 
+- ``insert_rows(conn, tablename, rows)`` inserts a sequence of rows
+  (any iterable returning valid rows will do) into a table;
 
-Tables
+- ``insert_file(conn, filename, tablename, sep=',')`` inserts the content
+  of a CSV file into a table.
+
+The difference between the two operations is that ``insert_file`` is orders
+of magnitude faster that ``insert_rows`` since it uses the underlying
+database mechanism for bulk inserting files, possibly disabling transactional
+safety. ``sqlplain`` comes with a test script in the tests directory
+(``test_million.py``) which tries to import a datafile with the two
+mechanism; if you run it, you may see how big is the performance
+difference on your platform. On my MacBook the difference is a factor
+of 60, i.e. an operation that would take 5 hours with ``insert_rows``
+is reduced to 5 minutes with ``insert_file``.
+
+Nevertheless, ``insert_rows`` is more convenient when you have small
+tables and when you are writing unit tests, therefore it makes sense
+for ``sqlplain`` to provide it.
+
+The problem of both ``insert_rows`` and ``insert_file`` is that you
+do not have line-by-line control of the operation, therefore a single
+ill-formed line in a million lines file will screw up the entire
+operation.
+
+If you want to insert a line at the time, you can do so by using the
+low level mechanism (with a command like
+``conn.execute("INSERT INTO mytable VALUES (?, ?, ?)", (r1, r2, r3))``)
+or by using the high level table framework discussed in the next framework.
+                                    
+The table framework
 ------------------------------------------------------------
+
+As I said in the introduction, ``sqlplain`` is not intended to be
+a fully fledged ORM, therefore it does not provide a builtin mechanism
+to map user defined classes to database objects, such as the mapping
+mechanism in SQLAlchemy, or the popular Active Record pattern; nevertheless,
+it provides a table framework which us a lightweight object oriented layer
+over database tables.
+``sqlplain`` table object comes in two flavors: D-tables, which should be
+used for tables without a primary key, and K-tables, which must
+used for tables with a primary key, possibly composite. Actually K-tables
+are D-tables too, since they inherit from D-tables, therefore they
+share all D-tables methods and they add a few methods which are
+meaninful only if the underlying table has a primary key.
+If you try to use a K-table over a database table which has no primary
+key, a ``TypeError`` will be raised. Here is an example:
+
+$$logtable
+
+>>> from sqlplain import table
+>>> import logtable
+>>> db = logtable.init('sqlite_test')
+>>> log = table.KTable.reflect(db, 'log')
+Traceback (most recent call last):
+  ...
+TypeError: table log has no primary key!
+
+Using a DTable instead works:
+
+>>> log = table.DTable.reflect(db, 'log')
+
+The ``.reflect`` classmethod creates a suitable subclass of ``DTable``
+(called ``Log``) and instantiates it. ``DTable`` is a kind of abstract
+base class and you cannot instantiate it directly (the same is true
+for the KTable class):
+
+>>> table.DTable(db)
+Traceback (most recent call last):
+  ...
+TypeError: You cannot instantiate the ABC DTable
+
+In order to create a concrete subclass of DTable (or KTable) one needs
+to set the tabletuple class attribute ``tt``, which contains information
+about the table structure. The ``.reflect`` method extracts the information
+from the database schema; for instance ``log.tt`` is a namedtuple with
+fields ``date`` and ``message``:
+
+>>> print log.tt._fields
+('date', 'message')
+
+
+>>> from datetime import datetime
+>>> now = datetime.now
+>>> log.insert_row(date=now(), message='message1')
+1
+>>> log.insert_row(date=now(), message='message2')
+1
+>>> print len(log)
+2
+
+Here is the full API for DTable:
+
+- type
+- reflect
+- select
+- insert_row
+- insert_rows
+- insert_file
+- delete
+- truncate
+- len -
 
 ``sqlplain`` tries to make your life easier, so it provides five
 SQL template functions in addition to ``do``; they are
@@ -623,9 +714,11 @@ I will implement the project by using a test first approach.
 
 """
 
+from ms.tools.minidoc import Document
 from sqlplain.doc import threadlocal_ex
-from sqlplain import transact, dry_run, do, util
+from sqlplain import transact, dry_run, do, util, table
 import queries, cache_ex
+import logtable
 
 def customize_select(queryfunction, pubdate=None, author=None, title=None):
     templ = queryfunction.templ
@@ -633,7 +726,12 @@ def customize_select(queryfunction, pubdate=None, author=None, title=None):
     if pubdate:
         clause += ' AND pubdate > %r' % pubdate
     if author:
-        clause += ' AND author like %s' % author
+        clause += ' AND author LIKE %r' % author
     if title:
-        clause += ' AND title LIKE %s' % title
+        clause += ' AND title LIKE %r' % title
     return do(templ + ' WHERE true' + clause)
+
+dtable_doc = str(Document(table.DTable))
+
+if __name__ == '__main__':
+    import doctest; doctest.testmod()

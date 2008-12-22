@@ -26,7 +26,7 @@ def exists_table_postgres(conn, tname):
                         tname, scalar=True)
 
 # apparently copy_from from psycopg2 is buggy for large files
-def bulk_insert_postgres(conn, fname, table, sep=',', null='\N'):
+def insert_file_postgres(conn, fname, table, sep=',', null='\N'):
     templ = "COPY %s FROM ? WITH DELIMITER ? NULL ?"
     return conn.execute(templ % table, (fname, sep, null))
 

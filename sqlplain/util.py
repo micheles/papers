@@ -106,25 +106,64 @@ def copy_table(conn, src, dest, force=False):
     kfields = ', '.join(get_kfields(conn, src))
     conn.execute('ALTER TABLE %s ADD PRIMARY KEY (%s)' % (dest, kfields))
     return n
-        
+
+def truncate_table(conn, tname):
+    if conn.dbtype == 'sqlite': # TRUNCATE is not supported right now
+        #conn.execute('PRAGMA synchronous = OFF')
+        try:
+            return conn.execute('DELETE FROM %s' % tname)
+        finally:
+            pass
+            #conn.execute('PRAGMA synchronous = ON')
+    else:
+        return conn.execute('TRUNCATE TABLE %s' % tname)
+
+def insert_rows(conn, tname, rows):
+    "Insert an iterable sequence of rows into a table; useful for unit tests"
+    it = iter(rows)
+    n = 0 # number of inserted lines
+    try:
+        row = it.next()
+    except StopIteration: # nothing to insert
+        return n
+    templ = 'INSERT INTO %s VALUES (%s)' % (tname, ', '.join('?'*len(row)))
+    n = conn.execute(templ, row)
+    for row in it:
+        n += conn.execute(templ, row)
+    return n
+    
+def insert_file(conn, fname, tname, sep=','):
+    "Bulk insert a CSV file into a table"""
+    return _call('insert_file', conn, fname, tname, sep)
+
 ########################## introspection routines ######################
 
 def exists_table(conn, tname):
     "Check if a table exists"
     return _call('exists_table', conn, tname)
 
-def get_descr(conn, name):
-    return conn.execute('SELECT * FROM %s WHERE 1=0;' % name).descr
+def get_descr(conn, tname):
+    "Return the DB API 2 description as a list of rows"
+    return conn.execute('SELECT * FROM %s WHERE 1=0;' % tname).descr
     
 def get_fields(conn, tname):
+    """
+    Return the names of the columns of a table (must be ASCII).
+    """
     return [x.name for x in get_descr(conn, tname)]
 
 def get_kfields(conn, tname):
-    return  _call('get_kfields', conn, tname)
+    """
+    Return the names of the primary key column(s) of a table (must be ASCII).
+    """
+    return map(str, _call('get_kfields', conn, tname))
 
-def get_dfields(conn, name):
-    kfields = set(get_kfields(conn, name))
-    return [f.name for f in get_descr(conn, name) if f.name not in kfields]
+def get_dfields(conn, tname):
+    """
+    Return the names of the data column(s) of a table (must be ASCII).
+    """
+    kfields = set(get_kfields(conn, tname))
+    return [name for name in get_fields(conn, tname) if name not in kfields]
 
 ########################## schema management ###########################
 

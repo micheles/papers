@@ -3,21 +3,13 @@ from sqlplain import util
 from sqlplain.namedtuple import namedtuple
 from sqlplain.connection import connmethod
 
-def tolist(fields):
-    'Convert a comma or space separated string (or an iterable) to a list'
-    if isinstance(fields, list):
-        return fields
-    elif isinstance(fields, basestring):
-        fields = fields.replace(',', ' ').split()
-    return list(fields)
 
+# kfields and dfields must be tuples, not strings
 def tabletuple(name, kfields, dfields):
     """
     Returns a namedtuple with attributes ._kfields, ._dfields and properties
-    ._kvalues, .dvalues. This is needed to send records to a database table
-    with a primary key
+    ._kvalues, .dvalues. 
     """
-    kfields, dfields = tolist(kfields), tolist(dfields)
     ttuple = namedtuple(name, kfields + dfields)
     ttuple._ktuple = ktuple = namedtuple(name + '_key', kfields)
     ttuple._dtuple = dtuple = namedtuple(name + '_data', dfields)
@@ -35,13 +27,17 @@ def tabletuple(name, kfields, dfields):
 def insert(ttuple):
     "Return a procedure inserting a row or a dictionary into a table"
     name = ttuple.__name__
-    csfields = ','.join(ttuple._fields)
-    qmarks = ','.join('?'*len(ttuple._fields))
+    fields = ttuple._fields
+    csfields = ', '.join(fields)
+    qmarks = ', '.join('?'*len(fields))
     templ = 'INSERT INTO %s (%s) VALUES (%s)' % (name, csfields, qmarks)
     def insert_row(conn, row=None, **kw):
         row = row or {}
         if isinstance(row, dict):
             row.update(kw)
+            missing = set(fields) - set(row) # check for a better error message
+            if missing:
+                raise TypeError('Missing field(s) %s' % ', '.join(missing)) 
             row = ttuple(**row)
         return conn.execute(templ, row)
     insert_row.__doc__ = insert_row.templ = templ
@@ -122,68 +118,115 @@ def update_or_insert(ttuple):
 class DTable(object):
     """
     A simple table class for database tables without a primary key.
-    The only methods are insert_row, bulk_insert, delete, truncate, select.
+    The only methods are insert_row, insert_file, delete, truncate, select.
     """
+    _registry = {}
+    
     @classmethod
     def type(cls, name, fields):
         "Ex. Insert = DTable.type('book', 'serial', 'title author')"
+        fields = tuple(fields)
+        if (name, fields) in cls._registry:
+            return cls._registry[name, fields]
         tt = namedtuple(name, fields)
-        def bulk_insert(conn, file, sep='\t'):
+        def insert_file(conn, file, sep='\t'):
             'Populate a table by reading a file-like object'
-            return util._call('bulk_insert', conn, file, name, sep)
+            return util.insert_file(conn, file, name, sep)
+        def insert_rows(conn, rows):
+            'Populate a table by reading a row-iterator'
+            return util.insert_rows(conn, name, rows)
         dic = dict(
             tt = tt,
             name = tt.__name__,
             insert_row = connmethod(insert(tt)),
-            bulk_insert = connmethod(bulk_insert),
+            insert_rows = connmethod(insert_rows),
+            insert_file = connmethod(insert_file),
+            _registry = {},
             )
-        return type(name.capitalize(), (cls,), dic)
+        subc = type(name.capitalize(), (cls,), dic)
+        cls._registry[name, fields] = subc
+        return subc
 
     @classmethod
-    def object(cls, conn, name):
-        "Ex. insert = DTable.object(mydb, 'book')"
+    def reflect(cls, conn, name):
+        "Ex. insert = DTable.reflect(mydb, 'book')"
         fields = util.get_fields(conn, name)
         return cls.type(name, fields)(conn)
 
+    @connmethod
+    def insert_row(conn, row, **kw):
+        "Dynamically replaced in subclasses"
+
+    @connmethod
+    def insert_rows(conn, row, **kw):
+        "Dynamically replaced in subclasses"
+
+    @connmethod
+    def insert_file(conn, row, **kw):
+        "Dynamically replaced in subclasses"
+
     def __init__(self, conn):
-        self.tt # raise AttributeError if not initialized correctly
+        if self.__class__ in (DTable, KTable):
+            raise TypeError('You cannot instantiate the ABC %s' %
+                            self.__class__.__name__)
+        self.tt # raise an AttributeError if not set correctly
         self.conn = conn
 
     def select(self, clause=''):
+        "Select rows from the table"
         fields = ', '.join(self.tt._fields)
         return self.conn.execute(
             'SELECT %s FROM %s %s' % (fields, self.name, clause),
             ntuple=self.tt)
 
     def delete(self, clause=''):
+        "Delete rows from the table"
         return self.conn.execute('DELETE FROM ' + self.name + ' ' + clause)
 
     def truncate(self):
-        return self.conn.execute('TRUNCATE TABLE %s' % self.name)
+        "Truncate the table"
+        return util.truncate_table(self.conn, self.name)
 
+    def count(self, clause=''):
+        "Count the number of rows satisfying the given clause"
+        return self.conn.execute(
+            'SELECT count(*) FROM %s %s' % (self.name, clause), scalar=True)
 
+    def __len__(self):
+        "Return the total number of rows in the table"
+        return self.count()
+    
 class KTable(DTable):
+    """
+    An object oriented wrapper for database tables with a primary key.
+    """
+    _registry = {}
+    
     @classmethod
     def type(cls, name, kfields, dfields):
-        "Ex. Book = Table.type('book', 'serial', 'title author')"
+        "Ex. Book = KTable.type('book', 'serial', 'title author')"
+        if not kfields:
+            raise TypeError('table %s has no primary key!' % name)
+        kfields = tuple(kfields)
+        dfields = tuple(dfields)
+        if (name, kfields, dfields) in cls._registry:
+            return cls._registry[name, kfields, dfields]
         tt = tabletuple(name, kfields, dfields)
-        d = dict(tt=tt, name=name)
+        d = dict(tt=tt, name=name, _registry = {})
         for nam in ('insert', 'delete', 'select', 'update', 'update_or_insert'):
             func = globals()[nam](tt)
             cmethod = connmethod(func)
             d[nam + '_row'] = cmethod
-        return type(name.capitalize(), (cls,), d)
+        subc = type(name.capitalize(), (cls,), d)
+        cls._registry[name, kfields, dfields] = subc
+        return subc
 
     @classmethod
-    def object(cls, conn, name):
-        "Ex. book = Table.object(mydb, 'book')"
+    def reflect(cls, conn, name):
+        "Ex. book = KTable.reflect(mydb, 'book')"
         kfields = util.get_kfields(conn, name)
         dfields = util.get_dfields(conn, name)
         return cls.type(name, kfields, dfields)(conn)
-
-    def __init__(self, conn):
-        self.tt # raise AttributeError if not initialized correctly
-        self.conn = conn
 
     def __contains__(self, key):
         pass

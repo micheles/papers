@@ -1,5 +1,5 @@
 """
-A test script to investigate the performance of bulk_insert.
+A test script to investigate the performance of insert_file.
 """
 
 from __future__ import with_statement
@@ -9,16 +9,14 @@ from datetime import date, timedelta
 from sqlplain import do, util, table
 from sqlplain.recipes import Clock
 
-db = util.create_db('postgres_test', force=True)
-
-CREATE_PRICE_TABLE = '''
+create_price_table = do('''
 CREATE TABLE price(
 code CHAR(4),
 date DATE,
-price FLOAT
-);
-ALTER TABLE price ADD PRIMARY KEY (code, date);
-'''
+price FLOAT,
+PRIMARY KEY (code, date)
+)
+''')
 
 clock = Clock(lambda et: sys.stdout.write('Elapsed time: %s\n' % et))
 
@@ -36,24 +34,27 @@ def makedatafile(ncodes, ndates):
     os.chmod(fname, 0755)
     return fname
 
-def setup():
-    global fname, price
-    db.execute(CREATE_PRICE_TABLE)
-    price = table.DTable.object(db, 'price')
+def makedb(uri):
+    global fname
+    db = util.create_db(uri, force=True)
+    create_price_table(db)
     fname = makedatafile(100, 100)
     print 'Created datafile %s' % fname
+    return db
 
-# 104 seconds for 100,000 rows on my MacBook
-def test_insert():
+def test():
+    db = makedb('sqlite_test')
+    price = table.DTable.reflect(db, 'price')
     with clock:
+        # 104 seconds for 100,000 rows on my MacBook
         for r in csv.reader(file(fname)):
             price.insert_row(r)
-
-# 2.4 seconds for 100,000 rows on my MacBook
-def test_bulk_insert():
-    db.execute('TRUNCATE TABLE price')
+        yield lambda x:x, 'insert_row'
+    price.truncate()
     with clock:
-        price.bulk_insert(fname, sep=',')
-
+        # 2.4 seconds for 100,000 rows on my MacBook
+        price.insert_file(fname, sep=',')
+    yield lambda x:x, 'insert_file'
+    
 def teardown():
     os.remove(fname)
