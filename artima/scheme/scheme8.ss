@@ -202,8 +202,8 @@ The next episode will be entirely devoted to macros. Don't miss it!
 Appendix: solution of the exercises
 ------------------------------------------------------------
 
-In the last episode I have asked you to write an equivalent (for
-lists) of Python built-ins ``enumerate`` and ``zip`` in Scheme. Here I
+In the latest episode I asked you to write an equivalent (for
+lists) of Python built-ins ``enumerate`` and ``zip``. Here I
 give my solutions, so you may check them with yours.
 
 Here the equivalent of Python ``enumerate``:
