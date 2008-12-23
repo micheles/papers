@@ -240,12 +240,18 @@ class KTable(DTable):
         return cls.type(name, kfields, dfields)(conn)
 
     def __contains__(self, key):
-        pass
+        try:
+            self.select_row(key)
+        except KeyError:
+            return False
+        else:
+            return True
     
-    def keys(self):
+    def keyset(self):
+        """Return a set with the key(s) of the table"""
         kfields = ', '.join(self.tt._kfields)
-        return self.conn.execute(
-            'SELECT %s FROM %s' % (kfields, self.name))
+        return set(self.conn.execute(
+            'SELECT %s FROM %s' % (kfields, self.name)))
 
 if __name__ == '__main__':
     tt = tabletuple('tt', 'x y', 'a,b')(1, 2, 3, 4)

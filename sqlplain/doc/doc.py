@@ -302,15 +302,10 @@ write
   with booksb: # will begin a transaction and commit or rollback it
       do_something
       
-Otherwise, ``sqlplain`` provides a ``transact`` higher order function coding
+Otherwise, ``sqlplain`` provides a ``Transaction`` class coding
 the ``rollback/commit`` pattern:
 
-$$transact
-
-There is also a ``dry_run`` functionality to try out a procedure
-non-destructively:
-
-$$dry_run
+$$Transaction
       
 Threadlocal connections
 -------------------------------------------------------
@@ -679,21 +674,23 @@ fields ``date`` and ``message``:
 Here is the full API for DTable:
 
 - type
+- create
 - reflect
 - select
+- count
+- delete
+- truncate
 - insert_row
 - insert_rows
 - insert_file
-- delete
-- truncate
-- len -
 
-``sqlplain`` tries to make your life easier, so it provides five
-SQL template functions in addition to ``do``; they are
+Here are the additional methods of K-tables:
+    
+- select_row
+- update_row
+- update_or_insert_row
+- delete_row
 
-``select_row, delete_row, insert_row, update_row, update_or_insert_row``.
-
-They are all intended to be used on tables with a primary key.
 Instead of an explanation, I will give examples::
 
     select_book = select_row('book', 'title author')
@@ -751,6 +748,22 @@ in caching simple queries: to this goal, the ``do`` utilities has a
 
  >> get_title = cached_short('select title from book where author=?')
     
+>>> get_score_value = memoize(do('SELECT value FROM score where score=?'))
+>>> score= KTable.create('score', 'score VARCHAR(4) PRIMARY KEY',
+                         'value INTEGER UNIQUE')
+>>> score.insert_rows([
+    ('+', 1),
+    ('O', 2),
+    ('O+', 3),
+    ('OO', 4),
+    ('OO+', 5),
+    ('OOO', 6),
+    ('OOO+', 7),
+    ('OOOO', 8),
+    ])
+
+>>> d = dict(conn.execute('SELECT score, value FROM score'))
+
 
 An example project using sqlplain: books
 --------------------------------------------------
@@ -767,7 +780,7 @@ I will implement the project by using a test first approach.
 
 from ms.tools.minidoc import Document
 from sqlplain.doc import threadlocal_ex
-from sqlplain import transact, dry_run, do, util, table
+from sqlplain import Transaction, do, util, table
 import queries, cache_ex
 import logtable
 

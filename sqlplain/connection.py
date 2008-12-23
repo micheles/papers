@@ -21,23 +21,31 @@ class TupleList(list):
     header = None
     rowcount = None
     descr = None
-    
-def transact(action, conn, *args, **kw):
-    "Run a function in a transaction"
-    try:
-        return action(conn, *args, **kw)
-    except Exception, e:
-        conn.rollback()
-        raise e.__class__, e, sys.exc_info()[2]
-    else:
-        conn.commit()
 
-def dry_run(action, conn, *args, **kw):
-    "Run a function in a transaction and rollback everything at the end"
-    try:
-        return action(conn, *args, **kw)
-    finally:
-        conn.rollback()
+class Transaction(object):
+    """
+    A wrapper around database actions with signature (conn, *args, **kw).
+    """
+    def __init__(self, action, conn, *args, **kw):
+        self.action = action
+        self.conn = conn
+        self.args = args
+        self.kw = kw
+    def run(self, conn=None, args=None, kw=None, commit=True):
+        "Execute the action in a transaction"
+        conn = conn or self.conn
+        args = args or self.args
+        kw = kw or self.kw
+        try:
+            return self.action(conn, *args, **kw)
+        except Exception, e:
+            conn.rollback()
+            raise e.__class__, e, sys.exc_info()[2]
+        else:
+            if commit:
+                conn.commit()
+            else:
+                conn.rollback()
 
 class _Storage(object):
     "A place where to store low level connection and cursor"

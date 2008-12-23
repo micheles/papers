@@ -4,7 +4,7 @@ Notice: create_db and drop_db are not transactional.
 
 import os, sys, re
 from sqlplain.uri import URI
-from sqlplain import lazyconnect, transact, do
+from sqlplain import lazyconnect, Transaction, do
 from sqlplain.namedtuple import namedtuple
 
 VERSION = re.compile(r'(\d[\d\.-]+)')
@@ -31,7 +31,7 @@ def openclose(uri, templ, *args, **kw):
         if isolation_level is None:
             return conn.execute(templ, args)
         else:
-            return transact(conn.__class__.execute, conn, templ, args)
+            return Transaction(conn.__class__.execute, conn, templ, args).run()
     finally:
         conn.close()
 

@@ -1,5 +1,5 @@
 from sqlplain.connection import LazyConnection, TransactionalConnection, \
-     transact, dry_run, qmark2pyformat
+     qmark2pyformat
 from sqlplain.sql_support import do
 
 def lazyconnect(uri, isolation_level=None, threadlocal=False, conn_class=None):
