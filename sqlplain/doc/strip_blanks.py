@@ -11,7 +11,7 @@ $ python %s <db-uri> <table>
 
 import os, sys
 from sqlplain import lazyconnect, util
-from sqlplain.table import Table
+from sqlplain.table import KTable
 
 def strip(value):
     "value is None or a string"
@@ -31,10 +31,8 @@ def replace_blanks(conn, tablename):
     # conn.chatty = True
     pkeys = util.get_kfields(conn, tablename)
     textfields = get_text_fields(conn, tablename, exclude=pkeys)
-    pkeys = ' '.join(pkeys)
-    tfields = ' '.join(textfields)
-    tbl = Table.type(tablename, pkeys, tfields)(conn)
-    for row in tbl.allrows():
+    tbl = KTable.type(tablename, pkeys, textfields)(conn)
+    for row in tbl.select():
         kw = dict((tf, strip(getattr(row, tf))) for tf in textfields)
         newrow = row._replace(**kw)
         if newrow != row:
