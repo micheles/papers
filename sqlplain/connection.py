@@ -165,7 +165,10 @@ class LazyConnection(object):
         
         descr, res = self._execute(self._curs, templ, args)
         if scalar: # you expect a scalar result
-            if len(res) != 1 or len(res[0]) != 1:
+            if not res:
+                raise KeyError(
+                    "Missing record, QUERY WAS:%s%s\n" % (templ, args))
+            elif len(res) > 1:
                 raise ValueError(
                     "Expected to get a scalar result, got %s\nQUERY WAS:%s%s\n"
                     % (res, templ, args))

@@ -1,5 +1,5 @@
 import sys, string
-from sqlplain import util
+from sqlplain import util, do
 from sqlplain.namedtuple import namedtuple
 from sqlplain.connection import connmethod
 
@@ -153,6 +153,11 @@ class DTable(object):
         fields = util.get_fields(conn, name)
         return cls.type(name, fields)(conn)
 
+    @classmethod
+    def create(cls, conn, name, fields, force=False):
+        util.create_table(conn, name, fields, force)
+        return cls.reflect(conn, name)
+    
     @connmethod
     def insert_row(conn, row, **kw):
         "Dynamically replaced in subclasses"
@@ -172,16 +177,20 @@ class DTable(object):
         self.tt # raise an AttributeError if not set correctly
         self.conn = conn
 
-    def select(self, clause=''):
+    def select(self, clause='', *args):
         "Select rows from the table"
         fields = ', '.join(self.tt._fields)
-        return self.conn.execute(
-            'SELECT %s FROM %s %s' % (fields, self.name, clause),
-            ntuple=self.tt)
+        templ = 'SELECT %s FROM %s %s' % (fields, self.name, clause)
+        if args:
+            return do(templ, ntuple=self.tt)(self.conn, templ, *args)
+        return self.conn.execute(templ, ntuple=self.tt)
 
     def delete(self, clause=''):
         "Delete rows from the table"
-        return self.conn.execute('DELETE FROM ' + self.name + ' ' + clause)
+        templ = 'DELETE FROM %s %s' % (self.name, clause)
+        if args:
+            return do(templ)(self.conn, templ, *args)
+        return self.conn.execute(templ)
 
     def truncate(self):
         "Truncate the table"
@@ -189,8 +198,10 @@ class DTable(object):
 
     def count(self, clause=''):
         "Count the number of rows satisfying the given clause"
-        return self.conn.execute(
-            'SELECT count(*) FROM %s %s' % (self.name, clause), scalar=True)
+        templ = 'SELECT COUNT(*) FROM %s %s' % (self.name, clause)
+        if args:
+            return do(templ)(self.conn, templ, *args)
+        return self.conn.execute(templ, scalar=True)
 
     def __len__(self):
         "Return the total number of rows in the table"

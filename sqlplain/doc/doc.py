@@ -349,13 +349,25 @@ very low in my list of priorities (I am in the camp of people who
 are against thread) and what it is there is the minimun I needed
 to do in order make my scripts work with the Paste server.
 
-Utilities
---------------------------------------------------------------
+sqlplain: utilities
+================================================================
 
 ``sqlplain`` is a very poor toolkit compared to other database toolkits;
 this is done on purpose. Nevertheless, it provides a few convenient
 functions to work with a database directly, collected in the ``util``
-module. They are the following::
+module. We can split these utilities in different classes:
+
+- introspection utilities, to extract information from the database;
+- management utilities, to create/drop database from scratch and to
+  create/drop/populate tables;
+
+Reflection facilities
+-----------------------------------------------------------------
+
+``exists_table``, ``get_descr``, ``get_fields``, ``get_kfields``
+and ``get_dfields``, 
+
+They are the following::
 
     openclose(uri, templ, *args, **kw):
 
@@ -371,6 +383,80 @@ drop_schema(db, name), create_schema(db, schema, drop=False), make_schema``.
 features are likely to be enhanced in future versions). For the moment,
 the only things you can do is to introspect a table or a view and to
 return a named tuple with the names of the fields:
+
+Database management utilities
+--------------------------------------------------------------
+
+``sqlplain`` provides three utilities to create and to drop database in
+a database-independent way. Obviously, in order to take advantage of
+such facilities, you must connect to the database cluster as an user with
+sufficient permissions.
+
+``create_db(uri, force=False)`` creates the database specified by
+``uri`` and returns a (lazy) connection to it. If the database already
+exists, raises an error.  This behavior can be modified by passing the
+flag ``force=True``: in this case the pre-existing database (if any)
+is silently dropped and recreated.
+
+``drop_db(uri, force=False)`` drop an existing
+database; it raises an error if the database does not exists, unless
+the flag ``force=True`` is passed: in that case nothing is done if the
+database does not not exists.
+
+``make_db(uri, force=False, script_dir=None)`` is an extension of ``create_db``
+which also executes all the scripts contained in ``script_dir``. If no
+``script_dir`` is passed, it looks in the configuration file for a ``[dir]``
+section (if any) and executes the scripts in that directory (if any).
+
+
+Table management
+--------------------------------------------------------------
+
+- ``create_table(conn, tablename, field_descr, force=False)``
+
+>>> from sqlplain impor util
+>>> db = util.create_db('sqlite_test', force=True)
+>>> util.create_table(db, 'book',
+...                  ['title VARCHAR(128)', 'author VARCHAR(64)'])
+-1
+
+
+``sqlplain`` provides utilities to truncate (
+``truncate_table(conn, tablename)``) and to drop tables
+(``drop_table(conn, tablename)``), assuming you have the right
+permissions for those operations.
+
+Moreover it provides utilities to populate a table:
+
+- ``insert_rows(conn, tablename, rows)`` inserts a sequence of rows
+  (any iterable returning valid rows will do) into a table;
+
+- ``insert_file(conn, filename, tablename, sep=',')`` inserts the content
+  of a CSV file into a table.
+
+The difference between the two operations is that ``insert_file`` is orders
+of magnitude faster that ``insert_rows`` since it uses the underlying
+database mechanism for bulk inserting files, possibly disabling transactional
+safety. ``sqlplain`` comes with a test script in the tests directory
+(``test_million.py``) which tries to import a datafile with the two
+mechanism; if you run it, you may see how big is the performance
+difference on your platform. On my MacBook the difference is a factor
+of 60, i.e. an operation that would take 5 hours with ``insert_rows``
+is reduced to 5 minutes with ``insert_file``.
+
+Nevertheless, ``insert_rows`` is more convenient when you have small
+tables and when you are writing unit tests, therefore it makes sense
+for ``sqlplain`` to provide it.
+
+The problem of both ``insert_rows`` and ``insert_file`` is that you
+do not have line-by-line control of the operation, therefore a single
+ill-formed line in a million lines file will screw up the entire
+operation.
+
+If you want to insert a line at the time, you can do so by using the
+low level mechanism (
+``conn.execute("INSERT INTO mytable VALUES (?, ?, ?)", (r1, r2, r3))``)
+or by using the high level table framework discussed in the next section.
 
 sqlplain: extensions
 =================================================================
@@ -528,41 +614,6 @@ something more sophisticated on top of it, but for the moment it
 works well enough for my needs. Future versions of ``sqlplain``
 could offer additional functionality for generating SQL templates,
 or could not.
-
-Populating a table
---------------------------------------------------------------
-
-``sqlplain`` provides two utilities to populate a table:
-
-- ``insert_rows(conn, tablename, rows)`` inserts a sequence of rows
-  (any iterable returning valid rows will do) into a table;
-
-- ``insert_file(conn, filename, tablename, sep=',')`` inserts the content
-  of a CSV file into a table.
-
-The difference between the two operations is that ``insert_file`` is orders
-of magnitude faster that ``insert_rows`` since it uses the underlying
-database mechanism for bulk inserting files, possibly disabling transactional
-safety. ``sqlplain`` comes with a test script in the tests directory
-(``test_million.py``) which tries to import a datafile with the two
-mechanism; if you run it, you may see how big is the performance
-difference on your platform. On my MacBook the difference is a factor
-of 60, i.e. an operation that would take 5 hours with ``insert_rows``
-is reduced to 5 minutes with ``insert_file``.
-
-Nevertheless, ``insert_rows`` is more convenient when you have small
-tables and when you are writing unit tests, therefore it makes sense
-for ``sqlplain`` to provide it.
-
-The problem of both ``insert_rows`` and ``insert_file`` is that you
-do not have line-by-line control of the operation, therefore a single
-ill-formed line in a million lines file will screw up the entire
-operation.
-
-If you want to insert a line at the time, you can do so by using the
-low level mechanism (with a command like
-``conn.execute("INSERT INTO mytable VALUES (?, ?, ?)", (r1, r2, r3))``)
-or by using the high level table framework discussed in the next framework.
                                     
 The table framework
 ------------------------------------------------------------

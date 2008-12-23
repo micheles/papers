@@ -40,19 +40,23 @@ def extract_argnames(templ):
             qmarks += chunk.count('?')
     return ['arg%d' % i for i in range(1, qmarks + 1)]
             
-def do(templ, name='sqlquery', args=None, defaults=None, scalar=False):
+def do(templ, name='sqlquery', args=None, defaults=None, scalar=False,
+       ntuple=None):
     """
     Compile a SQL query template down to a Python function.
     """
     if args is None:
         args = ', '.join(extract_argnames(templ))
+        if args: args += ','
     src = '''def %(name)s(conn, %(args)s):
-    return conn.execute(templ, (%(args)s), scalar=scalar)''' % locals()
+    return conn.execute(templ, (%(args)s), scalar=scalar, ntuple=ntuple)
+    ''' % locals()
     fun = FunctionMaker(name=name, signature=args, defaults=defaults,
                         doc=templ)
     fn = fun.make(src, dict(templ=templ, scalar=scalar), addsource=True,
                     templ=templ)
-    comment = '# scalar = %s\n# templ=\n%s\n' % (scalar, '\n'.join(
+    comment = '# ntuple = %s\n# scalar = %s\n# templ=\n%s\n' % (
+        ntuple, scalar, '\n'.join(
         '## ' + line for line in templ.splitlines()))
     fn.__source__ = '%s\n%s' % (comment, fn.__source__)
     return fn
