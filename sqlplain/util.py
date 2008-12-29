@@ -4,7 +4,8 @@ Notice: create_db and drop_db are not transactional.
 
 import os, sys, re
 from sqlplain.uri import URI
-from sqlplain import lazyconnect, Transaction, do
+from sqlplain import lazyconnect, do
+from sqlplain.connection import Transaction
 from sqlplain.namedtuple import namedtuple
 
 VERSION = re.compile(r'(\d[\d\.-]+)')
@@ -43,7 +44,7 @@ def drop_db(uri):
     "Drop an existing database"
     _call('drop_db', URI(uri))
 
-# helper for createdb
+# helper for create_db
 def _collect(directory, exts):
     '''
     Read the files with a given set of extensions from a directory
@@ -139,13 +140,17 @@ def insert_rows(conn, tname, rows):
     n = conn.execute(templ, row)
     for row in it:
         n += conn.execute(templ, row)
-    return n
+    return 
     
 def insert_file(conn, fname, tname, sep=','):
     "Bulk insert a CSV file into a table"""
     return _call('insert_file', conn, fname, tname, sep)
 
 ########################## introspection routines ######################
+
+def get_tables(conn):
+    "Return the names of the tables in the current database"
+    return _call('get_tables', conn)
 
 def exists_table(conn, tname):
     "Check if a table exists"

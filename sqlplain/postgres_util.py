@@ -21,6 +21,10 @@ def drop_db_postgres(uri):
     openclose(uri.copy(database='template1'),
               'DROP DATABASE %(database)s' % uri)
 
+
+def get_tables_postgres(conn):
+    return [r.name for r in conn.execute('SELECT name FROM pg_tables')]
+
 def exists_table_postgres(conn, tname):
     return conn.execute('SELECT count(*) FROM pg_tables WHERE name=?',
                         tname, scalar=True)

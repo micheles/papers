@@ -8,7 +8,7 @@ Chunk = namedtuple('Chunk', 'version fname code')
 
 try:
     CalledProcessError = subprocess.CalledProcessError
-except AttributeError:
+except AttributeError: # Python < 2.5
     class CalledProcessError(Exception): pass
     
 def getoutput(commandlist):
@@ -38,6 +38,20 @@ def make_db(alias=None, uri=None, dir=None):
     if alias is not None and dir is None:
         dir = configurator.dir[alias]
     db = create_db(uri, drop=True)
+    chunks = collect(dir, ('.sql', '.py'))
+    for chunk in chunks:
+        if chunk.fname.endswith('.sql'):
+            db.execute(chunk.code)
+        elif chunk.fname.endswith('.py'):
+            exec chunk.code in {}
+
+def populate_db(db, dir=None):
+    uri = db.uri
+    if dir is None:
+        alias = configurator.alias[uri]
+        dir = configurator.dir[alias]
+    else:
+        raise TypeError('Please provide a scriptdir')
     chunks = collect(dir, ('.sql', '.py'))
     for chunk in chunks:
         if chunk.fname.endswith('.sql'):

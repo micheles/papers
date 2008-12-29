@@ -68,6 +68,19 @@ plain old SQL queries, without any support from Python.
 
 .. _Django philosophy: http://docs.djangoproject.com/en/dev/misc/design-philosophies/#misc-design-philosophies
 
+Differences with the DB API
+--------------------------------------------------
+
+sqlplain has a functional feeling.
+i have always hated the DB API 2, particularly the fact that the execute
+method does not return anyything but works by side effects, changing
+the state of the cursor so that the next fetch operation returns the
+retrieved rows. In sqlplain instead the eexecute method returns
+directly the retried rows and there is no explicit concept of cursor.
+This is not a particularly original idea, and actually the sqlite
+driver offers the same functionality. The rows are returned as named
+tuples, not as plain tuples.
+ 
 sqlplain for the impatient
 ---------------------------------------------------------------
 
@@ -451,18 +464,9 @@ operation.
 If you want to insert a line at the time, you can do so by using the
 low level mechanism (
 ``conn.execute("INSERT INTO mytable VALUES (?, ?, ?)", (r1, r2, r3))``)
-or by using the high level table framework discussed in the next section.
+or by using the high level `table framework`_.
 
-sqlplain: extensions
-=================================================================
-
-``sqlplain`` is designed as a small core - just a lightweight wrapper
-over the standard DB API 2 interface - and a set of extensions.
-Future versions of ``sqlplain`` may offer additional extensions, but
-for the moment very little is provided. I am committed to keep the
-whole of ``sqlplain`` small - as I said, well under the 5% of the
-codebase of sqlalchemy - so even the extension part is guaranteed to
-stay small in the foreseeable future.
+.. _table framework: tables.html
 
 SQL template functions
 --------------------------------------------------------------
@@ -609,97 +613,17 @@ something more sophisticated on top of it, but for the moment it
 works well enough for my needs. Future versions of ``sqlplain``
 could offer additional functionality for generating SQL templates,
 or could not.
-                                    
-The table framework
-------------------------------------------------------------
 
-As I said in the introduction, ``sqlplain`` is not intended to be
-a fully fledged ORM, therefore it does not provide a builtin mechanism
-to map user defined classes to database objects, such as the mapping
-mechanism in SQLAlchemy, or the popular Active Record pattern; nevertheless,
-it provides a table framework which us a lightweight object oriented layer
-over database tables.
-``sqlplain`` table object comes in two flavors: D-tables, which should be
-used for tables without a primary key, and K-tables, which must
-used for tables with a primary key, possibly composite. Actually K-tables
-are D-tables too, since they inherit from D-tables, therefore they
-share all D-tables methods and they add a few methods which are
-meaninful only if the underlying table has a primary key.
-If you try to use a K-table over a database table which has no primary
-key, a ``TypeError`` will be raised. Here is an example:
+sqlplain: extensions
+=================================================================
 
-$$logtable
-
->>> from sqlplain import table
->>> import logtable
->>> db = logtable.init('sqlite_test')
->>> log = table.KTable.reflect(db, 'log')
-Traceback (most recent call last):
-  ...
-TypeError: table log has no primary key!
-
-Using a DTable instead works:
-
->>> log = table.DTable.reflect(db, 'log')
-
-The ``.reflect`` classmethod creates a suitable subclass of ``DTable``
-(called ``Log``) and instantiates it. ``DTable`` is a kind of abstract
-base class and you cannot instantiate it directly (the same is true
-for the KTable class):
-
->>> table.DTable(db)
-Traceback (most recent call last):
-  ...
-TypeError: You cannot instantiate the ABC DTable
-
-In order to create a concrete subclass of DTable (or KTable) one needs
-to set the tabletuple class attribute ``tt``, which contains information
-about the table structure. The ``.reflect`` method extracts the information
-from the database schema; for instance ``log.tt`` is a namedtuple with
-fields ``date`` and ``message``:
-
->>> print log.tt._fields
-('date', 'message')
-
-
->>> from datetime import datetime
->>> now = datetime.now
->>> log.insert_row(date=now(), message='message1')
-1
->>> log.insert_row(date=now(), message='message2')
-1
->>> print len(log)
-2
-
-Here is the full API for DTable:
-
-- type
-- create
-- reflect
-- select
-- count
-- delete
-- truncate
-- insert_row
-- insert_rows
-- insert_file
-
-Here are the additional methods of K-tables:
-    
-- select_row
-- update_row
-- update_or_insert_row
-- delete_row
-
-Instead of an explanation, I will give examples::
-
-    select_book = select_row('book', 'title author')
-    select_book(bookdb, title='T', author='A')
-
-``select_row`` raises an error if the corresponding queries
-returns no result (you are looking for a missing record) or
-if it returns multiple results (it means that your primary key specification
-was incomplete).
+``sqlplain`` is designed as a small core - just a lightweight wrapper
+over the standard DB API 2 interface - and a set of extensions.
+Future versions of ``sqlplain`` may offer additional extensions, but
+for the moment very little is provided. I am committed to keep the
+whole of ``sqlplain`` small - as I said, well under the 5% of the
+codebase of sqlalchemy - so even the extension part is guaranteed to
+stay small in the foreseeable future.
 
 Memoization
 -------------------------------------------------------------

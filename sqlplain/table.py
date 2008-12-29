@@ -1,8 +1,6 @@
 import sys, string
 from sqlplain import util, do
 from sqlplain.namedtuple import namedtuple
-from sqlplain.connection import connmethod
-
 
 # kfields and dfields must be tuples, not strings
 def tabletuple(name, kfields, dfields):
@@ -21,8 +19,7 @@ def tabletuple(name, kfields, dfields):
         lambda self: dtuple(*[getattr(self, n) for n in self._dfields]))
     return ttuple
 
-# note: the methods of the Table classes
-# are completely external to the class except for the .conn attribute
+# closures to be instantiated in DTable.__init__
 
 def insert(ttuple):
     "Return a procedure inserting a row or a dictionary into a table"
@@ -114,76 +111,77 @@ def update_or_insert(ttuple):
         return n
     update_or_insert_row.__doc__ = update_or_insert_row.templ = None
     return update_or_insert_row
-
-class DTable(object):
-    """
-    A simple table class for database tables without a primary key.
-    The only methods are insert_row, insert_file, delete, truncate, select.
-    """
-    _registry = {}
     
-    @classmethod
-    def type(cls, name, fields):
-        "Ex. Insert = DTable.type('book', 'serial', 'title author')"
-        fields = tuple(fields)
-        if (name, fields) in cls._registry:
-            return cls._registry[name, fields]
-        tt = namedtuple(name, fields)
-        def insert_file(conn, file, sep='\t'):
-            'Populate a table by reading a file-like object'
-            return util.insert_file(conn, file, name, sep)
-        def insert_rows(conn, rows):
-            'Populate a table by reading a row-iterator'
-            return util.insert_rows(conn, name, rows)
-        dic = dict(
-            tt = tt,
-            name = tt.__name__,
-            insert_row = connmethod(insert(tt)),
-            insert_rows = connmethod(insert_rows),
-            insert_file = connmethod(insert_file),
-            _registry = {},
-            )
-        subc = type(name.capitalize(), (cls,), dic)
-        cls._registry[name, fields] = subc
-        return subc
-
-    @classmethod
-    def reflect(cls, conn, name):
-        "Ex. insert = DTable.reflect(mydb, 'book')"
-        fields = util.get_fields(conn, name)
-        return cls.type(name, fields)(conn)
+class DView(object):
+    """
+    """
 
     @classmethod
     def create(cls, conn, name, fields, force=False):
-        util.create_table(conn, name, fields, force)
-        return cls.reflect(conn, name)
-    
-    @connmethod
-    def insert_row(conn, row, **kw):
-        "Dynamically replaced in subclasses"
+        util.create_view(conn, name, fields, force)
+        return cls(conn, name)
 
-    @connmethod
-    def insert_rows(conn, row, **kw):
-        "Dynamically replaced in subclasses"
-
-    @connmethod
-    def insert_file(conn, row, **kw):
-        "Dynamically replaced in subclasses"
-
-    def __init__(self, conn):
-        if self.__class__ in (DTable, KTable):
-            raise TypeError('You cannot instantiate the ABC %s' %
-                            self.__class__.__name__)
-        self.tt # raise an AttributeError if not set correctly
+    def __init__(self, conn, name, fields=(), query=''):
         self.conn = conn
+        self.name = name
+        if query:
+            self.query = '(%s) AS %s' % (query, name)
+            s = 'SELECT * FROM %s WHERE 1=0' % self.query
+            fields = [r.name for name in conn.execute(s).descr]
+        else:
+            self.query = name
+        fields = fields or util.get_fields(conn, name)
+        self.tt = tabletuple(name, fields)
 
     def select(self, clause='', *args):
         "Select rows from the table"
         fields = ', '.join(self.tt._fields)
-        templ = 'SELECT %s FROM %s %s' % (fields, self.name, clause)
+        templ = 'SELECT %s FROM %s %s' % (fields, self.query, clause)
         if args:
             return do(templ, ntuple=self.tt)(self.conn, templ, *args)
-        return self.conn.execute(templ, ntuple=self.tt)
+        else:
+            return self.conn.execute(templ, ntuple=self.tt)
+
+    def count(self, clause=''):
+        "Count the number of rows satisfying the given clause"
+        templ = 'SELECT COUNT(*) FROM %s %s' % (self.query, clause)
+        if args:
+            return do(templ)(self.conn, templ, *args)
+        return self.conn.execute(templ, scalar=True)
+
+    def __iter__(self):
+        return self.select()
+
+    def __len__(self):
+        "Return the total number of rows in the table"
+        return self.count()
+    
+class DTable(DView):
+    """
+    A simple table class for database tables without a primary key.
+    The only methods are insert_row, insert_file, delete, truncate, select.
+    """
+
+    @classmethod
+    def create(cls, conn, name, fields, force=False):
+        util.create_table(conn, name, fields, force)
+        return cls(conn, name, fields)
+
+    def insert_rows(self, rows):
+        'Populate a table by reading a row-iterator'
+        return util.insert_rows(self.conn, self.name, rows)
+
+    def insert_file(self, file, sep='1t'):
+        'Populate a table by reading a file-like object'
+        return util.insert_file(self.conn, file, self.name, sep)
+
+    def __init__(self, conn, name, fields=()):
+        self.conn = conn
+        self.name = self.query = name
+        if not fields:
+            fields = util.get_fields(conn, name)
+        self.tt = namedtuple(name, fields)
+        self.insert_row = insert(self.tt)
 
     def delete(self, clause=''):
         "Delete rows from the table"
@@ -195,49 +193,22 @@ class DTable(object):
     def truncate(self):
         "Truncate the table"
         return util.truncate_table(self.conn, self.name)
-
-    def count(self, clause=''):
-        "Count the number of rows satisfying the given clause"
-        templ = 'SELECT COUNT(*) FROM %s %s' % (self.name, clause)
-        if args:
-            return do(templ)(self.conn, templ, *args)
-        return self.conn.execute(templ, scalar=True)
-
-    def __len__(self):
-        "Return the total number of rows in the table"
-        return self.count()
     
 class KTable(DTable):
     """
     An object oriented wrapper for database tables with a primary key.
     """
-    _registry = {}
     
-    @classmethod
-    def type(cls, name, kfields, dfields):
+    def __init__(cls, name, kfields=(), dfields=()):
         "Ex. Book = KTable.type('book', 'serial', 'title author')"
+        kfields = kfields or util.get_kfields(conn, name)
+        dfields = dfields or util.get_dfields(conn, name)
         if not kfields:
             raise TypeError('table %s has no primary key!' % name)
-        kfields = tuple(kfields)
-        dfields = tuple(dfields)
-        if (name, kfields, dfields) in cls._registry:
-            return cls._registry[name, kfields, dfields]
-        tt = tabletuple(name, kfields, dfields)
-        d = dict(tt=tt, name=name, _registry = {})
+        self.tt = tabletuple(name, kfields, dfields)
         for nam in ('insert', 'delete', 'select', 'update', 'update_or_insert'):
-            func = globals()[nam](tt)
-            cmethod = connmethod(func)
-            d[nam + '_row'] = cmethod
-        subc = type(name.capitalize(), (cls,), d)
-        cls._registry[name, kfields, dfields] = subc
-        return subc
-
-    @classmethod
-    def reflect(cls, conn, name):
-        "Ex. book = KTable.reflect(mydb, 'book')"
-        kfields = util.get_kfields(conn, name)
-        dfields = util.get_dfields(conn, name)
-        return cls.type(name, kfields, dfields)(conn)
+            func = globals()[nam](self.tt)
+            setattr(self, nam + '_row', func)
 
     def __contains__(self, key):
         try:

@@ -1,0 +1,12 @@
+from sqlplain import do, lazyconnect, util
+
+create_log_table = do("""
+CREATE TABLE log(
+  date DATETIME,
+  message VARCHAR(255))
+""")
+
+if __name__ == '__main__':
+    db = lazyconnect('sqlite_test')
+    util.drop_table(db, 'log', force=True)
+    create_log_table(db)

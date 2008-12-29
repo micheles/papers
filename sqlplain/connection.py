@@ -48,7 +48,7 @@ class Transaction(object):
                 conn.rollback()
 
 class _Storage(object):
-    "A place where to store low level connection and cursor"
+    "A place where to store the low level connection and cursor"
 
     @classmethod
     def new(cls, connect, args):
@@ -119,7 +119,11 @@ class LazyConnection(object):
                        self.driver.ProgrammingError,
                        self.driver.InterfaceError,
                        self.driver.DatabaseError)
-        
+
+    def open(self):
+        "Return the low level underlying connection"
+        return self._storage.conn
+
     def _raw_execute(self, cursor, templ, args):
         """
         Call a dbapi2 cursor; return the rowcount or a list of tuples,
@@ -152,7 +156,7 @@ class LazyConnection(object):
         except self.errors, e: # maybe bad connection
             self.close() # reset connection and retry
             print '%s, retrying' % e
-            return raw_execute(self._curs, templ, args)
+            return raw_execute(self._storage.curs, templ, args)
 
     def execute(self, templ, args=(), ntuple=None, scalar=False):
         if self.dbtype == 'mssql':
@@ -171,7 +175,7 @@ class LazyConnection(object):
                 raise TypeError("Expected %d arguments, got %d: %s" % (
                     qmarks, len(args), args))
         
-        descr, res = self._execute(self._curs, templ, args)
+        descr, res = self._execute(self._storage.curs, templ, args)
         if scalar: # you expect a scalar result
             if not res:
                 raise KeyError(
@@ -181,7 +185,7 @@ class LazyConnection(object):
                     "Expected to get a scalar result, got %s\nQUERY WAS:%s%s\n"
                     % (res, templ, args))
             return res[0][0]
-        cursor = self._curs # needed to make the reset work
+        cursor = self._storage.curs # needed to make the reset work
         if self.chatty:
             print(cursor.rowcount, templ, args)
         if descr:
@@ -206,7 +210,7 @@ class LazyConnection(object):
         if d:
             sql = string.Template(sql).substitute(d) 
         if self.dbtype == 'sqlite':
-            self._curs.executescript(sql)
+            self._storage.curs.executescript(sql)
         else: # psycopg and pymssql are already able to execute chunks
             self.execute(sql)
             
@@ -217,16 +221,6 @@ class LazyConnection(object):
         
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.uri)
-
-    @property
-    def _conn(self):
-        "Return the low level underlying connection"
-        return self._storage.conn
-   
-    @property
-    def _curs(self):
-        "Return the low level underlying cursor"
-        return self._storage.curs
     
 class TransactionalConnection(LazyConnection):
     """
@@ -235,10 +229,10 @@ class TransactionalConnection(LazyConnection):
     """
 
     def rollback(self):
-        return self._conn.rollback()
+        return self._storage.conn.rollback()
 
     def commit(self):
-        return self._conn.commit()
+        return self._storage.conn.commit()
 
     def __enter__(self):
         return self
@@ -274,8 +268,7 @@ class NullObject(object):
 class FakeConnection(object):
     def __init__(self, iodict):
         self.iodict = iodict
-        self._conn = NullObject()
-        self._curs = NullObject()
+        self._storage = NullObject()
     def execute(self, templ, args=()):
         return self.iodict[(templ,) + args]
     def executescript(self, templ, *dicts, **kw):

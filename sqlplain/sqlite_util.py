@@ -21,6 +21,9 @@ def insert_file_sqlite(conn, fname, tname, sep):
 def get_kfields_sqlite(conn, tname):
     return [x.name for x in get_info(conn, tname) if x.pk]
 
+def get_tables_sqlite(conn):
+    return [r.name for r in conn.execute('PRAGMA table_info')]
+
 def exists_table_sqlite(conn, tname):
     res = conn.execute('PRAGMA table_info(%s)' % tname)
     return res != -1

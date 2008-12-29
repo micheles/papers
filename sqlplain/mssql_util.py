@@ -7,6 +7,9 @@ def insert_file_mssql(uri, fname, table, sep='\t'):
     return conn.execute(
         'BULK INSERT %s FROM ? SEPARATOR ?' % table, (fname, sep))
     
+def get_tables(conn):
+    return [r.name for r in conn.execute('SELECT name FROM sysobjects')]
+    
 def exists_table_mssql(conn, tname):
     return conn.execute('SELECT count(*) FROM sysobjects WHERE name=?',
                         (tname,), scalar=True)
