@@ -1,5 +1,0 @@
-from sqlplain import do
-
-get_authors = do('select author from book')
-get_titles = do('select title from book where author=?')
-set_uppercase_titles = do('UPDATE book SET title=upper(title)')
