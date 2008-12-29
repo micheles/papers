@@ -31,6 +31,7 @@ class Transaction(object):
         self.conn = conn
         self.args = args
         self.kw = kw
+
     def run(self, conn=None, args=None, kw=None, commit=True):
         "Execute the action in a transaction"
         conn = conn or self.conn
@@ -119,10 +120,6 @@ class LazyConnection(object):
                        self.driver.ProgrammingError,
                        self.driver.InterfaceError,
                        self.driver.DatabaseError)
-
-    def open(self):
-        "Return the low level underlying connection"
-        return self._storage.conn
 
     def _raw_execute(self, cursor, templ, args):
         """
@@ -213,6 +210,10 @@ class LazyConnection(object):
             self._storage.curs.executescript(sql)
         else: # psycopg and pymssql are already able to execute chunks
             self.execute(sql)
+
+    def open(self):
+        "Return the low level underlying connection"
+        return self._storage.conn
             
     def close(self):
         """The next time you will call an active method, a fresh new

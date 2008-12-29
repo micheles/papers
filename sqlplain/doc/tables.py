@@ -22,7 +22,7 @@ $$logtable
 >>> from sqlplain import table
 >>> import logtable
 >>> db = logtable.init('sqlite_test')
->>> log = table.KTable.reflect(db, 'log')
+>>> log = table.KTable(db, 'log')
 Traceback (most recent call last):
   ...
 TypeError: table log has no primary key!

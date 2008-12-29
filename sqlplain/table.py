@@ -150,7 +150,7 @@ class DView(object):
         return self.conn.execute(templ, scalar=True)
 
     def __iter__(self):
-        return self.select()
+        return iter(self.select())
 
     def __len__(self):
         "Return the total number of rows in the table"
@@ -163,9 +163,9 @@ class DTable(DView):
     """
 
     @classmethod
-    def create(cls, conn, name, fields, force=False):
-        util.create_table(conn, name, fields, force)
-        return cls(conn, name, fields)
+    def create(cls, conn, name, body, force=False):
+        util.create_table(conn, name, body, force)
+        return cls(conn, name)
 
     def insert_rows(self, rows):
         'Populate a table by reading a row-iterator'

@@ -85,14 +85,14 @@ def create_db(uri, force=False, scriptdir=None, **kw):
                 exec chunk.code in {}
     return db
 
-def create_table(conn, tname, fields, force=False):
+def create_table(conn, tname, body, force=False):
     """
     Create a table. If the table already exists, raise an error, unless
     force is True.
     """
     if exists_table(conn, tname) and force:
         drop_table(conn, tname) # do not raise an error
-    return conn.execute('CREATE TABLE %s(%s)' % (tname, '\n  ,'.join(fields)))
+    return conn.execute('CREATE TABLE %s(\n%s)' % (tname, body))
 
 def drop_table(conn, tname, force=False):
     """

@@ -43,7 +43,8 @@ def extract_argnames(templ):
 def do(templ, name='sqlquery', args=None, defaults=None, scalar=False,
        ntuple=None):
     """
-    Compile a SQL query template down to a Python function.
+    Compile a SQL query template down to a Python function with attributes
+    __source__, defaults, scalar, ntuple.
     """
     if args is None:
         args = ', '.join(extract_argnames(templ))
@@ -51,12 +52,23 @@ def do(templ, name='sqlquery', args=None, defaults=None, scalar=False,
     src = '''def %(name)s(conn, %(args)s):
     return conn.execute(templ, (%(args)s), scalar=scalar, ntuple=ntuple)
     ''' % locals()
-    fun = FunctionMaker(name=name, signature=args, defaults=defaults,
-                        doc=templ)
-    fn = fun.make(src, dict(templ=templ, scalar=scalar), addsource=True,
-                    templ=templ)
+    fun = FunctionMaker(
+        name=name, signature=args, defaults=defaults, doc=templ)
+    fn = fun.make(
+        src, dict(templ=templ, scalar=scalar), addsource=True, templ=templ)
     comment = '# ntuple = %s\n# scalar = %s\n# templ=\n%s\n' % (
         ntuple, scalar, '\n'.join(
         '## ' + line for line in templ.splitlines()))
     fn.__source__ = '%s\n%s' % (comment, fn.__source__)
+    fn.args = args
+    fn.defaults = defaults
+    fn.scalar = scalar
+    fn.ntuple = ntuple
     return fn
+
+def spec(fn, clause, args=None, defaults=None, ntuple=None):
+    "Add a clause to an SQL Template function"
+    return do(fn.templ + clause, args = args or fn.args,
+              defaults=defaults or fn.defaults, 
+              scalar=fn.scalar, ntuple=ntuple or fn.ntuple)
+    

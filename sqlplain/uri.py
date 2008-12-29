@@ -41,7 +41,7 @@ class URI(object):
                 if scriptdir:
                     self.scriptdir = os.path.expanduser(scriptdir)
             try:
-                uri = configurator.uri[uri]
+                uri = getattr(configurator.uri, uri)
             except KeyError:
                 raise NameError(
                     '%s is not a valid URI, not a recognized alias in %s' %
@@ -107,6 +107,7 @@ class URI(object):
         return driver.dbapi2, driver.connect, params
 
     def __getitem__(self, name):
+        # make the interpolation syntax (string-templ % self) possible
         return self.__dict__[name]
     
     def __str__(self):
