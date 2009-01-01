@@ -48,7 +48,7 @@ mixins:
 The standard library function ``inspect.getmro(cls)``
 returns a tuple with the ancestors of ``cls``, in the order specified by
 the Method Resolution Order (MRO). In our example the MRO of
-``Label`` contains the geometry mixins (``Grid``, ``Pack`` e ``Place``)
+``Label`` contains the geometry mixins (``Grid``, ``Pack`` and ``Place``)
 and the generic mixin ``Misc`` which provides a lot of functionality
 by delegating to the underlying Tk library.
 The classes ``BaseWidget``, ``Widget``
