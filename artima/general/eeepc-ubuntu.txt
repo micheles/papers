@@ -1,0 +1,75 @@
+The other day my wife told me that she was unhappy with her EeePC, the one
+we got as a wedding present (the story was told in a `previous post`_).
+She was experiencing random freezing while surfing the net. 
+I thought of an issue with some Firefox plugin but I could not find
+anything wrong. So I took the occasion and I said, "well, why not to try
+some other Linux distribution than the default (Xandros) since I have
+heard that most distributions features a good support for the EeePC?".
+
+So I did. I chose Ubuntu since it is the distribution `I use on my MacBook`_.
+I have also tried the Eeebuntu_ distribution which is expressly written
+for the EeePC, but I came back to basic Ubuntu since I prefer the
+standard desktop, both form an aesthetic point of view and because of
+familiarity and usability.
+
+The installation went smoothly, just following the instructions
+at array.org_, an apt-get repository where you can find 
+Adam McDaniel's kernel for the EeePC. Actually, since I did not want
+to erase the Xandros distribution I did some experiment first, by
+installing the new OS on a separate drive. I did discover that
+installing on a USB pen drive is perfectly possible, but the experience is
+painful: the installation takes nearly two hours, and then the machine is
+very slow. On the other hand, installing on an external hard disk 
+takes less than half an hour and then the machine is very snappy.
+It looks like disk speed is an extremely important factor when
+it comes to the responsiveness of the EeePC: the processor 
+is not the bottleneck, the disks are. 
+
+After those experiments I installed
+on the internal disks - which are solid state devices - and I have got
+performances comparable to using an external hard disk. I have also
+discovered that the smaller disk (my EeePC has two internal disk, a 4GB
+one and a 16GB one) is much faster than the bigger one.
+I formatted the disks so that the "/" partition was on the small disk
+and the "/usr" partition was on the big disk.
+
+As I said everything went fine. Notice that you absolutely wants to install
+the eee-control utility (``apt-get install eee-control``) which allows
+you to control the performance of the processor and to enable/disable
+the wifi, the bluetooth, the webcam and the card reader.
+
+I had two big positive surprises:
+
+1. With Ubuntu and Adam's kernel the machine is extremely more
+   responsive than with the default Xandros distribution.  This was
+   completely unexpected. Of course the advantage of Ubuntus versus
+   Xandros is that you have (much) more updated and bigger
+   repositories of packages, but I did not expect to see a substantial
+   difference in responsivity.  There is, instead: opening the video
+   player, of Firefox, or any other application is much faster.
+   Moreover the default Ubuntu video player is *much* faster than the 
+   Xandros default player.
+
+2. The graphics card of the Eeepc is pretty powerful and/or particularly
+   well supported: in particular Compiz works out of the box and I could
+   enable the Desktop Cube effect which I could not get to work on my
+   MacBook. I could not see any
+   difference in responsivity with respect to my desktop computer,
+   which has 4 GB or RAM and a nvidia graphics card.
+   I have also tried to connect the EeePC to an external monitor 
+   and to my TV (which features a 1360x768 resolution): everything
+   works perfectly, including the Cube effect. We saw
+   `Once Upon a Time in America`_ just yesterday night on the 42 inches
+   display, and the vision was perfectly fluid and clear.
+
+With Ubuntu the EeePC feels like a real computer. I have even installed
+Postgres on it and I think one could use it for development, not just for
+surfing the net. Now that there are models with bigger displays I think
+my next laptop will be a netbook.
+
+
+.. _previous post: http://www.artima.com/weblogs/viewpost.jsp?thread=240841
+.. _I use on my MacBook: http://www.artima.com/weblogs/viewpost.jsp?thread=240272
+.. _Eeebuntu: http://www.eeebuntu.org/
+.. _array.org: http://array.org/ubuntu/setup-intrepid.html
+.. _Once Upon a Time in America: http://en.wikipedia.org/wiki/Once_Upon_a_Time_in_America
