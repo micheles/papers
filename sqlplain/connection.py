@@ -106,6 +106,7 @@ class LazyConnection(object):
     
     def __init__(self, uri, isolation_level=None, threadlocal=False):
         self.uri = URI(uri)
+        self.name = self.uri['database']
         self.dbtype = self.uri['dbtype']
         self.driver, connect, params = self.uri.get_driver_connect_params()
         args = params, isolation_level

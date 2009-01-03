@@ -37,15 +37,16 @@ class URI(object):
             except AttributeError: # missing [scripdir] section in conf
                 pass
             else:
-                scriptdir = section.get(uri)
+                scriptdir = getattr(section, uri, None)
                 if scriptdir:
                     self.scriptdir = os.path.expanduser(scriptdir)
             try:
                 uri = getattr(configurator.uri, uri)
             except AttributeError:
-                raise NameError(
-                    '%s is not a valid URI, not a recognized alias in %s' %
-                    (uri, configurator._conf_file))
+                msg = '%s is not a valid URI, not a recognized alias in %s' % (
+                    uri, configurator._conf_file)
+                msg += '; available aliases are %s' % configurator._databases
+                raise NameError(msg)
         if not uri.startswith(SUPPORTED_DBTYPES):
             raise NameError('Invalid URI %s' % uri)
         dbtype, partial_uri = uri.split('://')

@@ -30,13 +30,13 @@ class ReadOnlyObject(object):
     useful for debugging (the default is 'anonymous').
     """
     def __init__(self, items, name='anonymous'):
-        keys = []
+        names = []
         for name, value in items:
             if name.startswith('_'):
                 raise TypeError('Inner attributes cannot begin with "_"')
             object.__setattr__(self, name, value)
-            keys.append(name)
-        object.__setattr__(self, '_names', keys)
+            names.append(name)
+        object.__setattr__(self, '_names', names)
         object.__setattr__(self, '_name', name)
     def __iter__(self):
         for name in self._names:
@@ -67,7 +67,8 @@ class _Configurator(object): # singleton
             [(sect, ReadOnlyObject(cfp.items(sect), sect))
             for sect in cfp.sections()], self._conf_file)
         self._initialized = True
-
+        self._databases = self._conf_obj.uri._names
+        
     def __getattr__(self, name):
         if not self._initialized:
             self._initialize()
