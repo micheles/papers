@@ -146,6 +146,10 @@ def insert_file(conn, fname, tname, sep=','):
     "Bulk insert a CSV file into a table"""
     return _call('insert_file', conn, fname, tname, sep)
 
+def dump_file(conn, fname, query, sep=',', null='\N'):
+    "Save a query on a CSV file"
+    return _call('dump_file', conn, fname, query, sep, null)
+    
 ########################## introspection routines ######################
 
 def get_tables(conn):

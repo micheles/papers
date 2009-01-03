@@ -1,9 +1,10 @@
 CREATE TABLE bookid (
- id INTEGER AUTO_INCREMENT PRIMARY KEY,
+ id INTEGER PRIMARY KEY,
  title VARCHAR(128),
  author VARCHAR(64),
  rdate DATETIME,
- UNIQUE (title, author rdate));
+ UNIQUE (title, author, rdate)
+);
 
 CREATE TABLE score (
  score VARCHAR(4) PRIMARY KEY,

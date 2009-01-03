@@ -21,12 +21,11 @@ def drop_db_postgres(uri):
     openclose(uri.copy(database='template1'),
               'DROP DATABASE %(database)s' % uri)
 
-
 def get_tables_postgres(conn):
-    return [r.name for r in conn.execute('SELECT name FROM pg_tables')]
+    return [r[0] for r in conn.execute('SELECT tablename FROM pg_tables')]
 
 def exists_table_postgres(conn, tname):
-    return conn.execute('SELECT count(*) FROM pg_tables WHERE name=?',
+    return conn.execute('SELECT count(*) FROM pg_tables WHERE tablename=?',
                         tname, scalar=True)
 
 # apparently copy_from from psycopg2 is buggy for large files
@@ -34,9 +33,9 @@ def insert_file_postgres(conn, fname, table, sep=',', null='\N'):
     templ = "COPY %s FROM ? WITH DELIMITER ? NULL ?"
     return conn.execute(templ % table, (fname, sep, null))
 
-def dump_postgres(conn, fname, table, sep='\t', null='\N'):
-    templ = "COPY %s TO ? WITH DELIMITER ? NULL ?"
-    return conn.execute(templ % table, (fname, sep, null))
+def dump_file_postgres(conn, fname, query, sep='\t', null='\N'):
+    sql = "COPY (%s) TO ? WITH DELIMITER ? NULL ?" % query
+    return conn.execute(sql, (fname, sep, null))
 
 def exists_db_postgres(uri):
     dbname = uri['database']

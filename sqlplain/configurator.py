@@ -65,7 +65,7 @@ class _Configurator(object): # singleton
         cfp.readfp(file(self._conf_file))
         self._conf_obj = ReadOnlyObject(
             [(sect, ReadOnlyObject(cfp.items(sect), sect))
-            for sect in cfp.sections()], self._conf_file.name)
+            for sect in cfp.sections()], self._conf_file)
         self._initialized = True
 
     def __getattr__(self, name):

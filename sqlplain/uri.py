@@ -42,7 +42,7 @@ class URI(object):
                     self.scriptdir = os.path.expanduser(scriptdir)
             try:
                 uri = getattr(configurator.uri, uri)
-            except KeyError:
+            except AttributeError:
                 raise NameError(
                     '%s is not a valid URI, not a recognized alias in %s' %
                     (uri, configurator._conf_file))

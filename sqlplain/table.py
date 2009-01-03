@@ -6,7 +6,7 @@ from sqlplain.namedtuple import namedtuple
 def tabletuple(name, kfields, dfields):
     """
     Returns a namedtuple with attributes ._kfields, ._dfields and properties
-    ._kvalues, .dvalues. 
+    ._kvalues, ._dvalues. 
     """
     ttuple = namedtuple(name, kfields + dfields)
     ttuple._ktuple = ktuple = namedtuple(name + '_key', kfields)
@@ -111,9 +111,12 @@ def update_or_insert(ttuple):
         return n
     update_or_insert_row.__doc__ = update_or_insert_row.templ = None
     return update_or_insert_row
-    
+
+############################### views ###############################
+
 class DView(object):
     """
+    A wrapper over a database view.
     """
 
     @classmethod
@@ -156,59 +159,18 @@ class DView(object):
         "Return the total number of rows in the table"
         return self.count()
     
-class DTable(DView):
+class KView(DView):
     """
-    A simple table class for database tables without a primary key.
-    The only methods are insert_row, insert_file, delete, truncate, select.
+    A database view with a unique field (possibly composite).
     """
 
-    @classmethod
-    def create(cls, conn, name, body, force=False):
-        util.create_table(conn, name, body, force)
-        return cls(conn, name)
-
-    def insert_rows(self, rows):
-        'Populate a table by reading a row-iterator'
-        return util.insert_rows(self.conn, self.name, rows)
-
-    def insert_file(self, file, sep='1t'):
-        'Populate a table by reading a file-like object'
-        return util.insert_file(self.conn, file, self.name, sep)
-
-    def __init__(self, conn, name, fields=()):
-        self.conn = conn
-        self.name = self.query = name
-        if not fields:
-            fields = util.get_fields(conn, name)
-        self.tt = namedtuple(name, fields)
-        self.insert_row = insert(self.tt)
-
-    def delete(self, clause=''):
-        "Delete rows from the table"
-        templ = 'DELETE FROM %s %s' % (self.name, clause)
-        if args:
-            return do(templ)(self.conn, templ, *args)
-        return self.conn.execute(templ)
-
-    def truncate(self):
-        "Truncate the table"
-        return util.truncate_table(self.conn, self.name)
-    
-class KTable(DTable):
-    """
-    An object oriented wrapper for database tables with a primary key.
-    """
-    
     def __init__(cls, name, kfields=(), dfields=()):
-        "Ex. Book = KTable.type('book', 'serial', 'title author')"
         kfields = kfields or util.get_kfields(conn, name)
         dfields = dfields or util.get_dfields(conn, name)
         if not kfields:
             raise TypeError('table %s has no primary key!' % name)
         self.tt = tabletuple(name, kfields, dfields)
-        for nam in ('insert', 'delete', 'select', 'update', 'update_or_insert'):
-            func = globals()[nam](self.tt)
-            setattr(self, nam + '_row', func)
+        self.select_row = select(self.tt)
 
     def __contains__(self, key):
         try:
@@ -222,7 +184,63 @@ class KTable(DTable):
         """Return a set with the key(s) of the table"""
         kfields = ', '.join(self.tt._kfields)
         return set(self.conn.execute(
-            'SELECT %s FROM %s' % (kfields, self.name)))
+            'SELECT %s FROM %s' % (kfields, self.query)))
+    
+############################### tables ###############################
+
+class DTable(DView):
+    """
+    A simple table class for database tables without a primary key.
+    The only methods are insert_row, insert_file, delete, truncate, select.
+    """
+
+    @classmethod
+    def create(cls, conn, name, body, force=False):
+        "Create a table on the db and return the associated table object"
+        util.create_table(conn, name, body, force)
+        return cls(conn, name)
+
+    def __init__(self, conn, name, fields=()):
+        self.conn = conn
+        self.name = self.query = name
+        if not fields:
+            fields = util.get_fields(conn, name)
+        self.tt = namedtuple(name, fields)
+        self.insert_row = insert(self.tt)
+
+    def insert_rows(self, rows):
+        'Populate a table by reading a row-iterator'
+        return util.insert_rows(self.conn, self.name, rows)
+
+    def insert_file(self, file, sep='1t'):
+        'Populate a table by reading a file-like object'
+        return util.insert_file(self.conn, file, self.name, sep)
+
+    def delete(self, clause=''):
+        "Delete rows from the table"
+        templ = 'DELETE FROM %s %s' % (self.name, clause)
+        if args:
+            return do(templ)(self.conn, templ, *args)
+        return self.conn.execute(templ)
+
+    def truncate(self):
+        "Truncate the table"
+        return util.truncate_table(self.conn, self.name)
+
+class KTable(DTable, KView):
+    """
+    An object oriented wrapper for database tables with a primary key.
+    """
+    def __init__(cls, name, kfields=(), dfields=()):
+        kfields = kfields or util.get_kfields(conn, name)
+        dfields = dfields or util.get_dfields(conn, name)
+        if not kfields:
+            raise TypeError('table %s has no primary key!' % name)
+        self.tt = tabletuple(name, kfields, dfields)
+        for nam in ['insert', 'delete', 'select', 'update', 
+                    'update_or_insert']: 
+            func = globals()[nam](self.tt)
+            setattr(self, nam + '_row', func)
 
 if __name__ == '__main__':
     tt = tabletuple('tt', 'x y', 'a,b')(1, 2, 3, 4)
