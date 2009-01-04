@@ -1,16 +1,15 @@
-r"""A simple implementation of traits in Python
+r"""A simple implementation of traits for Python
 ==================================================================
 
 :Author: Michele Simionato
-:Date: XXX
-:Version: XXX
-:Download: XXX
+:Date: TODAY
+:Version: VERSION
+:Download: http://pypi.python.org/pypi/strait
 :Licence: BSD
-:Status: XXX
 :Abstract: 
 
  *I provide a simple implementation of 
- traits as units of composable behavior for Python, then I 
+ traits as units of composable behavior for Python. I 
  argue that traits are better than multiple inheritance.
  Implementing frameworks based on traits is left as an exercise
  for the reader.*
@@ -44,11 +43,12 @@ framework to traits.
 Are traits a better solution than multiple inheritance and mixins?  In
 theory I think so, otherwise I would not have written this library, but
 in practice (as always) things may be different. It may well be 
-in practice that using traits or using mixins does not make a big
-difference and that the change of paradigm is not worth the effort; or the
+that using traits or using mixins does not make a big
+difference in practice
+and that the change of paradigm is not worth the effort; or the
 opposite may be true. The only way to know is to try, to build
 software based on traits and to see how it scale *in the large*.
-In the small, of course, more or less any approach works fine: it is only
+In the small, more or less any approach works fine: it is only
 by programming in the large that you can see the differences.  
 
 This is
@@ -64,9 +64,9 @@ which is used in house but has not been released yet.
 
 I am not the only one to have
 implemented traits for Python; after finishing my implementation
-I made a little research and discovered a few implementations. The
-biggest effort seems to be `Enthought Traits`_ which however 
-seems to use the name to intend something very
+I made a little research and discovered a few implementations. Then
+I have also discovered the `Enthought Traits`_ framework, which however 
+seems to use the name to intend something completely
 different (i.e. a sort of type checking). My implementation has no
 dependencies, is short and I am committed
 to keep it short even in the future, according to
@@ -74,7 +74,7 @@ the principle of `less is more`_.
 
 There is also an hidden agenda behind this module: to popularize some
 advanced features of the Python object model which are little
-known. The ``mtrait`` module is actually a tribute to the
+known. The ``strait`` module is actually a tribute to the
 metaprogramming capabilities of Python: such features are usually
 associated to languages with a strong academic tradition - Smalltalk,
 Scheme, Lisp - but actually the Python object model is no less
@@ -87,7 +87,7 @@ end user to build her own object system.
 
 Such features are usually little used in the Python community, for
 many good reasons: most people feel that the object system is good
-enough as it is and there is no reason to change it; moreover there is
+enough and that there is no reason to change it; moreover there is
 a strong opposition to change the language, because Python programmers
 believe in uniformity and in using common idioms; finally, it is
 difficult for an application programmer to find a domain where these
@@ -119,15 +119,16 @@ obligation whatsoever to be consistent with the Smalltalk library. In
 doing so, I am following a long tradition, since a lot of languages
 use the name *traits* to mean something completely different from the
 Smalltalk meaning. For instance the languages Fortress and Scala use
-the name *trait* but they mean by it what is usually called a *mixin*.
+the name *trait* but with a different meaning (Scala traits are very
+close to multiple inheritance).
 For me a trait is a bunch of methods and attributes with the following
 properties:
 
-1. the methods/attributes in a trait go logically together;
+1. the methods/attributes in a trait belong logically together;
 2. if a trait enhances a class, then all subclasses are enhanced too;
 3. if a trait has methods in common with the class, then the
    methods defined in the class have the precedence;
-4. the ordering of traits is not important, i.e. enhancing a class 
+4. the trait order is not important, i.e. enhancing a class 
    first with trait T1 and then with trait T2 or viceversa is the same;
 5. if traits T1 and T2 have names in common, enhancing a class both
    with T1 and T2 raises an error;
@@ -141,7 +142,7 @@ with respect to multiple inheritance and mixins.  In particular,
 because of 4 and 5, all the complications with the Method Resolution
 Order disappear and the overriding is never implicit.  Property 6 is
 mostly unusual: typically in Python the base class has the precedence
-over mixin classes.  Property 7 has to be intended in the sense that a
+over mixin classes.  Property 7 should be intended in the sense that a
 trait implementation must provide introspection facilities to make
 seemless the transition between classes viewed as atomic entities and
 as composed entities.
@@ -156,16 +157,12 @@ Tkinter class to use traits instead of mixins. Consider the
 ``Tkinter.Grid``, ``Tkinter.Pack`` and ``Tkinter.Place``: I want to
 rewrite it by using traits. The ``strait`` module
 provides a factory function named ``include`` that does the job.
-It is enough to replace the multiple inheritance syntax
-
-.. code-block:: python
+It is enough to replace the multiple inheritance syntax::
 
   class Widget(BaseWidget, Grid, Pack, Place):
        pass
 
-with the following syntax:
-
-.. code-block:: python
+with the following syntax::
 
  class Widget(BaseWidget):
      __metaclass__ = include(Pack, Place, Grid)
@@ -173,8 +170,6 @@ with the following syntax:
 I said that the conversion from mixins to traits was easy: but actually
 I lied since if you try to execute the code I just wrote you will
 get an ``OverridingError``:
-
-.. code-block:: python
 
  >>> from Tkinter import *
  >>> class Widget(BaseWidget):
@@ -188,28 +183,24 @@ methods called ``{info, config, configure, slaves, forget}``
 and the traits implementation cannot figure out
 which ones to use.  This is a feature, since it forces you to be
 explicit. In this case, if we want to be consistent with
-multiple inheritance rules, clearly we want the methods coming from
-the first class (i.e. ``Pack``) to have precedence. That can be
+multiple inheritance rules, we want the methods coming from
+the first class (i.e. ``Pack``) to take precedence. That can be
 implemented by including directly those methods in the class namespace
 and relying on rule 3:
 
 $$TOSWidget
 
 Notice that we had to specify the ``propagate`` method too, since
-it is common between ``Pack`` and ``Grid``.
+it is a common method between ``Pack`` and ``Grid``.
 
 You can check that the TOSWidget class works, for instance by defining a
 label widget as follows (remember that ``TOSWidget`` inherits its signature
 from  ``BaseWidget``):
 
-.. code-block:: python
-
  >>> label = TOSWidget(master=None, widgetName='label',
  ...                   cnf=dict(text="hello"))
 
 You may visualize the widget by calling the ``.pack`` method:
-
-.. code-block:: python
 
  >>> label.pack()
 
@@ -220,7 +211,7 @@ A few caveats and warnings
 
 First of all, let me notice that, in spite of apparency, ``include``
 does not return a metaclass. Insted, it returns a class factory
-function with signature name, bases, dic:
+function with signature ``name, bases, dic``:
 
 >>> print include(Pack, Place, Grid) #doctest: +ELLIPSIS
 <function include_Pack_Place_Grid at 0x...>
@@ -239,8 +230,6 @@ one not inheriting from ``MetaTOS``. The exact rules followed by
 Here I want to remark that according to rule 6 traits take the precedence
 over the base class attributes. Consider the following example:
 
-.. code-block:: python
-
  >>> class Base(object):
  ...     a = 1
 
@@ -256,15 +245,11 @@ over the base class attributes. Consider the following example:
 In regular multiple inheritance you would do the same by including
 ``ATrait`` *before* ``Base``, i.e.
 
-.. code-block:: python
-
  >>> type('Class', (ATrait, Base), {}).a
  2
 
-Take care to not mix-up the order, otherwise you will get a different
-result:
-
-.. code-block:: python
+You should take care to not mix-up the order, otherwise you will get a
+different result:
 
  >>> type('Class', (Base, ATrait), {}).a
  1
@@ -275,14 +260,12 @@ you rely on the order. Be careful!
 The Trait Object System
 ----------------------------------------------------------------------
 
-The goal of the ``mtrait`` module it to modify the standard
+The goal of the ``strait`` module it to modify the standard
 Python object model, turning it into a Trait Object System (TOS for short): 
 TOS classes behave differently from regular
 classes. In particular TOS classes do not support multiple inheritance.
 If you try to multiple inherit from a TOS
 class and another class you will get a ``TypeError``:
-
-.. code-block:: python
 
  >>> class M:
  ...     "An empty class"
@@ -337,7 +320,7 @@ in the Tkinter example a ``Widget`` *is* a ``BaseWidget`` but has the
 methods of the traits ``Pack``, ``Place`` and ``Grid``.
 
 .. _current super in Python: http://www.artima.com/weblogs/viewpost.jsp?thread=236275
-.. _elsewhere: http://stacktrace.it/articoli/2008/06/i-pericoli-della-programmazione-con-i-mixin1/
+.. _elsewhere: http://www.artima.com/weblogs/viewpost.jsp?thread=246341
 .. _PloneSite hierarchy: http://www.phyast.pitt.edu/~micheles/python/plone-hierarchy.png 
 
 The magic of ``include``
@@ -353,7 +336,7 @@ which implements a single inheritance check.
 If you build your TOS hierarchy starting from pre-existing classes,
 you should be aware of how ``include`` determines the metaclass: 
 if your base class was an old-style
-class or a simple new style class (i.e. a direct instance of the
+class or a plain new style class (i.e. a direct instance of the
 ``type`` metaclass), them ``include`` will change it to ``MetaTOS``:
 
 >>> type(TOSWidget)
@@ -372,8 +355,6 @@ $$PackWidget
 
 ``include`` automatically generates the right metaclass as
 a subclass of ``AddGreetings``:
-
-.. code-block:: python
 
  >>> print type(PackWidget).__mro__
  (<class 'strait._TOSAddGreetings'>, <class '__main__.AddGreetings'>, <type 'type'>, <type 'object'>)
@@ -439,8 +420,8 @@ Traceback (most recent call last):
 OverridingError: LogOnInitMI overrides names in RegisterOnInitMI: {__init__}
 
 This is a feature, of course, since the trait object system is designed
-to avoid name clashes. However, the situation is worse than that and
-even if you try to mixin a single class you will run into trouble:
+to avoid name clashes. However, the situation is worse than that:
+even if you try to mixin a single class you will run into trouble
 
 >>> class C_MI(object):
 ...      __metaclass__ = include(LogOnInitMI)
@@ -450,17 +431,18 @@ Traceback (most recent call last):
   ...
 TypeError: super(type, obj): obj must be an instance or subtype of type
 
-What's happening here? The situation is clear if you notice that in
-this case ``type`` is ``LogOnInitMI`` whereas ``obj`` is an instance
-of ``C``, which is not a subclass of ``LogOnInitMI``. That explains the
+What's happening here? The situation is clear if you notice that the
+``super`` call is actually a call of kind ``super(LogOnInitMI, c)``
+where ``c`` is an instance of ``C``, which is not a
+subclass of ``LogOnInitMI``. That explains the
 error message, but does not explain how to solve the issue. It seems
 that method cooperation using ``super`` is impossible for TOS
 classes. 
 
 Actually this is not the case: single inheritance cooperation
 is possible and it is enough as we will show in a
-minute. But for the moment let me notice that I have argued elsewhere
-that cooperative methods are not necessarily a good idea. They are
+minute. But for the moment let me notice that I do not think
+that cooperative methods are necessarily a good idea. They are
 fragile and cause all of your classes to be strictly coupled. My usual
 advice if that you should not use a design based on method
 cooperation if you can avoid it.
@@ -469,11 +451,11 @@ really want method cooperation. The ``strait`` module provide
 support for those situations via the ``__super`` attribute.
 
 Let me explain how it works. When you mix-in a trait ``T`` into a
-class ``C``, ``include`` adds an attribute ``_T__super``
-to ``C``, which is a ``super`` object that dispatches to the
-attributes of the superclass of ``C``. The important thing is that
-there is a well defined superclass, since the trait object system
-uses single inheritance only. Since the hierarchy is straight, the
+class ``C``, ``include`` adds an attribute ``_T__super`` to ``C``,
+which is a ``super`` object that dispatches to the attributes of the
+superclass of ``C``. The important thing to keep in mind is that there
+is a well defined superclass, since the trait object system uses
+single inheritance only. Since the hierarchy is straight, the
 cooperation mechanism is much simpler to understand than in multiple
 inheritance. Here is an example. First of all, let me rewrite
 ``LogOnInit`` and ``RegisterOnInit`` to use ``__super`` instead of
@@ -512,12 +494,12 @@ intended for framework writers, so it assumes you can change the
 source code of your framework if you want. On the other hand, if
 are trying to re-use a mixin class coming from a third party
 framework and using ``super``, you will have to rewrite the
-parts of it. That is unfortunate, but I cannot make miracles.
+parts of it. That is unfortunate, but I cannot perform miracles.
 
 You may see ``__super`` as a clever hack to use
 ``super`` indirectly. Notice that since the hierarchy is straight, 
 there is room for optimization at the core language
-level. The ``__super`` trick as implemented in pure Python is a hack leveraging
+level. The ``__super`` trick as implemented in pure Python leverages
 on the name mangling mechanism, and follows closely the famous
 `autosuper recipe`_, with some improvement. Anyway,
 if you have two traits with the same
@@ -659,7 +641,7 @@ so that it was possible to write something like the following
 
 In version 0.5 I decided to remove this feature. Now the plumbing
 (i.e. the ``__metaclass__`` hook) is exposed to the user, some magic
-has been removed and it is easier for the user to write its own
+has been removed and it is easier for the user to write her own
 ``include`` factory if she wants to.
 
 Where to go from here? For the moment, I have no clear idea about the
@@ -685,7 +667,7 @@ will be happy.
 Trivia
 --------------------------------
 
-``strait`` officially stands for ``Simple Trait`` Object System, however
+``strait`` officially stands for Simple Trait object system, however
 the name is also a pun on the world "straight", since the difference
 between multiple inheritance hierarchies and TOS hierarchies is that
 TOS hierarchies are straight. Moreover, nobody will stop you from
@@ -698,6 +680,12 @@ thinking that the ``s`` also stands for Simionato ;)
 .. _here: http://www.ibm.com/developerworks/linux/library/l-pymeta3.html
 
 """
+from datetime import datetime
+TODAY = datetime.today().isoformat()[:10]
+VERSION = '0.5.0'
+
+__doc__ = __doc__.replace('VERSION', VERSION).replace('TODAY', TODAY)
+
 import time
 import cPickle as pickle
 from strait import *

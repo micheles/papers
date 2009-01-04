@@ -1,6 +1,6 @@
 __all__ = ['include', 'MetaTOS']
 
-import re, sys, inspect, types, warnings
+import inspect, types, warnings
 
 class OverridingError(NameError):
     pass
@@ -9,7 +9,8 @@ class OverridingWarning(Warning):
     pass
 
 class Super(object):
-    # this is needed to fix a shortcoming of unbound super objects
+    # this is needed to fix a shortcoming of unbound super objects,
+    # i.e. this is how the unbound version of super should work
     def __init__(self, thisclass):
         self.__thisclass__ = thisclass
     def __get__(self, obj, objcls):
@@ -89,10 +90,12 @@ def get_right_meta(metatos, bases):
     except IndexError:
         base = object
     meta = type(base)
-    if meta in (types.ClassType, type):
+    if meta in (types.ClassType, type): # is a builtin meta
         return metatos
     elif any(issubclass(meta, m) for m in known_metas):
         return meta
+    # meta is independent from all known_metas, make a new one with
+    # __new__ method coming from MetaTOS
     newmeta = type(
         '_TOS' + meta.__name__, (meta,), dict(__new__=metatos.__new__))
     setattr(newmeta, '_%s__super' % metatos.__name__, Super(newmeta))
