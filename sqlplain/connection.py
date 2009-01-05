@@ -101,8 +101,6 @@ class LazyConnection(object):
     that this class does not manage any kind of logging, on purpose.
     There is however a chatty method for easy of debugging.
     """
-
-    retry = False
     
     def __init__(self, uri, isolation_level=None, threadlocal=False):
         self.uri = URI(uri)
@@ -117,10 +115,6 @@ class LazyConnection(object):
             self._storage = _ThreadLocalStorage.new(connect, args)
         else:
             self._storage = _Storage.new(connect, args)
-        self.errors = (self.driver.OperationalError,
-                       self.driver.ProgrammingError,
-                       self.driver.InterfaceError,
-                       self.driver.DatabaseError)
 
     def _raw_execute(self, cursor, templ, args):
         """
@@ -141,21 +135,6 @@ class LazyConnection(object):
         else: # after a select
             return descr, cursor.fetchall()
 
-    def _execute(self, cursor, templ, args):
-        """
-        _raw_execute a query, by retrying it once with a fresh connection
-        in case of error if the .retry flag is set.
-        """
-        raw_execute = self._raw_execute
-        if not self.retry:
-            return raw_execute(cursor, templ, args)
-        try:
-            return raw_execute(cursor, templ, args)
-        except self.errors, e: # maybe bad connection
-            self.close() # reset connection and retry
-            print '%s, retrying' % e
-            return raw_execute(self._storage.curs, templ, args)
-
     def execute(self, templ, args=(), ntuple=None, scalar=False):
         if self.dbtype == 'mssql':
             # converts unicode arguments to utf8
@@ -173,7 +152,7 @@ class LazyConnection(object):
                 raise TypeError("Expected %d arguments, got %d: %s" % (
                     qmarks, len(args), args))
         
-        descr, res = self._execute(self._storage.curs, templ, args)
+        descr, res = self._raw_execute(self._storage.curs, templ, args)
         if scalar: # you expect a scalar result
             if not res:
                 raise KeyError(
