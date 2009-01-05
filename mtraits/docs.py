@@ -311,14 +311,6 @@ in return many advantages in terms of simplicity: for instance,
 whereas we all know that the `current super in Python`_ is very far
 from trivial.
 
-More importantly, many people use multiple inheritance incorrectly,
-confusing the ``is-a`` relation with the ``has-a`` relation; with
-traits, there is no confusion. Since there is a single base class, you
-can associate the ``is-a`` relation with the base class whereas the
-features coming from the traits correspond to ``has-a``: for instance
-in the Tkinter example a ``Widget`` *is* a ``BaseWidget`` but has the
-methods of the traits ``Pack``, ``Place`` and ``Grid``.
-
 .. _current super in Python: http://www.artima.com/weblogs/viewpost.jsp?thread=236275
 .. _elsewhere: http://www.artima.com/weblogs/viewpost.jsp?thread=246341
 .. _PloneSite hierarchy: http://www.phyast.pitt.edu/~micheles/python/plone-hierarchy.png 
@@ -682,7 +674,7 @@ thinking that the ``s`` also stands for Simionato ;)
 """
 from datetime import datetime
 TODAY = datetime.today().isoformat()[:10]
-VERSION = '0.5.0'
+VERSION = '0.5.1'
 
 __doc__ = __doc__.replace('VERSION', VERSION).replace('TODAY', TODAY)
 

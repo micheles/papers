@@ -1,6 +1,7 @@
 HISTORY
 -----------------------------
 
+0.5.1. First published version (2009-01-05)
 0.5.0. Major rewriting: abandoned the original idea of traits as
        mechanism to control namespace pollution and added support for
        method cooperation (2008-08-31);

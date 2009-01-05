@@ -3,7 +3,7 @@ try:
 except ImportError:
     from distutils.core import setup
 
-VERSION = '0.5.0'
+VERSION = '0.5.1'
 setup(name='strait',
       version=VERSION,
       description='Simple Traits for Python',
