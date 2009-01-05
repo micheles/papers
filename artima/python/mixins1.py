@@ -206,7 +206,7 @@ discuss a few alternatives.
 Appendix: the hierarchy of Plone Site
 ---------------------------------------------
 
-Here is picture: if it is too big to fit in your screen, that
+Here is the picture: if it is too big to fit in your screen, that
 proves my point against mixins ;)
 
 .. figure::  http://www.phyast.pitt.edu/~micheles/python/plone-hierarchy.png
