@@ -15,7 +15,7 @@ recommend to use as little as possible even single inheritance!
 In our example, we could have solved the design problem
 without using multiple inheritance, just with composition + delegation:
 
-$$PictureContainer2
+$$PictureContainer
 
 Thanks to the ``__getattr__`` trick, all the methods of
 ``SimplePictureContainer`` are available to ``PictureContainer2``,
@@ -141,3 +141,58 @@ namespaces separated*.
 .. _ABC: http://www.python.org/dev/peps/pep-3119/
 .. _component programming: http://www.muthukadan.net/docs/zca.html
 """
+
+class PictureContainer(DictMixin):
+  from utility import log
+
+  def __init__(self, id, pictures_or_containers):
+    self._pc = SimplePictureContainer(id, pictures_or_containers)
+    self.data = self._pc.data # avoids an indirection step
+
+  def __getitem__(self, id):
+    return self.data[id]
+
+  def __setitem__(self, id, value):
+    self.log.info('Adding or replacing %s into %s', id, self.id)
+    self.data[id] = value
+
+  def __delitem__(self, id):
+    self.log.warn('Deleting %s', id)
+    del self.data[id]
+
+  def keys(self):
+    return self.data.keys()
+
+  def __getattr__(self, name):
+    return getattr(self._pc, name)
+
+# def subclass(cls, base):
+#   bases = cls.__bases__
+#   if bases and bases != (object,):
+#       raise TypeError('Nontrivial base classes %s' % bases)
+#   return type(cls.__name__, (base, object), vars(cls).copy())
+
+# class DLPictureContainer(subclass(SimplePictureContainer, DictMixin)):
+#   pass
+
+#help(DLPictureContainer)
+p1 = Picture('pic00001', '/home/micheles/mypictures/pic00001', 
+             "Michele al mare", datetime(2008, 06, 10))
+
+p2 = Picture('pic00002', '/home/micheles/mypictures/pic00002', 
+             "Michele in montagna", datetime(2007, 06, 10))
+
+vacanze = PictureContainer("vacanze", [p1, p2])
+
+root = PictureContainer('root', [vacanze])
+root['pic00001'] = p1
+
+#     def walk(self):
+#       for obj in self.data.itervalues():
+#         if not isinstance(obj, self.__class__):
+#           yield obj # simple object
+#         else: # container object
+#           for o in obj.walk():
+#             yield o
+
+# for pic in root.walk(): print pic
