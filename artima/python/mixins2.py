@@ -125,12 +125,12 @@ is in my opinion a much clearer solution than inheritance.
 The problem with inheritance is that it requires a *substantial
 cognitive load*: when I see the line of code ``class C_WithLog(C, WithLog)``
 I immediately I ask myself many
-questions: *which methods are exported by ``C_WithLog``?
-is there any method of ``C`` which accidentally overrides one of the methods
-of ``C_WithLog``? if yes, is there any method cooperation mechanism
-(``super``) or not? what are the ancestors of ``C_WithLog``? which methods
-are coming from them? are such methods overridden by some ``C`` method?
-is there a cooperation mechanism on ``C_WithLog`` ancestors? What's the*
+questions: *which methods are exported by C_WithLog?
+is there any method of C which accidentally overrides one of the methods
+of C_WithLog? if yes, is there any method cooperation mechanism
+(super) or not? what are the ancestors of C_WithLog? which methods
+are coming from them? are such methods overridden by some C method?
+is there a cooperation mechanism on C_WithLog ancestors? What's the*
 `method resolution order`_ *of the hierarchy?*
 On the other hand, if I see ``from utility import log`` I have very little
 to understand and very little to worry about. The only caution in this

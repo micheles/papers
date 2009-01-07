@@ -51,6 +51,8 @@ http://docs.python.org/dev/library/functions.html#super) still says::
     issubclass(type2, type) must be true. super() only works for new-style 
     classes.
 
+[UPDATE: the final version of Python 2.6 has a better documentation
+for ``super``, as a direct consequence of this post ;)].
 The first sentence is just plain wrong: ``super`` does not return the 
 superclass. There is no such a thing as *the superclass* in a Multiple 
 Inheritance (MI) world. Also, the sentence about *unbound* is misleading,

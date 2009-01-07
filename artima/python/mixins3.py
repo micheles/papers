@@ -29,6 +29,7 @@ the check would fail. The problem has been solved in
 Python 2.6 thanks to the Abstact Base Class mechanism (ABC_);
 it is enought to register ``SimplePictureContainer`` as an ABC of
 ``PictureContainer2`` and you are done.
+
 Cosa si può fare in questa situazione? Direi che ci sono almeno tre
 possibili atteggiamenti:
 
