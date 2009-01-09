@@ -1,0 +1,33 @@
+Resuscitating a seven year old laptop
+---------------------------------------------
+
+Recently, I have spent a few days trying to recover a very old Compaq 
+laptop, which I have been neglecting for years - actually was using
+it by now she has her `new Eeepc`_
+
+The laptop was in a pretty bad shape:
+
+- the builtin Ethernet interface does not work, as an aftermath of a 
+  lightning storm of 4 years ago;
+- the builtin CD Writer/DVD Reader stopped working 5 years ago;
+- the external DVD Writer I bought 3 years go does not work either;
+- the BIOS is unable to boot from the two USB ports which, BTW,
+  only support the prehistoric USB 1.1 protocol.
+
+You understand that it was difficult to install some serious operating
+system on it, to replace Windows XP. I did not want to buy another external
+DVD Writer, since nowadays I have no need for it: I use an external USB
+disks for my backups, it is cheeper than buying DVDs.
+Luckily, by googling on the net, I have discovered the Smart Boot Manager
+project: if you have a system which is unable to boot from an USB pen
+or and USB drive, but has a floppy reader, you can boot from the smart
+boot floppy and dispatch to the real boot media to complete the
+booting process. So I made a smart boot floppy and I was able to install
+Ubuntu 8.10 on my laptop from a pen drive.
+Moreover, a few weeks ago I did buy a wireless USB kit, since it was
+really chip (something like 14 Euros) and I used that to replace
+the wired connection. The wireless card was recognized out of the box
+by Ubuntu, without need of any external driver, whereas on XP I had
+to download the custom drivers from the producer site.
+
+.. _new Eeepc:
