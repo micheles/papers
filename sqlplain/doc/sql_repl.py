@@ -1,7 +1,7 @@
 """
 usage: sql_repl <dbname>
 """
-# alias sql_repl="rlwrap python ~/gcode/sqlplain/doc/sql_repl.py"
+# alias sql_repl="rlwrap -m python ~/gcode/sqlplain/doc/sql_repl.py"
 
 import os, sys, subprocess                              
 from sqlplain import lazyconnect
@@ -25,7 +25,7 @@ class Console(object):
         self.db = lazyconnect(dbname)
         self.input_src = input_src
         self.prompt = '%s> ' % self.db.name
-        
+
     def sql_eval(self, code):
         rows = self.db.execute(code)
         if not isinstance(rows, list): # a scalar was returned
@@ -35,11 +35,11 @@ class Console(object):
             out.append('\t'.join(map(str, row)))
         return '\n'.join(out)
             
-    def readcode(self):
+    def readcode(self): 
+        sys.stdout.write(self.prompt)
+        sys.stdout.flush()
         lines = []
         while True:
-            sys.stdout.write(self.prompt)
-            sys.stdout.flush()
             line = self.input_src.readline()
             if not line:
                 raise EOFError

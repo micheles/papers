@@ -26,7 +26,7 @@ def get_tables_postgres(conn):
 
 def exists_table_postgres(conn, tname):
     return conn.execute('SELECT count(*) FROM pg_tables WHERE tablename=?',
-                        tname, scalar=True)
+                        (tname,), scalar=True)
 
 # apparently copy_from from psycopg2 is buggy for large files
 def insert_file_postgres(conn, fname, table, sep=',', null='\N'):

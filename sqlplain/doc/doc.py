@@ -199,27 +199,6 @@ after the execution of a given block of code, by using the pattern
   with closing(cx):
       do_something(cx)
 
-Lazy connections have an interesting feature: if
-a query raises an error, ``sqlplain`` tries to execute it a second
-time with a fresh connection, and sometimes the second attempt may
-succeed. The reason is that
-sometimes a correct query fails due to network issues or other
-problems (for instance somebody restarted the database server and
-the existing connection has become obsolete) which are transitory:
-so the first time the query fails because the connection is
-in a bad state, but the second time it succeeds since the fresh
-connection is in a good state. Of course, if the network outage or
-the other error persists, there will be an error even at the second
-attempt and the exception will be raised (we all know that
-*errors should never pass silently*). By default this feature is
-turned on, but you may disable it (if you do not want to retry
-every failed query) by setting the ``.retry`` attribute
-of the lazy connection object (or class) to ``False``.
-
-Retrying connections are good when writing long running programs, such as
-user interfaces (CLI, GUI and Web): in such a situations
-errors are trapped.
-
 The configuration file
 --------------------------------------------------------------
 
@@ -723,3 +702,28 @@ dtable_doc = str(Document(table.DTable))
 
 if __name__ == '__main__':
     import doctest; doctest.testmod()
+
+
+# removed functionality
+"""
+Lazy connections have an interesting feature: if
+a query raises an error, ``sqlplain`` tries to execute it a second
+time with a fresh connection, and sometimes the second attempt may
+succeed. The reason is that
+sometimes a correct query fails due to network issues or other
+problems (for instance somebody restarted the database server and
+the existing connection has become obsolete) which are transitory:
+so the first time the query fails because the connection is
+in a bad state, but the second time it succeeds since the fresh
+connection is in a good state. Of course, if the network outage or
+the other error persists, there will be an error even at the second
+attempt and the exception will be raised (we all know that
+*errors should never pass silently*). By default this feature is
+turned on, but you may disable it (if you do not want to retry
+every failed query) by setting the ``.retry`` attribute
+of the lazy connection object (or class) to ``False``.
+
+Retrying connections are good when writing long running programs, such as
+user interfaces (CLI, GUI and Web): in such a situations
+errors are trapped.
+"""
