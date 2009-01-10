@@ -268,10 +268,10 @@ strait_ module. Enjoy!
 let me make clear a couple of points:
 
 1. I am *not* asking for removing multiple inheritance in Python and
-   replacing it with traits. However, I am saying that people writing 
-   new languages should think twice before adding multiple inheritance.
+   replacing it with traits. However, I am saying to people writing 
+   new languages: *think twice before adding multiple inheritance*.
    Certainly it is more `difficult to implement`_ than traits; moreover,
-   I am arguing that it makes life more difficult for the users too.
+   I am arguing that it makes life more difficult for yours users too.
 
 2. I do *not* think traits are the best thing after sliced bread. They
    are a bit better than multiple inheritance, but I still recommend
