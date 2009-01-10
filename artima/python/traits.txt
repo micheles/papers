@@ -1,25 +1,16 @@
-For some time I have been running a campaign against multiple inheritance
-(see the conclusion of the `third article`_ of my series 
-*Things to Know About Super*)
-and mixins (see `the first`_ and `the second`_ article of the series
-*Mixins considered harmful*).
-Following that route, I have decided to
+As you may know, for some time I have been running a campaign against 
+multiple inheritance and mixins - you may want to read the 
+conclusion of the `third article`_ of my series 
+*Things to Know About Super* and 
+`the first`_ and `the second`_ article of the series
+*Mixins considered harmful*.
+
+Following that route, last week I decided to
 release a module I wrote this summer, the strait_ module, which
 implements traits_ for Python. 
-
-Since I am publishing this article
-on Artima, a forum full of Scala aficionados, I should point out
-right from the beginning that I am referring to something
-different than Scala traits. Scala traits can be composed when they 
-override the same method and the order of the composition determines the
-resulting pattern of super calls, thus a Scala trait closely 
-resembles a Python mixin. 
-That means that Scala traits have basically all the complications of
-Python mixins, which are exactly the complications traits should avoid. 
-
-The strait_ module implements traits in the sense of the 2005
-paper `Traits - Composable Units of Behavior`_: such traits are
-simple since they they cannot have common methods and the method
+The implementation is inspired by the 2003
+paper `Traits - Composable Units of Behavior`_. Such traits are
+simple since they cannot have common methods and the method
 resolution order is trivial. There is an implementation of the concept
 in the Smalltalk implementation Squeak_.
 
@@ -29,7 +20,7 @@ The strait_ module was written as a design exercise, to prove a few points:
   simpler and less dangerous mechanism, without losing much 
   expressive power;
 
-- that a language like Python is powerful enough that you can implement
+- that a language such as Python is powerful enough that you can implement
   traits in 100 lines by using single inheritance only;
 
 - that you can keep a kind of method cooperation even using traits,
@@ -37,16 +28,16 @@ The strait_ module was written as a design exercise, to prove a few points:
   by setting straight the original hierarchy.
 
 The `documentation of the strait module`_ is intended for language designers,
-framework writers and very expert Python programmers. It actually was
+framework writers and advanced Python programmers. It actually was
 written for the guys of the python-dev list, as a companion to 
-this `thread about my articles on super`_. It is not intended for
+a `thread about my articles on super`_. It is not intended for
 the average Joe programmer, and it is somewhat technical, focusing
 on the details on the Python implementation. On the other hand, 
 knowing that alternatives to multiple inheritance and mixins exist
-is good for everybody and I think those ideas should be popularized.
+in my opinion is good for everybody.
 
-Thus, I have decided to supplement the `documentation of the strait
-module`_ with a few notes explaining what traits are, the differences
+Thus, I have decided to supplement the documentation of the strait
+module with a few notes explaining what traits are, the differences
 with multiple inheritance and mixins and what we mean by method
 cooperation.  The notes here are intended for any programmer with
 experience in OOP, and they are not Python specific at all.
@@ -60,19 +51,22 @@ experience in OOP, and they are not Python specific at all.
 .. _traits: http://www.iam.unibe.ch/%7Escg/Archive/Papers/Scha03aTraits.pdf
 .. _Traits - Composable Units of Behavior: http://www.iam.unibe.ch/%7Escg/Archive/Papers/Scha03aTraits.pdf
 
-Multiple inheritance
+Multiple inheritance and method cooperation
 ---------------------------------------------------------------------
 
 `Multiple inheritance`_, mixins_ and traits_ are usually considered
-advanced techniques of object oriented programming, since the most popular
-languages (Java, C#, VisualBasic, PHP) do not support them, or
-support them in a poor way (C++).
-On the other hand, those techniques are pretty common
-in the coolest languages out there, such as Python (featuring multiple
-inheritance), Ruby (featuring mixins) and Scala (featuring "traits").
-I am quoting the term "traits" when referred to Scala, since
-the Scala implementation is more similar to Python mixins
-than to Squeak traits.
+advanced techniques of object oriented programming, since the most
+popular languages (Java, C#, VisualBasic, PHP) do not support them, or
+support them in a poor way (C++).  On the other hand, those techniques
+are pretty common in the coolest languages out there, such as Python
+(featuring multiple inheritance), Ruby (featuring mixins) and Scala
+(featuring "traits").  I am quoting the term "traits" when referred to
+Scala, since Scala traits are more similar to Python mixins
+than to Squeak traits. Actually, Scala traits can be composed when
+they override the same method and the order of the composition
+determines the resulting pattern of super calls: that means that Scala
+traits have basically all the complications of Python mixins, which 
+I would rather avoid.
 
 Multiple inheritance is the most general technique among the three
 cited before: mixins can be seen as a restricted form of multiple
@@ -80,16 +74,15 @@ inheritance and traits as a restricted form of mixins.
 Multiple inheritance is available in various languages, such as 
 C++, Common Lisp, Python, Eiffel, and others.
 In a multiple inheritance language, a class can have more than one parent
-and therefore it can inherits methods and attributes from more sources at
-the same time. It is clear that maintaining code taking advantages of
+and thus can inherit methods and attributes from more sources at
+the same time. Maintaining code taking advantages of
 multiple inheritance is not trivial, since in order to understand how
 a class works, one needs to study all of its parents (and the parents
 of the parents, recursively).
 
-The methods of the daughter class may come
-from many different sources (leading to *spaghetti inheritance*) and 
-there is a strong coupling of the code: changing any method in any
-ancestors has an effect on the daughter class. At some extent this
+That means that there is a strong coupling of the code: 
+changing any method in any
+ancestors has an effect on the daughter class. To some extent this
 is is inevitable, since the other face of code reuse if code coupling
 (you cannot have one without the other) and one has to cope with that.
 Also, you have the same problem
@@ -97,35 +90,63 @@ even with single inheritance, when you have a deep hierarchy.
 However, multiple inheritances adds another level of complication. 
 
 For instance, the order of the parents
-is significant: a class *C1* inheriting from classes *M1* ed *M2* does
-not necessarily behave as a class *C2* inheriting in *M2* and
-*M1* where the order of the parents is inverted.
-The reason is that if there are common methods between *M1* and *M2*, i.e.
-methods with the same name, the methods of *M1* have the precedence over the
-methods of *M2* for the class ``C1(M1, M2)``, but the opposite is true
-for the class ``C2(M2, M1)``.
+is significant: a class *C1* inheriting from *P1* and *P2* does
+not necessarily behave the same as a class *C2* inheriting from *P2* and
+*P1* where the order of the parents is inverted.
+The reason is that for common methods, i.e. methods with the same name, 
+the methods of *P1* have the precedence over the
+methods of *P2* for the class ``C1(P1, P2)``, but not
+for the class ``C2(P2, P1)``.
 Since the common methods are silently overridden and programmers are not
 quite good at remembering the ordering, that may give raise to subtle bugs.
 
 The situation is worse if one looks at the higher order ancestors:
-the order of overriding of the methods (the so called MRO, Method
-Resolution Order) is definitely non trivial in a multiple inheritance
-hierarchy: I actually wrote a long essay on the subject, describing
-the `Python MRO`_ and I address you to that reference for the details.
+the order of overriding (the so called MRO, Method
+Resolution Order) is definitely non trivial: 
+I actually wrote a long essay on the subject, describing
+the `Python MRO`_ and I refer to that reference for the details.
+While that reference is Python specific, the concept of method
+resolution (also called *linearization* in the Lisp world) is
+general and applies to many languages, including Dylan and Common
+Lisp. If you want to know more about the linearizations
+of Dylan and Common Lisp, you should look at `this paper`_.
+
+If you are a reader of my `Scheme series`_ or a Scheme practitioner, 
+I suggest you to read the
+paper `Scheme with Classes, Mixins, and Traits`_, which describes
+the object system of PLT Scheme, which support both cooperative
+mixins and traits in the Squeak sense.
+
+Scala does not support full multiple inheritance, but its traits
+are nearly as powerful (the only difference between a trait and a
+regular class is that the trait does not define a constructor)
+and nearly as complicated, therefore I would consider Scala in
+the same class with Python and Common Lisp. If you
+want to look at how Scala works, you may look the `Scala Overview`_ 
+paper. Theoretically, the Python MRO is the best one,
+since it is monotonic, but in practice all MRO are quite complicated.
+
 The point to notice is that the complication of the MRO is by design:
-languages such as Python and Common Lisp where *designed* this way
-to make possible method cooperation. I should also notice that this
+languages with a non-trivial MRO where *designed* this way
+to make possible `method cooperation via super calls`_. That means
+that if both parents ``P1`` and ``P2`` define a method ``m``,
+a child class ``C`` can override it and still have access to
+the ``m`` methods of the parents via ``super``: ``C.m`` will
+call first ``P1.m`` and then ``P2.m``, if ``P1.m`` features
+a ``super`` call itself.
+
+Of course, this
 is just one possible design: different languages may adopt different
 designs. For instance the Eiffel language implements multiple
-inheritance, but it raises and exception when two methods with
+inheritance, but it raises an exception when two methods with
 the same name are present: the programmer is forced to specify an
 explicit renaming (this is basically what happens for traits). 
 
-Years ago, I thought such a design to be simplistic
-(even stupid) and very much inferior to Python design: nowadays
-I have had more experience with real life large object oriented 
-systems using multiple inheritance and I have come to appreciate
-"stupid" designs. Actually, nowadays I think Smalltalk made the right choice
+Years ago, I thought such a design to be simplistic (even stupid) and
+very much inferior to the Python cooperative design: nowadays I have
+had more experience with real life large object oriented systems using
+multiple inheritance and I have come to appreciate "stupid"
+designs. Actually, nowadays I think Smalltalk made the right choice
 thirty years ago, deciding to *not* support multiple inheritance nor
 mixins.
 
@@ -133,33 +154,47 @@ mixins.
 .. _mixins: http://en.wikipedia.org/wiki/Mixins
 .. _Squeak: http://www.squeak.org/
 .. _PLT Scheme: http://plt-scheme.org/
-.. _cooperare: http://www.python.org/download/releases/2.2.3/descrintro/#cooperation
+.. _method cooperation via super calls: http://www.python.org/download/releases/2.2.3/descrintro/#cooperation
 .. _call-next-method: http://www.lisp.org/HyperSpec/Body/locfun_call-next-method.html
 .. _Scala Overview: http://www.scala-lang.org/docu/files/ScalaOverview.pdf
 
-Mixins, Traits and Scala Traits
+.. _this paper: http://192.220.96.201/dylan/linearization-oopsla96.html
+
+Mixins and traits without multiple inheritance
 ------------------------------------------------------------------------
 
 In practice, the overriding problem is not very frequent (it is serious
 when it happens, but it *rarely* happens) since usually frameworks are
 designed to mix *independent* sets of functionality. Usually one does
 not need the full power of multiple inheritance: mixins or traits are
-powerful enough to implement most Python frameworks. 
+powerful enough to implement most frameworks. 
 
-In general, a mixin is a method container; in Python, mixins are
-usually implemented as classes, and their methods are injected
-into classes via multiple inheritance. In Ruby, a language without multiple
-inheritance, mixins are implemented as modules. In Ruby
-the problem of method cooperation does not exist, since
-there is no method cooperation in the sense Python
-``super`` or CLOS ``call-next-method``. There is a limited
+In a language with multiple inheritance it is natural
+to implement mixins as classes.
+However, this is not the only solution. In general, we can speak
+of mixin programming in any language where it is possible to inject
+methods in the namespace of a class, both statically before class creation
+or dynamically after class creation.
+
+For instance, 
+Ruby does not support multiple inheritance, bit it does support mixins
+since it is possible to include methods coming from a module::
+
+  class C_with_mixin < C:
+     include M # M is a module
+
+There is an advantage in this approach: modules have no parents and
+there is no concept of method resolution order, so it is much easier
+to figure out what a mixin does, as compared to figure out what
+a mixin implemented as a class in a multiple inheritance hierarchy
+does. On the other hand, there is no method cooperation in the sense 
+of Python or Scala ``super`` or CLOS ``call-next-method``.
+There is a limited
 cooperation between parent and sons only, since Ruby ``super``
-(like Java super), is able to dispatch to the parent
-class only. Incidentally, I should notice that
-Scala ``super`` instead works similarly to Python
-``super``, however the Scala method resolution order is different from
-the Python one and it not even monotonic; for details you
-may look the `Scala Overview`_ paper.
+(like Java ``super``), is able to dispatch to the parent
+class only.
+This is not
+necessarily a bad thing, though.
 
 Ruby mixins are much simpler than Scala traits or Python mixins,
 but they still suffer for the ordering problem: mixing the module *M1* and the
@@ -184,48 +219,6 @@ class as a composition of traits (one could argue that in Python pydoc
 allows you to see the origin of the methods as coming from parent
 classes, but that support is insufficient to manage situations with
 complicate inheritance hierarchies and lots of methods).
-
-Mixins without multiple inheritance
--------------------------------------------------------------
-
-In a language with multiple inheritance (such as Python) the natural
-way to implement mixins is by making use of it. For instance, if you
-want to add a mixin ``M`` to a class ``C``, the simplest solution is to
-inherit from ``C`` and ``M`` at the same time::
-
- class C_with_mixin(C, M): # M is a mixin class
-    pass
-
-However, this is not the only solution. In general, we can speak
-of mixin programming in any language where it is possible to inject
-methods in the namespace of a class, both statically before class creation
-or dynamically after class creation.
-
-Ruby does not support multiple inheritance, bit it does support mixins
-since it is possible to include methods coming from a module::
-
-  class C_with_mixin < C:
-     include M # M is a module
-
-There is an advantage in this approach: modules have no parents and
-there is no concept of method resolution order, so it is much easier
-to figure out what a mixin does, as compared to figure out what
-a mixin implemented as a class in a multiple inheritance hierarchy
-does. On the other hand, there is no method cooperation. This is not
-necessarily a bad thing, though.
-
-Scala does not support full multiple inheritance, but its traits
-are nearly as powerful (the only difference between a trait and a
-regular class is that the trait does not define a constructor)
-and nearly as complicated, therefore I would consider Scala in
-the same class with Python, and not in the same class with Ruby.
-
-If you are a reader of my `Scheme series`_ or a Scheme practitioner, 
-I suggest you to read the
-paper `Scheme with Classes, Mixins, and Traits`_, which describes
-the object system of PLT Scheme, which support both mixins and
-traits.
-
 
 In Python you can also implement mixins without inheritance simply by
 dynamically adding methods to a class, starting from a method dictionary
@@ -259,11 +252,15 @@ possible indeed.
 All those points are explained in `documentation of the strait module`_,
 so you should look there, if you are really interested in the subject.
 Here I will just add that I prefer `generic functions`_ to traits.
-Still, traits my have a role if you want to follow the traditional
+Still, traits may have a role if you want to follow the traditional
 route of having methods inside classes, and they are a smaller leap
 from traditional object oriented programming. Moreover, it is much
 easier to convert a pre-existing framework from using mixins to
-using traits than to convert it to use generic functions.
+using traits than to convert it generic functions.
+
+If you want to play with traits in Python, you are welcome to
+strait_ module. Enjoy!
+
 
 .. _Scheme with Classes, Mixins, and Traits: http://www.cs.utah.edu/plt/publications/aplas06-fff.pdf
 .. _Scheme series: http://www.artima.com/weblogs/viewpost.jsp?thread=238789

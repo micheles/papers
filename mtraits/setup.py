@@ -3,15 +3,21 @@ try:
 except ImportError:
     from distutils.core import setup
 
+try:
+    docfile = file('/tmp/docs.html')
+except IOError: # file not found, ignore
+    doc = ''
+else:
+    doc = docfile.read()
+
 VERSION = '0.5.1'
 setup(name='strait',
       version=VERSION,
       description='Simple Traits for Python',
-      long_description="""strait is a simple implementation of trait-based object system for Python
-""",
+      long_description="</pre>%s<pre>" % doc,
       author='Michele Simionato',
       author_email='michele.simionato@gmail.com',
-      url='http://www.phyast.pitt.edu/~micheles/python/strait.html',
+      url='http://pypi.python.org/pypi/strait',
       license="BSD License",
       py_modules = ['strait'],
       keywords='',

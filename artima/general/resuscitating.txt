@@ -60,11 +60,24 @@ in the process that now links features a very neat graphic mode:
 the trick is to install links2 (``apt-get install links2``)
 and to start it with the ``-g`` option (``links2 -g``).
 A minor glitch is that the NetworkManager applet is not enabled
-by default, so I had to put this lines in .icewm/startup file:
+by default, so I put this line in .icewm/toolbar file::
 
+ prog XTerm xterm x-terminal-emulator
+ prog links /usr/share/app-install/icons/wsjt.png links2 -g
+ prog nm-applet /usr/share/app-install/icons/wlassistant.xpm nm-applet
 
- #!/bin/sh
- xterm nm-applet &
+The format of the configuration file is pretty simple: every line
+in it has the form ``prog alt icon app`` were ``app`` is the
+executable application, ``icon`` is a path to an icon that will
+appear on the toolbar and ``alt`` is the text which appears,
+when you hover the mouse over the icon, or the text which replaces
+the images if the icon is missing.
+
+With this trick a little icon for the Network Manager Applet appears
+on my toolbar and I can connect to the wireless simply by clicking on
+it. The applet is relatively resource hungry (around 10 Megabytes) and
+there are slimmer alternative out there, but for the moment I am
+keeping it.
 
 Generally speaking, IceWM seems to work well with Gnome applications:
 in particular all the Gnome applications I have tried with an applet
@@ -79,7 +92,13 @@ xterm used together with screen makes a good replacement for
 heavy applications like the gnome-terminal or the KDE Konsole.
 Plus, the scrolling is blazzing fast.
 
+Since I always want to use a terminal with screen, it makes sense to
+open it at startup. So, I wrote the following .icewm/startup file::
 
+ #!/bin/sh
+ xterm -e screen &
+
+(notice that the startup file must be executable to be run).
 
 .. _new Eeepc:
 . _IceWM: http://www.icewm.org/
