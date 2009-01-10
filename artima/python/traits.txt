@@ -1,15 +1,15 @@
 As you may know, for some time I have been running a campaign against 
 multiple inheritance and mixins - you may want to read the 
-conclusion of the `third article`_ of my series 
+conclusion of the `third article`_ of the series 
 *Things to Know About Super* and 
 `the first`_ and `the second`_ article of the series
 *Mixins considered harmful*.
-
 Following that route, last week I decided to
 release a module I wrote this summer, the strait_ module, which
 implements traits_ for Python. 
+
 The implementation is inspired by the 2003
-paper `Traits - Composable Units of Behavior`_. Such traits are
+paper `Traits - Composable Units of Behavior`_. Traits are
 simple since they cannot have common methods and the method
 resolution order is trivial. There is an implementation of the concept
 in the Smalltalk implementation Squeak_.
@@ -27,7 +27,7 @@ The strait_ module was written as a design exercise, to prove a few points:
   but in a simpler way than using multiple inheritance, basically
   by setting straight the original hierarchy.
 
-The `documentation of the strait module`_ is intended for language designers,
+The documentation of the strait_ module is intended for language designers,
 framework writers and advanced Python programmers. It actually was
 written for the guys of the python-dev list, as a companion to 
 a `thread about my articles on super`_. It is not intended for
@@ -46,7 +46,6 @@ experience in OOP, and they are not Python specific at all.
 .. _third article: http://www.artima.com/forums/flat.jsp?forum=106&thread=237121
 .. _the first: http://www.artima.com/weblogs/viewpost.jsp?thread=246341
 .. _the second: http://www.artima.com/weblogs/viewpost.jsp?thread=246483
-.. _documentation of the strait module: http://www.phyast.pitt.edu/~micheles/python/strait.html
 .. _strait: http://pypi.python.org/pypi/strait 
 .. _traits: http://www.iam.unibe.ch/%7Escg/Archive/Papers/Scha03aTraits.pdf
 .. _Traits - Composable Units of Behavior: http://www.iam.unibe.ch/%7Escg/Archive/Papers/Scha03aTraits.pdf
@@ -76,13 +75,13 @@ C++, Common Lisp, Python, Eiffel, and others.
 In a multiple inheritance language, a class can have more than one parent
 and thus can inherit methods and attributes from more sources at
 the same time. Maintaining code taking advantages of
-multiple inheritance is not trivial, since in order to understand how
+(multiple) inheritance is nontrivial, since in order to understand how
 a class works, one needs to study all of its parents (and the parents
 of the parents, recursively).
 
 That means that there is a strong coupling of the code: 
 changing any method in any
-ancestors has an effect on the daughter class. To some extent this
+ancestors has an effect on the class. To some extent this
 is is inevitable, since the other face of code reuse if code coupling
 (you cannot have one without the other) and one has to cope with that.
 Also, you have the same problem
@@ -108,10 +107,11 @@ the `Python MRO`_ and I refer to that reference for the details.
 While that reference is Python specific, the concept of method
 resolution (also called *linearization* in the Lisp world) is
 general and applies to many languages, including Dylan and Common
-Lisp. If you want to know more about the linearizations
-of Dylan and Common Lisp, you should look at `this paper`_.
+Lisp. 
 
-If you are a reader of my `Scheme series`_ or a Scheme practitioner, 
+If you want to know more about the linearizations
+of Dylan and Common Lisp, you should look at `this paper`_. On the other
+hand, if you are a reader of my `Scheme series`_ or a Scheme practitioner, 
 I suggest you to read the
 paper `Scheme with Classes, Mixins, and Traits`_, which describes
 the object system of PLT Scheme, which support both cooperative
@@ -124,7 +124,7 @@ and nearly as complicated, therefore I would consider Scala in
 the same class with Python and Common Lisp. If you
 want to look at how Scala works, you may look the `Scala Overview`_ 
 paper. Theoretically, the Python MRO is the best one,
-since it is monotonic, but in practice all MRO are quite complicated.
+since it is monotonic, but in practice all MROs are quite complicated.
 
 The point to notice is that the complication of the MRO is by design:
 languages with a non-trivial MRO where *designed* this way
@@ -237,7 +237,8 @@ names and raise an error in that case. Moreover you must be
 careful with ordering issues: the traits paper says that
 methods coming from a trait must take the precedence over
 methods coming from the base class, but they must *not* take
-the precedence over methods defined in the class. Moreover,
+the precedence over methods defined in the class.
+
 I took some liberty with my own implementation of traits,
 which was just *inspired* by the Squeak implementation, but
 it is not the same. In particular, I added some support
@@ -245,20 +246,22 @@ for cooperation of traits, i.e. there is a kind of ``super``,
 but its functionality is limited with respect to the regular
 super, and it is a bit more akward to use: this is on purpose,
 to discourage designs based on method cooperation, which I
-think are fragile and not to be recommended. Still, in the
+think are fragile and not to be recommended (again, see the
+`third article`_ on my series about ``super``).
+Still, in the
 very few special case where one wants cooperation, that is
 possible indeed.
 
-All those points are explained in `documentation of the strait module`_,
+All those points are explained in the documentation of the strait_ module,
 so you should look there, if you are really interested in the subject.
-Here I will just add that I prefer `generic functions`_ to traits.
-Still, traits may have a role if you want to follow the traditional
+Here I will just add that I still prefer `generic functions`_ to traits.
+Nevertheless, traits may have a role if you want to follow the traditional
 route of having methods inside classes, and they are a smaller leap
 from traditional object oriented programming. Moreover, it is much
 easier to convert a pre-existing framework from using mixins to
 using traits than to convert it generic functions.
 
-If you want to play with traits in Python, you are welcome to
+If you want to play with traits in Python, you are welcome to try the
 strait_ module. Enjoy!
 
 
