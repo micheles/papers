@@ -264,8 +264,23 @@ using traits than to convert it generic functions.
 If you want to play with traits in Python, you are welcome to try the
 strait_ module. Enjoy!
 
+*Post scriptum*. I realize that this post may be misinterpreted, so
+let me make clear a couple of points:
+
+1. I am *not* asking for removing multiple inheritance in Python and
+   replacing it with traits. However, I am saying that people writing 
+   new languages should think twice before adding multiple inheritance.
+   Certainly it is more `difficult to implement`_ than traits; moreover,
+   I am arguing that it makes life more difficult for the users too.
+
+2. I do *not* think traits are the best thing after sliced bread. They
+   are a bit better than multiple inheritance, but I still recommend
+   to keep things simple and to use both (single) inheritance and
+   traits as little as possible.
+
 
 .. _Scheme with Classes, Mixins, and Traits: http://www.cs.utah.edu/plt/publications/aplas06-fff.pdf
 .. _Scheme series: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
 .. _python mro: http://www.python.org/download/releases/2.3/mro/
 .. _generic functions: http://www.artima.com/weblogs/viewpost.jsp?thread=237764
+.. _difficult to implement: http://sayspy.blogspot.com/2007/04/five-1-things-i-hate-about-python-and.html
