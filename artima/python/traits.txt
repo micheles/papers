@@ -6,7 +6,7 @@ conclusion of the `third article`_ of the series
 *Mixins considered harmful*.
 Following that route, last week I decided to
 release a module I wrote this summer, the strait_ module, which
-implements traits_ for Python. 
+implements traits for Python. 
 
 The implementation is inspired by the 2003
 paper `Traits - Composable Units of Behavior`_. Traits are
