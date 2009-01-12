@@ -620,7 +620,7 @@ methods. It is a nighmare.
 Originally I wanted to prevent this kind
 of abuse, but that made my implementation more complex, whereas
 my main goal was to keep the implementation simple. As a consequence
-this version assume the prosaic attitude that you cannot stop
+this version assumes the prosaic attitude that you cannot stop
 programmers from bad design anyway, so if they want to go the Zope
 way they can.
 

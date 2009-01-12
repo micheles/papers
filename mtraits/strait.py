@@ -117,7 +117,7 @@ def new(metatos, name, bases, attrs, traits):
     return cls
 
 def include(*traits, **kw):
-    "Class decorator factory"
+    "Returns a class factory"
     metatos = kw.get('MetaTOS', MetaTOS) # other kw free for future extensions
     def makecls(name, bases, dic):
         return new(metatos, name, bases, dic, traits)
