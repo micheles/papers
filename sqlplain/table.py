@@ -22,7 +22,7 @@ def tabletuple(name, kfields, dfields):
 # closures to be instantiated in DTable.__init__
 
 def insert(ttuple):
-    "Return a procedure inserting a row or a dictionary into a table"
+    "Returns a procedure inserting a row or a dictionary into a table"
     name = ttuple.__name__
     fields = ttuple._fields
     csfields = ', '.join(fields)
@@ -64,7 +64,7 @@ def select(ttuple):
     return select_row
 
 def delete(ttuple):
-    "Return a procedure inserting a row or a dictionary into a table"
+    "Returns a procedure inserting a row or a dictionary into a table"
     name = ttuple.__name__
     clause = ' AND '.join('%s=?' % field for field in ttuple._kfields)
     templ = 'DELETE FROM %s WHERE %s' % (name, clause)
@@ -124,22 +124,22 @@ class DView(object):
         util.create_view(conn, name, fields, force)
         return cls(conn, name)
 
-    def __init__(self, conn, name, fields=(), query=''):
+    def __init__(self, conn, name, fields=(), subquery=''):
         self.conn = conn
         self.name = name
-        if query:
-            self.query = '(%s) AS %s' % (query, name)
-            s = 'SELECT * FROM %s WHERE 1=0' % self.query
-            fields = [r.name for name in conn.execute(s).descr]
+        if subquery:
+            self.subquery = '(%s) AS %s' % (subquery, name)
+            s = 'SELECT * FROM %s WHERE 1=0' % self.subquery
+            fields = fields or [r.name for name in conn.execute(s).descr]
         else:
-            self.query = name
+            self.subquery = name
         fields = fields or util.get_fields(conn, name)
         self.tt = tabletuple(name, fields)
 
     def select(self, clause='', *args):
         "Select rows from the table"
         fields = ', '.join(self.tt._fields)
-        templ = 'SELECT %s FROM %s %s' % (fields, self.query, clause)
+        templ = 'SELECT %s FROM %s %s' % (fields, self.subquery, clause)
         if args:
             return do(templ, ntuple=self.tt)(self.conn, templ, *args)
         else:
@@ -147,7 +147,7 @@ class DView(object):
 
     def count(self, clause=''):
         "Count the number of rows satisfying the given clause"
-        templ = 'SELECT COUNT(*) FROM %s %s' % (self.query, clause)
+        templ = 'SELECT COUNT(*) FROM %s %s' % (self.subquery, clause)
         if args:
             return do(templ)(self.conn, templ, *args)
         return self.conn.execute(templ, scalar=True)
@@ -165,7 +165,8 @@ class KView(DView):
     """
 
     def __init__(cls, name, kfields=(), dfields=()):
-        kfields = kfields or util.get_kfields(conn, name)
+        kfields = kfields or util.get_kfields(conn, name) 
+        # util.get_kfields probably does work on a view
         dfields = dfields or util.get_dfields(conn, name)
         if not kfields:
             raise TypeError('table %s has no primary key!' % name)
@@ -184,7 +185,7 @@ class KView(DView):
         """Return a set with the key(s) of the table"""
         kfields = ', '.join(self.tt._kfields)
         return set(self.conn.execute(
-            'SELECT %s FROM %s' % (kfields, self.query)))
+            'SELECT %s FROM %s' % (kfields, self.subquery)))
     
 ############################### tables ###############################
 
@@ -202,7 +203,7 @@ class DTable(DView):
 
     def __init__(self, conn, name, fields=()):
         self.conn = conn
-        self.name = self.query = name
+        self.name = self.subquery = name
         if not fields:
             fields = util.get_fields(conn, name)
         self.tt = namedtuple(name, fields)

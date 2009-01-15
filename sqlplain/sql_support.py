@@ -40,35 +40,36 @@ def extract_argnames(templ):
             qmarks += chunk.count('?')
     return ['arg%d' % i for i in range(1, qmarks + 1)]
             
-def do(templ, name='sqlquery', args=None, defaults=None, scalar=False,
+def do(templ, name='sqlquery', argnames=None, defaults=None, scalar=False,
        ntuple=None):
     """
     Compile a SQL query template down to a Python function with attributes
-    __source__, defaults, scalar, ntuple.
+    __source__, argnames defaults, scalar, ntuple. argnames is a comma
+    separated string of names, whereas defaults is a tuple.
     """
-    if args is None:
-        args = ', '.join(extract_argnames(templ))
-        if args: args += ','
-    src = '''def %(name)s(conn, %(args)s):
-    return conn.execute(templ, (%(args)s), scalar=scalar, ntuple=ntuple)
+    if argnames is None:
+        argnames = ', '.join(extract_argnames(templ))
+        if argnames:
+            argnames += ','
+    src = '''def %(name)s(conn, %(argnames)s):
+    return conn.execute(templ, (%(argnames)s), scalar=scalar, ntuple=ntuple)
     ''' % locals()
-    fun = FunctionMaker(
-        name=name, signature=args, defaults=defaults, doc=templ)
-    fn = fun.make(
-        src, dict(templ=templ, scalar=scalar), addsource=True, templ=templ)
+    fn = FunctionMaker(
+        name=name, signature=argnames, defaults=defaults, doc=templ).make(
+        src, dict(templ=templ, scalar=scalar), addsource=True)
     comment = '# ntuple = %s\n# scalar = %s\n# templ=\n%s\n' % (
-        ntuple, scalar, '\n'.join(
-        '## ' + line for line in templ.splitlines()))
+        ntuple, scalar, '\n'.join('## ' + ln for ln in templ.splitlines()))
     fn.__source__ = '%s\n%s' % (comment, fn.__source__)
-    fn.args = args
+    fn.templ = templ
+    fn.argnames = argnames
     fn.defaults = defaults
     fn.scalar = scalar
     fn.ntuple = ntuple
     return fn
 
-def spec(fn, clause, args=None, defaults=None, ntuple=None):
+def spec(fn, clause, argnames=None, defaults=None, ntuple=None):
     "Add a clause to an SQL Template function"
-    return do(fn.templ + clause, args = args or fn.args,
+    return do(fn.templ + clause, argnames = argnames or fn.argnames,
               defaults=defaults or fn.defaults, 
               scalar=fn.scalar, ntuple=ntuple or fn.ntuple)
     
