@@ -1,8 +1,8 @@
 (library (sweet-macros)
-;;; Version: 0.1
+;;; Version: 0.3
 ;;; Author: Michele Simionato
 ;;; Email: michele.simionato@gmail.com
-;;; Date: 27-Oct-2008
+;;; Date: 15-Nov-2008
 ;;; Licence: BSD
 (export syntax-match def-syntax syntax-expand)
 (import (rnrs))
@@ -33,26 +33,28 @@
 
 (define-syntax syntax-match
   (lambda (x)
-   (syntax-case x (sub)
-    ((_ (literal ...) (sub patt skel . rest) ...)
+   (guarded-syntax-case x (sub)
+    ((self (literal ...) (sub patt skel . rest) ...)
      #'(lambda (x)
-       (syntax-match x (literal ...)
-         (sub patt skel . rest) ...)))
-    ((_ x (literal ...) (sub patt skel . rest) ...)
-     (and (identifier? #'x) (for-all identifier? #'(literal ...)))
+         (self x (literal ...)
+           (sub patt skel . rest) ...)))
+    ((self x (literal ...) (sub patt skel . rest) ...)
      #'(guarded-syntax-case x
-       (<literals> <patterns> <source> <transformer> literal ...)
-       ((ctx <literals>)
-        #''((... (... literal)) ...))
-       ((ctx <patterns>)
-        #''((... (... patt)) ...))
-       ((ctx <source>)
-        #''(syntax-match (literal ...)
-              (... (... (sub patt skel . rest))) ...))
-       ((ctx <transformer>)
-        #'(syntax-match (literal ...)
-              (... (... (sub patt skel . rest))) ...))
-       (patt skel . rest) ...))
+         (<literals> <patterns> <source> <transformer> literal ...)
+         ((ctx <literals>)
+          #''((... (... literal)) ...))
+         ((ctx <patterns>)
+          #''((... (... patt)) ...))
+         ((ctx <source>)
+          #''(self (literal ...)
+                   (... (... (sub patt skel . rest))) ...))
+         ((ctx <transformer>)
+          #'(self (literal ...)
+                  (... (... (sub patt skel . rest))) ...))
+         (patt skel . rest) ...)
+     (for-all identifier? #'(literal ...))
+     (syntax-violation 'syntax-match "Found non identifier" #'(literal ...)
+                       (remp identifier? #'(literal ...))))
     )))
 
 (define-syntax def-syntax
@@ -67,8 +69,8 @@
   #'(syntax->datum ((macro <transformer>) #'(macro . args))))
 
 )
+;;;                             LEGALESE 
 
-;;;                          LEGALESE 
 ;;   Redistributions of source code must retain the above copyright 
 ;;   notice, this list of conditions and the following disclaimer.
 ;;   Redistributions in bytecode form must reproduce the above copyright
