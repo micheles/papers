@@ -131,7 +131,7 @@ with their right values when the macro is expanded at compile time.
 Note: R6RS Scheme requires the syntax ``#'x`` to be interpreted as
 a shortcut for ``(syntax x)``; however there are R5RS implementation
 that do not allow the ``#'x`` syntax or use a different meaning for it.
-In particular, that was the case for old version of Chicken Scheme.
+In particular, that was the case for old versions of Chicken Scheme.
 If you want to be fully portable
 you should use the extended form ``(syntax x)``. However, all the
 code in this series is intended to work on R6RS Schemes, therefore
