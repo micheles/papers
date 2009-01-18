@@ -1,7 +1,7 @@
 (library (list-utils)
  (export list-of fold range enumerate zip transpose distinct? perm
          remove-dupl merge-unique)
- (import (rnrs) (sweet-macros))
+ (import (rnrs) (sweet-macros) (list-match))
 
 (define range 
   (case-lambda 
@@ -86,6 +86,6 @@
           acc
           (cons el acc))) '() lst)))
 
-(define (merge-unique eq? . lists)
+(define (append-unique eq? . lists)
   (remove-dupl eq? (apply append lists)))
 )

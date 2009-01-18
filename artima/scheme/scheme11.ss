@@ -83,14 +83,14 @@ time. However, it is possible to replace the higher order function
 with a macro, therefore avoiding the cost of a function call.
 Here is the code for a ``repeat`` macro doing the job of ``call``:
 
-@@repeat-macro.sls
+$$repeat-macro:
 
 ``repeat`` expands into a loop and therefore the body is evaluated ``n``
 times, which is exactly what we need for a benchmark.
 To check that the macro is effectively more efficient, I did measure
 the time spent in summing 1+1 ten million of times:
 
-@@repeat-benchmark.ss
+$$repeat-benchmark:
 
 I took the number ``n`` from the command line arguments
 in order to fool the compiler: if I hard coded ``(+ 1 1)``, the compiler
@@ -137,7 +137,7 @@ The source code takes just a page:
 
 .. image:: http://www.phyast.pitt.edu/~micheles/scheme/feu_rouge.jpg
 
-@@easy-test.sls
+$$easy-test:
 
 The core of the framework is the ``test`` macro, which is a bit different
 from the macros we have defined until now. The reason why the ``test``

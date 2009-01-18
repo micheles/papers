@@ -2,7 +2,7 @@
 (export try)
 (import (rnrs) (sweet-macros))
 
-; _try-except
+;; _TRY-EXCEPT
 (def-syntax _try-except
   (syntax-match (except)
      (sub (_try-except expr
@@ -10,12 +10,11 @@
            ...
            (except (err) else-action ...))
           #'(guard (err ((or (assertion-violation? err) (error? err))
-                         (let ((who (condition-who err)))
-                           (case who
-                            ((id id* ...) (let ((e err)) action ...))
-                            ...
-                            (else else-action ...)
-                            ))))
+                         (case (condition-who err)
+                           ((id id* ...) (let ((e err)) action ...))
+                           ...
+                           (else else-action ...)
+                           )))
                  expr))
      (sub (_try-except expr
            (except (e id id* ...) action ...)
@@ -25,12 +24,17 @@
              ...
              (except (err) (raise err))))
      ))
+;; END
 
-; _try-finally
+;; _TRY-FINALLY
 (def-syntax (_try-finally e e* ... (finally f f* ...))
-  #'(dynamic-wind (lambda () #f) (lambda () e e* ...) (lambda () f f* ...)))
+  #'(dynamic-wind
+        (lambda () #f)
+        (lambda () e e* ...)
+        (lambda () f f* ...)))
+;; END
 
-; try
+;; TRY
 (def-syntax try
   (syntax-match (except finally)
      (sub (try expr (finally f f* ...))
@@ -42,4 +46,5 @@
              (_try-except expr (except (e id ...) action ...) ... )
              (finally f f* ...)))
      ))
+;; END
 )

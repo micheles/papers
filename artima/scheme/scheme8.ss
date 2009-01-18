@@ -182,7 +182,7 @@ writing of compilers easy.
 In this case you can write a compiler expanding ``for`` expressions
 into named lets as follows:
 
-@@simple-compiler.ss
+$$simple-compiler:
 
 Running the script you will see that it replaces the ``for`` expression
 with a *named let* indeed. It is not difficult to extend the compiler
