@@ -14,7 +14,7 @@ by adding more and more mixin classes, which is just plain wrong.
 It is true that you can use the idea in little frameworks
 with little damage, but that does not make it a good design solution.
 Small frameworks have a tendency to grow, and you should not
-start with a week design.
+start with a weak design.
 
 Some reader argued that this
 is not a problem of mixins *per se*, but a problem of bad design.
@@ -29,7 +29,7 @@ complex problem is to split it in smaller subproblems, by
 following the *dividi et impera* principle. The disturbing thing about
 mixins is that the principle is applied at the beginning (the problem
 is decomposed in smaller independent units) but at the end all
-the functionalies are added back to the client class as
+the functionalities are added back to the client class as
 an undifferentiated soup of methods.
 
 Therefore a design based on mixins looks clean to the
@@ -39,7 +39,7 @@ methods coming from all directions without a clear separation. It is
 really the same situation than using the 
 ``from module import *`` idiom, which is rightly frowned upon.
 
-I find most unpythonic that mixins make the life of the framework
+I find it most unpythonic that mixins make the life of the framework
 writer easier, but the life of the framework reader more difficult,
 since the goal of Python is to make code *easy to read*, not easy to
 write.  The scenario I have in mind is the usual one: a poor
@@ -112,7 +112,7 @@ when you have a set of methods which belong together: if you
 have a single method, or a set of disconnected methods, you are much
 better off by defining the methods externally, in an utility module,
 and then by importing them in the class namespace. Of course,
-here I am assuming that you really want the external method to ends up
+here I am assuming that you really want the external method to end up
 in the class namespace, possibly because of interface requirements,
 but I am not saying that this is always a good idea. You can import the
 method in your class as simply as that:
@@ -120,7 +120,7 @@ method in your class as simply as that:
 $$CWithLog
 
 This approach is very little used in Python, probably because most people
-coming from other languages does not know it is possible, but it
+coming from other languages do not know it is possible, but it
 is in my opinion a much clearer solution than inheritance.
 The problem with inheritance is that it requires a *substantial
 cognitive load*: when I see the line of code ``class C_WithLog(C, WithLog)``
@@ -140,7 +140,7 @@ instances of the class since
 same object. If I need different loggers with different configurations
 for different instances I will have to override the ``.log`` attribute on
 a case by case basis, or I will have to use a different strategy, such as
-the `dependency injection pattern`_, i.e. I will ave to pass the logger
+the `dependency injection pattern`_, i.e. I will have to pass the logger
 to the constructor.
 
 .. _Using Mix-ins with Python: http://www.linuxjournal.com/article/4540
