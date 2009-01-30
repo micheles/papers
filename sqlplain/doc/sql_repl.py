@@ -33,7 +33,7 @@ class Console(object):
         out = ['%d rows were returned' % len(rows), '\t'.join(rows.header)]
         for row in rows:
             out.append('\t'.join(map(str, row)))
-        return '\n'.join(out)
+        return out
             
     def readcode(self): 
         sys.stdout.write(self.prompt)
@@ -51,7 +51,11 @@ class Console(object):
         while True:
             try:
                 code = self.readcode()
-                less(self.sql_eval(code))
+                result = self.sql_eval(code)
+                if isinstance(result, list):
+                    less('\n'.join(result))
+                else:
+                    print result
             except EOFError:
                 break
             except Exception, e:

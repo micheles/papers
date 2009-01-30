@@ -59,6 +59,7 @@ class _Configurator(object): # singleton
     _initialized = False
     
     def _initialize(self):
+        "You may want to call this again if you modify the config file"
         cfp = RawConfigParser()
         self._conf_file = os.environ.get(
             'SQLPLAIN', os.path.expanduser('~/.sqlplain'))

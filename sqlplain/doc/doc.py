@@ -298,7 +298,16 @@ Otherwise, ``sqlplain`` provides a ``Transaction`` class coding
 the ``rollback/commit`` pattern:
 
 $$Transaction
-      
+
+Retrying connections
+----------------------------------------------------
+
+Suppose you have a long running application connected to a database.
+If you lose the connection to the database, or if you restart the
+database, the low level connection object will not be usable anymore.
+The solution is to use a retrying lazy connection: in case of error,
+the query is retried with a fresh low level connection.
+
 Threadlocal connections
 -------------------------------------------------------
 

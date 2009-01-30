@@ -201,7 +201,7 @@ class DTable(DView):
         util.create_table(conn, name, body, force)
         return cls(conn, name)
 
-    def __init__(self, conn, name, fields=()):
+    def __init__(self, conn, name, fields=()): # add subquery functionality?
         self.conn = conn
         self.name = self.subquery = name
         if not fields:

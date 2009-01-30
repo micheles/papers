@@ -6,6 +6,22 @@ except ImportError:
     from sqlplain.namedtuple import namedtuple
 from sqlplain.uri import URI
 from sqlplain.sql_support import qmark2pyformat
+from decorator import decorator
+
+@decorator
+def retry(func, conn, *args, **kw):
+    """
+    A decorator making a function taking a connection as first argument
+    to retry in case of errors
+    """
+    if conn.retry:
+        try:
+            return func(conn, *args, **kw)
+        except conn.driver.Error, e:            
+            conn.close() # retry with a fresh connection
+            return func(conn, *args, **kw)
+    else:
+        return func(conn, *args, **kw)
 
 Field = namedtuple(
     'Field',
@@ -100,9 +116,9 @@ class LazyConnection(object):
     is performed at execution time, not at inizialization time. Notice
     that this class does not manage any kind of logging, on purpose.
     There is however a chatty method for easy of debugging.
-    """
-    
-    def __init__(self, uri, isolation_level=None, threadlocal=False):
+    """    
+    def __init__(self, uri, isolation_level=None, threadlocal=False,
+                 retry=False):
         self.uri = URI(uri)
         self.name = self.uri['database']
         self.dbtype = self.uri['dbtype']
@@ -115,17 +131,20 @@ class LazyConnection(object):
             self._storage = _ThreadLocalStorage.new(connect, args)
         else:
             self._storage = _Storage.new(connect, args)
+        self.retry = retry
 
-    def _raw_execute(self, cursor, templ, args):
+    @retry
+    def _raw_execute(self, templ, args):
         """
         Call a dbapi2 cursor; return the rowcount or a list of tuples,
         plus an header (None in the case of the rowcount).
         """
+        cursor = self._storage.curs
         try:
-            if args:
-                cursor.execute(templ, args)
-            else:
-                cursor.execute(templ)
+            #if args:
+            cursor.execute(templ, args)
+            #else:
+            #    cursor.execute(templ)
         except Exception, e:
             tb = sys.exc_info()[2]
             raise e.__class__, '%s\nQUERY WAS:%s%s' % (e, templ, args), tb
@@ -152,7 +171,7 @@ class LazyConnection(object):
                 raise TypeError("Expected %d arguments, got %d: %s" % (
                     qmarks, len(args), args))
         
-        descr, res = self._raw_execute(self._storage.curs, templ, args)
+        descr, res = self._raw_execute(templ, args)
         if scalar: # you expect a scalar result
             if not res:
                 raise KeyError(
@@ -165,7 +184,7 @@ class LazyConnection(object):
         cursor = self._storage.curs # needed to make the reset work
         if self.chatty:
             print(cursor.rowcount, templ, args)
-        if descr:
+        if descr: # the query was a SELECT
             fields = [Field(*d) for d in descr]
             header = [f.name or noname() for f in fields]
             if ntuple is None:
@@ -264,16 +283,3 @@ class FakeConnection(object):
         return self
     def __exit_(self, exctype, exc, tb):
         pass
-
-class connmethod(object):
-    """
-    A descriptor for methods which first argument is a (lazy) connection.
-    Used to decorate methods of classes with a .conn attribute.
-    """
-    def __init__(self, func):
-        self._func = func
-    def __get__(self, obj, objcls):
-        if obj is None: # called from the class
-            return self._func
-        else: # called from the instance
-            return self._func.__get__(obj.conn, objcls)
