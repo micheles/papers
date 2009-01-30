@@ -1,0 +1,51 @@
+`PyConTre Italy`_ is the major conference with focus on Python in Italy.
+Last year we had more than 300 participants and this year we expect
+to have much more due to the partecipation of Guido van Rossum, the
+creator and `Benevolent Dictator For Life`_ of Python.
+
+The conference will start with a keynote by Guido, held 
+in Palazzo Vecchio (Florence) on May, the 8th 2009, and will
+continue the next two days with a few dozen talks.
+
+In the past all the talks have been of very high profile
+and I am confident we will reach an even higher level this
+year. We expect many well known Pythonistas to come, including
+Alex Martelli and Raymond Hettinger.
+
+I am in the `organizing committee`_ , even if I must confess I am a
+very lazy organizer with respect to the ones who
+live in Florence and are actually doing the hard work 
+(I mean Giovanni Baio and all the Develer_ crew, thank you guys!).
+
+Being an Italian conference, most talks are in Italian but we have
+a translation service for our foreigner guests, so that you can follow
+the conference even if you do not know Italian. Of course, you don't
+need to know anything to enjoy the city and the world famous Fiorentina_ ;)
+
+The `Call For Papers`_ will open in February the 9th: if you plan to
+partecipate and you are interested in presenting a paper
+you can send an email to the info@pycon.it or even to any
+member of the `organizing committee`_ .
+
+The last year we had a number of generous sponsors (including Skype_,
+the `Python Software Foundation`_ and many others): thanks to them,
+PyConDue was one of the cheapest conference ever, and I expect the
+same will be true this year too. If you are interested in sponsoring
+the event, you should read the `sponsor page`_ and write to
+sponsor@pycon.it .
+
+Finally, there is a `newsletter/google group`_ of the Italian Python
+Association, which main purpose is to help people with questions about
+the conference. Now you have no excuses not to come. See you in Florence! ;-)
+
+
+.. _PyConTre Italy: http://www.pycon.it
+.. _Benevolent Dictator For Life: http://www.artima.com/forums/flat.jsp?forum=106&thread=235725
+.. _Develer: http://www.develer.com/website/en
+.. _Fiorentina: http://en.wikipedia.org/wiki/Bistecca_alla_fiorentina
+.. _organizing committee: http://www.pycon.it/pycon3/organizzatori/
+.. _Python Software Foundation: http://www.python.org/psf/
+.. _Skype: http://www.skype.com
+.. _sponsor page: http://www.pycon.it/pycon3/sponsor
+.. _newsletter/google group: http://groups.google.com/group/python-italia-aps
+.. _Call For Papers: http://www.pycon.it/pycon3/call-for-paper/
