@@ -19,6 +19,9 @@ generic: genericfunctions.py
 epp: expert-python-programming.txt
 	python2.5 ../post.py expert-python-programming.txt 240415
 
+pycon3: pycon3.txt
+	python2.5 ../post.py pycon3.txt 248750
+
 records1: records1.py
 	$(MINIDOC) -d records1; $(POST) /tmp/records1.rst 236637
 
