@@ -148,7 +148,7 @@ Documentation Driven Development, an idea `I started advertising at
 least from 2003`_.
 
 As a final note, I would like to see a couple of words about the
-publisher, PACKT_. I must admit I did not know it, probabily because
+publisher, PACKT_. I must admit I did not know it, probably because
 they entered in business only few years ago and they do not sell many
 Python books. However, I have looked at their web site now, and I see
 that they have a really large offer especially about Web Development
