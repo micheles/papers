@@ -45,3 +45,7 @@ second-cycle: second-cycle.txt
 
 third-cycle: third-cycle.txt
 	$(POST) third-cycle.txt 243830
+
+13: scheme13.ss
+	$(RST) scheme13.ss; $(POST) scheme13.rst 248953
+
