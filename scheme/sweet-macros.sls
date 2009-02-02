@@ -1,8 +1,8 @@
 (library (sweet-macros)
-;;; Version: 0.3
+;;; Version: 0.4
 ;;; Author: Michele Simionato
 ;;; Email: michele.simionato@gmail.com
-;;; Date: 15-Nov-2008
+;;; Date: 02-Feb-2009
 ;;; Licence: BSD
 (export syntax-match def-syntax syntax-expand)
 (import (rnrs))
@@ -58,7 +58,12 @@
     )))
 
 (define-syntax def-syntax
-  (syntax-match ()
+  (syntax-match (extends)
+    (sub (def-syntax name (extends parent literal ...) clause ...)
+     #'(define-syntax name
+         (syntax-match (literal ...)
+           clause ...
+           (sub x ((parent <transformer>) #'x)))))
     (sub (def-syntax (name . args) skel . rest)
      #'(define-syntax name (syntax-match () (sub (name . args) skel . rest))))
     (sub (def-syntax name transformer)
