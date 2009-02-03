@@ -2,8 +2,8 @@
 A minimal introduction to functional programming
 -----------------------------------------------------------------
 
-I assume you already know what *pure functional language* means: a language
-supports pure functional programming if variables cannot be re-assigned,
+I assume you already know what *pure functional language* means: a
+language is purely functional if variables cannot be re-assigned,
 data structures cannot be modified, and side effects are excluded.
 
 Of course, it is impossible to program with a pure functional
