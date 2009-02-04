@@ -20,7 +20,7 @@ class Connection(object):
         if self._cnx is None:
             raise OperationalError("Closed connection")
         cursor = Cursor(self._cnx)
-        cursor.connection = self
+        #cursor.connection = self
         return cursor
     
     def close(self):

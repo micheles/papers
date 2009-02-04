@@ -56,7 +56,7 @@ def do(templ, name='sqlquery', argnames=None, defaults=None, scalar=False,
     ''' % locals()
     fn = FunctionMaker(
         name=name, signature=argnames, defaults=defaults, doc=templ).make(
-        src, dict(templ=templ, scalar=scalar), addsource=True)
+        src, dict(templ=templ, scalar=scalar, ntuple=ntuple), addsource=True)
     comment = '# ntuple = %s\n# scalar = %s\n# templ=\n%s\n' % (
         ntuple, scalar, '\n'.join('## ' + ln for ln in templ.splitlines()))
     fn.__source__ = '%s\n%s' % (comment, fn.__source__)
