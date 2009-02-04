@@ -2,12 +2,36 @@
 Notice: create_db and drop_db are not transactional.
 """
 
-import os, sys, re
+import os, sys, re, subprocess
 from sqlplain.uri import URI
 from sqlplain import lazyconnect, do
 from sqlplain.connection import Transaction
 from sqlplain.namedtuple import namedtuple
-
+try:
+    CalledProcessError = subprocess.CalledProcessError
+except AttributeError: # Python < 2.5
+    class CalledProcessError(Exception):
+        def __init__(self, returncode, cmd):
+            self.returncode = returncode
+            self.cmd =cmd
+    
+def getoutput(commandlist):
+    'Returns the output of a system command or raise a CalledProcessError'
+    po = subprocess.Popen(commandlist, stdout=subprocess.PIPE)
+    out, err = po.communicate()
+    if po.returncode or err:
+        if err:
+            sys.stderr.write(err)
+            sys.stderr.flush()
+        cmd_str = ''
+        for cmd in commandlist:
+            if re.search(r'\s', cmd):
+                cmd_str += '"%s" ' % cmd
+            else:
+                cmd_str += cmd + " "
+        raise CalledProcessError(po.returncode, cmd_str)
+    return out
+    
 VERSION = re.compile(r'(\d[\d\.-]+)')
 Chunk = namedtuple('Chunk', 'version fname code')
 
@@ -59,6 +83,13 @@ def _collect(directory, exts):
                 sql.append(Chunk(version, fname, code))
     return sorted(sql)
 
+def runscripts(db, scriptdir, exts):
+    for chunk in _collect(scriptdir, exts):
+        if chunk.fname.endswith('.sql'):
+            db.executescript(chunk.code)
+        elif chunk.fname.endswith('.py'):
+            exec chunk.code in {}
+
 def create_db(uri, force=False, scriptdir=None, **kw):
     """
     Create the database specified by uri. If the database exists already
@@ -77,12 +108,7 @@ def create_db(uri, force=False, scriptdir=None, **kw):
     db = lazyconnect(uri, **kw)
     scriptdir = uri.scriptdir or scriptdir
     if scriptdir:
-        chunks = _collect(scriptdir, ('.sql', '.py'))
-        for chunk in chunks:
-            if chunk.fname.endswith('.sql'):
-                db.executescript(chunk.code)
-            elif chunk.fname.endswith('.py'):
-                exec chunk.code in {}
+        runscripts(db, scriptdir, ('.sql', '.py'))
     return db
 
 def create_table(conn, tname, body, force=False):
@@ -142,11 +168,11 @@ def insert_rows(conn, tname, rows):
         n += conn.execute(templ, row)
     return 
     
-def insert_file(conn, fname, tname, sep=','):
+def insert_file(conn, fname, tname, sep):
     "Bulk insert a CSV file into a table"""
     return _call('insert_file', conn, fname, tname, sep)
 
-def dump_file(conn, fname, query, sep=',', null='\N'):
+def dump_file(conn, fname, query, sep, null='\N'):
     "Save a query on a CSV file"
     return _call('dump_file', conn, fname, query, sep, null)
     
@@ -194,7 +220,7 @@ exists_schema = do("SELECT nspname FROM pg_namespace WHERE nspname=?")
 def drop_schema(db, schema):
     db.execute('DROP SCHEMA %s CASCADE' % schema)
 
-def create_schema(db, schema, force=False):
+def create_schema(db, schema, force=False, schema_dir=None):
     """
     Create the specified schema. If the schema exists already
     an error is raised, unless force is True: in that case the schema
@@ -204,3 +230,5 @@ def create_schema(db, schema, force=False):
         drop_schema(db, schema)
     db.execute('CREATE SCHEMA %s' % schema)
     set_schema(db, schema)
+    if schema_dir:
+        runscripts(db, schema_dir, ('.sql', '.py'))

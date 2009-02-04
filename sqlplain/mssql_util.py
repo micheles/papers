@@ -1,7 +1,27 @@
-from sqlplain.util import openclose
+import sys
+from sqlplain.util import openclose, getoutput
+
+BCP = ['freebcp', 'bcp'][sys.platform == 'win32']
 
 def get_kfields_mssql(conn, table):
     return [x.COLUMN_NAME for x in conn.execute('sp_pkeys %s' % table)]
+
+def dump_file_mssql(conn, fname, table_or_query, sep='\t', null='\N'):
+    """
+    Examples:
+    >> dump_file(conn, 'client.csv', 'client')
+    >> dump_file(conn, 'client.csv',
+      'select * from %(database)s..client' % conn.uri) 
+    """
+    uri = conn.uri
+    if table_or_query.lstrip().lower().startswith('select'):
+        out = 'queryout'
+    elif not '.' in table_or_query:
+        out = 'out'
+        table_or_query = '.'.join([uri['database'], '', table_or_query])
+    cmd = [BCP, table_or_query, out, fname, '-S', uri['host'],
+           '-U', uri['user'], '-P', uri['password'], '-c',  '-t', sep]
+    return getoutput(cmd)
 
 def insert_file_mssql(uri, fname, table, sep='\t'):
     return conn.execute(
@@ -30,3 +50,16 @@ def drop_db_mssql(uri):
 def create_db_mssql(uri):
     openclose(uri.copy(database='master'),
               'CREATE DATABASE %(database)s' % uri)
+
+def bcp_dump(uri, tablename, filename):
+    "Save a table into a bcp binary file"
+    cmd = [BCP, '%s..%s' % (uri['database'], tablename), 'out', filename,
+           '-S', uri['host'], '-U', uri['user'], '-P', uri['password'], '-n']
+    return getoutput(cmd)
+
+def bcp_restore(uri, filename, tablename):
+    "Copy from a bcp binary file into a table"
+    cmd = [BCP, '%s..%s' % (uri['database'], tablename), 'in', filename,
+           '-S', uri['host'], '-U', uri['user'], '-P', uri['password'], '-n']
+    return getoutput(cmd)
+    

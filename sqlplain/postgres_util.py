@@ -1,5 +1,4 @@
-from sqlplain.util import openclose
-from sqlplain.automatize import getoutput
+from sqlplain.util import openclose, getoutput
 
 GET_PKEYS = '''\
 SELECT attname FROM pg_attribute
@@ -34,7 +33,7 @@ def insert_file_postgres(conn, fname, table, sep=',', null='\N'):
     return conn.execute(templ % table, (fname, sep, null))
 
 def dump_file_postgres(conn, fname, query, sep='\t', null='\N'):
-    sql = "COPY (%s) TO ? WITH DELIMITER ? NULL ?" % query
+    sql = "COPY %s TO ? WITH DELIMITER ? NULL ?" % query
     return conn.execute(sql, (fname, sep, null))
 
 def exists_db_postgres(uri):
@@ -45,10 +44,12 @@ def exists_db_postgres(uri):
             return True
     return False
 
-def get_schema_postgres(uri, objectname):
-    cmd = ['pg_dump', '-s',
-           '-t', objectname,
-           '-h', uri['host'],
-           '-U', uri['user'],
-           '-d', uri['database']]
+def pg_dump(uri, *args):
+    cmd = ['pg_dump', '-h', uri['host'], '-U', uri['user'],
+           '-d', uri['database']] + list(args)
+    return getoutput(cmd)
+
+def pg_restore(uri, *args):
+    cmd = ['pg_restore', '-h', uri['host'], '-U', uri['user'],
+           '-d', uri['database']] + list(args)
     return getoutput(cmd)
