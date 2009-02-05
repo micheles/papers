@@ -13,16 +13,21 @@ import os, sys, re, webbrowser
 from docutils.core import publish_cmdline
 from ms.optionparser import OptionParser
 
+identifier = r'[-A-Z\d_!\?\+\-\*/]+'
 BIGCOMMENT = re.compile(r'#\|(.*)\|#(.*)', re.DOTALL)
-SNIPPET = re.compile(r'\n;+\s*([-A-Z\d_/!\?]+)\s*\n(.*?)\n\s*;+\s*END',
+SNIPPET = re.compile(r'\n\s*;+\s*(%s)\s*\n(.*?)\n\s*;+\s*END' % identifier,
                      re.DOTALL)
-SNIPPETNAME = re.compile(r'\n\$\$([-A-Z\d_/!\?]+)\n')
+SNIPPETNAME = re.compile(r'\n\$\$(%s)\n' % identifier)
 INCLUDE = re.compile(r'\$\$([-\w\d_\.]+):')
-INCLUDESNIPPET = re.compile(r'\$\$([-\w\d_\.]+):([-A-Z\d_/!\?]+)\n')
+INCLUDESNIPPET = re.compile(r'\$\$([-\w\d_\.]+):(%s)\n' % identifier)
 
 PATH = os.environ['IKARUS_LIBRARY_PATH']
 
-def include(fname, paths=('.', PATH), exts=('.ss', '.sls')):
+APS_PATH = os.path.join(PATH, 'aps')
+
+PATHS = '.', PATH, APS_PATH
+
+def include(fname, paths=PATHS, exts=('.ss', '.sls')):
     for path in paths:
         for ext in exts:
             try:
