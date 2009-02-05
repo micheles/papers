@@ -9,13 +9,15 @@
            (except (e id id* ...) action ...)
            ...
            (except (err) else-action ...))
-          #'(guard (err ((or (assertion-violation? err) (error? err))
-                         (case (condition-who err)
-                           ((id id* ...) (let ((e err)) action ...))
-                           ...
-                           (else else-action ...)
-                           )))
-                 expr))
+          #'(guard
+             (err
+              ((or (assertion-violation? err) (error? err))
+               (case (condition-who err)
+                 ((id id* ...) (let ((e err)) action ...))
+                 ...
+                 (else else-action ...)
+                 )))
+             expr))
      (sub (_try-except expr
            (except (e id id* ...) action ...)
            ...)

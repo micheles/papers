@@ -1,230 +1,268 @@
 #|
-In my *Adventures* I have talked many times of pattern matching,
-but only in the context of *compile time* pattern matching in macros.
-There is another form of pattern matching,
-which is quite common in Scheme and in other
-functional languages: *run time* pattern matching (actually common
-functional languages such as SML, Haskell or even Scala
-only have run time pattern matching,
-since they lack macros). It is impossible to overvalue
-the importance of pattern matching which is in my
-opinion one of the most important concepts in programming.
-Unfortunately, this technique is only available in ultra high
-level programming languages and therefore it is usually unknown to
-the average programmer. I saw pattern matching for the
-first time in '95, when using Mathematica for High Energy Physics
-symbolic computations. Nowadays, the situation is changing: the
-trend toward higher and higher abstraction is influencing all
-programmming languages and I am pretty sure than soon or later
-pattern matching will enter in mainstream languages. For the moment,
-you can find it in functional languages and, in a poor man form,
-in certain scripting languages.
+Higher order functions and curried functions
+---------------------------------------------------------------------
 
-Pattern matching in Python and in Scheme
-----------------------------------------------------
+A language has support for first class functions if it is possible
+to use a function as a regular value, i.e. if it is possible to pass
+a function to another function, or return it from a function.
+In a language with first class functions, it is therefore possible
+to define the concept of higher order function is: a function which accepts
+in input or returns in output (or both) another function.
 
-Python has some support for pattern matching in the form of
-tuple unpacking (note for lispers: you would call it destructuring bind).
-For instance, you can write::
+Various imperative languages have support for higher order functions:
+all the scripting languages, the latest version of C#, ``Scala``,
+and a few others. Still, functional languages have a better support
+and higher order functions are used in those language much more
+that in imperative languages. This is especially true for languages
+such as ML and Haskell, which support curried functions out of the
+box: in such languages all functions are really unary functions (i.e. they
+accept a single argument) and functions of *n* arguments are actually
+unary functions returning closures. In Scheme this behavior can be
+emulated with macros. Here is an example of how one
+could define curried functions in Scheme:
 
- >>> (a, b) = (1, 2)
- >>> (a, b)
- (1, 2)
+$$CURRY
 
-or
+``define-curried`` defines a function with (apparently) *n* arguments
+as an unary function returning a closure, i.e. a function with (apparently)
+*n-1* arguments which in turns is an unary function returning a closure
+with *n-2* arguments and so on, until it returns an unary function.
+For instance, the following ``add`` function
+
+$$ADD
+
+apparently has two arguments, but actually it is an unary function
+returning an unary closure::
+ 
+ > (add 1)
+ #<procedure>
+ > ((add 1) 2)
+ 3
+
+You can see how the macro works by using ``syntax-expand``::
+
+ > (syntax-expand (curried-lambda (x y) (+ x y))) 
+ (lambda (x) (curried-lambda (y) (+ x y)))
+
+The internal ``curried-lambda`` has a single argument in this case
+and thus expands to a regular lambda function, but you can see that
+in general you will have a tower of nested lambdas, which dept is equal
+to the number of arguments.
+
+.. image:: http://www.phyast.pitt.edu/~micheles/scheme/bw-spiral.jpg
+
+Whereas it is possible define curried functions in Scheme, usually
+this is not very convenient, unless you are trying to
+emulate ML or Haskell idioms. Out of the box, Scheme supports
+functions with multiple arguments in a traditional fashion, i.e.
+the same as in Python: thus, the most convenient construct is not currying,
+but *partial application*. The Pythonistas here will certainly think
+of ``functools.partial``, an utility which was added to the standard
+library starting from Python 2.5. Schemers have something similar
+(but of course better) in the form of SRFI-26, i.e. the ``cut`` and ``cute``
+macros by Al Petrofsky.
+
+Partial application: cut and cute
+-----------------------------------------------------------------
+
+Instead of spending too many words, let me show an example of how
+partial function application works both in Python and in Scheme.
+
+Here is the Python version::
+
+ >>> from functools import partial
+ >>> from operator import add
+ >>> add1 = partial(add, 1)
+ >>> add1(2)
+ 3
+
+and here is the Scheme version::
+
+ > (import (srfi-26)); assuming it is available in your implementation
+ > (define add1 (cut + 1 <>))
+ > (add1 2)
+ 3
+
+In Python, ``partial(add, 1)`` returns an unary callable object that adds 1
+to its argument; in Scheme, ``(cut + 1 <>)`` returns an unary function
+that does the same. The Scheme version is better, since the
+arguments of the resulting functions are immediately vas visible as
+slots (i.e. the ``<>`` symbol). For instance
 
 ::
 
- >>> (a, (b, [c, d])) = (1, [2, iter((3, 4))])
- >>> (a, b, c, d)
- (1, 2, 3, 4)
+ > (define greetings (cut string-append "hello " <> " and " <>))
+ 
+has two slots and therefore is a function of two arguments::
 
-Tuple unpacking works at any level of nesting and for any kind of
-iterable, therefore it is pretty powerful. Moreover, tuple unpacking
-is even more powerful in Python 3.0, where it is possible to
-split an iterable into its head (``car``) and tail (``cdr``)::
+ > (greetings "Michele" "Mario")
+ "hello Michele and Mario"
 
- >>> head, *tail=(i for i in (1,2,3))
- >>> (head, tail)
- (1, [2, 3])
+It is also possible to define a variable number of arguments
+by using the rest-slot symbol ``<...>``::
 
-I have already noticed, when discussing the notation for functions with a
-variable number of arguments (variadic functions),
-that the star syntax ``*`` in Python is similar to the dot syntax
-``.`` in Scheme;
-this syntactic extension in Python 3.0 makes the similarity
-stronger.
+ > (define greetings (cut string-append "hello " <> " and " <...>))
+ > (display (greetings "Michele" "Mario" "\n"))
+ hello Michele and Mario
 
-.. _match: http://citeseer.ist.psu.edu/rd/34737315%2C53980%2C1%2C0.25%2CDownload/http://citeseer.ist.psu.edu/cache/papers/cs/4091/ftp:zSzzSzftp.cs.rice.eduzSzpubliczSzlanguageszSzwrightzSzmatch.pdf/wright95pattern.pdf
+We can even use a slot for the function: for instance, the higher order
+function ``apply`` could be implemented as ``(cut <> <...>)``.
 
-Scheme has very good support for compile time pattern matching,
-but there is no *standard* library for runtime pattern matching
-(as always :-(). Anyway, there are plenty of libraries
-for runtime pattern matching: one of the most common is the
-match_ library by Andrew Wright, which is available more or less
-for all Scheme implementation. In Chicken Scheme match_ is actually
-built-in in the core language::
+Moreover, there is a ``cute`` macro which acts exactly as ``cut``, with a single
+difference: the arguments in ``cute`` are evalued only once (the ``e`` stands
+for *evalued*), whereas ``cut`` is not safe against multiple
+evaluation. In particular, if you define
 
- $ csi
- CHICKEN
- Version 2.732 - macosx-unix-gnu-x86     [ manyargs dload ptables applyhook cross ]
- (c)2000-2007 Felix L. Winkelmann        compiled 2007-11-01 on michele-mac.local (Darwin)
+::
 
- #;1> (match-define (head . tail) '(1 2 3))
- #;2> (list head tail)
- (1 (2 3))
+ > (define add-result (cute + (long-computation) <>))
 
-The main difference between Python and Scheme is that Scheme
-pattern matching is not polymorphic, i.e. you cannot match
-with the same pattern a list and a vector or an equivalent
-iterable. You must use different patterns, or esplicitely convert
-the types.
+then ``add-result`` performs the long computation only
+once, at definition time, and not every time it is called.
+For more details I refer you the SRFI-26_ specification.
 
-Recently the implementation of match has been rejuvenated by Alex Shinn, who
-fixed a few bugs and reimplemented everything in terms of hygienic macros
-(I mean ``syntax-rules`` macros, whereas the original used ``define-macro``):
-this modern
-implementation is also available as an R6RS library, thanks to
-Derick Eddington and you can download it for here_, if you want to
-use this matcher with Ikarus.
-
-Studying the documentation of match_ is certainly a good use of your
-time, and a recommended reading; on the other hand, writing your
-own matcher relying on Scheme macros is even more interesting.
-This will by the main goal of this episode. In the next paragraph
-I will implement a ``let+`` macro with the full power of
-tuple unpacking, and future episodes I will implement a full fledged
-list matcher.
-
-.. _documentazione del modulo match: http://chicken.wiki.br/Pattern%20matching
-.. _librerie per il pattern matching: http://schemecookbook.org/view/Cookbook/PatternMatchingChapter
-.. _here: http://bazaar.launchpad.net/~derick-eddington/ikarus-libraries/xitomatl/annotate/121?file_id=asmatch.sls-20080507230024-prlxlzdsg0x0ad3d-1
-
-A list destructuring binding form
-------------------------------------------------------
-
-In this paragraph I will introduce a ``let+`` syntax to perform
-unpacking/destructuring of lists. I will use a test-first approach,
-by starting with a specification of how
-``let+`` is intended to work by means of tests (I am using here the
-minimal testing framework I have introduced in `episode #11`_):
-
-$$TESTS
-
-Here is an implementation satisfying those tests:
-
-$$list-utils:LET+
-
-It is not difficult to understand how the macro works by using
-``syntax-expand``; for instance, ``let+`` with a single argument expands
-as follows::
-
- > (syntax-expand (let+ (x) '(1) x))
- (let ((ls '(1)))
-   (if (null? ls)
-      (apply error 'let+ "Not enough elements" '(x))
-      (let+ x (car ls) (let+ () (cdr ls) x))))
-
-whereas ``let+`` with a required argument and a variadic list of arguments
-``rest`` expands as::
-
- > (syntax-expand (let+ (x . rest) '(1) (cons x rest)))
- (let ((ls '(1)))
-   (if (null? ls)
-       (apply error 'let+ "Not enough elements" '(x))
-       (let+ x (car ls) (let+ rest (cdr ls) (cons x rest)))))
-
-Notice that in this case the template ``(arg2 ... . rest)``
-has been replaced by ``rest``, since there are no arguments. This is the
-magic of the dots! ;)
-
-Finally, let us see what happens when we try to match a too short list::
-
- > (let+ (x y) '(1) x)
- Unhandled exception
-  Condition components:
-    1. &error
-    2. &who: let+
-    3. &message: "Missing arguments"
-    4. &irritants: (y)
-    
-
-or a too long list::
-
- > (let+ (x y) '(1 2 3) x)
- Unhandled exception
-  Condition components:
-    1. &error
-    2. &who: let+
-    3. &message: "Too many elements"
-    4. &irritants: (3)
-
-In the first case there an  argument ``(y)`` in excess, not matched by any
-element; in the second case, there is an element ``(3)`` in excess,
-not matched by any argument. The implementation also checks (at compile time)
-that the passed arguments are valid identifiers::
-
- > (let+ (x y 3) '(1 2 3) x)
- Unhandled exception
-  Condition components:
-    1. &who: let+
-    2. &message: "Argument is not an identifier"
-    3. &syntax:
-        form: 3
-        subform: #f
-    4. &trace: #<syntax 3>
-
-As I said, Scheme pattern matching is not polymorphic: you cannot
-exchange a vector for a list of viceversa::
+.. _SRFI-26: http://srfi.schemers.org/srfi-26/srfi-26.html
 
 
- > (let+ (x (y z)) (list 1 (vector 2 3)) (list x y z))
- Unhandled exception:
-  Condition components:
-    1. &assertion
-    2. &who: car
-    3. &message: "argument does not have required pair structure"
-    4. &irritants: (#(2 3))
+.. _7: http://www.artima.com/weblogs/viewpost.jsp?thread=240781
+.. _8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
 
-The error message is clear, we also know that a ``car`` was involved,
-but unfortunately, it does not give
-much information about *where* exactly the error happened :-(
-I was serious at the end of `episode #12`_, when I said that
-debugging macros is no fun: the problem is that the errors
-happen in expanded code which is invisible to the programmer.
+fold-left and fold-right
+-----------------------------------------
 
-.. _episode #11: http://www.artima.com/weblogs/viewpost.jsp?thread=240833
-.. _episode #12: http://www.artima.com/weblogs/viewpost.jsp?thread=240836
+A couple of commonly used higher order functions in Scheme and
+other functional languages are ``fold-left`` and ``fold-right``.
+They entered in the R6RS standard, but they are also available from SRFI-1_,
+therefore you can leverage on them even if you are using an R5RS Scheme.
+
+``fold-left`` and ``fold-right`` will remind Pythonistas of ``reduce``,
+which is also a folding function. However, it is well known that Guido
+dislikes it and nowadays ``reduce`` is no more a builtin (in Python 3.0);
+it is still available in the ``functools`` module, though.
+For some reason (probabily the order of the arguments which I cannot
+remember) I cannot use ``reduce`` in Python, whereas I have less
+problems with ``fold-left`` e ``fold-right`` in Scheme and other
+functional languages. 
+
+``fold-left`` and ``fold-right`` have a
+nearly identical API: both allow to traverse a list by accumulating
+values and by returning at the end the final accumulator.
+For instance, if you want to sum the values of list, here is
+an idiomatic solution in Scheme (another one is
+``(apply + numbers-list)``::
+
+  > (fold-left + 0 '(1 2 3)); sum all elements starting from 0; fold-right works too
+  6
+
+In general, the function in ``fold-left`` takes *N + 1* arguments, where
+*N* is the number of lists you are looping over (usually *N = 1*)
+and the leftmost argument is the accumulator. The same is true for
+``fold-right``, but then the rightmost argument is the accumulator.
+
+Notice that ``fold-left`` is quite different from ``fold-right``, since they
+work in opposite order::
+
+ > (fold-left (lambda (acc el) (cons el acc)) '() '(1 2 3))
+ (3 2 1)
+
+ > (fold-right (lambda (el acc) (cons el acc)) '() '(1 2 3))
+ (1 2 3)
+
+In the first case ``fold-left`` loops from left to right
+(the element 1 is the first to be consed, the element 2 is the second
+to be consed, and the element 3 is the last to be consed, so that
+the final result is ``(cons 3 (cons 2 (cons 1 '())))`` i.e. ``(3 2 1)``)
+whereas in the second case ``fold-right`` loops from right to left.
+
+In order to give an example of use, here is how you could
+define a flattening procedure by using ``fold-right``:
+
+$$FLATTEN
+
+You can check that it works with a few tests:
+
+$$TEST-FLATTEN
+
+Here is another example, a function to remove duplicates from a list:
+
+$$list-utils:REMOVE-DUPL
+
+Notice the use of ``cut`` to define an unary function ``(cut eq? <> el)``
+which checks if its argument is equal - according to the provided equality
+function - to a given element ``el``. ``exists`` is one of the
+`list processing utilities`_ standardized by the R6RS document.
+Here is a test:
+
+$$TEST-REMOVE-DUPL
+
+Having first class functions in a language means much more than having
+map, filter or fold. Perhaps in the future I will add another episode
+about advanced usage of functions, such a `parsing combinators`_ or `formatting
+combinators`_; for the moment what I said here should be enough, and
+the next episode will be devoted to another typical feature of functional
+languages: *pattern matching*.
+
+.. _SRFI-1: http://srfi.schemers.org/srfi-1/srfi-1.html
+.. _list processing utilities: http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-4.html#node_chap_3
+.. _parsing combinators: http://shaurz.wordpress.com/2008/03/11/haskell-style-parser-combinators-in-scheme/
+.. _formatting combinators: http://www.call-with-current-continuation.org/eggs/3/fmt.html
 
 |#
+(import (rnrs) (ikarus) (aps list-utils) (aps test-utils) (sweet-macros))
 
-(import (rnrs) (aps test-utils) (aps list-utils) (sweet-macros))
+;;CURRY
+(def-syntax curried-lambda
+  (syntax-match ()                                                              
+    (sub (curried-lambda () b b* ...)
+         #'(begin b b* ...))         
+    (sub (curried-lambda (x x* ...) b b* ...)
+         #'(lambda (x) (curried-lambda (x* ...) b b* ...)))
+    ))
 
+(def-syntax (define-curried (f x ...) b b* ...)
+  #'(define f (curried-lambda (x ...) b b* ...)))
+;;END
+
+;;ADD
+(define-curried (add x y) (+ x y))
+;;END
+
+;;FLATTEN
+(define (flatten lst)
+  (fold-right
+   (lambda (x a)
+     (if (list? x) (append (flatten x) a) (cons x a))) '() lst))
+;;END
+ 
+; (define (remove-dupl eq? lst)
+;   (fold right acc '()
+;        (cons el acc) (not (find (cut eq? el <>) acc)); duplicate
+;        (el in lst)))
 
 (run
-;;TESTS
- (test "name value"
-  (let+ x 1 x); locally bind the name x to the value 1 and return it
-  1)
- 
- (test "no args"
-  (let+ () '() 1); no bindings; return 1
-  1)
- 
- (test "one arg"
-  (let+ (x) '(1) x); locally bind the name x to the value 1 and return it
-  1)
-  
- (test "two args"
-  (let+ (x y) (list 1 2) (list x y)); locally bind the names x and y
-  '(1 2))
 
- (test "nested"
-   (let+ (x (y z)) '(1 (2 3)) (list x y z)); bind x, y and z
-   '(1 2 3))
-
- (test "pair"
-   (let+ (x . y) '(1 2) y)
-   '(2))
+;;TEST-FLATTEN
+ (test "flatten null"
+       (flatten '())
+       '())
+ (test "flatten plain"
+       (flatten '(a b c))
+       '(a b c))
+ (test "flatten nested"
+       (flatten '((a b) (c (d e) f)))
+       '(a b c d e f))
 ;;END
- )
+
+;;TEST-FOLD
+ (test "fold"
+  (fold right (acc is '()) ((i x) in (enumerate '(a b c)))
+        (cons x acc) (even? i))
+  '(a c))
+;;END
+
+;;TEST-REMOVE-DUPL
+ (test "remove-dupl"
+       (remove-dupl equal? '(1 #f 2 #f 3))
+       '(1 #f 2 3))
+;;END
+)

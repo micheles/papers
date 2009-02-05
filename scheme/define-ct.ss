@@ -1,9 +1,11 @@
+;;; how to define a static table from a dynamic one
+
 (import (rnrs) (sweet-macros) (table) (ikarus))
 
 (def-syntax define-ct
   (syntax-match (define)
     (sub (define-ct kw (define name value) ...)
-         #'(define-syntax kw
+         #'(def-syntax kw
              (let ((t (tbl (name value) ...)))
                (syntax-match (name ...)
                 (sub (kw name) (datum->syntax #'kw (t 'name))) ...))))))

@@ -5,7 +5,7 @@
 ; adapted from the posting by Al Petrofsky <al@petrofsky.org>
 ; placed in the public domain
 
-(library (cut)
+(library (aps cut)
 (export cut cute)
 (import (rnrs))
 
