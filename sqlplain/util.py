@@ -178,7 +178,8 @@ def insert_rows(conn, tname, rows):
 def load_file(conn, tname, fname, mode, **kwargs):
     "Bulk insert a (binary or csv) file into a table"""
     assert mode in 'bc', 'Mode must be "b" (binary) or "c" (csv)'
-    return _call('load_file', conn, tname, fname, mode, **kwargs)
+    _call('load_file', conn, tname, fname, mode, **kwargs)
+    return conn.rowcount
 
 def dump_file(uri, query, fname, mode, **kwargs):
     "Dump the result of a query into a (binary or csv) file"

@@ -222,6 +222,10 @@ class LazyConnection(object):
     def __repr__(self):
         return "<%s %s>" % (self.__class__.__name__, self.uri)
     
+    @property
+    def rowcount(self):
+        return self._storage.curs.rowcount
+
 class TransactionalConnection(LazyConnection):
     """
     Add commit and rollback methods to a LazyConnection, as well
