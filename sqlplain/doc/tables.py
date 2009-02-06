@@ -69,7 +69,7 @@ Here is the full API for DTable:
 - truncate
 - insert_row
 - insert_rows
-- insert_file
+- load_file
 
 Here are the additional functions of K-tables:
     

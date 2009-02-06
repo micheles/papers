@@ -15,9 +15,16 @@ except AttributeError: # Python < 2.5
             self.returncode = returncode
             self.cmd =cmd
     
-def getoutput(commandlist):
-    'Returns the output of a system command or raise a CalledProcessError'
-    po = subprocess.Popen(commandlist, stdout=subprocess.PIPE)
+def getoutput(commandlist, save_on=None):
+    '''
+    Returns the output of a system command or raise a CalledProcessError.
+    Optionally, saves the output on save_on (a writable file-like object).
+    '''
+    if save_on is None:
+        save_on = subprocess.PIPE
+    elif isinstance(save_on, str): # assume it is a filename
+        save_on = file(save_on, 'w')
+    po = subprocess.Popen(commandlist, stdout=save_on)
     out, err = po.communicate()
     if po.returncode or err:
         if err:
@@ -26,7 +33,7 @@ def getoutput(commandlist):
         cmd_str = ''
         for cmd in commandlist:
             if re.search(r'\s', cmd):
-                cmd_str += '"%s" ' % cmd
+                cmd_str += repr(cmd) + " "
             else:
                 cmd_str += cmd + " "
         raise CalledProcessError(po.returncode, cmd_str)
@@ -168,13 +175,15 @@ def insert_rows(conn, tname, rows):
         n += conn.execute(templ, row)
     return 
     
-def insert_file(conn, fname, tname, sep):
-    "Bulk insert a CSV file into a table"""
-    return _call('insert_file', conn, fname, tname, sep)
+def load_file(conn, tname, fname, mode, **kwargs):
+    "Bulk insert a (binary or csv) file into a table"""
+    assert mode in 'bc', 'Mode must be "b" (binary) or "c" (csv)'
+    return _call('load_file', conn, tname, fname, mode, **kwargs)
 
-def dump_file(conn, fname, query, sep, null='\N'):
-    "Save a query on a CSV file"
-    return _call('dump_file', conn, fname, query, sep, null)
+def dump_file(uri, query, fname, mode, **kwargs):
+    "Dump the result of a query into a (binary or csv) file"
+    assert mode in 'bc', 'Mode must be "b" (binary) or "c" (csv)'
+    return _call('dump_file', uri, query, fname, mode, **kwargs)
     
 ########################## introspection routines ######################
 

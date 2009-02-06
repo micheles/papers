@@ -7,7 +7,7 @@ def get_info(conn, tname):
     """
     return conn.execute('PRAGMA table_info(%s)' % tname)
 
-def insert_file_sqlite(conn, fname, tname, sep):
+def load_file_sqlite(conn, fname, tname, sep):
     import csv
     csvfile = file(fname)
     conn.execute('PRAGMA synchronous = OFF')

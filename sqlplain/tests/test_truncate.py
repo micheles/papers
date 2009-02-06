@@ -12,12 +12,12 @@ def test_truncate():
         create_price_table(db)
         fname = makedatafile(100, 100)
         try:
-            util.insert_file(db, fname, 'price')
+            util.load_file(db, fname, 'price')
             with clock:
                 util.truncate_table(db, 'price')
             yield lambda *a: None, uri, 'truncate'
             
-            util.insert_file(db, fname, 'price')
+            util.load_file(db, fname, 'price')
             with clock:
                 db.execute('delete from price')
             yield lambda *a: None, uri, 'delete'

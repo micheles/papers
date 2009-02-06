@@ -427,10 +427,10 @@ Moreover it provides utilities to populate a table:
 - ``insert_rows(conn, tablename, rows)`` inserts a sequence of rows
   (any iterable returning valid rows will do) into a table;
 
-- ``insert_file(conn, filename, tablename, sep=',')`` inserts the content
+- ``load_file(conn, filename, tablename, sep=',')`` inserts the content
   of a CSV file into a table.
 
-The difference between the two operations is that ``insert_file`` is orders
+The difference between the two operations is that ``load_file`` is orders
 of magnitude faster that ``insert_rows`` since it uses the underlying
 database mechanism for bulk inserting files, possibly disabling transactional
 safety. ``sqlplain`` comes with a test script in the tests directory
@@ -438,13 +438,13 @@ safety. ``sqlplain`` comes with a test script in the tests directory
 mechanism; if you run it, you may see how big is the performance
 difference on your platform. On my MacBook the difference is a factor
 of 60, i.e. an operation that would take 5 hours with ``insert_rows``
-is reduced to 5 minutes with ``insert_file``.
+is reduced to 5 minutes with ``load_file``.
 
 Nevertheless, ``insert_rows`` is more convenient when you have small
 tables and when you are writing unit tests, therefore it makes sense
 for ``sqlplain`` to provide it.
 
-The problem of both ``insert_rows`` and ``insert_file`` is that you
+The problem of both ``insert_rows`` and ``load_file`` is that you
 do not have line-by-line control of the operation, therefore a single
 ill-formed line in a million lines file will screw up the entire
 operation.

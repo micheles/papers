@@ -1,5 +1,5 @@
 """
-A test script to investigate the performance of insert_file.
+A test script to investigate the performance of load_file.
 """
 
 from __future__ import with_statement
@@ -53,8 +53,8 @@ def test():
     price.truncate()
     with clock:
         # 2.4 seconds for 100,000 rows on my MacBook
-        price.insert_file(fname, sep=',')
-    yield lambda x:x, 'insert_file'
+        price.load_file(fname, sep=',')
+    yield lambda x:x, 'load_file'
     
 def teardown():
     os.remove(fname)

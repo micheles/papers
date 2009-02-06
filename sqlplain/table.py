@@ -192,7 +192,7 @@ class KView(DView):
 class DTable(DView):
     """
     A simple table class for database tables without a primary key.
-    The only methods are insert_row, insert_file, delete, truncate, select.
+    The only methods are insert_row, load_file, delete, truncate, select.
     """
 
     @classmethod
@@ -213,9 +213,9 @@ class DTable(DView):
         'Populate a table by reading a row-iterator'
         return util.insert_rows(self.conn, self.name, rows)
 
-    def insert_file(self, file, sep='1t'):
+    def load_file(self, file, sep='1t'):
         'Populate a table by reading a file-like object'
-        return util.insert_file(self.conn, file, self.name, sep)
+        return util.load_file(self.conn, file, self.name, sep)
 
     def delete(self, clause=''):
         "Delete rows from the table"
