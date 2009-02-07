@@ -1,13 +1,23 @@
 (library (sweet-macros)
-;;; Version: 0.4
+;;; Version: 0.5
 ;;; Author: Michele Simionato
 ;;; Email: michele.simionato@gmail.com
-;;; Date: 02-Feb-2009
+;;; Date: 07-Feb-2009
 ;;; Licence: BSD
 (export syntax-match def-syntax syntax-expand)
 (import (rnrs))
 
-;; helper macro
+;; helper macro 1
+(define-syntax block
+  (lambda (x)
+    (syntax-case x ()
+      ((block expr)
+       #'expr)
+      ((block (let-form name value) (l n v) ... expr)
+       #'(let-form ((name value)) (block (l n v) ... expr))))
+    ))
+
+;; helper macro 2
 (define-syntax guarded-syntax-case
   (let ((add-clause
          (lambda (clause acc)
@@ -26,36 +36,42 @@
                   ))))))
     (lambda (x)
       (syntax-case x ()
+        ((guarded-syntax-case () (literal ...) clause ...)
+         #'(lambda (y) (guarded-syntax-case y (literal ...) clause ...)))
         ((guarded-syntax-case y (literal ...) clause ...)
          (with-syntax
              (((c ...) (fold-right add-clause '() #'(clause ...))))
-           #'(syntax-case y (literal ...) c ...)))))))
+           #'(syntax-case y (literal ...) c ...)))
+        ))))
 
 (define-syntax syntax-match
-  (lambda (x)
-   (guarded-syntax-case x (sub)
-    ((self (literal ...) (sub patt skel . rest) ...)
-     #'(lambda (x)
-         (self x (literal ...)
-           (sub patt skel . rest) ...)))
-    ((self x (literal ...) (sub patt skel . rest) ...)
-     #'(guarded-syntax-case x
-         (<literals> <patterns> <source> <transformer> literal ...)
-         ((ctx <literals>)
-          #''((... (... literal)) ...))
-         ((ctx <patterns>)
-          #''((... (... patt)) ...))
-         ((ctx <source>)
-          #''(self (literal ...)
-                   (... (... (sub patt skel . rest))) ...))
-         ((ctx <transformer>)
-          #'(self (literal ...)
-                  (... (... (sub patt skel . rest))) ...))
-         (patt skel . rest) ...)
+  (guarded-syntax-case () (:> sub)
+    ((self (:> (let-form name value) ...) (literal ...)
+           (sub patt skel . rest) ...)
+     #'(block (let-form name value) ...
+         (guarded-syntax-case ()
+           (<literals> <patterns> <source> <transformer> literal ...)
+           ((ctx <literals>)
+            #''((... (... literal)) ...))
+           ((ctx <patterns>)
+            #''((... (... patt)) ...))
+           ((ctx <source>)
+            #''(self (:> (let-form name value) ...) (literal ...)
+                     (... (... (sub patt skel . rest))) ...))
+           ((ctx <transformer>)
+            #'(self (:> (let-form name value) ...) (literal ...)
+                    (... (... (sub patt skel . rest))) ...))
+           (patt skel . rest) ...))
      (for-all identifier? #'(literal ...))
      (syntax-violation 'syntax-match "Found non identifier" #'(literal ...)
                        (remp identifier? #'(literal ...))))
-    )))
+    
+    ((self (literal ...) (sub patt skel . rest) ...)
+     #'(self (:>)(literal ...) (sub patt skel . rest) ...))
+
+    ((self x (literal ...) (sub patt skel . rest) ...)
+     #'(guarded-syntax-case x (literal ...) (patt skel . rest) ...))
+    ))
 
 (define-syntax def-syntax
   (syntax-match (extends)
