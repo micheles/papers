@@ -45,8 +45,8 @@
         ))))
 
 (define-syntax syntax-match
-  (guarded-syntax-case () (:> sub)
-    ((self (:> (let-form name value) ...) (literal ...)
+  (guarded-syntax-case () (sub local)
+    ((self (local (let-form name value) ...) (literal ...)
            (sub patt skel . rest) ...)
      #'(block (let-form name value) ...
          (guarded-syntax-case ()
@@ -56,10 +56,10 @@
            ((ctx <patterns>)
             #''((... (... patt)) ...))
            ((ctx <source>)
-            #''(self (:> (let-form name value) ...) (literal ...)
+            #''(self (local (let-form name value) ...) (literal ...)
                      (... (... (sub patt skel . rest))) ...))
            ((ctx <transformer>)
-            #'(self (:> (let-form name value) ...) (literal ...)
+            #'(self (local (let-form name value) ...) (literal ...)
                     (... (... (sub patt skel . rest))) ...))
            (patt skel . rest) ...))
      (for-all identifier? #'(literal ...))
@@ -67,7 +67,7 @@
                        (remp identifier? #'(literal ...))))
     
     ((self (literal ...) (sub patt skel . rest) ...)
-     #'(self (:>)(literal ...) (sub patt skel . rest) ...))
+     #'(self (local)(literal ...) (sub patt skel . rest) ...))
 
     ((self x (literal ...) (sub patt skel . rest) ...)
      #'(guarded-syntax-case x (literal ...) (patt skel . rest) ...))

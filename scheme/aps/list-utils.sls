@@ -97,7 +97,7 @@
       (let+ (first . rest) items
         (cond
          ((null? rest) #t); single item
-         ((exists (lambda (el) (eq? el first)) rest) #f); duplicate
+         ((exists (cut eq? first <>) rest) #f); duplicate
          (else (distinct? eq? rest)); look at the sublist
          ))))
 ;;END
