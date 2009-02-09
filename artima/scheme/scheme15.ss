@@ -111,6 +111,8 @@ minimal testing framework I have introduced in `episode #11`_):
 
 $$TESTS
 
+.. image:: http://www.phyast.pitt.edu/~micheles/scheme/pattern-matching.jpg
+
 Here is an implementation satisfying those tests:
 
 $$list-utils:LET+
@@ -219,12 +221,12 @@ happen in expanded code which is invisible to the programmer.
   (let+ (x y) (list 1 2) (list x y)); locally bind the names x and y
   '(1 2))
 
- (test "nested"
-   (let+ (x (y z)) '(1 (2 3)) (list x y z)); bind x, y and z
-   '(1 2 3))
-
  (test "pair"
    (let+ (x . y) '(1 2) y)
    '(2))
+ 
+ (test "nested"
+   (let+ (x (y z)) '(1 (2 3)) (list x y z)); bind x, y and z
+   '(1 2 3))
 ;;END
  )
