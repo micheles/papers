@@ -4,17 +4,17 @@
 ;;; Email: michele.simionato@gmail.com
 ;;; Date: 07-Feb-2009
 ;;; Licence: BSD
-(export syntax-match def-syntax syntax-expand)
+(export syntax-match def-syntax syntax-expand local)
 (import (rnrs))
 
 ;; helper macro 1
-(define-syntax block
+(define-syntax local
   (lambda (x)
     (syntax-case x ()
-      ((block expr)
+      ((local expr)
        #'expr)
-      ((block (let-form name value) (l n v) ... expr)
-       #'(let-form ((name value)) (block (l n v) ... expr))))
+      ((local (let-form name value) (l n v) ... expr)
+       #'(let-form ((name value)) (local (l n v) ... expr))))
     ))
 
 ;; helper macro 2
@@ -48,7 +48,7 @@
   (guarded-syntax-case () (sub local)
     ((self (local (let-form name value) ...) (literal ...)
            (sub patt skel . rest) ...)
-     #'(block (let-form name value) ...
+     #'(local (let-form name value) ...
          (guarded-syntax-case ()
            (<literals> <patterns> <source> <transformer> literal ...)
            ((ctx <literals>)
@@ -74,10 +74,12 @@
     ))
 
 (define-syntax def-syntax
-  (syntax-match (extends)
-    (sub (def-syntax name (extends parent literal ...) clause ...)
+  (syntax-match (extends local)
+    (sub (def-syntax name (extends parent)
+       (local loc ...) (literal ...) 
+       clause ...)
      #'(define-syntax name
-         (syntax-match (literal ...)
+         (syntax-match (local loc ...) (literal ...)
            clause ...
            (sub x ((parent <transformer>) #'x)))))
     (sub (def-syntax (name . args) skel . rest)
