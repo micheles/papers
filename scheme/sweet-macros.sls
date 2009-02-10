@@ -58,10 +58,10 @@
            ((ctx <patterns>)
             #''((... (... patt)) ...))
            ((ctx <source>)
-            #''(local (let-form name value) ...) (self (literal ...)
+            #''(self (local (let-form name value) ...) ((... (... literal)) ...)
                      (... (... (sub patt skel . rest))) ...))
            ((ctx <transformer>)
-            #'(self (local (let-form name value) ...) (literal ...)
+            #'(self (local (let-form name value) ...) ((... (... literal)) ...)
                     (... (... (sub patt skel . rest))) ...))
            (patt skel . rest) ...))
      (for-all identifier? #'(literal ...))
@@ -91,7 +91,7 @@
     ))
 
 (def-syntax (syntax-expand (macro . args))
-  #'(syntax->datum ((macro <transformer>) #'(macro . args))))
+  #'(syntax->datum ((macro <transformer>) #'(... (... (macro . args))))))
 
 )
 ;;;                             LEGALESE 
