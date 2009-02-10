@@ -10,9 +10,11 @@
 ;; helper macro 1
 (define-syntax local
   (lambda (x)
-    (syntax-case x ()
+    (syntax-case x (syntax-match)
       ((local expr)
        #'expr)
+      ((local (let-form name value) ... (syntax-match rest ...))
+       #'(syntax-match (local (let-form name value) ...) rest ...))
       ((local (let-form name value) (l n v) ... expr)
        #'(let-form ((name value)) (local (l n v) ... expr))))
     ))
@@ -56,7 +58,7 @@
            ((ctx <patterns>)
             #''((... (... patt)) ...))
            ((ctx <source>)
-            #''(self (local (let-form name value) ...) (literal ...)
+            #''(local (let-form name value) ...) (self (literal ...)
                      (... (... (sub patt skel . rest))) ...))
            ((ctx <transformer>)
             #'(self (local (let-form name value) ...) (literal ...)
