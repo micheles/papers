@@ -153,7 +153,7 @@ mythical superclass, we may ask ourselves what the hell it is returning
 ;) The truth is that ``super`` returns proxy objects.
 
 Informally speaking, a proxy is an object with
-the ability to dispatch to the methods of other objects via delegation.
+the ability to dispatch to methods of other objects via delegation.
 Technically, ``super`` is a class overriding the ``__getattribute__`` 
 method. Instances of ``super`` are proxy objects providing 
 access to the methods in the MRO. The dispatch is done in such a way
