@@ -54,3 +54,6 @@ third-cycle: third-cycle.txt
 
 15: scheme15.ss
 	$(RST) scheme15.ss; $(POST) scheme15.rst 249681
+
+16: scheme16.ss
+	$(RST) scheme16.ss; $(POST) scheme16.rst 249685
