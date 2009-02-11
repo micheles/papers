@@ -141,8 +141,9 @@ class LazyConnection(object):
         """
         cursor = self._storage.curs
         try:
-            #if args:
             cursor.execute(templ, args)
+            #if args:
+            #    cursor.execute(templ, args)
             #else:
             #    cursor.execute(templ)
         except Exception, e:

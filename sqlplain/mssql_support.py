@@ -20,7 +20,8 @@ class Connection(object):
         if self._cnx is None:
             raise OperationalError("Closed connection")
         cursor = Cursor(self._cnx)
-        #cursor.connection = self
+        if not hasattr(cursor, 'connection'): # for old versions of pymssql
+            cursor.connection = self
         return cursor
     
     def close(self):
