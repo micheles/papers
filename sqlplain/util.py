@@ -175,11 +175,10 @@ def insert_rows(conn, tname, rows):
         n += conn.execute(templ, row)
     return 
     
-def load_file(conn, tname, fname, mode, **kwargs):
+def load_file(uri, tname, fname, mode, **kwargs):
     "Bulk insert a (binary or csv) file into a table"""
     assert mode in 'bc', 'Mode must be "b" (binary) or "c" (csv)'
-    _call('load_file', conn, tname, fname, mode, **kwargs)
-    return conn.rowcount
+    return _call('load_file', uri, tname, fname, mode, **kwargs)
 
 def dump_file(uri, query, fname, mode, **kwargs):
     "Dump the result of a query into a (binary or csv) file"
@@ -188,11 +187,17 @@ def dump_file(uri, query, fname, mode, **kwargs):
     
 ########################## introspection routines ######################
 
-def get_tables(conn):
-    "Return the names of the tables in the current database"
-    return _call('get_tables', conn)
+def get_tables(conn, schema=None):
+    """Return the names of the tables in the current database 
+    (and schema, if any)"""
+    return _call('get_tables', conn, schema)
 
-def exists_table(conn, tname):
+def get_views(conn, schema=None):
+    """Return the names of the views in the current database 
+    (and schema, if any)"""
+    return _call('get_views', conn, schema)
+
+def exists_table(conn, tname, schema=None):
     "Check if a table exists"
     return _call('exists_table', conn, tname)
 

@@ -20,8 +20,13 @@ def drop_db_postgres(uri):
     openclose(uri.copy(database='template1'),
               'DROP DATABASE %(database)s' % uri)
 
-def get_tables_postgres(conn):
-    return [r[0] for r in conn.execute('SELECT tablename FROM pg_tables')]
+def get_tables_postgres(conn, schema=None):
+    query = 'SELECT tablename FROM pg_tables'
+    if schema:
+        res = conn.execute(query + ' WHERE schemaname=?', (schema,))
+    else:
+        res = conn.execute(query)
+    return [r[0] for r in res]
 
 def exists_table_postgres(conn, tname):
     return conn.execute('SELECT count(*) FROM pg_tables WHERE tablename=?',
@@ -51,21 +56,23 @@ def dump_file_postgres(uri, query, filename, mode, sep='\t', null='\N'):
             (query, sep, null), filename)
 
 # apparently copy_from from psycopg2 is buggy for large files
-def load_file_postgres(conn, tname, filename, mode, sep='\t', null='\N'):
+def load_file_postgres(uri, tname, filename, mode, sep='\t', null='\N'):
     """
     Load a file into a table by using COPY FROM
     """
     if filename != 'STDIN':
         filename = "'%s'" % filename
     if mode == 'b':
-        return conn.execute("COPY %s FROM %s BINARY" % (tname, filename))
+        return openclose(uri, "COPY %s FROM %s BINARY" % (tname, filename))
     else:
         copy_from = "COPY %s FROM %s WITH DELIMITER ? NULL ?" % (
             tname, filename)
-    return conn.execute(copy_from, (sep, null))
+    return openclose(uri, copy_from, (sep, null))
 
 ###############################################################################
+
 ## pg_dump and pg_restore should be used for multiple tables or whole databases
+
 def pg_dump(uri, table, filename, *args):
     """
     A small wrapper over pg_dump. Example:

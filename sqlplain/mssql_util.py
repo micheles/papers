@@ -29,13 +29,12 @@ def dump_file_mssql(uri, table_or_query, fname, mode, sep='\t', null='\N'):
     else: # binary mode
         return bcp(uri, table_or_query, fname, 'out', '-n') 
 
-def load_file_mssql(conn, table, fname, mode, sep='\t'):
-    "BULK INSERT a file into a table"
+def load_file_mssql(uri, table, fname, mode, sep='\t'):
+    "Insert a file into a table via bcp"
     if mode == 'c': # csv mode
-        return conn.execute(
-            'BULK INSERT %s FROM ? SEPARATOR ?' % table, (fname, sep))
-    else:
-        return bcp(conn.uri, table, filename, 'in', '-n')
+        return bcp(uri, table, fname, 'in', '-c', '-t', sep)
+    else: # binary mode
+        return bcp(uri, table, fname, 'in', '-n')
 
 def get_tables(conn):
     return [r.name for r in conn.execute('SELECT name FROM sysobjects')]

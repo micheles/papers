@@ -9,7 +9,6 @@ ISOLATION_LEVELS = None, 0, 1, 2
 def connect(params, isolation_level=None, **kw):
     user, pwd, host, port, db = params
     port = port or 5432
-    #import pdb; pdb.set_trace()
     conn = dbapi2.connect(
         database=db, host=host, port=port, user=user, password=pwd, **kw)
     if isolation_level is None:
