@@ -125,20 +125,20 @@ It is not difficult to understand how the macro works by performing a few
 experiments ``syntax-expand``; for instance, ``let+`` with a single argument
 expands as follows::
 
- > (syntax-expand (let+ (x) '(1) x))
+ > (syntax-expand (let+ ((x) '(1)) x))
  (let ((ls '(1)))
    (if (null? ls)
       (apply error 'let+ "Not enough elements" '(x))
-      (let+ x (car ls) (let+ () (cdr ls) x))))
+      (let+ (x (car ls)) (let+ (() (cdr ls)) x))))
 
 whereas ``let+`` with a required argument and a variadic list of arguments
 expands as follows::
 
- > (syntax-expand (let+ (x . rest) '(1) (cons x rest)))
+ > (syntax-expand (let+ ((x . rest) '(1)) (cons x rest)))
  (let ((ls '(1)))
    (if (null? ls)
        (apply error 'let+ "Not enough elements" '(x))
-       (let+ x (car ls) (let+ rest (cdr ls) (cons x rest)))))
+       (let+ (x (car ls)) (let+ (rest (cdr ls)) (cons x rest)))))
 
 Notice that in this case the template ``(arg2 ... . rest)``
 has been replaced by ``rest``, since there are no arguments. This is the
@@ -146,7 +146,7 @@ magic of the dots!
 
 Finally, let us see what happens when we try to match a too short list::
 
- > (let+ (x y) '(1) x)
+ > (let+ ((x y) '(1)) x)
  Unhandled exception
   Condition components:
     1. &error
@@ -157,7 +157,7 @@ Finally, let us see what happens when we try to match a too short list::
 
 or a too long list::
 
- > (let+ (x y) '(1 2 3) x)
+ > (let+ ((x y) '(1 2 3)) x)
  Unhandled exception
   Condition components:
     1. &error
@@ -170,7 +170,7 @@ element; in the second case, there is an element ``(3)`` in excess,
 not matched by any argument. The implementation also checks (at compile time)
 that the passed arguments are valid identifiers::
 
- > (let+ (x y 3) '(1 2 3) x)
+ > (let+ ((x y 3) '(1 2 3)) x)
  Unhandled exception
   Condition components:
     1. &who: let+
@@ -184,7 +184,7 @@ As I said, Scheme pattern matching is not polymorphic: you cannot
 exchange a vector for a list of viceversa::
 
 
- > (let+ (x (y z)) (list 1 (vector 2 3)) (list x y z))
+ > (let+ ((x (y z)) (list 1 (vector 2 3))) (list x y z))
  Unhandled exception:
   Condition components:
     1. &assertion
@@ -215,27 +215,27 @@ will make clear why it is so useful. See you next time!
 ;;TESTS
  
  (test "no args"
-  (let+ () '() 1); no bindings; return 1
+  (let+ 1); no bindings; return 1
   1)
 
  (test "name value"
-  (let+ x 1 x); locally bind the name x to the value 1 and return it
+  (let+ (x 1) x); locally bind the name x to the value 1 and return it
   1)
  
  (test "one arg"
-  (let+ (x) '(1) x); locally bind the name x to the value 1 and return it
+  (let+ ((x) '(1)) x); locally bind the name x to the value 1 and return it
   1)
   
  (test "two args"
-  (let+ (x y) (list 1 2) (list x y)); locally bind the names x and y
+  (let+ ((x y) (list 1 2)) (list x y)); locally bind the names x and y
   '(1 2))
 
  (test "pair"
-   (let+ (x . y) '(1 2) y)
+   (let+ ((x . y) '(1 2)) y)
    '(2))
  
  (test "nested"
-   (let+ (x (y z)) '(1 (2 3)) (list x y z)); bind x, y and z
+   (let+ ((x (y z)) '(1 (2 3))) (list x y z)); bind x, y and z
    '(1 2 3))
 ;;END
  )

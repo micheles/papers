@@ -13,19 +13,23 @@
 ;;LET+
 (def-syntax let+
   (syntax-match ()
-    (sub (let+ () lst body1 body2 ...)
-         #'(if (null? lst) (let () body1 body2 ...)
+    (sub (let+ expr)
+         #'expr)
+    (sub (let+ (() lst) expr)
+         #'(if (null? lst) expr
                (apply error 'let+ "Too many elements" lst)))
-    (sub (let+ (arg1 arg2 ... . rest) lst body1 body2 ...)
+    (sub (let+ ((arg1 arg2 ... . rest) lst) expr)
          #'(let ((ls lst))
              (if (null? ls)
                  (apply error 'let+ "Missing arguments" '(arg1 arg2 ...))
-                 (let+ arg1 (car ls)
-                   (let+ (arg2 ... . rest) (cdr ls) body1 body2 ...)))))
-    (sub (let+ name value body1 body2 ...)
-         #'(let ((name value)) body1 body2 ...)
+                 (let+ (arg1 (car ls))
+                   (let+ ((arg2 ... . rest) (cdr ls)) expr)))))
+    (sub (let+ (name value) expr)
+         #'(let ((name value)) expr)
          (identifier? #'name)
          (syntax-violation 'let+ "Argument is not an identifier" #'name))
+    (sub (let+ (name value) (n v) ... expr)
+         #'(let+ (name value) (let+ (n v) ... expr)))
     ))
 ;;END
 
@@ -40,11 +44,11 @@
     (sub (list-of-aux expr acc (var in lst) rest ...)
      #'(let loop ((ls lst))
          (if (null? ls) acc
-             (let+ var (car ls)
+             (let+ (var (car ls))
                (list-of-aux expr (loop (cdr ls)) rest ...)))))
    
     (sub (list-of-aux expr acc (var is exp) rest ...)
-     #'(let+ var exp (list-of-aux expr acc rest ...)))
+     #'(let+ (var exp) (list-of-aux expr acc rest ...)))
   
     (sub (list-of-aux expr acc pred? rest ...)
      #'(if pred? (list-of-aux expr acc rest ...) acc))
@@ -94,7 +98,7 @@
 ;; check if the elements of a list are distinct according to eq?
 (define (distinct? eq? items)
   (if (null? items) #t ; no items
-      (let+ (first . rest) items
+      (let+ ((first . rest) items)
         (cond
          ((null? rest) #t); single item
          ((exists (cut eq? first <>) rest) #f); duplicate
@@ -119,33 +123,25 @@
 (define (append-unique eq? . lists)
   (remove-dupl eq? (apply append lists)))
 ;;END
-
+  
 ;;FOLD
 (def-syntax fold
   (syntax-match (left right is in)
-     (sub (fold left (acc is seed) (x in lst) then pred? else)
+     (sub (fold left (acc is seed) (x in lst) expr)
           #'(fold-left
-             (lambda (acc a) (let+ x a (if pred? then else)))
+             (lambda (acc a) (let+ (x a) expr))
              seed lst))
-     (sub (fold right (acc is seed) (x in lst) then pred? else)
+     (sub (fold right (acc is seed) (x in lst) expr)
           #'(fold-right
-             (lambda (a acc) (let+ x a (if pred? then else)))
+             (lambda (a acc) (let+ (x a) expr))
              seed lst))
-     (sub (fold left (acc is seed) (x in lst) then pred?)
-          #'(fold left (acc is seed) (x in lst) then pred? acc))
-     (sub (fold right (acc is seed) (x in lst) then pred?)
-          #'(fold right (acc is seed) (x in lst) then pred? acc))
-     (sub (fold left (acc is seed) (x in lst) then)
-          #'(fold left (acc is seed) (x in lst) then #t))
-     (sub (fold right (acc is seed) (x in lst) then)
-          #'(fold right (acc is seed) (x in lst) then #t))
      ))
 ;;END
 
 ;;FLATTEN
 (define (flatten lst)
   (fold right (a is '()) (x in lst)
-        (append (flatten x) a) (list? x) (cons x a)))
+        (if (list? x) (append (flatten x) a) (cons x a))))
 ;;END
 
 ;;PERM
