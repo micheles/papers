@@ -23,7 +23,7 @@ could define curried functions in Scheme:
 
 $$CURRY
 
-``define-curried`` defines a function with (apparently) *n* arguments
+``define/curried`` defines a function with (apparently) *n* arguments
 as an unary function returning a closure, i.e. a function with (apparently)
 *n-1* arguments which in turns is an unary function returning a closure
 with *n-2* arguments and so on, until it returns an unary function.
@@ -219,12 +219,12 @@ languages: *pattern matching*.
          #'(lambda (x) (curried-lambda (x* ...) b b* ...)))
     ))
 
-(def-syntax (define-curried (f x ...) b b* ...)
+(def-syntax (define/curried (f x ...) b b* ...)
   #'(define f (curried-lambda (x ...) b b* ...)))
 ;;END
 
 ;;ADD
-(define-curried (add x y) (+ x y))
+(define/curried (add x y) (+ x y))
 ;;END
 
 ;;FLATTEN
@@ -251,13 +251,6 @@ languages: *pattern matching*.
  (test "flatten nested"
        (flatten '((a b) (c (d e) f)))
        '(a b c d e f))
-;;END
-
-;;TEST-FOLD
- (test "fold"
-  (fold right (acc is '()) ((i x) in (enumerate '(a b c)))
-        (cons x acc) (even? i))
-  '(a c))
 ;;END
 
 ;;TEST-REMOVE-DUPL

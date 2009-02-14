@@ -1,17 +1,14 @@
 #|
-
-let+ versus let-values
+list destructuring versus let-values
 ---------------------------------------------------------------------------
 
-There is a concept of Scheme that I never liked, i.e. the existence of
+There is a feature of Scheme that I never liked, i.e. the existence of
 functions (more in general continuations) returning multiple values.
-This is a debated topic, since old versions of Scheme did not have
-the concept (I think multiple values
-entered in the standard with the R5RS report) and there was some debate
-against it (I do not have an handy reference, but I am sure some of
-my readers can provide some background). Unfortunately the idea
-entered in the standard, and now it is possible to define functions
-returning multiple values at the same time, as in this example::
+Multiple values were a relatively late addition to Scheme - they entered in the
+standard with the R5RS report - and there has always been some opposition
+against them (see for instance `this old post`_ by Jeffrey Susskind).
+For better or for worse, in modern Scheme it is possible to define functions
+returning multiple values, as in this example::
 
  > (define (return-three-values)
      (values 1 2 3))
@@ -22,7 +19,7 @@ returning multiple values at the same time, as in this example::
 
 I see this as a wart of Scheme, a useless complication motivated by
 premature optimization concerns. In order to receive the values a
-special syntax is need, and you cannot do things like the following::
+special syntax is needed, and you cannot do things like the following::
 
  > (apply + (return-three-values))
  Unhandled exception 
@@ -34,8 +31,8 @@ special syntax is need, and you cannot do things like the following::
 
 Instead, you are forced to use ``let-values``::
 
- > (let-values (((x y z) (return-three-values))) (list 1 2 3))
- (1 2 3)
+ > (let-values (((x y z) (return-three-values))) (+ x y z))
+ 6
 
 In this series I will never use functions returning multiple values,
 except the ones in the Scheme standard library (this is why I am
@@ -45,7 +42,7 @@ with ``let+``. For instance, I will write
 
 ::
 
- > (let+ (a b) (list 1 2) (printf "~a ~a\n" a b))
+ > (let+ ((a b) (list 1 2)) (printf "~a ~a\n" a b))
  1 2
 
 instead of 
@@ -56,16 +53,17 @@ instead of
  1 2
 
 ``let+`` is more elegant and more general than ``let-values``:
-everything ``let-values`` can do, ``let+`` can do too.
-``let+`` is even faster when you want to match "short" lists, with
-two or three elements, as it happens usually::
+everything ``let-values`` can do, ``let+`` can do too.  ``let+`` is
+even faster - in the implementation I have tried - when you want to
+match short lists, with two or three elements, as it happens
+usually. Here is a benchmark in Ikarus Scheme::
 
  running stats for (repeat 10000000 (let-values (((x y z) (values 1 2 3))) 'dummy)):
      no collections
      276 ms elapsed cpu time, including 0 ms collecting
      277 ms elapsed real time, including 0 ms collecting
      0 bytes allocated
- running stats for (repeat 10000000 (let+ (x y z) (list 1 2 3) 'dummy)):
+ running stats for (repeat 10000000 (let+ ((x y z) (list 1 2 3)) 'dummy)):
      58 collections
      211 ms elapsed cpu time, including 42 ms collecting
      213 ms elapsed real time, including 43 ms collecting
@@ -80,11 +78,66 @@ this may cause a serious slowdown. However, those are implementation
 details. Conceptually I think the introduction of multiple values
 in Scheme was a mistake. I think functions should *always* return
 a single value, possibly a composite one (a list, a vector, or anything
-else): SML and Haskell follows this principle.
+else). Actually, I am even more radical than that and I think that functions
+should take a *single value*, as in SML and Haskell.
 
-``let+``
-also subsumes the functionality of ``let`` and I would use it
-a lot in the future.
+.. _this old post: http://groups.google.com/group/comp.lang.scheme/msg/7335da47820deff4?hl=en
+
+A plea for unary functions
+--------------------------------------------------------------------
+
+If you have a minimalistic mindset as well as a distaste for efficiency
+worries (as I have) you will recognize that
+multiple argument functions are useless since they can be implemented
+as unary functions performing list destructuring.
+Here is a simple implementation of the idea:
+
+$$FN
+
+Here are a few examples of usage::
+
+ > (define/fn (id x) x)
+ > (id '(1))
+ 1
+
+ > (define/fn (sum . vals) (apply + vals))
+ > (sum '(1 2 3))
+ 6
+
+ > (define/fn (sum-2D (x1 y1) (x2 y2)) (list (+ x1 x2) (+ y1 y2)))
+ > (sum-2D '((1 2)(3 4)))
+ (4 6)
+
+All the functions defined via ``define/fn`` take a single argument, a list,
+which is then destructured according to the declared structure.
+``id`` expects a list with a single element named ``x``; ``sum`` expects
+a list with a variable number of elements ``val``; ``sum-2D`` expects
+a two-element lists made of two-element lists named ``(x1 y1)`` and
+``(x2 y2)`` respectively. You can easily imagine more complex examples
+with deeply nested lists.
+
+.. image:: http://www.phyast.pitt.edu/~micheles/scheme/unpacking.png
+
+It is interesting to notice that Python has the
+list destructuring/tuple unpacking functionality built-in:
+
+>>> def sum2D((x1, y1), (x2, y2)):
+...     return x1 + x2, y1 + y2
+... 
+>>> sum2D((1,2),(3,4))
+(4, 6)
+
+This is valid Python code in all versions of Python before Python 3.0.
+However, in Python 3X this functionality has been removed for lack of use.
+
+The advantage of unary functions is that they are easier to compose,
+and many functional patterns (including currying described in
+`episode #14`_) becomes possible. However, Scheme is not ML or Haskell, so
+let us accept functions with multiple arguments and let us take advantage
+of them to implement optional arguments. This is the subject of the
+next paragraph.
+
+.. _episode #14: http://www.artima.com/weblogs/viewpost.jsp?thread=249198
 
 Further examples of destructuring: opt-lambda
 ---------------------------------------------------------------------
@@ -92,15 +145,14 @@ Further examples of destructuring: opt-lambda
 A weekness of standard Scheme is the lack of function with default
 arguments and keyword arguments. In practice, this is a minor weakness
 since there many libraries implementing the functionality (although in
-different ways, as usual). As an exercise to show the power of
-``let+``, here I will implement a syntax to define functions with default
-arguments. I will start from an example, to make clear the intended
-functionality of the macro, which I will call ``define/opt``.
-Let me define a function ``f`` as follows::
+different ways, as usual). For optional arguments you can also see the
+SRFI-89_, but here I will implement the functionality from scratch,
+as yet another exercise to show the power of
+``let+``. Let me start from an example, to make clear the intended
+functionality. Let me define a function ``f`` with optional arguments
+as follows:
 
-  > (define/opt (f x y (opt (u 1) (v 2)) . rest)
-      (printf "Required: ~a Optional: ~a Other: ~a\n"
-         (list x y) (list u v) rest))
+$$F
 
 Here ``x`` and ``y`` are required arguments, ``u`` and ``v``
 are optional arguments and ``rest`` are variadic arguments.
@@ -137,55 +189,67 @@ $$OPT-LAMBDA
 
 $$DEFINE/OPT
 
-A ``fold`` macro
+.. _SRFI-89: http://srfi.schemers.org/srfi-89/srfi-89.html
+
+Final example: a ``fold`` macro
 ----------------------------------------------------------------
 
 Whereas Scheme ``fold-left`` and ``fold-right`` are more readable
 than Python ``reduce`` (at least to me) they are not very
 readable (still in my opinion). However, Scheme provides macros
-to solve readability issues, so let's use them: that
-makes a a good exercise in macro programming. Of course, it would
-be better to have a more readable syntax in the standard, but
-let's stop the complaining.
-
-Here is my take:
+to solve readability issues, so let's use them for the sake of
+the exercise:
 
 $$list-utils:FOLD
 
-Notice the usage of the ``let+`` macro introduced in the previous
-episode: that make it easy to work with nested lists and to use
-a Python-like syntax. Moreover, notice the usage of the literals
-``is`` and ``in`` to enhance readability, and the usage of the
-literals ``left`` and ``right`` to avoid writing two separated
-macros.
-
-$$TEST-FOLD
-
-With this syntax, the procedure to flatten a nested lists can be
-written as follows:
-
-$$list-utils:FLATTEN
-
-The ``fold`` macro is not as powerful as the original
+Notice the usage of the literals ``left`` and ``right`` to avoid
+writing two separated macros, and the usage of ``in`` to enhance
+readability. 
+The ``fold`` macro here is not as powerful as the original
 ``fold-left`` and ``fold-right`` functions, because it only works
-for binary operators (but this cover 99.9% of cases) and also because
+for binary operators (but this cover the 99.9% of cases) and also because
 it is a macro, i.e. it is not a first order object that can be
 passed to procedure.
 
+On the other hand, thanks to ``let+`` this fold macro has list destructuring
+capabilities:
 
+$$TEST-FOLD
+
+(``enumerate`` was defined in `episode #8`_).
+As you see we are getting closer to Python list comprehension syntax.
+The gap will be closed in the next episode ;)
+
+.. _episode #8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
 |#
 
 
-(import (rnrs) (sweet-macros) (aps list-utils))
+(import (rnrs) (sweet-macros) (aps list-utils) (aps test-utils))
 
+;;FN
+(def-syntax (fn (arg ... . rest) body body* ...)
+  #'(lambda (x)
+      (let+ ((arg ... . rest) x)
+        (begin body body* ...))))
+
+(def-syntax (define/fn (name arg ... . rest) body body* ...)
+  #'(define name (fn (arg ... . rest) body body* ...)))
+;;END
+
+;;TEST-FOLD
+ (test "fold"
+  (fold right (acc '()) ((i x) in (enumerate '(a b c)))
+        (if (even? i) (cons x acc) acc))
+  '(a c))
+;;END
 
 ;OVERRIDE-WITH
 ;;(override-with '(a b) '(1 2 3)) => '(a b 3)
 (define (override-with winner loser)
-  (let ((n (length winner)) (N (length loser)))
-    (if (>= n N)
+  (let ((w (length winner)) (l (length loser)))
+    (if (>= w l)
         winner ; winner completely overrides loser
-        (append winner (list-tail loser n)))))
+        (append winner (list-tail loser w)))))
 ;END
 
 ;OPT-LAMBDA
@@ -193,8 +257,8 @@ passed to procedure.
   (syntax-match (opt)
     (sub (opt-lambda (r1 ... (opt (o1 d1) ...) . rest) body1 body2 ...)
     #'(lambda (r1 ... . args)
-        (let+ (o1 ... . rest) (override-with args (list d1 ...))
-              body1 body2 ...)))))
+        (let+ ((o1 ... . rest) (override-with args (list d1 ...)))
+              (begin body1 body2 ...))))))
 ;END
 
 ;DEFINE/OPT
@@ -203,5 +267,10 @@ passed to procedure.
 ;END
 
 
-;### OPTIONAL ARGUMENTS http://srfi.schemers.org/srfi-89/srfi-89.html 
+;;F
+   (define/opt (f x y (opt (u 1) (v 2)) . rest)
+      (printf "Required: ~a Optional: ~a Other: ~a\n"
+         (list x y) (list u v) rest))
+;;END
+
 
