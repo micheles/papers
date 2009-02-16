@@ -286,5 +286,5 @@ class FakeConnection(object):
         pass
     def __enter__(self):
         return self
-    def __exit_(self, exctype, exc, tb):
+    def __exit_(self, exctype=None, exc=None, tb=None):
         pass

@@ -14,17 +14,21 @@ except AttributeError: # Python < 2.5
         def __init__(self, returncode, cmd):
             self.returncode = returncode
             self.cmd =cmd
-    
-def getoutput(commandlist, save_on=None):
+
+chatty = False    
+
+def getoutput(commandlist, stdin=None, save_on=None):
     '''
     Returns the output of a system command or raise a CalledProcessError.
     Optionally, saves the output on save_on (a writable file-like object).
     '''
+    if stdin is None:
+        stdin = subprocess.PIPE
     if save_on is None:
         save_on = subprocess.PIPE
     elif isinstance(save_on, str): # assume it is a filename
         save_on = file(save_on, 'w')
-    po = subprocess.Popen(commandlist, stdout=save_on)
+    po = subprocess.Popen(commandlist, stdin=stdin, stdout=save_on)
     out, err = po.communicate()
     if po.returncode or err:
         if err:
@@ -81,18 +85,20 @@ def _collect(directory, exts):
     Read the files with a given set of extensions from a directory
     and returns them ordered by version number.
     '''
-    sql = []
+    chunks = []
     for fname in os.listdir(directory):
         if fname.endswith(exts) and not fname.startswith('_'):
             version = VERSION.search(fname)
             if version:
-                code = file(os.path.join(directory, fname)).read()
-                sql.append(Chunk(version, fname, code))
-    return sorted(sql)
+                code = file(os.path.join(directory, fname), 'U').read()
+                chunks.append(Chunk(version, fname, code))
+    return sorted(chunks) # chunks are named tuples
 
 def runscripts(db, scriptdir, exts):
     for chunk in _collect(scriptdir, exts):
         if chunk.fname.endswith('.sql'):
+            if chatty:
+                print "EXECUTING %s" % chunk.fname
             db.executescript(chunk.code)
         elif chunk.fname.endswith('.py'):
             exec chunk.code in {}
@@ -186,6 +192,9 @@ def dump_file(uri, query, fname, mode, **kwargs):
     return _call('dump_file', uri, query, fname, mode, **kwargs)
     
 ########################## introspection routines ######################
+
+def get_sizeK(conn, table):
+    return _call('get_sizeK', conn, table)
 
 def get_tables(conn, schema=None):
     """Return the names of the tables in the current database 

@@ -20,6 +20,10 @@ def drop_db_postgres(uri):
     openclose(uri.copy(database='template1'),
               'DROP DATABASE %(database)s' % uri)
 
+def get_sizeK_postgres(conn, table):
+    return conn.execute('SELECT relpages*8 FROM pg_class WHERE relname=?', 
+                        (table,), scalar=True)
+
 def get_tables_postgres(conn, schema=None):
     query = 'SELECT tablename FROM pg_tables'
     if schema:
@@ -58,16 +62,15 @@ def dump_file_postgres(uri, query, filename, mode, sep='\t', null='\N'):
 # apparently copy_from from psycopg2 is buggy for large files
 def load_file_postgres(uri, tname, filename, mode, sep='\t', null='\N'):
     """
-    Load a file into a table by using COPY FROM
+    Load a file into a table by using COPY FROM and psql
     """
-    if filename != 'STDIN':
-        filename = "'%s'" % filename
+    stdin = file(filename)
     if mode == 'b':
-        return openclose(uri, "COPY %s FROM %s BINARY" % (tname, filename))
-    else:
-        copy_from = "COPY %s FROM %s WITH DELIMITER ? NULL ?" % (
-            tname, filename)
-    return openclose(uri, copy_from, (sep, null))
+        return psql(uri, "COPY %s FROM STDIN BINARY" % tname, stdin=stdin)
+    else: # csv mode
+        copy_from = "COPY %s FROM STDIN WITH DELIMITER '%s' NULL '%s'" % (
+            tname, sep, null)
+    return psql(uri, copy_from, stdin=stdin)
 
 ###############################################################################
 
@@ -92,11 +95,11 @@ def pg_restore(uri, table, filename, *args):
     return getoutput(cmd)
 
 
-def psql(uri, query, filename):
+def psql(uri, query, filename=os.devnull, stdin=None):
     "Execute a query and save its result on filename"
     if not ' ' in query: # assumes a table name was given
         query = 'select * from %s' % query
     cmd = ['psql', '-h', uri['host'], '-U', uri['user'], '-d', uri['database'],
            '-c', query, '-o', filename]
     # print cmd
-    return getoutput(cmd)
+    return getoutput(cmd, stdin)
