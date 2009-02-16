@@ -123,24 +123,28 @@
 (define (append-unique eq? . lists)
   (remove-dupl eq? (apply append lists)))
 ;;END
-  
+
 ;;FOLD
 (def-syntax fold
-  (syntax-match (left right is in)
-     (sub (fold left (acc is seed) (x in lst) expr)
-          #'(fold-left
-             (lambda (acc a) (let+ (x a) expr))
-             seed lst))
-     (sub (fold right (acc is seed) (x in lst) expr)
-          #'(fold-right
-             (lambda (a acc) (let+ (x a) expr))
-             seed lst))
+  (syntax-match (left right in)
+     (sub (fold left (acc seed) (x in lst) (x* in lst*) ... new-acc)
+          (local
+           (with-syntax (a a* ...) (generate-temporaries #'(x x* ...)))
+           #'(fold-left
+              (lambda (acc a a* ...) (let+ (x a) (x* a*) ... new-acc))
+             seed lst lst* ...)))
+     (sub (fold right (acc seed) (x in lst) (x* in lst*) ... new-acc)
+          (local
+           (with-syntax (a a* ...) (generate-temporaries #'(x x* ...)))
+           #'(fold-right
+              (lambda (a a* ... acc) (let+ (x a) (x* a*) ... new-acc))
+             seed lst lst* ...)))
      ))
 ;;END
 
 ;;FLATTEN
 (define (flatten lst)
-  (fold right (a is '()) (x in lst)
+  (fold right (a '()) (x in lst)
         (if (list? x) (append (flatten x) a) (cons x a))))
 ;;END
 
