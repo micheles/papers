@@ -74,7 +74,9 @@ ten million times; ``let-values`` would take 276 ms instead.
 On the other hand, ``let+`` involves garbage collection
 (in our example 24 bytes are allocate per cycle, and thats means 240
 million of bytes) and depending on the situations and the implementation
-this may cause a serious slowdown. However, those are implementation
+this may cause a serious slowdown. You may find much better benchmarks
+than mine in `this thread`_ on comp.lang.scheme and you will see that
+you can get any kinf of results. However, those are implementation
 details. Conceptually I think the introduction of multiple values
 in Scheme was a mistake. I think functions should *always* return
 a single value, possibly a composite one (a list, a vector, or anything
@@ -82,8 +84,9 @@ else). Actually, I am even more radical than that and I think that functions
 should take a *single value*, as in SML and Haskell.
 
 .. _this old post: http://groups.google.com/group/comp.lang.scheme/msg/7335da47820deff4?hl=en
+.. _this thread: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/ba8873b2f955af67#
 
-A plea for unary functions
+Variadic functions from unary functions
 --------------------------------------------------------------------
 
 If you have a minimalistic mindset as well as a distaste for efficiency
@@ -144,9 +147,9 @@ Further examples of destructuring: opt-lambda
 
 A weekness of standard Scheme is the lack of function with default
 arguments and keyword arguments. In practice, this is a minor weakness
-since there many libraries implementing the functionality (although in
-different ways, as usual). For optional arguments you can also see the
-SRFI-89_, but here I will implement the functionality from scratch,
+since there many libraries implementing the functionality, although in
+different ways, as usual. I recommend you to look at SRFI-88_ and
+SRFI-89_ for more context. Here I will implement the functionality from scratch,
 as yet another exercise to show the power of
 ``let+``. Let me start from an example, to make clear the intended
 functionality. Let me define a function ``f`` with optional arguments
@@ -189,38 +192,9 @@ $$OPT-LAMBDA
 
 $$DEFINE/OPT
 
+.. _SRFI-88: http://srfi.schemers.org/srfi-88/srfi-88.html
 .. _SRFI-89: http://srfi.schemers.org/srfi-89/srfi-89.html
 
-Final example: a ``fold`` macro
-----------------------------------------------------------------
-
-Whereas Scheme ``fold-left`` and ``fold-right`` are more readable
-than Python ``reduce`` (at least to me) they are not very
-readable (still in my opinion). However, Scheme provides macros
-to solve readability issues, so let's use them for the sake of
-the exercise:
-
-$$list-utils:FOLD
-
-Notice the usage of the literals ``left`` and ``right`` to avoid
-writing two separated macros, and the usage of ``in`` to enhance
-readability. 
-The ``fold`` macro here is not as powerful as the original
-``fold-left`` and ``fold-right`` functions, because it only works
-for binary operators (but this cover the 99.9% of cases) and also because
-it is a macro, i.e. it is not a first order object that can be
-passed to procedure.
-
-On the other hand, thanks to ``let+`` this fold macro has list destructuring
-capabilities:
-
-$$TEST-FOLD
-
-(``enumerate`` was defined in `episode #8`_).
-As you see we are getting closer to Python list comprehension syntax.
-The gap will be closed in the next episode ;)
-
-.. _episode #8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
 |#
 
 
@@ -234,13 +208,6 @@ The gap will be closed in the next episode ;)
 
 (def-syntax (define/fn (name arg ... . rest) body body* ...)
   #'(define name (fn (arg ... . rest) body body* ...)))
-;;END
-
-;;TEST-FOLD
- (test "fold"
-  (fold right (acc '()) ((i x) in (enumerate '(a b c)))
-        (if (even? i) (cons x acc) acc))
-  '(a c))
 ;;END
 
 ;OVERRIDE-WITH
