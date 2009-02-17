@@ -2,13 +2,16 @@
 list destructuring versus let-values
 ---------------------------------------------------------------------------
 
-There is a feature of Scheme that I never liked, i.e. the existence of
-functions (more in general continuations) returning multiple values.
-Multiple values were a relatively late addition to Scheme - they entered in the
+There is a feature of Scheme that I never liked, i.e. the fact that
+functions (more in general continuations) can return multiple values.
+Multiple values are a relatively late addition to Scheme - they entered in the
 standard with the R5RS report - and there has always been some opposition
 against them (see for instance `this old post`_ by Jeffrey Susskind).
-For better or for worse, in modern Scheme it is possible to define functions
-returning multiple values, as in this example::
+I personally see multiple values as a wart of Scheme, a useless complication
+motivated by premature optimization concerns.
+
+It is possible to define functions
+returning multiple values as follows::
 
  > (define (return-three-values)
      (values 1 2 3))
@@ -17,8 +20,7 @@ returning multiple values, as in this example::
  2
  3
 
-I see this as a wart of Scheme, a useless complication motivated by
-premature optimization concerns. In order to receive the values a
+In order to receive the values a
 special syntax is needed, and you cannot do things like the following::
 
  > (apply + (return-three-values))
@@ -29,7 +31,8 @@ special syntax is needed, and you cannot do things like the following::
     3. &message: "incorrect number of values returned to single value context" 
     4. &irritants: ((1 2 3))
 
-Instead, you are forced to use ``let-values``::
+Instead, you are forced to use ``let-values`` or other constructs which
+are able to accept values::
 
  > (let-values (((x y z) (return-three-values))) (+ x y z))
  6
@@ -42,27 +45,27 @@ with ``let+``. For instance, I will write
 
 ::
 
- > (let+ ((a b) (list 1 2)) (printf "~a ~a\n" a b))
- 1 2
+ > (let+ ((a b) (list 1 2)) (cons a b))
+ (1 . 2)
 
 instead of 
 
 ::
 
- > (let-values (((a b) (values 1 2))) (printf "~a ~a\n" a b))
- 1 2
+ > (let-values (((a b) (values 1 2))) (cons a b))
+ (1 . 2)
 
 ``let+`` is more elegant and more general than ``let-values``:
-everything ``let-values`` can do, ``let+`` can do too.  ``let+`` is
-even faster - in the implementation I have tried - when you want to
-match short lists, with two or three elements, as it happens
-usually. Here is a benchmark in Ikarus Scheme::
+everything ``let-values`` can do, ``let+`` can do too.  ``let+`` can
+even faster - in some implementations and in some cases.
+Here is a benchmark in Ikarus Scheme::
 
  running stats for (repeat 10000000 (let-values (((x y z) (values 1 2 3))) 'dummy)):
      no collections
      276 ms elapsed cpu time, including 0 ms collecting
      277 ms elapsed real time, including 0 ms collecting
      0 bytes allocated
+
  running stats for (repeat 10000000 (let+ ((x y z) (list 1 2 3)) 'dummy)):
      58 collections
      211 ms elapsed cpu time, including 42 ms collecting
@@ -76,9 +79,17 @@ On the other hand, ``let+`` involves garbage collection
 million of bytes) and depending on the situations and the implementation
 this may cause a serious slowdown. You may find much better benchmarks
 than mine in `this thread`_ on comp.lang.scheme and you will see that
-you can get any kinf of results. However, those are implementation
-details. Conceptually I think the introduction of multiple values
-in Scheme was a mistake. I think functions should *always* return
+you can get any kind of results. ``let-values`` seems to be slow in
+Ikarus and in Ypsilon with the default optimization options; it can be
+faster in other implementations, or in the same implementations with
+different options or in different releases.
+
+However, those are implementation
+details.
+The important thing in my view is the conceptual relevance of a language
+construct. Conceptually I think the introduction of multiple values
+in Scheme was a mistake, since it added nothing that could not be done
+better with containers. I think functions should *always* return
 a single value, possibly a composite one (a list, a vector, or anything
 else). Actually, I am even more radical than that and I think that functions
 should take a *single value*, as in SML and Haskell.
@@ -89,19 +100,18 @@ should take a *single value*, as in SML and Haskell.
 Variadic functions from unary functions
 --------------------------------------------------------------------
 
-If you have a minimalistic mindset as well as a distaste for efficiency
-worries (as I have) you will recognize that
+If you have a minimalistic mindset (as I have) you will recognize that
 multiple argument functions are useless since they can be implemented
-as unary functions performing list destructuring.
+as unary functions performing destructuring.
 Here is a simple implementation of the idea:
 
 $$FN
 
 Here are a few examples of usage::
 
- > (define/fn (id x) x)
- > (id '(1))
- 1
+ > (define/fn (double x) (* 2 x))
+ > (double '(1))
+ 2
 
  > (define/fn (sum . vals) (apply + vals))
  > (sum '(1 2 3))
@@ -113,7 +123,7 @@ Here are a few examples of usage::
 
 All the functions defined via ``define/fn`` take a single argument, a list,
 which is then destructured according to the declared structure.
-``id`` expects a list with a single element named ``x``; ``sum`` expects
+``double`` expects a list with a single element named ``x``; ``sum`` expects
 a list with a variable number of elements ``val``; ``sum-2D`` expects
 a two-element lists made of two-element lists named ``(x1 y1)`` and
 ``(x2 y2)`` respectively. You can easily imagine more complex examples
@@ -131,7 +141,8 @@ list destructuring/tuple unpacking functionality built-in:
 (4, 6)
 
 This is valid Python code in all versions of Python before Python 3.0.
-However, in Python 3X this functionality has been removed for lack of use.
+However, in Python 3X this functionality has been removed for lack of use
+(*sic*).
 
 The advantage of unary functions is that they are easier to compose,
 and many functional patterns (including currying described in
@@ -149,7 +160,8 @@ A weekness of standard Scheme is the lack of function with default
 arguments and keyword arguments. In practice, this is a minor weakness
 since there many libraries implementing the functionality, although in
 different ways, as usual. I recommend you to look at SRFI-88_ and
-SRFI-89_ for more context. Here I will implement the functionality from scratch,
+SRFI-89_ for more context. Here I will implement equivalent
+functionality from scratch,
 as yet another exercise to show the power of
 ``let+``. Let me start from an example, to make clear the intended
 functionality. Let me define a function ``f`` with optional arguments
@@ -183,6 +195,7 @@ function:
 
 $$OVERRIDE-WITH
 
+(we introduced the ``list-tail`` function in `episode #13`_).
 At this point it is easy to define an ``opt-lambda`` macro doing the
 job:
 
@@ -192,13 +205,35 @@ $$OPT-LAMBDA
 
 $$DEFINE/OPT
 
+I should notice that strictly speaking you do not need a full
+restructuring form to implement ``opt-lambda``: since ``override-with-args``
+returns a flat list, a form which is able to destructure flat list is
+enough. You could implement it easily enough:
+
+$$LET-
+
+However ``let+`` subsumes the functionality of ``let-`` and I do not
+see the point of introducing yet another binding form, except for sake
+of the exercise. Strangely enough, ``let-`` looks even slower than ``let+``
+in Ikarus::
+
+ running stats for (repeat 10000000 (let- (x y z) (list 1 2 3) 'dummy)):
+    58 collections
+    324 ms elapsed cpu time, including 16 ms collecting
+    324 ms elapsed real time, including 22 ms collecting
+    240004096 bytes allocated
+
+But please don't trust benchmarks! ;)
+
 .. _SRFI-88: http://srfi.schemers.org/srfi-88/srfi-88.html
 .. _SRFI-89: http://srfi.schemers.org/srfi-89/srfi-89.html
+.. _episode #13: http://www.artima.com/weblogs/viewpost.jsp?thread=248953
 
 |#
 
 
-(import (rnrs) (sweet-macros) (aps list-utils) (aps test-utils))
+(import (rnrs) (sweet-macros) (aps list-utils) (aps test-utils)
+        (repeat-macro) (ikarus))
 
 ;;FN
 (def-syntax (fn (arg ... . rest) body body* ...)
@@ -241,3 +276,11 @@ $$DEFINE/OPT
 ;;END
 
 
+;;LET-
+(def-syntax (let- (name ... . rest) lst expr)
+  #'(apply (lambda (name ... . rest) expr) lst))
+;;END
+
+(time (repeat 10000000 (let-values (((x y z) (values 1 2 3))) 'dummy)))
+(time (repeat 10000000 (let+ ((x y z) (list 1 2 3)) 'dummy)))
+(time (repeat 10000000 (let- (x y z) (list 1 2 3) 'dummy)))
