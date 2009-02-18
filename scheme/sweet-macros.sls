@@ -7,7 +7,7 @@
 (export syntax-match def-syntax syntax-expand local)
 (import (rnrs))
 
-;; helper macro 1
+;;LOCAL
 (define-syntax local
   (lambda (x)
     (syntax-case x (syntax-match)
@@ -18,8 +18,9 @@
       ((local (let-form name value) (l n v) ... expr)
        #'(let-form ((name value)) (local (l n v) ... expr))))
     ))
+;;END
 
-;; helper macro 2
+;;GUARDED-SYNTAX-CASE
 (define-syntax guarded-syntax-case
   (let ((add-clause
          (lambda (clause acc)
@@ -45,7 +46,9 @@
              (((c ...) (fold-right add-clause '() #'(clause ...))))
            #'(syntax-case y (literal ...) c ...)))
         ))))
+;;END
 
+;;SYNTAX-MATCH
 (define-syntax syntax-match
   (guarded-syntax-case () (sub local)
     ((self (local (let-form name value) ...) (literal ...)
@@ -74,7 +77,9 @@
     ((self x (literal ...) (sub patt skel . rest) ...)
      #'(guarded-syntax-case x (literal ...) (patt skel . rest) ...))
     ))
+;;END
 
+;; DEF-SYNTAX
 (define-syntax def-syntax
   (syntax-match (extends local)
     (sub (def-syntax name (extends parent)
@@ -89,9 +94,12 @@
     (sub (def-syntax name transformer)
      #'(define-syntax name transformer))
     ))
+;;END
 
+;;SYNTAX-EXPAND
 (def-syntax (syntax-expand (macro . args))
   #'(syntax->datum ((macro <transformer>) #'(... (... (macro . args))))))
+;;END
 
 )
 ;;;                             LEGALESE 
