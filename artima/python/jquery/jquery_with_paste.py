@@ -12,17 +12,25 @@ Here I will just discuss the quicker approach, suitable for prototyping
 applications, not for production use. One can just perform the following
 steps:
 
-1. easy install Paste;
+1. 
+ easy install Paste;
 
-2. download the jquery.pack library and save it somewhere, let's say in the /tmp directory;
+2. 
+ download the jquery.pack library and save it somewhere, 
+ let's say in the /tmp directory;
 
-3. write the body of the web page you want to enhance with javascript, and save in the /tmp;
+3. 
+ write the body of the web page you want to enhance with javascript, 
+ and save it in /tmp;
 
-4. write the javascript code, and save it in /tmp;
+4. 
+ write the javascript code, and save it in /tmp;
 
-5.write a WSGI application serving the directory where JQuery is installed by using ``paste.urlparser.StaticURLParser``.
+5.
+ write a WSGI application serving the directory where JQuery is installed
+ by using ``paste.urlparser.StaticURLParser``.
 
-In practice however, the interesting is to generate the HTML code
+However, the interesting thing is to generate the HTML code
 and the Javascript code from Python and to treat the generated
 page as a WSGI application. Here is an simple script doing exactly
 that:
@@ -36,15 +44,21 @@ of the URL: in particular, if the URL starts with ``/static``, the
 application dispatches to the underlying ``StaticURLParser``
 application, otherwise the JQuery-enhanced HTML page specified
 by ``body`` and ``js`` is returned. Notice that the source code for the 
-JQuery library (in compact format) can be retrieved.since the HTML template
+JQuery library (in compact format) can be retrieved since the HTML template
 contains the line ``script type="text/javascript" src="/static/jquery.pack.js">
 </script>``.
 
 A simple page dispatcher
 ----------------------------------------------------------------
 
-I wrote a little ``Dispatcher`` object to prototype multipage applications.
-It uses the same idea of the example before, but it more elegant.
+The previous example is simple but perhaps *too* simple. If you want to 
+prototype multipage applications you need some kind of ``Dispatcher`` object.
+You could use of the many WSGI dispatchers you can find on PyPI, or you
+could write one from scratch, since it takes only few lines. Here I
+will use a custom dispatcher defined as follows:
+
+$$Dispatcher
+
 You instantiate the dispatcher by passing to it the path of the directory
 containing the static files and a root WSGI application; you can then
 add other applications via the ``.add`` method. For sake of convenience,
@@ -52,11 +66,7 @@ you can also pass a pair ``(html-body, javascript-code)`` instead of
 a regular application, and the pair will be automagically converted into a WSGI
 application.
 
-Here is the source code
-
-$$Dispatcher
-
-and here is an example of use:
+Here is an example of use:
 
 $$jquery_ex2
 
@@ -68,5 +78,5 @@ from jquery_helper import Dispatcher
 from paste.httpserver import serve
 
 if __name__ == '__main__':
-    app = Dispatcher('/tmp', (body, js))
+    app = Dispatcher((body, js), {'static' : '/tmp'})
     serve(app, '', 8000)

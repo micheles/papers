@@ -5,8 +5,9 @@ class Dispatcher(object):
     html = '''
 <html>
 <head>
-<script type="text/javascript" src="/static/jquery.pack.js">
-</script> 
+<style type="text/css" src="/static/themes/jqModal.css"> </style>
+<script type="text/javascript" src="/static/jquery.pack.js"></script> 
+<script type="text/javascript" src="/static/jquery.jqGrid.js"></script> 
 <script type="text/javascript">
 $(document).ready(function(){
 %s
@@ -19,9 +20,12 @@ $(document).ready(function(){
 <html>
 ''' # default HTML template
 
-    def __init__(self, static, root):
-        self.pages = dict(static=StaticURLParser(directory=static))
-        self.add('', root)
+    def __init__(self, baseapp, static=None):
+        self.pages = {}
+        if static:
+            for name, dirpath in static.iteritems():
+                self.pages[name]=StaticURLParser(directory=dirpath)
+        self.add('', baseapp)
 
     def __call__(self, env, resp):
         name = shift_path_info(env)
@@ -34,12 +38,12 @@ $(document).ready(function(){
     def add(self, name, app):
         try: # look if app is a pair (html, js)
             body, js = app
-        except ValueError:
+        except (TypeError, ValueError), e:
             assert callable(app) # assume app is valid WSGI application
         else: # create an application displaying the page
-            def page(env, resp):
+            def app(env, resp):
                 resp('200 OK', [('Content-type', 'text/html')])
                 return [self.html % (js, body)]
-            page.__name__ = name
-        self.pages[name] = page
+            app.__name__ = name
+        self.pages[name] = app
 
