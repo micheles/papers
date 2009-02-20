@@ -1,3 +1,4 @@
+import os
 from sqlplain.util import openclose, getoutput
 
 GET_PKEYS = '''\
