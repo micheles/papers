@@ -1,4 +1,4 @@
-import os, shutil
+import os, sys, shutil
 from scheme2rst import SNIPPET
 
 code = file('scheme/sweet-macros.sls').read()
@@ -49,7 +49,9 @@ def makedir(name, snippet):
     file(name + '/main.sls', 'w').write(main % snippet)
     
 if __name__ == '__main__':
-    os.chdir(os.path.expanduser('~/.plt-scheme/4.0/collects'))
+    plt_home = os.path.expanduser('~/.plt-scheme')
+    collects = os.path.join(plt_home, max(os.listdir(plt_home)), 'collects')
+    os.chdir(collects)
     makedir('sweet-macros', snippet)
     os.system('zip -r /tmp/sweet-macros-plt sweet-macros')
     print 'Saved in /tmp/sweet-macros-plt'
