@@ -1,4 +1,4 @@
-(library (repeat-macro)
+(library (aps repeat)
 (export repeat)
 (import (rnrs) (sweet-macros))
 
