@@ -1,4 +1,5 @@
 import re
+import cgi
 import traceback
 from UserDict import DictMixin
 from wsgiref.util import shift_path_info
@@ -21,27 +22,45 @@ class ODict(DictMixin):
     def __repr__(self):
         lst = ['%r: %r' % (n, v) for n, v in self.iteritems()]
         return '{%s}' % ', '.join(lst)
-    
-class HTTPError(Exception):
-    def __init__(self, status, message):
+        
+class HTTPResponse(Exception):
+    "Should be instantiated with a Response object as argument"
+
+class SimpleRequest(object):
+    "A poor man request class. You may want to use webob.Request instead." 
+    def __init__(self, environ):
+        self.environ = environ
+        self.params = cgi.parse(environ['wsgi.input'], environ, 
+                                keep_blank_values=True, strict_parsing=False)
+
+class SimpleResponse(object):
+    "A poor man response class. You may want to use webob.Response instead."
+    def __init__(self, body, status='200 OK',
+                 content_type='text/plain', headerlist=None):  
+        if isinstance(body, unicode):
+            body = body.encode('utf8')
+        elif not isinstance(body, str):
+            raise TypeError('body must be str or unicode, got %r' % body)
+        self.body = body
         self.status = status
-        self.message = message
+        self.content_type = '%s; charset=utf8' % content_type
+        self.headerlist = headerlist or [
+            ('Content-type', self.content_type),
+            ('Content-length', str(len(self.body)))]
+    def __call__(self, env, start_resp):
+        start_resp(self.status, self.headerlist)
+        return [self.body]
 
-# a small convenience function
-def respond(resp, status, content_type, msg):
-    if isinstance(msg, unicode):
-        msg = msg.encode('utf8')
-    resp(status, [('Content-type', '%s; charset=utf8' % content_type),
-                  ('Content-length', str(len(msg)))])
-    return [msg]
-
-# return response(env, resp) # is the webob suggested pattern inside resources
-
-
-# another convenience to call resources
-def wsgicall(env, resp, resource, Request, args, debug=True):
+def call(resource, req, args, debug):
+    """
+    Utility calling the resource and returning a WSGI app. The resource
+    can return a sequence of strings or raise an HTTPResponse, which is
+    trapped, or an unexpected exception, which is trapped if debug=True
+    and re-raised otherwise. The only way to change the headers for the
+    resource is to raise an HTTPResponse by using http.respond.
+    """
     try:
-        result = resource(Request(env), *args)
+        result = resource(req, *args)
         if result is None:
             raise TypeError('%s returned None' % resource.__name__)
         elif isinstance(result, str):
@@ -49,54 +68,67 @@ def wsgicall(env, resp, resource, Request, args, debug=True):
                 '%s returned a string instead of a '
                 'sequence of strings' % resource.__name__)
         output = ''.join(result) # str or unicode
-    except HTTPError, err:
-        return respond(resp, err.status, 'text/plain', err.message)
-    except:
+    except HTTPResponse, exc: # expected exception
+        res = exc.args[0]
+    except: # unexpected exception
         if debug:
-            return respond(resp, '500 ERR', 'text/plain',traceback.format_exc())
+            res = SimpleResponse(traceback.format_exc(), '500 ERR')
         raise # let the server manage the error in non debug mode
-    return respond(resp, '200 OK', resource.content_type, output)
-  
-class ResourceDispatcher(object):
+    else: # success
+        res = SimpleResponse(output, '200 OK', resource.content_type)
+    return res
+
+class HttpResourceManager(object):
     """
-    Mapping is a dictionary (regex, meth)->[resource|ResourceDispatcher]
+    A WSGI dispatcher based on an ordered mapping
+    (regex, meth) -> [resource | HttpResourceManager].
+    You should specify the Request and Response class. 
+    If a nontrivial decorator is given, it is applied to the resources.
+    If debug is True, broken resources return the full traceback.
     """
-    def __init__(self, Request=None, debug=True):
-        self.debug = debug
-        if Request is None:
-            import webob;  Request = webob.Request
+    def __init__(self, Request=SimpleRequest, Response=SimpleResponse, 
+                 dec=lambda f: f, debug=True):
         self.Request = Request
+        self.Response = Response
+        self.dec = dec
+        self.debug = debug
         self.mapping = ODict([])
 
-    def __call__(self, env, resp):
+    def __call__(self, env, start_resp):
+        "Dispatch logic"
         reqmeth = env['REQUEST_METHOD']
         script_name = env.get('SCRIPT_NAME', '')
         path_info = env.get('PATH_INFO', '')
         fullpath = script_name + path_info
-        #print 'SCRIPT_NAME', script_name
-        #print 'PATH_INFO', path_info
         for (regexp, meth), resource in self.mapping.iteritems():
             mo = re.match(regexp, path_info)
             if mo:
-                if isinstance(resource, ResourceDispatcher):
-                    # dispatch to the subdispatcher
-                    shift_path_info(env)
-                    return resource(env, resp) 
+                if isinstance(resource, self.__class__):
+                    shift_path_info(env) # subdispatcher
+                    res = resource
                 elif meth and meth != reqmeth:
-                    return respond(resp, '405 ERR', 'Method Not Allowed')
-                return wsgicall(env, resp, resource, self.Request, 
-                                mo.groups(), self.debug)
-        return respond(resp, '404 Not Found', 'Unknown resource %r' % fullpath)
+                    res = SimpleResponse('Method Not Allowed', '405 ERR')
+                else:
+                    req = self.Request(env)
+                    res = call(resource, req, mo.groups(), self.debug)
+                break
+        else: # no match, no break
+            res = SimpleResponse('Unknown resource %r' % fullpath, 
+                                 '404 Not Found')
+        return res(env, start_resp)
 
-class ResourceRegister(object):
-    """
-    Each instance is a decorator. Each application adds a new RESTful resource.
-    """
-    def __init__(self, dec=lambda f: f, Request=None, debug=True):
-        self.dec = dec
-        self.app = ResourceDispatcher(Request, debug)
-    
-    def __call__(self, path_regex, content_type='text/plain'):
+    def add(self, path_regex, app, meth=None):
+        "Add a WSGI application to the internal mapping"
+        if (path_regex, meth) in self.mapping:
+            msg = 'You are overriding the URL %s' % path_regex
+            if meth:
+                msg +=' (%s)' % meth
+            raise KeyError(msg)
+        self.mapping[path_regex, meth] = app
+
+    def resource(self, path_regex, content_type='text/plain'):
+        "Return a resource decorator"
+        assert path_regex.startswith('/'), path_regex
         def dec(func):
             name = func.__name__
             if name.endswith(('_GET', '_POST', '_PUT', '_DELETE')):
@@ -108,42 +140,48 @@ class ResourceRegister(object):
             newfunc = self.dec(func) # decorate the original function
             newfunc.path_regex = path_regex
             newfunc.content_type = content_type
-            self.app.mapping[path_regex, meth] = newfunc
+            self.add(path_regex, newfunc, meth)
             return newfunc
         return dec
 
-    def add(self, path_regex, app):
-        self.app.mapping[path_regex, None] = app
-        
+    def respond(self, body, status='200 OK', content_type=None, 
+                headerlist=None):
+        "Raise a HTTPResponse"
+        raise HTTPResponse(self.Response(**locals()))
+
 if __name__ == '__main__':
     from wsgiref.simple_server import make_server
     
-    resource = ResourceRegister()
+    http = HttpResourceManager()
+
+    @http.resource('/issuer/manager')
+    def non_restful(req):
+        yield 'ok'
+
+    @http.resource('/book/(\d\d\d\d)/(\d\d)/(\d\d)')
+    def book_GET(req, yyyy, mm, dd):
+        yield '%s-%s-%s' % (yyyy, mm, dd)
     
-    @resource('/b')
-    def book_GET(req):
-        yield 'something'
-    
-    @resource('/c')
+    @http.resource('/c')
     def book_POST(req):
         pass
 
-    @resource('/d')
+    @http.resource('/d')
     def book_PUT(req):
         pass
 
-    @resource('/e')
+    @http.resource('/e')
     def book_DELETE(req):
-        pass
+        http.respond('500 ERR', 'You cannot delete!', 'text/plain')
 
-    subresource = ResourceRegister()
+    h = HttpResourceManager()
 
-    @subresource('/1')
+    @h.resource('/1')
     def title_GET(req):
         return ['1']
 
-    resource.add('/a', subresource.app)
+    http.add('/a', h)
+
+    print http.mapping
     
-    print resource.app.mapping
-    
-    make_server('', 8080, resource.app).handle_request()
+    make_server('', 8080, http).handle_request()

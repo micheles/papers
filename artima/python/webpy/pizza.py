@@ -5,6 +5,8 @@ def request(url, meth, data='', user=None, passwd=None):
     headers={'content-type' : 'application/x-www-form-urlencoded'}
     h = Http()
     if user:
+        # send the header is ('authorization', 'Basic user:pwd') in base64
+        # the server should see REMOTE_USER and HTTP_AUTHORIZATION
         h.add_credentials(user, passwd)
     return h.request(url, meth, urlencode(data), headers)
               
