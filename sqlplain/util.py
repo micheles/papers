@@ -158,12 +158,7 @@ def copy_table(conn, src, dest, force=False):
 
 def truncate_table(conn, tname):
     if conn.dbtype == 'sqlite': # TRUNCATE is not supported right now
-        #conn.execute('PRAGMA synchronous = OFF')
-        try:
-            return conn.execute('DELETE FROM %s' % tname)
-        finally:
-            pass
-            #conn.execute('PRAGMA synchronous = ON')
+        return conn.execute('DELETE FROM %s' % tname)
     else:
         return conn.execute('TRUNCATE TABLE %s' % tname)
 

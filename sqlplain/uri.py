@@ -87,10 +87,17 @@ class URI(object):
         dbtype = self.dbtype
         driver = imp('sqlplain.%s_support' % dbtype)
         driver_util = imp('sqlplain.%s_util' % dbtype)
-        # dynamically populate thw 'util' module with the driver-specific func
+        # dynamically populate the 'util' module with the driver-specific func
         for name, value in vars(driver_util).iteritems():
             if name.endswith(dbtype):
                 setattr(util, name, value)
+        # set the placeholder according to the paramstyle
+        if driver.paramstyle == 'qmark':
+            driver.placeholder = '?'
+        elif driver.paramstyle in ('format', 'pyformat'):
+            driver.placeholder = '%s'
+        else:
+            driver.placeholder = None
         return driver
     
     def get_driver_connect_params(self):

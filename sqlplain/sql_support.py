@@ -1,56 +1,68 @@
 import re, inspect
 from decorator import FunctionMaker
 
-STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
+class _SymbolReplacer(object):
+    """
+    A small internal class to parse SQL templates with names arguments.
+    Returns the names of the arguments and the template interpolated with
+    a placeholder. Used by get_args_templ.
+    """
+    STRING_OR_COMMENT = re.compile(r"'[^']*'|--.*\n")
+    SYMBOL = re.compile(r":([a-zA-Z]\w*)")
+    
+    def __init__(self, placeholder):
+        self.placeholder = placeholder
+        self.replaced = []
+        self.found = set()
+
+    def get_args_templ(self, templ):
+        argnames = []
+        def repl(mo):
+            argname = mo.group(1)
+            if argname in argnames:
+                raise NameError('Duplicate argument %r in SQL template'
+                                % argname)
+                argnames.append(argname)
+            return self.placeholder or mo.group()
+        out = []
+        for i, chunk in enumerate(self.STRING_OR_COMMENT.split(templ)):
+            if i % 2 == 0: # real sql code
+                chunk = self.SYMBOL.sub(repl, chunk)
+            out.append(chunk)
+        return argnames, ''.join(out)
 
 templ_cache = {}
 
 # used in .execute
-def qmark2pyformat(templ):
+def get_args_templ(templ, repl=None):
     # this is small hack instead of a full featured SQL parser
     """
-    Take a SQL template and replace question marks with pyformat-style
-    placeholders (%s), except in strings and comments. Return the number
-    of replaced qmarks and the new template. The results are cached.
-    """
-    if templ in templ_cache:
-        return templ_cache[templ]
-    qmarks = 0
-    out = []
-    for i, chunk in enumerate(STRING_OR_COMMENT.split(templ)):
-        if i % 2 == 0: # real sql code
-            qmarks += chunk.count('?')
-            out.append(chunk.replace('?', '%s'))
-        else: # string or comment
-            out.append(chunk)
-    new_templ = ''.join(out)
-    templ_cache[templ] = qmarks, new_templ
-    return qmarks, new_templ
+    Take a SQL template and replace named arguments with the repl, except
+    in strings and comments. Return the replaced arguments and the new
+    template. The results are cached.
 
-# used in 'do' queries
-def extract_argnames(templ):
-    '''
-    Given a template with question marks placeholders, returns
-    a list of arguments of the form ['arg1', ..., 'argN'] where
-    N is the number of question marks.
-    '''
-    qmarks = 0
-    for i, chunk in enumerate(STRING_OR_COMMENT.split(templ)):
-        if i % 2 == 0: # real sql code
-            qmarks += chunk.count('?')
-    return ['arg%d' % i for i in range(1, qmarks + 1)]
+    >>> args, templ = get_args_templ('INSERT INTO book (:title, :author)')
+    >>> print args
+    ['title', 'author']
+    >>> print templ
+    INSERT INTO book (:title, :author)
+    >>> print get_args_templ('INSERT INTO book (:title, :author)', '?')[1]
+    INSERT INTO book (?, ?)
+    """
+    if (templ, repl) in templ_cache:
+        return templ_cache[templ, repl]
+    argnames, new_templ = _SymbolReplacer(repl).get_args_templ(templ)
+    templ_cache[templ, repl] = argnames, new_templ
+    return argnames, new_templ
             
-def do(templ, name='sqlquery', argnames=None, defaults=None, scalar=False,
-       ntuple=None):
+def do(templ, name='sqlquery', defaults=None, scalar=False, ntuple=None):
     """
     Compile a SQL query template down to a Python function with attributes
-    __source__, argnames defaults, scalar, ntuple. argnames is a comma
-    separated string of names, whereas defaults is a tuple.
+    __source__, argnames defaults, scalar, ntuple. defaults is a tuple.
     """
-    if argnames is None:
-        argnames = ', '.join(extract_argnames(templ))
-        if argnames:
-            argnames += ','
+    argnames = ', '.join(get_args_templ(templ)[0])
+    if argnames:
+        argnames += ','
     src = '''def %(name)s(conn, %(argnames)s):
     return conn.execute(templ, (%(argnames)s), scalar=scalar, ntuple=ntuple)
     ''' % locals()
@@ -73,3 +85,6 @@ def spec(fn, clause, argnames=None, defaults=None, ntuple=None):
               defaults=defaults or fn.defaults, 
               scalar=fn.scalar, ntuple=ntuple or fn.ntuple)
     
+
+if __name__ == '__main__':
+    import doctest; doctest.testmod()

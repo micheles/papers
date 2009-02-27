@@ -5,7 +5,7 @@ try:
 except ImportError:
     from sqlplain.namedtuple import namedtuple
 from sqlplain.uri import URI
-from sqlplain.sql_support import qmark2pyformat
+from sqlplain.sql_support import get_args_templ
 from decorator import decorator
 
 @decorator
@@ -166,12 +166,13 @@ class LazyConnection(object):
                     lst.append(a)
             args = tuple(lst)
                               
-        if self.driver.paramstyle == 'pyformat':
-            qmarks, templ = qmark2pyformat(templ) # cached
-            if qmarks != len(args): # especially useful for mssql
-                raise TypeError("Expected %d arguments, got %d: %s" % (
-                    qmarks, len(args), args))
-        
+        if self.driver.placeholder: # the template has to be interpolated
+            argnames, templ = get_args_templ(templ, self.placeholder) # cached
+            if len(argnames) != len(args): # especially useful for mssql
+                raise TypeError(
+                    "Expected %d arguments (%s), got %d (%s)" %
+                    (len(argnames), ', '.join(argnames), len(args), args))
+ 
         descr, res = self._raw_execute(templ, args)
         if scalar: # you expect a scalar result
             if not res:
