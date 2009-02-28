@@ -1,9 +1,8 @@
-; REFERENCE IMPLEMENTATION FOR SRFI-26 "CUT"
-; ==========================================
-;
-; michele.simionato@gmail.com, 25-Oct-2008
-; adapted from the posting by Al Petrofsky <al@petrofsky.org>
-; placed in the public domain
+#!r6rs
+;; REFERENCE IMPLEMENTATION FOR SRFI-26 "CUT"
+;; ==========================================
+;; adapted from the posting by Al Petrofsky <al@petrofsky.org>
+;; placed in the public domain
 
 (library (aps cut)
 (export cut cute)

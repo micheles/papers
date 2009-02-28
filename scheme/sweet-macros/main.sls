@@ -1,9 +1,4 @@
 (library (sweet-macros)
-;;; Version: 0.5
-;;; Author: Michele Simionato
-;;; Email: michele.simionato@gmail.com
-;;; Date: 07-Feb-2009
-;;; Licence: BSD
 (export syntax-match def-syntax syntax-expand local)
 (import (rnrs))
 

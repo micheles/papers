@@ -1,12 +1,8 @@
+#!r6rs
 (library (aps list-utils)
-;;; Version: 0.1
-;;; Author: Michele Simionato
-;;; Email: michele.simionato@gmail.com
-;;; Date: 31-Jan-2009
-;;; Licence: BSD
 (export range enumerate zip transpose distinct? let+ perm
-        remove-dupl append-unique fold list-of)
-(import (rnrs) (sweet-macros) (aps list-match) (aps cut))
+        remove-dupl append-unique fold flatten list-of)
+(import (rnrs) (sweet-macros) (aps cut))
 
 ;;; macros
 
@@ -86,7 +82,7 @@
  (define (transpose llist)
    (if (and (list? llist) (for-all list? llist))
        (apply map list llist)
-       (error 'transpose "Not a list of lists" llist)))
+       (error 'transpose "not a list of lists" llist)))
 ;;END
 
 ;;ENUMERATE
@@ -157,6 +153,6 @@
    (else; multi-element list 
     (list-of (cons el ls)
              (el in lst)
-             (ls in (perm eq? (remp (lambda (e) (eq? el e)) lst)))))))
+             (ls in (perm eq? (remp (cut eq? el <>) lst)))))))
 ;;END
 )
