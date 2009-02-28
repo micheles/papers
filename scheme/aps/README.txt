@@ -23,9 +23,8 @@ error messages are different between Ikarus, Ypsilon and PLT Scheme.
 Ypsilon is easy enough to support, and I use it, so I think I will
 keep supporting it in the future.
 
-On the other hand, currently PLT Scheme is only partially supported.
-I would like to support it better, and I will accept patches from PLT
-experts willing to help me; the nontrivial part is supporting
+PLT Scheme is not supported as well as I would, and I will accept patches
+from PLT experts willing to help me; the nontrivial part is supporting
 ``sweet-macros`` fully.
 
 Larceny Scheme is not supported since it does not support the ``.IMPL.sls``
