@@ -232,7 +232,7 @@ But please don't trust benchmarks! ;)
 |#
 
 
-(import (rnrs) (sweet-macros) (aps list-utils) (aps test-utils)
+(import (rnrs) (sweet-macros) (aps list-utils) (aps easy-test)
         (repeat-macro) (ikarus))
 
 ;;FN

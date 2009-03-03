@@ -208,7 +208,7 @@ languages: *pattern matching*.
 .. _formatting combinators: http://www.call-with-current-continuation.org/eggs/3/fmt.html
 
 |#
-(import (rnrs) (ikarus) (aps list-utils) (aps test-utils) (sweet-macros))
+(import (rnrs) (ikarus) (aps list-utils) (aps easy-test) (sweet-macros))
 
 ;;CURRY
 (def-syntax curried-lambda

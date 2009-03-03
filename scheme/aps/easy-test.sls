@@ -1,5 +1,5 @@
 #!r6rs
-(library (aps test-utils)
+(library (aps easy-test)
 (export catch-error test run-tests runner run)
 (import (rnrs) (aps compat) (sweet-macros))
 

@@ -233,7 +233,7 @@ caveats that will take a whole episode to explain in detail. That
 will be the subject of episode 20. See you next time!
 
 |#
-(import (rnrs) (sweet-macros) (aps list-utils) (aps test-utils))
+(import (rnrs) (sweet-macros) (aps list-utils) (aps easy-test))
 
 ;;ALIST
 (def-syntax (alist arg ...)

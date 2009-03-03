@@ -1,7 +1,8 @@
 #!r6rs
 (library (sweet-macros helper2)
-(export local guarded-syntax-case syntax-match)
-(import (rnrs) (for (sweet-macros helper1) run expand))
+(export local syntax-match)
+(import (rnrs) (for (rnrs) (meta -1))
+(for (sweet-macros helper1) (meta -1) (meta 0) (meta 1)))
 
 (define-syntax syntax-match
   (guarded-syntax-case () (sub local)
@@ -11,7 +12,7 @@
          (guarded-syntax-case ()
            (<literals> <patterns> <source> <transformer> literal ...)
            ((ctx <literals>)
-            #''((... (... literal)) ...))
+            #''(literal ...))
            ((ctx <patterns>)
             #''((... (... patt)) ...))
            ((ctx <source>)

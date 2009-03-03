@@ -20,19 +20,27 @@ helper1 = '''#!r6rs
 
 helper2 = '''#!r6rs
 (library (sweet-macros helper2)
-(export local guarded-syntax-case syntax-match)
-(import (rnrs) (for (sweet-macros helper1) run expand))
+(export local syntax-match)
+(import (rnrs) (for (rnrs) (meta -1))
+(for (sweet-macros helper1) (meta -1) (meta 0) (meta 1)))
 
 %(SYNTAX-MATCH)s
 )
 '''
 
-main = '''#!r6rs
+helper3 = '''#!r6rs
 (library (sweet-macros)
-(export local guarded-syntax-case syntax-match def-syntax syntax-expand)
+(export local syntax-match def-syntax)
 (import (rnrs) (for (sweet-macros helper2) run expand))
 
 %(DEF-SYNTAX)s
+)
+'''
+
+main = '''#!r6rs
+(library (sweet-macros)
+(export local syntax-match def-syntax syntax-expand)
+(import (rnrs) (for (sweet-macros helper3) run expand))
 
 %(SYNTAX-EXPAND)s
 )
@@ -41,6 +49,7 @@ main = '''#!r6rs
 def makefiles(name, snippet):
     file(name + '/helper1.mzscheme.sls', 'w').write(helper1 % snippet)
     file(name + '/helper2.mzscheme.sls', 'w').write(helper2 % snippet)
+    file(name + '/helper3.mzscheme.sls', 'w').write(helper3 % snippet)
     file(name + '/main.mzscheme.sls', 'w').write(main % snippet)
     #os.system('zip -r %s %s' % (name, name))
     

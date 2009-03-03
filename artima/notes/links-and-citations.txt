@@ -6,3 +6,9 @@ http://blog.michaeltrier.com/assets/2008/10/8/exploits_of_a_mom.jpg
 
 -- design patterns in Java: the dead of Hello World
 http://www.mortendahl.dk/thoughts/blog/view.aspx?id=122
+
+-- Eli explaining phase separation:
+http://groups.google.com/group/comp.lang.scheme/msg/a1e76fd2d76cd47d?hl=en
+
+-- REST
+http://www.turbogears.org/2.0/docs/main/RestControllers.html

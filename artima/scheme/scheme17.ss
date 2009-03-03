@@ -22,8 +22,10 @@ You will likely need a few other list processing utilities when working
 with lists. Therefore I have decided to provide an utility library
 which will be useful even for future episodes of my *Adventures*.
 
+.. image:: http://www.phyast.pitt.edu/~micheles/scheme/aps_lib_03.jpg 
+
 With a remarkable lack of fantasy, I have decided to call the library
-``list-utils`` and to put it in a package called ``aps`` (*aps* of
+``list-utils`` and to put it in a package called ``aps`` (``aps`` of
 course stands for *Adventures of a Pythonista in Schemeland*).
 That means that I am contributing to the entropy and littering the world
 with my own versions of utilities that should be more or less standard,
@@ -34,7 +36,7 @@ For you convenience, I have added in the library the Python-style utilities
 and 8_, as well as the ``let+`` list destructuring
 macro I introduced recently, and other things. Moreover, the ``aps`` package
 contains the testing framework discussed in episode 11_, renamed as
-``(aps test-utils)`` and slightly improved.
+``(aps easy-test)`` and slightly improved.
 The ``aps`` library includes a more recent version of ``sweet-macros``
 than the one I discussed in episode 9_, so you should replace the
 old one if you have it.
@@ -47,7 +49,7 @@ Just unzip the archive and put the files somewhere in your path::
  $ unzip aps.zip
  inflating: sweet-macros.sls
  inflating: aps/cut.sls
- inflating: aps/test-utils.sls      
+ inflating: aps/easy-test.sls      
  inflating: aps/list-utils.sls
  ...
 
@@ -62,10 +64,6 @@ They also pass with the latest development version of Ypsilon and with
 PLT Scheme version 4, except for
 the test "zip-with-error". However, this is an expected failure, since the
 error messages are different between Ikarus, Ypsilon and PLT Scheme.
-
-PLT Scheme is not supported as well as I would, and I will accept patches
-from PLT experts willing to help me; the nontrivial part is supporting
-``sweet-macros`` fully.
 
 Larceny Scheme is not supported since it does not support the ``.IMPL.sls``
 convention. When it does, it could be supported as well, expecially if I
@@ -104,6 +102,8 @@ Therefore, here I will pursue a different approach to
 list comprehension, which is shamelessly copied from
 the work of `Phil Bewig`_, with minor simplifications, and
 the usage of ``let+`` instead of regular ``let``.
+
+..  image:: http://www.phyast.pitt.edu/~micheles/scheme/list-comprehension.jpg
 
 Here is the implementation
 
@@ -187,7 +187,7 @@ will consider them in the future. For the moment, have patience!
 
 |#
 
-(import (rnrs) (aps list-utils) (aps test-utils))
+(import (rnrs) (aps list-utils) (aps easy-test))
 
 (run
 ;;TESTS

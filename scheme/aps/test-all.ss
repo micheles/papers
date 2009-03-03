@@ -1,4 +1,4 @@
-(import (rnrs) (aps test-utils) (aps list-utils))
+(import (rnrs) (aps easy-test) (aps list-utils))
 
 (define (test-range-zip-transpose-enumerate)
   (list

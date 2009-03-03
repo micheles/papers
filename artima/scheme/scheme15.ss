@@ -208,7 +208,7 @@ will make clear why it is so useful. See you next time!
 
 |#
 
-(import (rnrs) (aps test-utils) (aps list-utils) (sweet-macros))
+(import (rnrs) (aps easy-test) (aps list-utils) (sweet-macros))
 
 
 (run
