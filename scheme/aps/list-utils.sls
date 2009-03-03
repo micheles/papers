@@ -1,6 +1,6 @@
 #!r6rs
 (library (aps list-utils)
-(export range enumerate zip transpose distinct? let+ perm
+(export range enumerate zip transpose distinct? let+ perm list-of-aux
         remove-dupl append-unique fold flatten list-of)
 (import (rnrs) (sweet-macros) (aps cut))
 
