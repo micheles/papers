@@ -1,6 +1,7 @@
 #!/usr/bin/python
-import exc_debugger, webbrowser
-from ms.html_utils import makelink, TableList, tidy
+import webbrowser
+from ms.html_utils import makelink, tidy
+from ms.iter_utils import chop
 import os, sys, re
 INCLUDE = re.compile(r"\n.. include::\s+([\w\./]+)")
     
@@ -10,6 +11,71 @@ CSS = """
   body { font-size: 160%; }
 </STYLE>
 """
+
+class TableList(list):
+    """A table is a list of lists/tuple of the same length.
+    A table has methods to display itself as plain text and
+    as HTML.   """
+    
+    border = 1
+    color = "white"
+    
+    def __str__(self):
+        return self.to_html()
+    
+    def to_text(self):
+        return "\n".join(["\t".join(map(str,t)) for t in self])
+    
+    def _gen_html(self):
+        """Returns an HTML table as an iterator."""
+        yield "\n<table border=%r summary='a table'>\n" % self.border
+        header = self.header
+        for row in self:
+            yield "<tr>\n  "
+            for el in row:
+                if header:
+                    yield "<th>%s</th> " % el
+                else:
+                    yield '<td bgcolor="%s">%s</td> ' % \
+                          (getattr(row, "color", self.color), el)
+            yield "\n</tr>\n"
+            header = False
+        yield "</table>\n"
+    
+    def to_html(self, header = False):
+        """Generates an HTML table."""
+        self.header = header
+        return "".join(self._gen_html())
+
+    @classmethod
+    def make(cls, *args, **kw): # convenience factory
+        ncols = kw.get("ncols", 2)
+        missingcols = ncols - (len(args) % ncols)
+        args += ('',) * missingcols # add empty columns to fill the table
+        table = cls(chop(args, ncols))
+        vars(table).update(kw)
+        return table
+    
+    @classmethod
+    def row(cls, *args, **kw): # convenience factory
+        table = cls([args])
+        vars(table).update(kw)
+        return table
+    
+    @classmethod
+    def col(cls, *args, **kw): # convenience factory
+        table = cls([(arg,) for arg in args])
+        vars(table).update(kw)
+        return table
+
+def testTable():
+    t=TableList([
+        ['a', 1, 2],
+        ['b',2, 3],
+        ['c',2, 3],
+        ])
+    print t.to_html()
+    print t
 
 class HTMLDocument(list):
     def __init__(self, ls = []):
