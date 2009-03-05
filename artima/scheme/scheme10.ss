@@ -216,19 +216,19 @@ error *at compilation time*::
         form: (for i fro 1 to 5 (display i))
         subform: #f
 
-Still, I say that this is an abuse of
+Notice that this is an abuse of
 guarded patterns, since ``syntax-match`` provides a built-in
 mechanism just for that purpose. Moreover this macro is
 subject to the multiple evaluation problem which I will discuss
 in the next episode: thus I do not recommend it as an example
 of good style when writing macros. Still, I have written it here
-to compare it with our approach in `episode #8`_:
-with this macro we have been able to
+to compare it with the approach in `episode #8`_:
+with this macro I have been able to
 extend the Scheme compiler for within, with just a few lines of
 code: that is much simpler than writing an external compiler
-as a preprocessor, as we planned to do before.
+as a preprocessor, as I planned to do before.
 
-``syntax-match`` has the built-in capability of recognizing literal
+As I said, ``syntax-match`` has the built-in capability of recognizing literal
 identifiers in the patterns as if they were keywords. This is what
 the empty parenthesis are for. If you write ``(syntax-match (lit ...)
 clause ...)`` the identifiers listed in ``(lit ...)`` will be treated
