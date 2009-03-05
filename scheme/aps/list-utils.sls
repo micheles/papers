@@ -124,13 +124,13 @@
 (def-syntax fold
   (syntax-match (left right in)
      (sub (fold left (acc seed) (x in lst) (x* in lst*) ... new-acc)
-          (local
+          (locally
            (with-syntax (a a* ...) (generate-temporaries #'(x x* ...)))
            #'(fold-left
               (lambda (acc a a* ...) (let+ (x a) (x* a*) ... new-acc))
              seed lst lst* ...)))
      (sub (fold right (acc seed) (x in lst) (x* in lst*) ... new-acc)
-          (local
+          (locally
            (with-syntax (a a* ...) (generate-temporaries #'(x x* ...)))
            #'(fold-right
               (lambda (a a* ... acc) (let+ (x a) (x* a*) ... new-acc))

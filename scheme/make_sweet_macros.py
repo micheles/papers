@@ -9,7 +9,7 @@ snippet = dict(snippets)
 
 helper1 = '''#!r6rs
 (library (sweet-macros helper1)
-(export local guarded-syntax-case)
+(export locally guarded-syntax-case)
 (import (rnrs))
 
 %(LOCAL)s
@@ -20,7 +20,7 @@ helper1 = '''#!r6rs
 
 helper2 = '''#!r6rs
 (library (sweet-macros helper2)
-(export local syntax-match)
+(export locally syntax-match)
 (import (rnrs) (for (rnrs) (meta -1))
 (for (sweet-macros helper1) (meta -1) (meta 0) (meta 1)))
 
@@ -30,7 +30,7 @@ helper2 = '''#!r6rs
 
 helper3 = '''#!r6rs
 (library (sweet-macros)
-(export local syntax-match def-syntax)
+(export locally syntax-match def-syntax)
 (import (rnrs) (for (sweet-macros helper2) run expand))
 
 %(DEF-SYNTAX)s
@@ -39,7 +39,7 @@ helper3 = '''#!r6rs
 
 main = '''#!r6rs
 (library (sweet-macros)
-(export local syntax-match def-syntax syntax-expand)
+(export locally syntax-match def-syntax syntax-expand)
 (import (rnrs) (for (sweet-macros helper3) run expand))
 
 %(SYNTAX-EXPAND)s

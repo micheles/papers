@@ -1,17 +1,17 @@
 (library (sweet-macros)
-(export syntax-match def-syntax syntax-expand local)
+(export syntax-match def-syntax syntax-expand locally)
 (import (rnrs))
 
 ;;LOCAL
-(define-syntax local
+(define-syntax locally
   (lambda (x)
     (syntax-case x (syntax-match)
-      ((local expr)
+      ((locally expr)
        #'expr)
-      ((local (let-form name value) ... (syntax-match b0 b1 b2 ...))
-       #'(syntax-match (local (let-form name value) ...) b0 b1 b2 ...))
-      ((local (let-form name value) (l n v) ... expr)
-       #'(let-form ((name value)) (local (l n v) ... expr))))
+      ((locally (let-form name value) ... (syntax-match b0 b1 b2 ...))
+       #'(syntax-match (locally (let-form name value) ...) b0 b1 b2 ...))
+      ((locally (let-form name value) (l n v) ... expr)
+       #'(let-form ((name value)) (locally (l n v) ... expr))))
     ))
 ;;END
 
@@ -45,10 +45,10 @@
 
 ;;SYNTAX-MATCH
 (define-syntax syntax-match
-  (guarded-syntax-case () (sub local)
-    ((self (local (let-form name value) ...) (literal ...)
+  (guarded-syntax-case () (sub locally)
+    ((self (locally (let-form name value) ...) (literal ...)
            (sub patt skel . rest) ...)
-     #'(local (let-form name value) ...
+     #'(locally (let-form name value) ...
          (guarded-syntax-case ()
            (<literals> <patterns> <source> <transformer> literal ...)
            ((ctx <literals>)
@@ -56,10 +56,10 @@
            ((ctx <patterns>)
             #''((... (... patt)) ...))
            ((ctx <source>)
-            #''(self (local (let-form name value) ...) (literal ...)
+            #''(self (locally (let-form name value) ...) (literal ...)
                      (... (... (sub patt skel . rest))) ...))
            ((ctx <transformer>)
-            #'(self (local (let-form name value) ...) (literal ...)
+            #'(self (locally (let-form name value) ...) (literal ...)
                     (... (... (sub patt skel . rest))) ...))
            (patt skel . rest) ...))
      (for-all identifier? #'(literal ...))
@@ -67,7 +67,7 @@
                        (remp identifier? #'(literal ...))))
     
     ((self (literal ...) (sub patt skel . rest) ...)
-     #'(self (local)(literal ...) (sub patt skel . rest) ...))
+     #'(self (locally)(literal ...) (sub patt skel . rest) ...))
 
     ((self x (literal ...) (sub patt skel . rest) ...)
      #'(guarded-syntax-case x (literal ...) (patt skel . rest) ...))
@@ -76,12 +76,12 @@
 
 ;; DEF-SYNTAX
 (define-syntax def-syntax
-  (syntax-match (extends local)
+  (syntax-match (extends locally)
     (sub (def-syntax name (extends parent)
-       (local loc ...) (literal ...) 
+       (locally loc ...) (literal ...) 
        clause ...)
      #'(define-syntax name
-         (syntax-match (local loc ...) (literal ...)
+         (syntax-match (locally loc ...) (literal ...)
            clause ...
            (sub x ((parent <transformer>) #'x)))))
     (sub (def-syntax (name . args) skel . rest)
