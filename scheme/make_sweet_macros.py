@@ -3,7 +3,7 @@ from scheme2rst import SNIPPET
 
 code = file('sweet-macros/main.sls').read()
 
-# LOCAL, GUARDED-SYNTAX-CASE, SYNTAX-MATCH, DEF-SYNTAX, SYNTAX-EXPAND
+# LOCALLY, GUARDED-SYNTAX-CASE, SYNTAX-MATCH, DEF-SYNTAX, SYNTAX-EXPAND
 snippets = [s.groups() for s in SNIPPET.finditer(code)]
 snippet = dict(snippets)
 
@@ -12,7 +12,7 @@ helper1 = '''#!r6rs
 (export locally guarded-syntax-case)
 (import (rnrs))
 
-%(LOCAL)s
+%(LOCALLY)s
 
 %(GUARDED-SYNTAX-CASE)s
 )

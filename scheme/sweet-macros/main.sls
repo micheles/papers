@@ -2,7 +2,7 @@
 (export syntax-match def-syntax syntax-expand locally)
 (import (rnrs))
 
-;;LOCAL
+;;LOCALLY
 (define-syntax locally
   (lambda (x)
     (syntax-case x (syntax-match)
