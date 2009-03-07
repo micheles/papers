@@ -6,17 +6,18 @@
 .. _14: http://www.artima.com/weblogs/viewpost.jsp?thread=249198
 .. _15: http://www.artima.com/weblogs/viewpost.jsp?thread=249681
 .. _SRFI-26: http://srfi.schemers.org/srfi-26/srfi-26.html
+.. _SRFI-1: http://srfi.schemers.org/srfi-1/srfi-1.html
 
 The APS library
 -----------------------------------------------------------------
 
-The R6RS standard provides a few list utilities; the SRFI-1
-provides a few others. Nevertheless the offering is quite incomplete:
+The R6RS standard provides a few list utilities; the SRFI-1_
+provides a few others. Nevertheless the offering is incomplete:
 in particular a list comprehension syntax is missing. Therefore
 I have decided to distribute a library providing list comprehension
-an other utilities. Such utilities
-will be useful even for future episodes of my *Adventures*, in particular
-for part IV, i.e. advanced macro programming. After
+and more. Such library
+will be useful for future episodes of my *Adventures*, in particular
+for part IV, about advanced macro programming. After
 all, macro programming is nothing else than manipulation of code seen
 as a nested list of expressions.
 
@@ -26,7 +27,7 @@ With a remarkable lack of fantasy, I have decided to call the library
 ``list-utils`` and to put it in a package called ``aps`` (``aps`` of
 course stands for *Adventures of a Pythonista in Schemeland* and not
 for *American Physical Society* ;).
-In this wat I will be contributing to the entropy and I will be
+In this way I will be contributing to the entropy and I will be
 littering the world with yet another version of utilities that
 I would rather not write, but this cannot be helped :-(
 
@@ -86,8 +87,8 @@ enable portability about different R6RS implementations.
 In particular the ``aps`` library contains three modules
 ``compat.ikarus.sls``,  ``compat.mzscheme.sls`` and ``compat.ypsilon.sls``
 following the convention. When I write ``(import (aps compat))``
-in Ikarus, the file ``compat.ikarus.sls`` is read; when I write the same
-in PLT,  the file ``compat.mzscheme.sls`` is read; and finally
+in Ikarus, the file ``compat.ikarus.sls`` is read; when I import
+``(aps compat)`` in PLT,  the file ``compat.mzscheme.sls`` is read; and finally
 for Ypsilon the file ``compat.ypsilon.sls`` is read. This mechanism
 allows for writing compatibility wrappers; for instance, here is the
 content of  ``compat.mzscheme.sls``:
