@@ -1,5 +1,5 @@
 #|
-More on list comprehension
+The eight queens puzzle
 -----------------------------------------------------------
 
 In the latest issue I have introduced a syntax for list comprehension
@@ -57,7 +57,7 @@ they cannot be in the same row, since they are indexed by row) or
 on the same diagonal. The condition *being on the same diagonal*
 translates into *the difference between the row coordinates
 is the same as the difference between the column coordinates, in absolute
-value*. Here is condition expressed in Scheme and making use of ``list-of``
+value*. Here is the condition expressed in Scheme and making use of ``list-of``
 and of the ``is`` syntax, where ``new-row`` and ``new-col`` is the tentative
 position of the *n*-th queen and ``safe-config`` is a solution of the
 *n-1*-queen problem:
@@ -84,13 +84,18 @@ I refer you to Wikipedia for nice drawings of the solutions.
 Iterators and streams
 ----------------------------------------------------------
 
-To a Pythonista, Scheme streams may look like a version of Python
-iterators. However that would be a wrong impression. When Python
-copies from functional languages, it does so in an imperative way. Let
-me explain with an example. The Python iterator
+Python programmers are well acquainted with generators and iterators,
+and they think they know everything about lazyness. In particular
+they know that the Python iterator
 
  >>> it123 = iter(range(1, 4))
 
+is left unevaluated until its elements are requested. However, the
+Python way is only superficially similar to the truly functional way,
+as you can find in Haskell or in Scheme.
+When Python
+copies from functional languages, it does so in an imperative way.
+Here the iterator ``it123``
 is an object with an internal state; there is a ``next`` method which
 allows to change the state. In particular, if you call ``.next()`` twice,
 the same iterator returns different values:
@@ -147,15 +152,12 @@ of the stream. Actually, this is what happens::
 
 .. _SRFI-41: http://srfi.schemers.org/srfi-41/srfi-41.html
 
-Stream comprehension and more
--------------------------------------------------------------
-
 The SRFI-41_ offers a series of convenient features. The most
-useful one is stream comprehension, which is very similar to the
-list comprehension I discussed in the previous episode. This is
-not by accident, since I copied the list comprehensions syntax
-from the work of Phil Bewig, which is also the author of the stream
-library. The difference between list comprehensions and stream comprehension
+useful one is stream comprehension, which is very similar to
+list comprehension. Since I copied the list comprehensions syntax
+from the work of Phil Bewig, which is the author of the stream
+library, it is not surprising that the syntax looks the same.
+The difference between list comprehensions and stream comprehension
 is that stream comprehension is lazy and can be infinite. This is very
 very similar to Python generator expressions (*genexps*).
 For instance, in Python we can express the
@@ -184,29 +186,16 @@ solution at the time, on demand, whereas the second one is eager: it
 computes all the solutions in a single bunch, and returns them
 together.
 
-A shortcoming of the ``stream`` module
-is the lack of a ``stream-equal?`` function, which we may define as follows:
-
-$$STREAM-EQUAL?
-
-Two streams are recognized as different as soon as two different
-elements are found; on the other hand, in order to verify the equality
-of two streams it is necessary to compare *all* the elements: this is
-computationally impossible if the two streams are infinite.
-Therefore ``stream-equal?`` should be used with care. For finite streams
-which are likely to be equal, it may be more effective to convert them
-into lists and to compare directly the latter.
-
 Lazyness is a virtue
 ----------------------------------------------------------
 
-The basic feature of streams, apart from immutability, is lazyness.
-Streams are lazy since they perform work only when forced - i.e.
+The basic feature of streams, apart from immutability, is true lazyness.
+Streams are truly lazy since they perform work only when forced - i.e.
 only when an element is explicitly requested -  and even there if
 they had already accomplished a task they do not perform it again
-- i.e. they memoize the elements already computed.
-An example should make these two points clear.
-Let us define a ``work`` procedurs which protests when called::
+- i.e. they *memoize* the elements already computed (and this is *not*
+the case for Python iterators). An example should make these two points clear.
+Let us define a ``work`` procedure which protests when called::
 
  > (define (work i)
      (display "Life is hard!\n") i)
@@ -243,11 +232,12 @@ structure and it is good practice to use only pure functions, i.e.
 functions without side effects. Actually, this is a best practice
 always, not only when working with streams!
 
-I could say more about streams and for many problems one can use
-streams instead of generators. On the other hand, in Scheme is also
-possible to define Python-like generators, and one could define
-a generator expression syntax without streams, but using continuations
-instead. However, investigating that direction will astray us from our
+I could say more about streams. In particular, there are lots of caveats
+about them, which are explained in detail in the SRFI-41_ documentation
+(so many caveats that I personally avoid streams). Moreover, I sure
+that Pythonista would be even more interested in true generator-expressions
+and generators, which can be definite in Scheme by using continuations.
+However, investigating that direction will astray us from our
 path. The intention of this third cycle of *Adventures* was just to give
 a feeling of what does it mean to be a true functional language, versus
 being an imperative language with a few functional-looking constructs.
@@ -255,10 +245,10 @@ being an imperative language with a few functional-looking constructs.
 There are many resources that you may use to deepen your knowledge of Scheme;
 and you can always wait for new *Adventures*. But now a cycle ends and a
 new cycle begins: the subject will be macros, again.
-
-.. _delay and force: http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-20.html#node_idx_1296
 |#
 (import (rnrs) (streams) (aps compat) (aps list-utils))
+
+;.. _delay and force: http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-20.html#node_idx_1296
 
 ;;STREAM-EQUAL?
 (define (stream-equal? eql? xs ys)
@@ -271,15 +261,15 @@ new cycle begins: the subject will be macros, again.
 ;;END
 
 ;;SAFE-QUEEN?
-(define (all lst) ;; a Python-like all, true if all is true
+(define (all-true lst) ;; a Python-like all, true if all elements are true
   (for-all (lambda (x) x) lst))
 
 (define (safe-queen? new-row new-col safe-config)
-  (all (list-of (not (or same-col? same-diag?))
-                ((row col) in (enumerate safe-config))
-                (same-col? is (= col new-col))
-                (same-diag? is (= (abs (- col new-col)) (abs (- row new-row))))
-                )))
+  (all-true (list-of (not (or same-col? same-diag?))
+               ((row col) in (enumerate safe-config))
+               (same-col? is (= col new-col))
+               (same-diag? is (= (abs (- col new-col)) (abs (- row new-row))))
+               )))
 ;;END
 
 ;;QUEENS
