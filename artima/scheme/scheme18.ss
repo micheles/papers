@@ -1,48 +1,45 @@
 #|
-The eight queens puzzle solved with list comprehension
+The eight queens puzzle
 -----------------------------------------------------------
 
-This episode will be mainly about streams, but before that I want to close the
+Before starting the analysis of streams, I want to close the
 discussion about list comprehension. Last week I had no time to discuss one
-of the convenient of the ``list-of`` syntax, i.e. the ability to define
-internal variables in the form ``(name is value)``.
-I should give an example of that, and I have decided to
-take the occasion to show you a solution of the infamous
-`eight-queens puzzle`_ that you
-will find in all theoretical textbooks about programming.
+of the conveniences of the ``list-of`` macro, i.e. the ability to define
+internal variables with a ``(name is value)`` syntax.
+To give an example of that, I have decided to show you a solution
+of the infamous `eight-queens puzzle`_ that you
+will find in all the theoretical textbooks about programming.
 
 In my opinion the eight queens
-puzzle is not so interesting, it is just a typical academic example, good
-to stretch your brain.
-On the other hand, if you want to study Scheme, you will find this
-kind of examples everywhere, so I made my concession to the
-tradition. In particular, the official documentation of the streams
-SRFI (SRFI-41_) contains a solutions of the eight queens puzzle
-by using the same algorithm but streams instead of lists. You may want
+puzzle is not so interesting, however, if you want to study Scheme,
+you will find this kind of academical examples everywhere, so I made my concession to the
+tradition. In particular, the official document about streams in R6RS
+Scheme, i.e. SRFI-41_,  contains a solution of the eight queens puzzle
+by using the same algorithm I am presenting here, but with
+streams instead of lists. You may want
 to compare the list solution to the stream solution.
 
 .. figure:: http://upload.wikimedia.org/wikipedia/commons/1/1f/Eight-queens-animation.gif
 
   Animation taken from Wikipedia
 
-The algorithm is based on a clever trick which is quite common in Mathematics:
-introducing an additional degrees of freedom
+The algorithm is based on a clever trick which is quite common in the
+mathematical sciences: to introduce an additional degrees of freedom
 which apparently makes the problem harder, but actually gives us a fast
 lane towards the solution. Here the clever idea is to change the question and
-to considered not a square chessboard, but a family of rectangular
-chessboards with *n* rows and *N* columns (with *n<=N* and *N=8*).
-We are interested in the *n=8* solution; however, keeping *n* generic
-helps us, since an easy solution can be found for small *n* (in particular
+to considered not a single square chessboard, but a family of rectangular
+chessboards with *n* rows and *N* columns (with *n<=N* and *N=8*). Of course
+we are interested in the *n=8* solution; however, keeping *n* generic
+helps, since an easy solution can be found for small *n* (in particular
 for *n=1*) and we can figure out a recursive algorithm to build the *n+1*
 solution starting from the *n=1* solution, until we reach *n=8*.
 
-A solution is expressed
-as a list of column positions for the queens, indexed by row. In
-particular the case *n=1*
+Let us express a solution as a list of column positions for the queens,
+indexed by row. We will enumerate rows and columns starting from zero,
+as usual. The case *n=1*
 (putting a queen on a *1x8* chessboard) has 8 solutions, expressible as
-the list of lists ``'((0)(1)(2)(3)(4)(5)(6)(7))`` - let me enumerate
-the columns starting from zero. That means that the first (and only)
-queen can be at column 0, 1, 2, 3, 4, 5, 6 or 7. If there are two
+the list of lists ``'((0)(1)(2)(3)(4)(5)(6)(7))`` - the first (and only)
+queen will be at row 0 and columns 0, 1, 2, 3, 4, 5, 6 or 7. If there are two
 queens (*n=2*) one has more solutions; for instance the first
 queen (i.e. the one at row 0) could be at column 0 and the second
 queen (i.e. the one at row 1) at column 2, and a solution is ``(0
@@ -64,13 +61,12 @@ position of the *n*-th queen and ``safe-config`` is a solution of the
 $$SAFE-QUEEN?
 
 ``safe-queen?`` checks that the new configuration is safe by looking
-at all the queens already placed, with column positions given by the
-list safe-config. We can find all the solutions with a
+at all the queens already placed. We can find all the solutions with a
 recursive function:
 
 $$QUEENS
 
-In particular you can check that the *n=8* problem has 92 solutions::
+In particular we can check that the *n=8* problem has 92 solutions::
 
  > (length (queens 8 8))
  92
@@ -85,15 +81,14 @@ Iterators and streams
 ----------------------------------------------------------
 
 Python programmers are well acquainted with generators and iterators,
-and they think they know everything about lazyness. In particular
+and they know everything about lazyness. In particular
 they know that the Python iterator
 
  >>> it123 = iter(range(1, 4))
 
 is left unevaluated until its elements are requested. However, the
-Python way is only superficially similar to the functional way,
-as you can find in Haskell or in Scheme.
-When Python
+Python way is only superficially similar to the truly functional way,
+found in Haskell or in Scheme. Actually, when Python
 copies from functional languages, it does so in an imperative way.
 Here the iterator ``it123``
 is an object with an internal state; there is a ``next`` method which
@@ -107,7 +102,7 @@ the same iterator returns different values:
 
 Thus, Python iterators *are not functional*.  Functional languages
 such as Scheme ML and Haskell have no imperative iterators: they have
-*streams* instead.  In particular, Ikarus comes with a built-in stream
+*streams* instead.  Ikarus comes with a built-in stream
 library, so that I can give a concrete example right now (of course
 you can use streams in other implementations simply by using the
 reference implementation described in SRFI-41_).  Here is how to define
@@ -152,13 +147,14 @@ of the stream. Actually, this is what happens::
 
 .. _SRFI-41: http://srfi.schemers.org/srfi-41/srfi-41.html
 
-The SRFI-41_ offers a series of convenient features. The most
+``stream-for-each`` is an utility from SRFI-41_, with obvious meaning.
+Actually SRFI-41_ offers a series of convenient features. The most
 useful one is stream comprehension, which is very similar to
 list comprehension. Since I copied the list comprehensions syntax
 from the work of `Phil Bewig`_, which is the author of the stream
 library, it is not surprising that the syntax looks the same.
 The difference between list comprehensions and stream comprehension
-is that stream comprehension is lazy and can be infinite. This is very
+is that stream comprehension is lazy and can be infinite. This is
 similar to Python generator expressions (*genexps*).
 For instance, in Python we can express the
 infinite set of the even number as a genexp
@@ -226,7 +222,7 @@ stream, it will return the precomputed values::
  (1 2 3)
 
 This shows clearly that the function ``work`` is not called twice.
-It is also clear that, had ``work`` some side effect (such as writing
+It is also clear that, had ``work`` some useful side effect (such as writing
 a log message) then using a stream would not be a good idea,
 since you could loose some message. Streams are a functional data
 structure and it is good practice to use only pure functions with them, i.e.
@@ -237,17 +233,16 @@ amount of memory, whereas an imperative iterator has no such issue.
 I could say more. In particular, there are lots of caveats
 about streams, which are explained in detail in the SRFI-41_ documentation
 (so many caveats that I personally do not feel confident with
-streams).  Moreover, I am sure that Pythonistas would be even more
+streams).  I am also sure that Pythonistas would be even more
 interested in true generator-expressions and generators, which can be
 definite in Scheme by using continuations.  However, investigating
-that direction will astray us from our path. The intention of this
+that direction will astray us away from our path. The intention of this
 third cycle of *Adventures* was just to give a feeling of what does it
 mean to be a true functional language, versus being an imperative
 language with a few functional-looking constructs.
 
-There are many resources that you may use to deepen your knowledge of Scheme;
-and you can always wait for new *Adventures*. But now a cycle ends and a
-new cycle will begin shortly: the subject will be macros, again.
+With this episode this cycle of our *Adventures* ends, but a new one
+will begin shortly: the subject will be macros, again. Stay tuned!
 |#
 (import (rnrs) (streams) (aps compat) (aps list-utils))
 
