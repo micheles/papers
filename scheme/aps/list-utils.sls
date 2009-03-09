@@ -1,7 +1,7 @@
 #!r6rs
 (library (aps list-utils)
-(export range enumerate zip transpose distinct? let+ perm list-of-aux
-        remove-dupl append-unique fold flatten list-of)
+(export range enumerate zip transpose distinct? let+ perm list-of-aux list-for
+        remove-dupl append-unique fold flatten list-of normalize)
 (import (rnrs) (sweet-macros) (aps cut))
 
 ;;; macros
@@ -54,6 +54,9 @@
   #'(list-of-aux expr '() rest ...))
 
 ;;END
+
+(def-syntax (list-for decl ... expr)
+  #'(list-of-aux expr '() decl ...))
 
 ;;; utilities
 
@@ -154,5 +157,20 @@
     (list-of (cons el ls)
              (el in lst)
              (ls in (perm eq? (remp (cut eq? el <>) lst)))))))
+;;END
+
+
+
+
+
+
+
+
+;;NORMALIZE
+(define (normalize ls)
+  (list-of (syntax-match a ()
+              (sub n #'(n n) (identifier? #'n))
+              (sub (n v) #'(n v) (identifier? #'n)))
+           (a in ls)))
 ;;END
 )

@@ -1,0 +1,61 @@
+The *Adventures of a Pythonista in Schemeland* have grown to be a rather long
+series. I think a table of contents is needed, in order to index all the
+episodes. Here it is.
+
+Part I
+ Ep1_ Introduction to Scheme
+
+ Ep2_ About scheme implementations
+
+ Ep3_ Of parenthesis and indentation
+
+ Ep4_ Scheme bibliography (and a first program)
+
+ Ep5_ About tail call optimization (and the module system)
+
+ Ep6_ The danger of benchmarks
+
+Part II
+ Ep7_ Symbols and lists
+
+ Ep8_ Quoting and quasi-quoting
+
+ Ep9_ Introduction to (sweet-)macros
+
+ Ep10_ Features of (sweet-)macros
+
+ Ep11_ The multiple evaluation problem (and easy-test)
+
+ Ep12_ Are macros useful?
+
+Part III
+ Ep13_ Micro-introduction to functional programming
+
+ Ep14_ Currying, partial application, and fold
+
+ Ep15_ List destructuring
+
+ Ep16_ Multiple values (and opt-lambda)
+
+ Ep17_ List comprehension
+
+ Ep18_ Streams
+
+.. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
+.. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941
+.. _Ep3: http://www.artima.com/weblogs/viewpost.jsp?thread=239466
+.. _Ep4: http://www.artima.com/weblogs/viewpost.jsp?thread=239568
+.. _Ep5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
+.. _Ep6: http://www.artima.com/weblogs/viewpost.jsp?thread=240198
+.. _Ep7: http://www.artima.com/weblogs/viewpost.jsp?thread=240781
+.. _Ep8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
+.. _Ep9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
+.. _Ep10: http://www.artima.com/weblogs/viewpost.jsp?thread=240805
+.. _Ep11: http://www.artima.com/weblogs/viewpost.jsp?thread=240833
+.. _Ep12: http://www.artima.com/weblogs/viewpost.jsp?thread=240836
+.. _Ep13: http://www.artima.com/weblogs/viewpost.jsp?thread=248953
+.. _Ep14: http://www.artima.com/weblogs/viewpost.jsp?thread=249198
+.. _Ep15: http://www.artima.com/weblogs/viewpost.jsp?thread=249681
+.. _Ep16: http://www.artima.com/weblogs/viewpost.jsp?thread=249685
+.. _Ep17: http://www.artima.com/weblogs/viewpost.jsp?thread=251156
+.. _Ep18: http://www.artima.com/weblogs/viewpost.jsp?thread=251159

@@ -63,3 +63,12 @@ third-cycle: third-cycle.txt
 
 18: scheme18.ss
 	$(RST) scheme18.ss; $(POST) scheme18.rst 251159
+
+table-of-contents: table-of-contents.txt
+	$(POST) table-of-contents.txt 251474
+
+fourth-cycle: fourth-cycle.txt
+	$(POST) fourth-cycle.txt 
+
+19: scheme19.ss
+	$(RST) scheme19.ss; $(POST) scheme19.rst 251476

@@ -1,23 +1,8 @@
 #|
-A new cycle of *Adventures* begins. The subject is macros, again.
-
-In the last ten episodes I defined plenty of macros, but I did
-not really explain what macros are and how they work.
-This episode will close the gap,
-and will explain the true meaning of macros by introducting the concept
-of *syntax object* and the concept of *transformer* over syntax objects.
-
-
-We just
-scratched the surface of what macros are and can do. The third cycle
-will be entirely devolved to the most sophisticated aspects of macros.
-
-A new cycle of *Adventures* begins. The subject is macros, again.
-
 Syntax objects
 ------------------------------------------------------------------
 
-Scheme macros are based on the concept of *syntax object*.
+Scheme macros are built over the concept of *syntax object*.
 This concept is peculiar to Scheme and has no counterpart in other 
 languages (including Common Lisp), therefore it is worth to spend some time
 on it.
@@ -29,11 +14,11 @@ the name of the file containing the source code, the line numbers,
 a system of marks to distinguish identifiers according to their
 lexical context, and more.
 
-It is possible to convert an identifier or a primitive value into a 
+It is possible to convert a variable or a literal value into a 
 syntax object with the syntax quoting operation, i.e. the funny
 ``#'`` symbol you have seen in all the macros I have defined until now::
 
- > #'x ; convert an identifier into a syntax-object identifier
+ > #'x ; convert a variable into an identifier
  #<syntax x>
  > #''x ; convert a literal symbol
  #<syntax 'x>
@@ -67,7 +52,7 @@ the sense that both corresponds to the same datum::
            (syntax->datum #'(display "hello")))
  #t
 
-It is possible to promote a datum to a syntax objects with the
+It is possible to promote a datum to a syntax object with the
 ``datum->syntax`` procedure, but in order
 to do so you need to provide a lexical context, which can be specified
 by using a dummy identifier::
@@ -129,8 +114,9 @@ used::
  #<syntax a>
 
 For convenience, ``syntax-match`` also accepts a second syntax
-``(syntax-match x () clause ...)`` to match syntax expressions
-directly, more convenient than using ``((syntax-match () clause ...) x)``.
+``(syntax-match x (lit ...) clause ...)`` to match syntax expressions
+directly, more convenient than using
+``((syntax-match (lit ...) clause ...) x)``.
 Here is a simple example of usage::
 
  > (syntax-match #'(a 1 2 3) ()
@@ -195,21 +181,16 @@ first one is mostly cosmetic: ``with-syntax`` has somewhat too many
 parenthesis (it is easy to miss one in ``((((name value) ...) lst))``).
 This can be solved which a macro like the following one::
 
- (def-syntax local
-   (syntax-match ()
-      (sub (local expr)
-           #'expr)
-      (sub (local (let-form name value) (l n v) ... expr)
-       #'(let-form ((name value)) (local (l n v) ... expr)))))
+$$lang:COLONS
 
-``local`` is an example of second order macro, since it expects as
+``locally`` is an example of second order macro, since it expects as
 argument another macro, in this case the ``let-form``, which can
-be any binding macro such that ``(let-form ((name value)) expr)``
+be any binding macro such that ``(let-form ((patt value)) expr)``
 is a valid syntax. ``with-syntax`` is a kind of let form, 
-so that ``(with-syntax ((((name value) ...) lst)) expr)``
-can be rewritten as ``(local (with-syntax ((name value) ...) lst) expr)``,
+so that ``(with-syntax ((((patt value) ...) lst)) expr)``
+can be rewritten as ``(locally (with-syntax ((patt value) ...) lst) expr)``,
 by reducing four consecutive parenthesis to just two.
-Notice that the ``sweet-macros`` module version 0.5 provides a ``local`` form
+Notice that the latest ``sweet-macros`` module provides a ``locally`` form
 which plays well with ``syntax-match``, so you are invited to make use of it.
 
 The second problem with ``alist`` is that it would look nicer to
@@ -217,12 +198,9 @@ give a name to the logic of management of the arguments:
 
 $$NORMALIZE
 
-Having defined this helper function, the original macro becomes more readable::
+Having defined this helper function, the original macro becomes more readable:
 
- (def-syntax (alist arg ...)
-   (local (with-syntax ((name value) ...) (normalize #'(arg ...)))
-    #'(let* ((name value) ...)
-        (list (list 'name name) ...))))
+$$ALIST2
 
 The major advantage, however, is that now you can reuse the argument
 normalization procedure in other macros. To this aim it is enough
@@ -254,7 +232,24 @@ will be the subject of episode 20. See you next time!
            (a in ls)))
 ;;END
 
-(display (syntax-expand (alist (a 1) (b (* 2 a)))))
+;;COLONS
+ (def-syntax (: let-form patt value expr expr* ...)
+   #'(let-form ((patt value)) expr expr* ...)
+   (identifier? #'let-form)
+   (syntax-violation ': "Not an identifier" #'let-form))
+;;COLONS
+
+;;ALIST2
+(def-syntax (alist2 arg ...)
+  (: with-syntax ((name value) ...) (normalize #'(arg ...))
+     (if (for-all identifier? #'(name ...))
+         #'(let* ((name value) ...)
+             (list (list 'name name) ...))
+         (syntax-violation 'alist "Found non identifier" #'(name ...)
+                           (remp identifier? #'(name ...))))))
+;;END
+
+(display (syntax-expand (alist2 (a 1) (b (* 2 a)))))
 
 (run
 
@@ -262,10 +257,14 @@ will be the subject of episode 20. See you next time!
  (test "simple"
        (alist (a 1) (b (* 2 a)))
        '((a 1) (b 2)))
+ 
  (let ((a 1))
    (test "mixed"
-         (alist a (b (* 2 a)))
+         (alist2 a (b (* 2 a)))
          '((a 1) (b 2))))
 
+ ;(test "with-error"
+ ;      (catch-error (alist2 (a 1) (2 3)))
+ ;      "invalid syntax")
  ;;END
  )

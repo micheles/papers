@@ -1,41 +1,40 @@
 #|
-The eight queens puzzle
+The eight queens puzzle solved with list comprehension
 -----------------------------------------------------------
 
-In the latest issue I have introduced a syntax for list comprehension
-and I have shown a few examples of its usage. However, I have not discussed one
-of its most convenient features, i.e. the ability to define
-internal variables with the ``(name is value)`` syntax.
+This episode will be mainly about streams, but before that I want to close the
+discussion about list comprehension. Last week I had no time to discuss one
+of the convenient of the ``list-of`` syntax, i.e. the ability to define
+internal variables in the form ``(name is value)``.
 I should give an example of that, and I have decided to
 take the occasion to show you a solution of the infamous
 `eight-queens puzzle`_ that you
-will find in all textbooks about programming.
+will find in all theoretical textbooks about programming.
 
 In my opinion the eight queens
 puzzle is not so interesting, it is just a typical academic example, good
-for fans of riddles.
+to stretch your brain.
 On the other hand, if you want to study Scheme, you will find this
 kind of examples everywhere, so I made my concession to the
-tradition. In particular, the main subject of this episode are Scheme streams,
-i.e. SRFI-41, and yoy will find a solutions of the eight queens puzzle
-in the documentation of SRFI-41, using the same algorithm but streams
-instead of lists.
+tradition. In particular, the official documentation of the streams
+SRFI (SRFI-41_) contains a solutions of the eight queens puzzle
+by using the same algorithm but streams instead of lists. You may want
+to compare the list solution to the stream solution.
 
 .. figure:: http://upload.wikimedia.org/wikipedia/commons/1/1f/Eight-queens-animation.gif
 
   Animation taken from Wikipedia
 
-The algorithm is based on a trick which is quite common in Mathematics:
-the clever idea
-consists in introducing an additional degrees of freedom
+The algorithm is based on a clever trick which is quite common in Mathematics:
+introducing an additional degrees of freedom
 which apparently makes the problem harder, but actually gives us a fast
-lane to find a solution. Here the trick is to change the question and
+lane towards the solution. Here the clever idea is to change the question and
 to considered not a square chessboard, but a family of rectangular
 chessboards with *n* rows and *N* columns (with *n<=N* and *N=8*).
 We are interested in the *n=8* solution; however, keeping *n* generic
 helps us, since an easy solution can be found for small *n* (in particular
 for *n=1*) and we can figure out a recursive algorithm to build the *n+1*
-solution starting from the *n*, until we reach *n=8*.
+solution starting from the *n=1* solution, until we reach *n=8*.
 
 A solution is expressed
 as a list of column positions for the queens, indexed by row. In
@@ -80,6 +79,7 @@ I refer you to Wikipedia for nice drawings of the solutions.
 
 .. _eight-queens puzzle: http://en.wikipedia.org/wiki/Eight_queens_puzzle
 .. _found on Wikipedia: http://en.wikipedia.org/wiki/Eight_queens_puzzle_solutions
+.. _Phil Bewig: http://schemephil.googlepages.com/
 
 Iterators and streams
 ----------------------------------------------------------
@@ -91,7 +91,7 @@ they know that the Python iterator
  >>> it123 = iter(range(1, 4))
 
 is left unevaluated until its elements are requested. However, the
-Python way is only superficially similar to the truly functional way,
+Python way is only superficially similar to the functional way,
 as you can find in Haskell or in Scheme.
 When Python
 copies from functional languages, it does so in an imperative way.
@@ -155,11 +155,11 @@ of the stream. Actually, this is what happens::
 The SRFI-41_ offers a series of convenient features. The most
 useful one is stream comprehension, which is very similar to
 list comprehension. Since I copied the list comprehensions syntax
-from the work of Phil Bewig, which is the author of the stream
+from the work of `Phil Bewig`_, which is the author of the stream
 library, it is not surprising that the syntax looks the same.
 The difference between list comprehensions and stream comprehension
 is that stream comprehension is lazy and can be infinite. This is very
-very similar to Python generator expressions (*genexps*).
+similar to Python generator expressions (*genexps*).
 For instance, in Python we can express the
 infinite set of the even number as a genexp
 
@@ -170,6 +170,7 @@ whereas in Scheme we can express it as a stream::
 
  > (define even (stream-of i (i in (stream-from 0)) (zero? (modulo i 2))))
 
+However the Scheme stream stream is immutable, whereas the Python genexp is not.
 It is possible to loop over a stream with ``stream-for-each``,
 ``stream-map`` and ``stream-fold``; such higher order functions work as
 they counterpats for lists, but they. return streams. There is also a
@@ -227,24 +228,26 @@ stream, it will return the precomputed values::
 This shows clearly that the function ``work`` is not called twice.
 It is also clear that, had ``work`` some side effect (such as writing
 a log message) then using a stream would not be a good idea,
-since you could lose some message. Streams are a functional data
-structure and it is good practice to use only pure functions, i.e.
-functions without side effects. Actually, this is a best practice
-always, not only when working with streams!
+since you could loose some message. Streams are a functional data
+structure and it is good practice to use only pure functions with them, i.e.
+functions without side effects. Moreover, I should also notice that the
+memoization property implies that a stream can take an unbound
+amount of memory, whereas an imperative iterator has no such issue.
 
-I could say more about streams. In particular, there are lots of caveats
-about them, which are explained in detail in the SRFI-41_ documentation
-(so many caveats that I personally avoid streams). Moreover, I sure
-that Pythonista would be even more interested in true generator-expressions
-and generators, which can be definite in Scheme by using continuations.
-However, investigating that direction will astray us from our
-path. The intention of this third cycle of *Adventures* was just to give
-a feeling of what does it mean to be a true functional language, versus
-being an imperative language with a few functional-looking constructs.
+I could say more. In particular, there are lots of caveats
+about streams, which are explained in detail in the SRFI-41_ documentation
+(so many caveats that I personally do not feel confident with
+streams).  Moreover, I am sure that Pythonistas would be even more
+interested in true generator-expressions and generators, which can be
+definite in Scheme by using continuations.  However, investigating
+that direction will astray us from our path. The intention of this
+third cycle of *Adventures* was just to give a feeling of what does it
+mean to be a true functional language, versus being an imperative
+language with a few functional-looking constructs.
 
 There are many resources that you may use to deepen your knowledge of Scheme;
 and you can always wait for new *Adventures*. But now a cycle ends and a
-new cycle begins: the subject will be macros, again.
+new cycle will begin shortly: the subject will be macros, again.
 |#
 (import (rnrs) (streams) (aps compat) (aps list-utils))
 
@@ -265,6 +268,7 @@ new cycle begins: the subject will be macros, again.
   (for-all (lambda (x) x) lst))
 
 (define (safe-queen? new-row new-col safe-config)
+  ;; same-col? and same-diag? are boolean inner variables
   (all-true (list-of (not (or same-col? same-diag?))
                ((row col) in (enumerate safe-config))
                (same-col? is (= col new-col))
@@ -276,7 +280,7 @@ new cycle begins: the subject will be macros, again.
 (define (queens n N)
   (if (zero? n) '(())
       (list-of (append safe-config (list col))
-               (n-1 is (- n 1))
+               (n-1 is (- n 1)); inner variable
                (safe-config in (queens n-1 N))
                (col in (range N))
                (safe-queen? n-1 col safe-config)
