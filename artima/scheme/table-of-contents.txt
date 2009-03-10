@@ -1,9 +1,9 @@
-The *Adventures of a Pythonista in Schemeland* have grown to be a rather long
+The *Adventures of a Pythonista in Schemeland* has grown to become a rather long
 series. I think a table of contents is needed, in order to index all the
 episodes. Here it is.
 
-Part I
- Ep1_ Introduction to Scheme
+Part I - Introduction
+ Ep1_ A bit of history
 
  Ep2_ About scheme implementations
 
@@ -15,7 +15,7 @@ Part I
 
  Ep6_ The danger of benchmarks
 
-Part II
+Part II - Macros
  Ep7_ Symbols and lists
 
  Ep8_ Quoting and quasi-quoting
@@ -28,7 +28,7 @@ Part II
 
  Ep12_ Are macros useful?
 
-Part III
+Part III - Functional Aspects
  Ep13_ Micro-introduction to functional programming
 
  Ep14_ Currying, partial application, and fold
@@ -40,6 +40,8 @@ Part III
  Ep17_ List comprehension
 
  Ep18_ Streams
+
+Part IV - Advanced Macrology
 
 .. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
 .. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941
