@@ -3,16 +3,14 @@ from scheme2rst import SNIPPET
 
 code = file('sweet-macros/main.sls').read()
 
-# LOCALLY, GUARDED-SYNTAX-CASE, SYNTAX-MATCH, DEF-SYNTAX, SYNTAX-EXPAND
+# GUARDED-SYNTAX-CASE, SYNTAX-MATCH, DEF-SYNTAX, SYNTAX-EXPAND
 snippets = [s.groups() for s in SNIPPET.finditer(code)]
 snippet = dict(snippets)
 
 helper1 = '''#!r6rs
 (library (sweet-macros helper1)
-(export locally guarded-syntax-case)
+(export guarded-syntax-case)
 (import (rnrs))
-
-%(LOCALLY)s
 
 %(GUARDED-SYNTAX-CASE)s
 )
@@ -20,7 +18,7 @@ helper1 = '''#!r6rs
 
 helper2 = '''#!r6rs
 (library (sweet-macros helper2)
-(export locally syntax-match)
+(export syntax-match)
 (import (rnrs) (for (rnrs) (meta -1))
 (for (sweet-macros helper1) (meta -1) (meta 0) (meta 1)))
 
@@ -30,7 +28,7 @@ helper2 = '''#!r6rs
 
 helper3 = '''#!r6rs
 (library (sweet-macros)
-(export locally syntax-match def-syntax)
+(export syntax-match def-syntax)
 (import (rnrs) (for (sweet-macros helper2) run expand))
 
 %(DEF-SYNTAX)s
@@ -39,7 +37,7 @@ helper3 = '''#!r6rs
 
 main = '''#!r6rs
 (library (sweet-macros)
-(export locally syntax-match def-syntax syntax-expand)
+(export syntax-match def-syntax syntax-expand)
 (import (rnrs) (for (sweet-macros helper3) run expand))
 
 %(SYNTAX-EXPAND)s

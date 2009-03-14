@@ -1,18 +1,7 @@
 #!r6rs
 (library (sweet-macros helper1)
-(export locally guarded-syntax-case)
+(export guarded-syntax-case)
 (import (rnrs))
-
-(define-syntax locally
-  (lambda (x)
-    (syntax-case x (syntax-match)
-      ((locally expr)
-       #'expr)
-      ((locally (let-form name value) ... (syntax-match b0 b1 b2 ...))
-       #'(syntax-match (locally (let-form name value) ...) b0 b1 b2 ...))
-      ((locally (let-form name value) (l n v) ... expr)
-       #'(let-form ((name value)) (locally (l n v) ... expr))))
-    ))
 
 (define-syntax guarded-syntax-case
   (let ((add-clause

@@ -2,7 +2,7 @@
 (library (aps list-utils)
 (export range enumerate zip transpose distinct? let+ perm list-of-aux list-for
         remove-dupl append-unique fold flatten list-of normalize)
-(import (rnrs) (sweet-macros) (aps cut))
+(import (rnrs) (sweet-macros) (aps cut) (for (aps lang) expand))
 
 ;;; macros
 
@@ -127,17 +127,15 @@
 (def-syntax fold
   (syntax-match (left right in)
      (sub (fold left (acc seed) (x in lst) (x* in lst*) ... new-acc)
-          (locally
-           (with-syntax (a a* ...) (generate-temporaries #'(x x* ...)))
-           #'(fold-left
-              (lambda (acc a a* ...) (let+ (x a) (x* a*) ... new-acc))
-             seed lst lst* ...)))
+           (: with-syntax (a a* ...) (generate-temporaries #'(x x* ...))
+              #'(fold-left
+                 (lambda (acc a a* ...) (let+ (x a) (x* a*) ... new-acc))
+                 seed lst lst* ...)))
      (sub (fold right (acc seed) (x in lst) (x* in lst*) ... new-acc)
-          (locally
-           (with-syntax (a a* ...) (generate-temporaries #'(x x* ...)))
-           #'(fold-right
-              (lambda (a a* ... acc) (let+ (x a) (x* a*) ... new-acc))
-             seed lst lst* ...)))
+           (: with-syntax (a a* ...) (generate-temporaries #'(x x* ...))
+              #'(fold-right
+                 (lambda (a a* ... acc) (let+ (x a) (x* a*) ... new-acc))
+                 seed lst lst* ...)))
      ))
 ;;END
 
