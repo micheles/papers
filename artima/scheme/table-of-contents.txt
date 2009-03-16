@@ -26,7 +26,7 @@ Part II - Macros
 
  Ep11_ The multiple evaluation problem (and easy-test)
 
- Ep12_ Are macros useful?
+ Ep12_ Are macros really useful?
 
 Part III - Functional Aspects
  Ep13_ Micro-introduction to functional programming

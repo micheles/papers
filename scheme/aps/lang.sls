@@ -3,7 +3,7 @@
 (export :)
 (import (rnrs) (sweet-macros))
 
-;;COLONS
+;;COLON
 (def-syntax :
   (syntax-match ()
     (sub (: let-form e)

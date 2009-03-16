@@ -1,5 +1,4 @@
 #|
-
 Statements versus expressions: the functional way
 ----------------------------------------------------------------
 
@@ -14,11 +13,10 @@ As we know, functional languages have a monastic vocation and they
 try to remove as many concepts as possible.
 
 The other reason is that since a statement cannot return anything
-(after all, this is part of the definition of statement),
-the only way the statement
-has to have an effect on the surrounding code is way side effects
-and we all know that functional languages dislike side effects,
-therefore they dislike statements.
+(after all, this is part of the definition of statement), the only way
+the statement has to have an effect on the surrounding code is way
+side effects and we all know that functional languages dislike side
+effects, therefore they dislike statements.
 
 The final outcome is that all the constructs which in other languages
 are implemented as statements in a functional language must be
@@ -45,7 +43,6 @@ the control flow, in specific circumnstances - basically when
 the condition is a mild error that can be recovered - can re-enter
 at the point the condition was raised and continue from there.
 This is impossible in Python and in most languages.
-
 
 The condition mechanism is pretty
 complex and I would need an entire episode to discuss it in detail.
@@ -129,7 +126,7 @@ try .. except .. else
 Python ``try .. except`` statement also features an ``else`` clause which
 is invoked if the exceptions is not raised. Our ``_try-except`` syntax
 does not have an ``else`` clause, since it is unneeded. We can just
-put the content in the ``else`` clause in the body of the expression:
+put the content of the ``else`` clause in the body of the expression:
 if there is no exception, the code will be run, otherwise it will be not.
 The only trick is that the expression must return the value of the
 original expression, not the value of the ``else`` clause. That
@@ -173,7 +170,7 @@ a standard syntax for ``try .. finally``, however, it has a higher
 order function called ``dynamic-wind`` which takes three thunks
 (the *before* thunk, the *body* thunk, and the *after* thunk) and
 execute them in order: in particular the after thunk is run
-even if there is an exception of if the control flow of the
+even if there is an exception or the control flow of the
 body is non trivial (for instance if the body invokes a
 continuation, but this is a subject we will leave for a
 future episode). Therefore it is pretty obvious that
@@ -182,14 +179,14 @@ of ``dynamic-wind`` as follows:
 
 $$try:_TRY-FINALLY
 
-Notice that U did not enforce ``finally`` to be a literal identifier
+Notice that we did not enforce ``finally`` to be a literal identifier
 here, since ``_try-finally`` is intended to be a helper syntax
 which is never called directly. The final ``try`` syntax will be
 built on top of ``_try-finally`` and will enforce ``finally`` to
 be a literal identifier.
 
 Here is an example showing that ``_try-finally`` does its job, i.e.
-the ``finally`` clause is honored even in presence of an error::
+the ``finally`` clause is honored even in presence of errors::
 
  > (_try-finally
     (error 'some-error "An example")
@@ -244,16 +241,14 @@ episodes.
 
 
 ;;SAFE-INVERT
-(define PINF (expt 10. 1000))
-(define MINF (- (expt 10. 1000)))
-
 (define (safe-invert x)
+  (assert (number? x))
   (_try-except
    (begin0 (/ 1 x)
      (display "ok\n"))
    (except (exn /)
      (display "zero division error\n")
-     (if (> x 0) PINF MINF))))
+     (if (> x 0) +inf.0 -inf.0))))
 ;END
 
 ;;_TRY-FINALLY
@@ -263,7 +258,6 @@ episodes.
         (lambda () e e* ...)
         (lambda () f f* ...)))
 ;;END
-
 
 ;;TESTS
 (run

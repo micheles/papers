@@ -1,270 +1,225 @@
-#|
-Syntax objects
+#|Should everybody be designing her own programming language?
 ------------------------------------------------------------------
 
-Scheme macros are built over the concept of *syntax object*.
-This concept is peculiar to Scheme and has no counterpart in other 
-languages (including Common Lisp), therefore it is worth to spend some time
-on it.
+Macros are the main reason why I first became interested in Scheme. At
+the time - more or less six years ago - there was a bunch of lispers
+trolling in comp.lang.python, and arguing for the addition of macros
+to Python.  Of course most Pythonista opposed the idea, but at the
+time I had no idea of the advantages/disadvantges of macros; I felt
+quite ignorant and powerless to argue. I never liked to feel ignorant,
+so I decided to learn macros, especially Scheme macros, since they are
+the state of the art.
 
-A *syntax-object* is a kind of enhanced *s*-espression: it contains
-the source code as a list of symbols and primitive values, plus
-additional informations, such as
-the name of the file containing the source code, the line numbers,
-a system of marks to distinguish identifiers according to their
-lexical context, and more.
+Nowadays I can say that the addition of macros to Python would be
+a bad idea knowing what I am talking about. Actually, I have already
+stated in episode 12_ an even stronger opinion, i.e. that macros
+are more bad than good for any enterprise-oriented language (but notice
+that I am *not* implying that every enterprise should adopt
+only enterprise-oriented languages).
 
-It is possible to convert a variable or a literal value into a 
-syntax object with the syntax quoting operation, i.e. the funny
-``#'`` symbol you have seen in all the macros I have defined until now::
+My opinion against macro in (most) enterprise programming
+does mean that macros are worthless, and indeed
+I think they are extremely useful and important in another domain,
+i.e. in the domain of design and research about programming
+languages. As a matter of fact, *Scheme macros enable every programmer
+to write her own programming language*. I think this is a valuable and nice
+to have thing. Everybody who has got opinion
+about language design, or about how an object should should work, or
+questions like "what would a language look like if it had feature X?",
+can solve his doubts by implementing the feature with macros.
 
- > #'x ; convert a variable into an identifier
- #<syntax x>
- > #''x ; convert a literal symbol
- #<syntax 'x>
- > #'1 ; convert a literal number
- #<syntax 1>
- > #''(1 2) ; convert a literal data structure
- #<syntax '(1 2)>
+Perhaps not everybody should design its own programming language,
+and certainly not everybody should *distribute* its own personal
+language, however I think lots of people will get a benifit trying
+to think about how to design a language and making some experiment.
+The easier thing is to start from a Domain Specific Language (DSL),
+which does not need to be a full grown programming language; for
+instance in the Python world it seems that everybody is implementing templating
+languages to generate web pages. In my opinion, this a good thing *per se*,
+the probably is that everybody is distributing its own language so that
+there a bit of anarchy, but this is not such a serious problem after all.
 
-Notice that I am running all my examples under Ikarus; your Scheme
-system may have a slightly different output representation for syntax
-objects.
+Even for what concerns full grown programming languages we see nowadays
+an explosion of new languages coming out, especially for the Java and
+the CLR platforms, since it is relatively easy to implement a new
+language on those platforms. However, it still takes a lot of work.
 
-In general ``#'`` can be applied to any expression::
+On the other hand, writing a custom language embedded in Scheme by
+means of macros is by far much easier and Scheme makes an ideal platform
+for implementing languages and experimenting with new ideas.
 
- > (define syntax-expr #'(display "hello"))
- > syntax-expr
- #<syntax (display "hello")>
+There is a `quote of Ian Bicking`_ about Web frameworks which struck me:
 
-It is possible to extract the *s*-expression underlying the
-syntax object with the ``syntax->datum`` primitive::
+*Sometimes Python is accused of having too many web frameworks. And
+it's true, there are a lot. That said, I think writing a framework is
+a useful exercise. It doesn’t let you skip over too much without
+understanding it. It removes the magic. So even if you go on to use
+another existing framework (which I'd probably advise you do), you'
+ll be able to understand it better if you've written something like it
+on your own.*
 
- > (equal? (syntax->datum syntax-expr) '(display "hello"))
- #t
+You can the replace the words "web framework" with "programming
+language" here and the quote still makes sense. You should read my
+*Adventures* in this spirit: the goal of this series is to give
+the technical competence to write your own language by means of
+macros. Notice that, whereas I am interested in the
+technical competence, I am much less interested in *actually
+writing a language* with it. There are already lots of languages
+out there, and writing a real language is a lot of grunt work, because
+it means writing debugging tools, good error messages, wondering about
+portability, interacting with an user community, et cetera et cetera.
+Not everybody is good language designer and a good BDFL, for sure;
+however everybody can have opinions about language design and some
+experiment with macrology can help to put to test such opinions.
 
-Different syntax-objects can be equivalent: for instance
-the improper list of syntax objects ``(cons #'display (cons #'"hello" #'()))``
-is equivalent to the syntax object ``#'(display "hello")`` in
-the sense that both corresponds to the same datum::
+.. _quote of Ian Bicking: http://pythonpaste.org/webob/do-it-yourself.html
+.. _12: http://www.artima.com/weblogs/viewpost.jsp?thread=240836
 
- > (equal? (syntax->datum (cons #'display (cons #'"hello" #'())))
-           (syntax->datum #'(display "hello")))
- #t
+Recursive macros with accumulators
+----------------------------------------------------------
 
-It is possible to promote a datum to a syntax object with the
-``datum->syntax`` procedure, but in order
-to do so you need to provide a lexical context, which can be specified
-by using a dummy identifier::
+The goal of learning macros well enough to implement a programming language
+is an ambitious one; it is not something we can attain in an episode of the
+Adventures, nor in six. However, one episode is enough to explain at least
+one useful tecniques which is commonly used in Scheme macrology and which
+is good to know in order to reach our final goal, in time.
+The technique we will discuss in this episode is the accumulator trick,
+which is analogous to the accumulator trick we first discussed in episode
+6_ when talking about tail call optimization. In Scheme it is common
+to introduce an auxiliary variable to store a value which is passed
+in a loop: the same trick can be used in macros, at compile time instead
+that at run time.
 
- > (datum->syntax #'dummy-context '(display "hello"))
- #<syntax (display "hello")
+In order to give an example of usage of the accumulator trick, let me
+define a conditional macro ``cond-`` which works like ``cond``, but
+with less parenthesis::
 
-(the meaning of the lexical context in ``datum->syntax`` is tricky and
-I will go back to that in future episodes).
+ (cond-
+    cond-1? return-1
+    cond-2? return-2
+        ...
+    else return-default)
 
-In analogy to the ``quasiquote`` concept, there is a 
-``quasisyntax`` operator denoted with ``#```; moreover, in analogy
-to the operation ``,`` and ``,@`` on regular lists, there are two operations
-``unsyntax``
-``#,`` (*sharp comma*) e ``unsyntax-splicing`` ``#,@`` (*sharp comma splice*)
-on lists (inclusing improper lists) of syntax objects. Here is an example
-using ``#,``::
+We want the code above to expand to::
 
- > (let ((user "michele")) #`(display #,user))
- (#<syntax display> "michele" . #<syntax ()>)
+ (cond 
+   (cond-1? return-1)
+   (cond-2? return-2)
+        ...
+   (else return-default))
 
-and here is an example using ``#,@``::
 
- > (define users (list #'"michele" #'"mario"))
- > #`(display (list #,@users))
- (#<syntax display>
- (#<syntax list> #<syntax "michele"> #<syntax "mario">) . #<syntax ()>)
+Here is the solution, which makes use of an accumulator and of an auxiliary
+macro:
 
-Notice that the output is an improper list. This is somewhat consistent
-with the behavior of usual quoting: for usual quoting ``'(a b c)``
-is a shortcut for ``(cons* 'a 'b 'c '())``, which is a proper list,
-and for syntax-quoting ``#'(a b c)`` is equivalent to
-``(cons* #'a #'b #'c #'())``, which is an improper list.
-The ``cons*`` operator here is a R6RS shortcut for nested conses:
-``(cons* w x y z)`` is the same as ``(cons w (cons x (cons y z)))``.
+$$COND-
 
-However, the result of a quasi quote interpolation is very much
-*implementation-dependent*: Ikarus returns an improper list, but other
-implementations returns different results; for instance ypsilon
-returns a proper list of syntax objects whereas PLT Scheme returns
-an atomic syntax object. The lesson is that you cannot
-rely on properties of the inner representation of syntax objects:
-what matters is the code they correspond to, i.e. the result of
-``datum->syntax``.
+The code should be clear. The auxiliary (private) macro ``cond-aux``
+is recursive: it works by collecting the arguments ``x1, x2, ..., xn``
+in the accumulator ``(acc ...)``. If the number of arguments is even,
+at some point we end up having collected all the arguments in the
+accumulator, which is then expanded into a standard conditional; if
+the number of arguments is even, at some point we end up having
+collected all the arguments except one, and a ``"Mismatched pairs"``
+exception is raised. The user-visible macro ``cond-`` just calls
+``cond-aux`` by setting the initial value of the accumulator to ``()``.
+The entire expansion and error checking is made at compile time.
+Here is an example of usage::
 
-What ``syntax-match`` really is
---------------------------------------------------------------
+ > (let ((n 1))  
+     (cond- (= n 1) ; missing a clause
+       (= n 2) 'two
+       (= n 3) 'three
+       else 'unknown))
+ Unhandled exception:
+ Condition components:
+   1. &who: cond-
+   2. &message: "Mismatched pairs"
+   3. &syntax:
+       form: (((= n 1) (= n 2)) ('two (= n 3)) ('three else) 'unknown)
+       subform: 'unknown
 
-``syntax-match`` is a general utility to perform pattern matching
-on syntax objects; it takes a syntax object in output and returns
-another syntax object in output, depending on the patterns, skeletons and guards
-used::
+A trick to avoid auxiliary macros
+----------------------------------------------------------------
 
- > (define transformer 
-     (syntax-match ()
-       (sub (name . args) #'name))); return the name as a syntax object
+I have nothing against auxiliary macros, however sometimes you may
+want to keep all the code in a single macro. This is useful if you are
+debugging a macro since an auxiliary macro is usually not exported and
+you may not have access to it without changing the source code of the
+module defining it and without recompiling it; on the other hand, you
+have full access to an exported macro including the features of the
+would be auxiliary macro. The trick is to introduce a literal to
+defined the helper macro inside the main macro. Here is how it would
+work in our example:
 
- > (transformer #'(a 1 2 3))
- #<syntax a>
+$$COND2
 
-For convenience, ``syntax-match`` also accepts a second syntax
-``(syntax-match x (lit ...) clause ...)`` to match syntax expressions
-directly, more convenient than using
-``((syntax-match (lit ...) clause ...) x)``.
-Here is a simple example of usage::
+If you do not want to use a literal identifier, you can use a literal string
+instead:
 
- > (syntax-match #'(a 1 2 3) ()
-    (sub (name . args) #'args)); return the args as a syntax object
- #<syntax (1 2 3)>
+$$COND3
 
-Here is an example using ``quasisyntax`` and ``unsyntax-splicing``::
+This kind of tricks are quite common in Scheme macros; the best reference
+you can find detailing these technique and others is the `Syntax-Rules Primer
+for the Merely Eccentric`_, by Joe Marshall. The title is a play on the essay
+`An Advanced Syntax-Rules Primer for the Mildly Insane`_ by
+Al Petrofsky. 
 
- > (syntax-match #'(a 1 2 3) ()
-     (sub (name . args) #`(name #,@#'args)))
- (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
+.. image:: http://www.phyast.pitt.edu/~micheles/scheme/mad-scientist.jpg
 
-As you see, it easy to write hieroglyphs if you use ``quasisyntax`` 
-and ``unsyntax-splicing``. To avoid that, Scheme provides a ``with-syntax``
-form::
+Marshall's essay is quite nontrivial, and it is intended for expert
+Scheme programmers. On the other hand, it is child play compared to
+Petrofsky's essay, which is intended for Scheme wizards with a vein
+of foolinesh ;)
 
- > (syntax-match #'(a 1 2 3) ()
-     (sub (name . args) (with-syntax (((a ...) #'args))
-                           #'(name a ...))))
- (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
- 
+.. _An Advanced Syntax-Rules Primer for the Mildly Insane: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/86c338837de3a020/eb6cc6e11775b619?#eb6cc6e11775b619
+.. _bikeshed effect: http://en.wikipedia.org/wiki/Bikeshed
+.. _6: http://www.artima.com/weblogs/viewpost.jsp?thread=240198
 
-``with-syntax`` allow to introduce a set of pattern variables which
-are automatically expanded inside the syntax template, without
-resorting to the quasisyntax notation (i.e. there is no need for
-``#```, ``#,``, ``#,@``).
-
-A concrete example
------------------------------------------------------
-
-The previous paragraphs about syntax objects have been a bit abstract and
-probably of unclear utility (but what would you expect from
-an advanced macro tutorial? ;). In this paragraph I will be more
-concrete and I will provide an useful example of a macro providing
-a nicer syntax for association lists (an association list is just
-a non-empty list of non-empty lists). The macro will accepts a variable
-number of arguments; every argument will be be of the form ``(name value)`` or
-just a single identifier: in this case it will be magically converted
-into the form ``(name value)`` where ``value`` is the value of the
-identifier, assuming it is bound in the current scope, otherwise
-a run time error will be raised ("unbound identifier"). If you try to
-pass an argument which is not of the expected form, a compile time
-syntax error will be raised.
-In concrete, the macro will work as follows:
-
-$$TEST-ALIST
-
-``(alist a (b (* 2 a)))`` will raise an error ``unbound identifier a``.
-Here is the implementation:
-
-$$ALIST
-
-As you see the core of the macro is the ``syntax-match`` transformer,
-which is able to convert identifiers of the form ``n`` into couples ``(n n)``,
-whereas it leaves couples ``(n v)`` unchanged, but checking that ``n`` is an
-identifier. ``with-syntax`` introduces a set of pattern variables
-``(name value)`` which are later used in the macro template, the ``let*``
-form.
-
-There are a few things that could be improved with this macro. The
-first one is mostly cosmetic: ``with-syntax`` has somewhat too many
-parenthesis (it is easy to miss one in ``((((name value) ...) lst))``).
-This can be solved which a macro like the following one::
-
-$$lang:COLONS
-
-``locally`` is an example of second order macro, since it expects as
-argument another macro, in this case the ``let-form``, which can
-be any binding macro such that ``(let-form ((patt value)) expr)``
-is a valid syntax. ``with-syntax`` is a kind of let form, 
-so that ``(with-syntax ((((patt value) ...) lst)) expr)``
-can be rewritten as ``(locally (with-syntax ((patt value) ...) lst) expr)``,
-by reducing four consecutive parenthesis to just two.
-Notice that the latest ``sweet-macros`` module provides a ``locally`` form
-which plays well with ``syntax-match``, so you are invited to make use of it.
-
-The second problem with ``alist`` is that it would look nicer to
-give a name to the logic of management of the arguments:
-
-$$NORMALIZE
-
-Having defined this helper function, the original macro becomes more readable:
-
-$$ALIST2
-
-The major advantage, however, is that now you can reuse the argument
-normalization procedure in other macros. To this aim it is enough
-to save the ``normalize`` procedure in a separated module and import it
-when needed. This is however quite nontrivial, since it involves
-a hairy discussion of compile-time vs run-time and implementation-specific
-caveats that will take a whole episode to explain in detail. That
-will be the subject of episode 20. See you next time!
+.. _Syntax-Rules Primer for the Merely Eccentric: http://www.xs4all.nl/~hipster/lib/scheme/gauche/define-syntax-primer.txt
 
 |#
-(import (rnrs) (sweet-macros) (aps list-utils) (aps easy-test))
 
-;;ALIST
-(def-syntax (alist arg ...)
-  (with-syntax ((((name value) ...)
-                 (list-of (syntax-match a ()
-                            (sub n #'(n n) (identifier? #'n))
-                            (sub (n v) #'(n v) (identifier? #'n)))
-                          (a in #'(arg ...)))))
-    #'(let* ((name value) ...)
-        (list (list 'name name) ...))))
+(import (rnrs) (sweet-macros))
+
+;;COND-
+(def-syntax cond-aux 
+  (syntax-match ()
+   (sub (cond-aux (acc ...))
+        #'(cond acc ...))
+   (sub (cond-aux (acc ...) x1)
+     #'(syntax-violation 'cond- "Mismatched pairs" '(acc ... x1) 'x1))
+   (sub (cond-aux (acc ...) x1 x2 x3 ...)
+     #'(cond-aux (acc ... (x1 x2)) x3 ...))
+   ))
+
+(def-syntax (cond- x1 x2 ...)
+  (cond-aux () x1 x2 ...))
 ;;END
 
-;;NORMALIZE
-(define (normalize ls)
-  (list-of (syntax-match a ()
-              (sub n #'(n n) (identifier? #'n))
-              (sub (n v) #'(n v) (identifier? #'n)))
-           (a in ls)))
+
+;;COND3
+ (define-syntax cond- 
+  (syntax-match () 
+   (sub (cond- "aux" (acc ...))
+     (cond acc ...))  
+   (sub (cond- "aux" (acc ...) x)
+     (syntax-violation 'cond- "Mismatched pairs" '(acc ... x) 'x))
+   (sub (cond- "aux" (acc ...) x1 x2 x3 ...)
+     (cond- "aux" (acc ... (x1 x2)) x3 ...))  
+   (sub (cond- x1 x2 ...)
+     (cond- "aux" () x1 x2 ...))))
 ;;END
 
-;;COLONS
- (def-syntax (: let-form patt value expr expr* ...)
-   #'(let-form ((patt value)) expr expr* ...)
-   (identifier? #'let-form)
-   (syntax-violation ': "Not an identifier" #'let-form))
-;;COLONS
-
-;;ALIST2
-(def-syntax (alist2 arg ...)
-  (: with-syntax ((name value) ...) (normalize #'(arg ...))
-     (if (for-all identifier? #'(name ...))
-         #'(let* ((name value) ...)
-             (list (list 'name name) ...))
-         (syntax-violation 'alist "Found non identifier" #'(name ...)
-                           (remp identifier? #'(name ...))))))
+;;COND2
+ (define-syntax cond- 
+  (syntax-match (aux) 
+   (sub (cond- aux (acc ...))
+     (cond acc ...))  
+   (sub (cond- aux (acc ...) x1)
+     (syntax-violation 'cond- "Mismatched pairs" '(acc ... x1) 'x1))
+   (sub (cond- aux (acc ...) x1 x2 x3 ...)
+     (cond- aux (acc ... (x1 x2)) x3 ...))  
+   (sub (cond- x1 x2 ...)
+     (cond- aux () x1 x2 ...))))
 ;;END
-
-(display (syntax-expand (alist2 (a 1) (b (* 2 a)))))
-
-(run
-
- ;;TEST-ALIST
- (test "simple"
-       (alist (a 1) (b (* 2 a)))
-       '((a 1) (b 2)))
- 
- (let ((a 1))
-   (test "mixed"
-         (alist2 a (b (* 2 a)))
-         '((a 1) (b 2))))
-
- ;(test "with-error"
- ;      (catch-error (alist2 (a 1) (2 3)))
- ;      "invalid syntax")
- ;;END
- )
