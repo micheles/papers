@@ -1,3 +1,4 @@
+#|
 Scheme bibliography (and a first program)
 ===========================================================
 
@@ -202,3 +203,4 @@ for the most persistent readers, and I hope to show them something
 positive in the next episode. Keep reading and see you next time!
 
 .. _Wikipedia article:  http://en.wikipedia.org/wiki/CAR_and_CDR
+|#

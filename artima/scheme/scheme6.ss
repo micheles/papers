@@ -1,3 +1,4 @@
+#|
 The danger of benchmarks
 =========================================
 
@@ -259,3 +260,4 @@ it, please read this_ ;)
 .. _Fibonacci benchmark: http://antoniocangiano.com/2007/11/28/holy-shmoly-ruby-19-smokes-python-away/
 
 That's all folks, see you next episode!
+|#

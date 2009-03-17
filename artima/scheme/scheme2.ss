@@ -1,3 +1,4 @@
+#|
 About scheme implementations
 =======================================================================
 
@@ -289,3 +290,4 @@ the next episodes. See you soon!
 
 .. _DrScheme: http://www.drscheme.org/
 .. _silver bullet: http://en.wikipedia.org/wiki/Silver_bullet
+|#

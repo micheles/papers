@@ -1,3 +1,4 @@
+#|
 About tail call optimization (and the module system)
 =================================================================
 
@@ -281,3 +282,4 @@ it to beginners.
 
 The next episodes will be devoted to the dangers of benchmarks,
 do not miss it!
+|#

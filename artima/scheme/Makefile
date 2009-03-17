@@ -77,23 +77,23 @@ linkcheck:
 POST = python2.5 ../post.py
 RST = python2.5 ../../scheme2rst.py -r
 
-1: scheme1.txt
-	$(POST) scheme1.txt 238789
+1: scheme1.ss
+	$(RST) scheme1.ss; $(POST) scheme1.rst 238789
 
-2: scheme2.txt
-	$(POST) scheme2.txt 238941
+2: scheme2.ss
+	$(RST) scheme2.ss; $(POST) scheme2.rst 238941
 
-3: scheme3.txt
-	$(POST) scheme3.txt 239466
+3: scheme3.ss
+	$(RST) scheme3.ss; $(POST) scheme3.rst 239466
 
-4: scheme4.txt
-	$(POST) scheme4.txt 239568
+4: scheme4.ss
+	$(RST) scheme4.ss; $(POST) scheme4.rst 239568
 
-5: scheme5.txt
-	$(POST) scheme5.txt 239699
+5: scheme5.ss
+	$(RST) scheme5.ss; $(POST) scheme5.rst 239699
 
-6: scheme6.txt
-	$(POST) scheme6.txt 240198
+6: scheme6.ss
+	$(RST) scheme6.ss; $(POST) scheme6.rst 240198
 
 second-cycle: second-cycle.txt
 	$(POST) second-cycle.txt 240789

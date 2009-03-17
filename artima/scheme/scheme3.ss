@@ -1,3 +1,4 @@
+#|
 Of parenthesis and indentation
 =================================================================
 
@@ -208,3 +209,4 @@ the traditional (infix) notation becomes an obstacle more than
 an help. Moreover the total uniformity of Scheme programs has
 a kind of beauty and elegance in itself. No useless syntax,
 no boilerplate code, you breath an air of Zen minimalism.
+|#

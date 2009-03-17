@@ -1,5 +1,5 @@
 #|
-Second order macros
+Simple second order macros
 -------------------------------------------------------------
 
 There is not upper limit to the level of sophistication you can reach
@@ -31,11 +31,11 @@ with the case_ expression::
        else 'unknown))
  one
 
-Our second example if is a "colon" macro defined as follows:
+Our second example if is a ``:`` macro defined as follows:
 
 $$lang:COLON
 
-The colon macro ``:`` expects as argument another macro, the
+The colon macro expects as argument another macro, the
 ``let-form``, which can be any binding macro such that
 ``(let-form ((patt value)) expr)`` is a valid syntax. For instance
 ``(let ((name value)) expr)`` can be rewritten as ``(: let name value
@@ -49,57 +49,168 @@ The colon macro ``:`` expects as argument another macro, the
 A two-level syntax
 -------------------------------------------------------------
 
-It is my convinction that a well designed programming language
-should provide a two-level syntax: a simple syntax,
-limited but able to cover the most common case, and a fully fledged
-syntax, giving all the power which is needed, which however should be
-used only rarely. The best designed programming language I know is
-Python. While not perfect, Python takes full advantage of the two-level
-syntax idea. For instance
+Parens-haters may want to use ``collecting-pairs`` and the colon macro
+to avoid parenthesis. They may even go further, and rant that the
+basic Scheme syntax should require less parenthesis, since for
+most programmers it is easier to write code with less parenthesis.
+However, the Scheme philosophy favors automatic code generation
+over manual writing. For instance, when writing macros, it is much easier
+to use a conditional with more parenthesis like ``cond`` than a
+conditional with less parenthesis like ``cond-``. The parenthesis
+allows you to group expressions in group that can be repeated via
+the ellipsis symbol; in practice, you can writing things like
+``(cond (cnd? do-this ...) ...)`` which cannot be written
+with ``cond-``.
 
+On the other hand, different languages adopt different philosophies;
+for instance Paul Graham's Arc_ uses less parenthesis. This is
+possible since it does not provide a macro system based on
+pattern matching (which is a big *minus* in my opinion). Is it possible
+to have both? A syntax with few parenthesis for writing code manually
+and a syntax with many parenthesi for writing macros. The answer is yes:
+the price to pay is to double the constructs of the language and to
+use a Python-like approach.
+
+Python is a perfect example of language with a two-level syntax: a
+simple syntax, limited but able to cover the most common case, and a
+fully fledged syntax, giving all the power which is needed, which
+however should be used only rarely. The best designed programming
+language I know is Python. While not perfect, Python takes full
+advantage of the two-level syntax idea. For instance
+
+====================    =================================
 Simplified syntax       Full syntax          
---------------------    --------------------
-
+====================    =================================
 obj.attr                getattr(obj, 'attr')
 x + y                   x.__add__(y)
 c = C()                 c = C.__new__(C); c.__init__()
+====================    =================================
+
+In the case of the conditional syntax, in principle we could have
+a fully parenthesised ``__cond__`` syntax for usage in macros and
+``cond`` syntax with less parens for manual usage. That, in theory:
+in practice Scheme only provides the low level syntax, leaving to
+the final user the freedom (and the burden) of implementing his
+own preferred high level syntax.
+
+.. fatto sia per motivi politici (è un linguaggio disegnato da un
+.. comitato, è impossibile accordarsi su una sintassi di alto livello che
+.. piaccia a tutti) che ideologici (alla maggior parte dei programmatori
+.. Scheme va bene così, non amano le imposizioni).
+
+``with-syntax`` and ``generate-temporaries``
+-----------------------------------------------------
+
+The R6RS standard provides a few convenient utilities to work with
+macros. One of such utilities is the ``with-syntax`` form, which
+allows to introduce auxiliary pattern variables into a skeleton.
+``with-syntax`` is often used in conjunction with the ``generate-temporaries``
+function, which returns a list of temporary identifiers.
+For instance, here is ``fold`` macro
+providing a nicer syntax for the ``fold-left`` and ``fold-right``
+higher order functions:
+
+$$list-utils:FOLD
+
+In this example, for each variable ``x`` a pattern variable ``a`` is
+generated with a temporary name; the temporary variable is used
+as argument in the lambda function. For instance, in Ypsilon
 
 
-È una buona idea usare ``collecting-pairs`` ? E, più in generale, è
-una buona idea escogitare trucchi per evitare le parentesi? Si tratta
-di una questione sia filosofica che pratica. Probabilmente la
-maggioranza dei programmatori trova più semplice scrivere codice con
-meno parentesi. La filosofia di Scheme però è che è più importante
-rendere semplice la generazione automatica di codice piuttosto che la
-scrittura manuale di codice. Per dirla in chiaro, se state scrivendo
-delle macro usando ``syntax-rules``, è molto più semplice usare la
-condizionale con più parentesi ``cond`` piuttosto che ``cond-``. Il
-motivo è che le parentesi vi permettono di raggruppare le espressioni
-in gruppi che possono essere ripetuti o meno tramite l'operatore di
-ellipsis: in pratica potete scrivere cose tipo ``(cond (cnd? do-this
-...) ...)`` che non potreste scrivere con ``cond-``.  D'altra parte,
-linguaggi diversi adottano filosofie differenti. Per esempio Arc_ di
-Paul Graham adotta la filosofia di usare meno parentesi, ma può farlo
-perché non ha un sistema di macro basato sul pattern matching (cosa
-che a mio parere è un grosso *minus* rispetto a Scheme).  È possibile
-salvare capra e cavoli? Ovverossia avere una sintassi con poche
-parentesi quando si sta scrivendo codice ordinario e molte quando si
-stanno scrivendo macro? La risposta è sì: basta duplicare i costrutti
-base del linguaggio ed usare un approccio alla Python, che fornisce
-sia una sintassi semplice che una di basso livello: per esempio si
-potrebbe avere un ``__cond__`` con molte parentesi da usare nella
-macro ed un ``cond`` con meno parentesi da usare normalmente. Questo
-in teoria: nella pratica però Scheme fornisce soltanto la sintassi di
-basso livello e lascia all'utente finale la libertà (o il carico che
-dir si voglia) di implementarsi la sintassi di alto livello. Questo è
-fatto sia per motivi politici (è un linguaggio disegnato da un
-comitato, è impossibile accordarsi su una sintassi di alto livello che
-piaccia a tutti) che ideologici (alla maggior parte dei programmatori
-Scheme va bene così, non amano le imposizioni).
+  ``(fold left (s 0) (x in (range 3)) (y in (range 3)) (+ s x y))``
 
+expands to
+
+::
+
+ (fold-left
+   (lambda (s \x2E;L271 \x2E;L272)
+     (let+ (x \x2E;L271) (y \x2E;L272) (+ s x y)))
+   0 (range 3) (range 3))
+
+as you can check by using ``syntax-expand``.
+The temporary
+names are quite arbitrary, and you will likely get different names,
+since each time ``generate-temporaries`` is called, different names are
+generated. ``generated-temporaries`` is perfect to generate dummy names
+used as argument of functions, as seen in this example. Another typical
+usage is to generate dummy names for helper functions, as shown in
+the following paragraph.
+
+A record macro
+---------------------------------------------------------------
+
+Scheme has a vector data type, which is used to manage finite sequences
+with a fixed number *n* of values, known at compile time. Each element
+can be accessed in O(1) time by specifying an integer index starting from
+*0* to *n*, with the notation ``(vector-ref v i)``. Vectors are perfect
+to implement records, since you can see a record as a vector with *n+1*
+argumments, where the 0-th element specify the type of the vector
+and the i-th element is the i-th field of the record.
+Notice that the stardard specifies a record system, but writing a
+record system based on macros is a good exercise nonetheless.
+It also provides a good example of a second order macro expanding
+to a macro. Here is the code:
+
+$$DEF-RECORD
+
+An example will make everything clear. Suppose we want to define a
+``Book`` record type; we can do so by writing
+
+``(def-record Book title author)``
+
+which expands to::
+
+ (begin
+  (def-syntax Book
+    (syntax-match
+      (<new> <signature> ? title author)
+      (sub (Book <new>) (syntax record-new))
+      (sub (Book <signature>) (syntax '(Book title author)))
+      (sub (Book ?) (syntax record?))
+      (sub (Book title) (syntax \x2E;L30))
+      (sub (Book author) (syntax \x2E;L31))))
+  (define (record-new title author) (vector 'Book title author))
+  (define (record? b) (eq? 'Book (vector-ref b 0)))
+  (define (\x2E;L30 b) (assert (record? b)) (vector-ref b 1))
+  (define (\x2E;L31 b) (assert (record? b)) (vector-ref b 2)))
+
+This code defines a ``Book`` macro and a few auxiliary functions such
+as ``record-new``, ``record?`` and two others with temporary names.
+The ``Book`` macro allows to create new records
+
+::
+
+ > (define book ((Book <new>) "title" "author"))
+ > book
+ #(Book "title" "author")
+
+to introspect records
+
+::
+
+ > ((Book ?) book)
+ #t
+
+ > (Book <signature>)
+ (book title author)
+
+and to retrieve the elements of a record by field name::
+
+ > ((Book title) book)
+ "title"
+
+ > ((Book author) book)
+ "author"
+
+Since I am a fan of functional programming, I am not providing mutation
+methods, so that you may regard them as immutable records (actually
+they are not, since you can change them by using ``vector-set!``,
+but that would be a dirty trick ;)
 |#
 
-(import (rnrs) (sweet-macros) (aps lang) (aps list-utils) (aps compat))
+(import (rnrs) (sweet-macros) (for (aps lang) run expand)
+        (aps easy-test) (for (aps list-utils) expand) (aps compat))
 
 ;;COLLECTING-PAIRS
 (def-syntax collecting-pairs
@@ -115,11 +226,23 @@ Scheme va bene così, non amano le imposizioni).
     ))
 ;;END
 
+;;TEST-COLON
+(run
+ (test "ok"
+       (: let* x 1 y x (+ x y))
+       2)
+;  (test "err"
+;     (catch-error (: let* x 1 y x z (+ x y)))
+;      "Odd number of arguments")
+ )
 
+;;END
+
+;;DEF-RECORD
 (def-syntax (def-record name field ...)
   (: with-syntax
      (getter ...) (generate-temporaries #'(field ...))
-     (i1 ...) (range 1 (+ (length #'(field ...)) 1))
+     (i ...) (range 1 (+ (length #'(field ...)) 1))
      #`(begin
          (def-syntax name
            (syntax-match (<new> <signature> ? field ...)
@@ -130,12 +253,32 @@ Scheme va bene così, non amano le imposizioni).
               ...))
          (define (record-new field ...) (vector 'name field ...))
          (define (record? b) (eq? 'name (vector-ref b 0)))
-         (define (getter b) (assert (record? b)) (vector-ref b i1)) ...
+         (define (getter b) (assert (record? b)) (vector-ref b i)) ...
       )))
+;;END
+
+;;RECORD
+(def-syntax (record-syntax name field ...)
+  (: with-syntax
+     (getter ...) (generate-temporaries #'(field ...))
+     (i ...) (range 1 (+ (length #'(field ...)) 1))
+     #`(let ()
+         (define (record-new field ...) (vector 'name field ...))
+         (define (record? b) (eq? 'name (vector-ref b 0)))
+         (define (getter b) (assert (record? b)) (vector-ref b i))
+         ...
+         (syntax-match (<new> <signature> ? field ...)
+            (sub (name <new>) #'record-new)
+            (sub (name <signature>) #''(name field ...))
+            (sub (name ?) #'record?)
+            (sub (name field) #'getter)
+            ...))))
+;;END
+
+;(def-syntax Book (record-syntax Book title author))
+;(pretty-print (syntax-expand (record-syntax Book title author)))
 
 (def-record Book title author)
-(pretty-print (syntax-expand (def-record Book title author)))
-
 (define b ((Book <new>) "T" "A"))
 (display b)
 (newline)
