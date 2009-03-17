@@ -91,16 +91,9 @@ class URI(object):
         for name, value in vars(driver_util).iteritems():
             if name.endswith(dbtype):
                 setattr(util, name, value)
-        # set the placeholder according to the paramstyle
-        if driver.paramstyle == 'qmark':
-            driver.placeholder = '?'
-        elif driver.paramstyle in ('format', 'pyformat'):
-            driver.placeholder = '%s'
-        else:
-            driver.placeholder = None
         return driver
     
-    def get_driver_connect_params(self):
+    def get_driver_params(self):
         """
         Determine the database type (and therefore the driver to use) from
         the URI and returns the right connection factory, as well as its
@@ -112,7 +105,7 @@ class URI(object):
         else:
             params = (self.user, self.password, self.host,
                       self.port, self.database)
-        return driver.dbapi2, driver.connect, params
+        return driver, params
 
     def __getitem__(self, name):
         # make the interpolation syntax (string-templ % self) possible

@@ -122,7 +122,8 @@ class LazyConnection(object):
         self.uri = URI(uri)
         self.name = self.uri['database']
         self.dbtype = self.uri['dbtype']
-        self.driver, connect, params = self.uri.get_driver_connect_params()
+        self.driver, params = self.uri.get_driver_params()
+        connect = self.driver.connect
         args = params, isolation_level
         self.chatty = False
         self.isolation_level = isolation_level
@@ -165,14 +166,12 @@ class LazyConnection(object):
                 else:
                     lst.append(a)
             args = tuple(lst)
-                              
         if self.driver.placeholder: # the template has to be interpolated
-            argnames, templ = get_args_templ(templ, self.placeholder) # cached
+            argnames, templ = get_args_templ(templ, self.driver.placeholder) 
             if len(argnames) != len(args): # especially useful for mssql
                 raise TypeError(
                     "Expected %d arguments (%s), got %d (%s)" %
                     (len(argnames), ', '.join(argnames), len(args), args))
- 
         descr, res = self._raw_execute(templ, args)
         if scalar: # you expect a scalar result
             if not res:
@@ -220,19 +219,6 @@ class LazyConnection(object):
         """The next time you will call an active method, a fresh new
         connection will be instantiated"""
         self._storage.close()
-        
-    def __repr__(self):
-        return "<%s %s>" % (self.__class__.__name__, self.uri)
-    
-    @property
-    def rowcount(self):
-        return self._storage.curs.rowcount
-
-class TransactionalConnection(LazyConnection):
-    """
-    Add commit and rollback methods to a LazyConnection, as well
-    as a with statement interface.
-    """
 
     def rollback(self):
         return self._storage.conn.rollback()
@@ -253,6 +239,10 @@ class TransactionalConnection(LazyConnection):
     def __repr__(self):
         return "<%s %s, isolation_level=%s>" % (
             self.__class__.__name__, self.uri, self.isolation_level)
+    
+    @property
+    def rowcount(self):
+        return self._storage.curs.rowcount
 
 class NullObject(object):
     '''Implements the NullObject pattern.

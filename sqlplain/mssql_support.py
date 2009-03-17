@@ -7,15 +7,22 @@ ISOLATION_LEVELS = (
     None, 'READ UNCOMMITTED', 'READ COMMITTED', 'REPEATABLE READ',
     'SERIALIZABLE')
 
+placeholder = '%s'
+
 class Connection(object):
 
     def __init__(self, cnx, isolation_level=None):
+       assert isolation_level in ISOLATION_LEVELS, isolation_level
        self._cnx = cnx
        self.isolation_level = isolation_level
-       assert isolation_level in ISOLATION_LEVELS
        if isolation_level:
            cnx.query("set transaction isolation level " + isolation_level)
-       
+           try:
+               self._cnx.query("begin tran")
+               self._cnx.fetch_array()
+           except Exception, e:
+               raise OperationalError(e)
+
     def cursor(self):
         if self._cnx is None:
             raise OperationalError("Closed connection")
@@ -29,16 +36,6 @@ class Connection(object):
             return # the connection was already closed
         self._cnx.close()
         self._cnx = None
-
-class TransactionalConnection(Connection):
-    
-    def __init__(self, cnx, isolation_level):
-        super(TransactionalConnection, self).__init__(cnx, isolation_level)
-        try:
-            self._cnx.query("begin tran")
-            self._cnx.fetch_array()
-        except Exception, e:
-            raise OperationalError(e)
         
     def commit(self):
         if self._cnx is None:
@@ -71,8 +68,4 @@ def connect(params, isolation_level=None):
         host = '%s:%s' % (host, port) # add the port
     _conn = _mssql.connect(host, user, pwd)
     _conn.select_db(db)
-    if isolation_level is None:
-        conn = Connection(_conn)
-    else:
-        conn = TransactionalConnection(_conn, isolation_level)
-    return conn
+    return Connection(_conn, isolation_level)

@@ -5,6 +5,8 @@ except ImportError: # Python < 2.5
 
 ISOLATION_LEVELS = (None, "", "DEFERRED", "IMMEDIATE", "EXCLUSIVE")
 
+placeholder = '?'
+
 def connect(fname, isolation_level=None, **kw):
     dbapi2.register_converter('datetime', dbapi2.converters['TIMESTAMP'])
     return dbapi2.connect(

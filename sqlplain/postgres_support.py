@@ -2,6 +2,8 @@ import psycopg2 as dbapi2
 
 ISOLATION_LEVELS = None, 0, 1, 2
 
+placeholder = '%s'
+
 # AUTOCOMMIT = None, 0
 # READ_COMMITTED = READ_UNCOMMITTED = 1
 # REPEATABLE_READ = SERIALIZABLE = 2

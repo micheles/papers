@@ -7,8 +7,8 @@ class _SymbolReplacer(object):
     Returns the names of the arguments and the template interpolated with
     a placeholder. Used by get_args_templ.
     """
-    STRING_OR_COMMENT = re.compile(r"'[^']*'|--.*\n")
-    SYMBOL = re.compile(r":([a-zA-Z]\w*)")
+    STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
+    SYMBOL = re.compile(r":(\w+)")
     
     def __init__(self, placeholder):
         self.placeholder = placeholder

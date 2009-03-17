@@ -28,8 +28,11 @@ class Console(object):
 
     def sql_eval(self, code):
         rows = self.db.execute(code)
-        if not isinstance(rows, list): # a scalar was returned
-            return '%s rows were affected' % rows
+        if isinstance(rows, int):
+            if rows != -1:
+                return '%s rows were affected' % rows
+            else:
+                return ''
         out = ['%d rows were returned' % len(rows), '\t'.join(rows.header)]
         for row in rows:
             out.append('\t'.join(map(str, row)))
