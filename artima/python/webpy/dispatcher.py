@@ -47,6 +47,11 @@ class WrongArguments(TypeError):
             raise cls('Expected %d arguments (%s), got %d' %
                       (len(expected_args), ', '.join(expected_args), len(args)))
 
+def getargs(func, i):
+    "Returns args (starting from the i-th) and varargs"
+    args, varargs = inspect.getargspec(func)[:2]
+    return args[i:], varargs
+
 class Binding(object):
     """
     A container for a RESTful resource binding.
@@ -90,13 +95,18 @@ class Binding(object):
         "Bind the given resource if its arguments are consistent with the path"
         if inspect.isfunction(resource):
             # strip the first argument, req
-            varnames = resource.func_code.co_varnames[1:]
+            args, varargs = getargs(resource, 1)
         elif inspect.ismethod(resource):
             # strip the first two arguments, self and req
-            varnames = resource.func_code.co_varnames[2:]
+            args, varargs = getargs(resource, 2)
+        elif inspect.isclass(resource):
+            # strip the first two arguments, self and req, from __init__ 
+            args, varargs = getargs(resource.__init__, 2)
         elif hasattr(resource, '__call__'):
-            varnames = resource.__call__.func_code.co_varnames[2:]
-        WrongArguments.check(varnames, self.expected_args)
+            # strip the first two arguments, self and req, from __call__ 
+            args, varargs = getargs(resource.__call__, 2)
+        if varargs is None:
+            WrongArguments.check(args, self.expected_args)
         self.resource = resource
 
     def __repr__(self):
@@ -194,6 +204,7 @@ class HttpResourceDispatcher(object):
         fullpath = script_name + path_info
         for (path, meth), obj in self._registry.iteritems():
             mo = re.match(path, path_info)
+            print 'checking %s with %s, %s' % (path_info, path, mo)
             if mo:
                 if not isinstance(obj, self.Binding): # assume WSGI app
                     shift_path_info(env) # subdispatch
@@ -228,12 +239,12 @@ class HttpResourceDispatcher(object):
         "To be overridden, The hook is called right before binding a resource"
         return resource
 
-    def register_app(self, app, path, meth='ALL'):
+    def register(self, appname, path, meth='ALL'):
         "Register a WSGI application to an URL"
         assert path.startswith('/'), path
         if (path, meth) in self._registry:
             raise DuplicateResource(path)
-        self._registry[path, meth] = app
+        self._registry[path, meth] = appname
 
     def resource(self, fullname, path, **kw):
         "Declare a resource with a given name, content_type and path"
@@ -286,52 +297,3 @@ def show(self, path_info, REQUEST_METHOD='GET', **env):
     status, body = access(path_info, REQUEST_METHOD, **env)
     print status
     print body.replace('\n\n', '\n.\n')
-
-if __name__ == '__main__':
-
-    http = HttpResourceDispatcher()
-    resource = http.resource
-
-    resource('non_restful_html', '/issuer/dispatcher')
-    resource('book_text_GET', 
-             r'/book/(?P<yyyy>\d\d\d\d)/(?P<mm>\d\d)/(?P<dd>\d\d)')
-    resource('book_html_POST', '/c')
-    resource('book_xml_PUT', '/d')
-    resource('book_text_DELETE', '/e')
-
-    class Test(object):
-        def non_restful_html(self, req):
-            yield 'ok'
-
-        def book_text_GET(self, req, yyyy, mm, dd):
-            yield '%s-%s-%s' % (yyyy, mm, dd)
-
-        def book_html_POST(self, req):
-            pass
-
-        def book_xml_PUT(self, req):
-            pass
-
-        def book_text_DELETE(self, req): ## BUNG!!
-            http.respond('500 ERR', 'You cannot delete!', 'text/plain')
-
-    h = HttpResourceDispatcher()
-    h.resource('title_html', '/1')
-
-    def title_html_GET(req):
-        return ['1']
-
-    h.bindall(dict(title_html_GET=title_html_GET))
-    http.register_app(h, '/a')
-    http.bindall(Test())
-
-    for binding in http:
-        print binding
-
-    print access(http, '/a')
-    #http = BasicAuthMiddleware(http, lambda u,p: True)
-
-    #from wsgiref.simple_server import make_server
-    #server = make_server('', 8080, http)
-    #server.handle_request()
-    #server.serve_forever()
