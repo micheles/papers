@@ -28,7 +28,7 @@ def schemefiles(app):
     for fname in os.listdir(app.srcdir):
         print >> sys.stderr, '***********************', fname
         if re.match('scheme\d\d?.ss$', fname):
-            scheme2rst(fname)
+            scheme2rst(fname, codeblock=True)
             
 def setup(app):
     "Converts the Scheme files to .rst using scheme2rst"
