@@ -49,7 +49,7 @@ trick in `episode #5`_, i.e. the accumulator trick, which is a
 way to avoid mutation in loops by using recursion. In this episodes and
 the next ones we will show many others.
 
-.. figure:: http://www.phyast.pitt.edu/~micheles/scheme/diamond.jpg
+.. figure:: diamond.jpg
 
    The purity of functional languages
 

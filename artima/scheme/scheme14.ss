@@ -55,7 +55,7 @@ and thus expands to a regular lambda function, but you can see that
 in general you will have a tower of nested lambdas, which dept is equal
 to the number of arguments.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/bw-spiral.jpg
+.. image:: bw-spiral.jpg
 
 Whereas it is possible define curried functions in Scheme, usually
 this is not very convenient, unless you are trying to

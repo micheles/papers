@@ -25,7 +25,7 @@ another solution.
 Beware of wasted cycles
 -------------------------------------------------------------
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/tartaruga.jpg
+.. image:: tartaruga.jpg
 
 An obvious danger of benchmarks is the issue of vasted cycles.
 Since usually benchmarks involve calling a function *N* times,
@@ -78,7 +78,7 @@ it with a macro.
 Beware of cheats
 -----------------------------------------------------
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/il+gatto+e+la+volpe.jpg
+.. image:: il+gatto+e+la+volpe.jpg
 
 The issue of wasted cycles is obvious enough; on the other hand, benchmarks
 are subject to less obvious effects. Here I will show a trick to improve
@@ -129,7 +129,7 @@ You see what happens when you cheat? ;)
 Beware of naive optimization
 -------------------------------------------------------------
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/exclamation-mark.jpg
+.. image:: exclamation-mark.jpg
 
 In this last section I will show a positive aspect of benchmarks:
 they may be usefully employed to avoid useless optimizations.

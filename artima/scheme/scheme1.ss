@@ -65,7 +65,7 @@ curiousity and make you think if you can learn something useful
 from this language which is dismissed by most as being just an
 academic language.
 
-A bit of programming language history: Fortran e Lisp
+A bit of history: Fortran and Lisp
 ---------------------------------------------------------------
 
 The `history of programming`_ begins with two languages with
@@ -119,7 +119,7 @@ to formulate his own opinion ;)
 The algorithmic language Scheme
 -------------------------------------------------------------
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/scheme_shield.png
+.. image:: scheme_shield.png
 
 Scheme was born in 1975 (it is nearly twice as old as Python) as a
 dialect of the Lisp family. Nowadays by "Lisp" we refer usually to the
@@ -176,7 +176,7 @@ first were `Larceny`_ and `Ikarus`_; now there is also
 `ypsilon`_. Moreover, `PLT Scheme`_ has grown an R6RS-compatibility
 mode. I will use Ikarus for my examples.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/Ikarus_Scheme_Logo.png
+.. image:: Ikarus_Scheme_Logo.png
 
 The installation procedure is trivial, it is enough to download the
 tarball and to compile with the usual ``configure`` and ``make``

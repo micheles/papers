@@ -12,7 +12,7 @@ Symbols
 Scheme and Lisp have a particular data type which is missing in most
 languages (with the exception of Ruby): the *symbol*.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/symbols.jpg
+.. image:: symbols.jpg
    :height: 250
 
 From the grammar point of view, a symbols is just a quoted identifier,
@@ -186,7 +186,7 @@ At low level Scheme lists are implemented as *linked list*, i.e. as
 couples *(pointer-to-sublist, value)* until you arrive at the null
 pointer.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/linkedlists.jpg
+.. image:: linkedlists.jpg
 
 Some example
 -----------------------------------------------------

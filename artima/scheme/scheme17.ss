@@ -30,7 +30,7 @@ for part IV, about advanced macro programming. After
 all, macro programming is nothing else than manipulation of code seen
 as a nested list of expressions.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/aps_lib_03.jpg 
+.. image:: aps_lib_03.jpg 
 
 With a remarkable lack of fantasy, I have decided to call the library
 ``list-utils`` and to put it in a package called ``aps`` (``aps`` of
@@ -143,7 +143,7 @@ list comprehension, which is shamelessly copied from
 the work of `Phil Bewig`_, with minor simplifications, and
 the usage of ``let+`` instead of regular ``let``.
 
-..  image:: http://www.phyast.pitt.edu/~micheles/scheme/list-comprehension.jpg
+..  image:: list-comprehension.jpg
 
 Here is the implementation
 

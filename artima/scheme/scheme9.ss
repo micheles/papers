@@ -127,7 +127,7 @@ around the ``syntax-case`` macro system. I release it
 under a liberal BSD licence. You can do whatever you want with it,
 just keep the attribution right.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/pastine-alle-mandorle.jpg
+.. image:: pastine-alle-mandorle.jpg
 
 The primary goal of
 sweet-macros_ is semplicity, so it only exports three macros,

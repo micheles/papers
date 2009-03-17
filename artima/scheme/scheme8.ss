@@ -138,7 +138,7 @@ happens, in practice you are writing a compiler.
 Programs writing programs
 ------------------------------------------------
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/writer.jpg
+.. image:: writer.jpg
  :class: right
 
 Once you realize that code is nothing else than data, it becomes easy

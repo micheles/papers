@@ -137,7 +137,7 @@ a two-element lists made of two-element lists named ``(x1 y1)`` and
 ``(x2 y2)`` respectively. You can easily imagine more complex examples
 with deeply nested lists.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/unpacking.png
+.. image:: unpacking.png
 
 It is interesting to notice that Python has the
 list destructuring/tuple unpacking functionality built-in:

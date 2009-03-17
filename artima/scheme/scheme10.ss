@@ -166,7 +166,7 @@ The problem is that the error message is a bit scary, with all those
 scary to the newbie? Answer: by using the guarded patterns feature of
 ``sweet-macros``!
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/carabinieri.png
+.. image:: carabinieri.png
 
 Here is an example:
 

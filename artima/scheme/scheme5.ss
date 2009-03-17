@@ -26,7 +26,7 @@ study Physics like myself, it is worth spenting a couple of words on
 the subject. The ones who wants to know more, may consult
 this `Wikipedia article`_.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/Ouroboros.png
+.. image:: Ouroboros.png
 
 The important point beyond the tail recursion concept
 is that it is always possibile to convert a ``for``
@@ -238,7 +238,7 @@ with the following R6RS-compliant script (written in Ikarus Scheme)::
  (display "result:") (display (fac n)) (newline)
 
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/clessidra.gif
+.. image:: clessidra.gif
    :width: 175
 
 I will notice two things:

@@ -84,7 +84,7 @@ total number of users of Scheme (including all implementations)
 is order of magnitudes smaller than the number of users of Python.
 I must say however that the situation has improved a lot in recent years.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/guile-title.jpg
+.. image:: guile-title.jpg
 
 .. _Chicken: http://www.call-with-current-continuation.org
 .. _PLT scheme: http://www.plt-scheme.org
@@ -151,7 +151,7 @@ It is very important to study the most relevant SRFIs as soon
 as you learn Scheme, since if you want to write any practical
 application with it, you are going to need them.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/chicken3b.png 
+.. image:: chicken3b.png 
 
 .. _R5RS: http://www.schemers.org/Documents/Standards/R5RS/HTML/
 .. _SRFI: http://srfi.schemers.org/
@@ -247,7 +247,7 @@ management::
   === context ===
  /usr/local/collects/scheme/private/misc.ss:68:7
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/plt-green.jpg
+.. image:: plt-green.jpg
 
 As you see, there is no much information: in particular the
 information about the name of the function where the error

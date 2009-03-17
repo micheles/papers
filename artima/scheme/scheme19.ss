@@ -165,7 +165,7 @@ for the Merely Eccentric`_, by Joe Marshall. The title is a play on the essay
 `An Advanced Syntax-Rules Primer for the Mildly Insane`_ by
 Al Petrofsky. 
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/mad-scientist.jpg
+.. image:: mad-scientist.jpg
 
 Marshall's essay is quite nontrivial, and it is intended for expert
 Scheme programmers. On the other hand, it is child play compared to

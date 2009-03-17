@@ -20,7 +20,7 @@ I am not an expert on the existing bibiliografy. Here I will
 cite only a few resources, readers more knowledgeable are
 invited to post their recommendations as comments.
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/books.jpg
+.. image:: books.jpg
  :width: 176
 
 The main reference I used to learn Scheme when I started is
@@ -98,7 +98,7 @@ Here is the Scheme code::
   (define n (string->number (car (reverse (argv)))))
   (display (fac n))
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/exclamation.jpg
+.. image:: exclamation.jpg
 
 The equivalent in Python would be::
 

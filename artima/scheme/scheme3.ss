@@ -70,7 +70,7 @@ and implemented in PLT Scheme - says about the parenthesis:
   I find that I spontaneously do both these things when writing Lisp by 
   hand on whiteboards or the backs of envelopes.*
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/paulgraham.jpg
+.. image:: paulgraham.jpg
 
 Arc_ for the moment seems to require the parens, but is has
 a bit less parenthesis than Scheme, as you can infer from

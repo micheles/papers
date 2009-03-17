@@ -112,7 +112,7 @@ list matcher.
 .. _librerie per il pattern matching: http://schemecookbook.org/view/Cookbook/PatternMatchingChapter
 .. _here: http://bazaar.launchpad.net/~derick-eddington/ikarus-libraries/xitomatl/annotate/121?file_id=asmatch.sls-20080507230024-prlxlzdsg0x0ad3d-1
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/pattern-matching.jpg
+.. image:: pattern-matching.jpg
 
 A list destructuring binding form (let+)
 ------------------------------------------------------

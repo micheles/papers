@@ -7,7 +7,7 @@ In this episode I discuss the utility of macros for enterprise programmers.
 Are macros "just syntactic sugar"?
 ----------------------------------------------------
 
-.. image:: http://www.phyast.pitt.edu/~micheles/scheme/sugar.jpg
+.. image:: sugar.jpg
 
 There is a serious problem when teaching macros to beginners: the real
 power of macros is only seen when solving difficult problems, but you
