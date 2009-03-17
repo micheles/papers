@@ -12,6 +12,10 @@ current file.
 import os, sys, re, webbrowser
 from docutils.core import publish_cmdline
 from ms.optionparser import OptionParser
+try:
+    import sphinx.directives # enable code-block
+except ImportError:
+    print 'Warning: sphinx is not installed'
 
 identifier = r'[-A-Z\d_!\?\+\-\*/]+'
 BIGCOMMENT = re.compile(r'#\|(.*)\|#(.*)', re.DOTALL)
