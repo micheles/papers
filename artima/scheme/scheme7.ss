@@ -1,4 +1,11 @@
 #|
+Symbols and lists
+=====================================================
+
+In this episode I pave the way to the heart of Lisp, i.e. to the
+famous *code is data* concept. In order to do that, I will have to
+introduce two fundamental data types first: symbols and lists.
+
 Symbols
 ------------------------------------------------------------------
 

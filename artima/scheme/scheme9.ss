@@ -1,4 +1,11 @@
 #|
+Introduction to (sweet-)macros
+=================================================
+
+This episode is entirely devoted to Scheme macros from a personal
+point of view. Pattern matching is introduced as the fundamental
+mechanism on which macros are built.
+
 A minimal introduction to Scheme macros
 ---------------------------------------------------------
 

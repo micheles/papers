@@ -1,4 +1,10 @@
 #|
+Currying, partial application, and fold
+=============================================================
+
+Everything you ever wanted to know about currying, partial
+application, higher order functions and related topics.
+
 Higher order functions and curried functions
 ---------------------------------------------------------------------
 

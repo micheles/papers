@@ -1,4 +1,13 @@
 #|
+Quoting and quasi-quoting
+===========================================
+
+In this episode I will
+explain the meaning of the "code is data" concept. To this aim I
+discuss the quoting operation which allows to convert a code fragment
+into a list of symbols and primitive values - i.e. converts code into
+data. Then, I discuss the issue of evaluating data as code.
+
 Quoting
 ----------------------------------------------------------------
 

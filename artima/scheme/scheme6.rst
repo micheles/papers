@@ -1,3 +1,6 @@
+The danger of benchmarks
+=========================================
+
 Benchmarks are useful in papers and blog posts, as a good trick to
 attract readers, but you should never make the mistake of believing
 them: as Mark Twain would say, *there are lies, damned lies, and

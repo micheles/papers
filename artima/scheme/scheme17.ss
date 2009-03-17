@@ -1,4 +1,13 @@
 #|
+List comprehension
+=====================================================
+
+This episodes explains how to implement a functional list
+comprehension syntax in Scheme. The difference with Python list
+comprehension is also explained. Moreover, I have decided to
+distribute the code create for this series as a library:
+http://www.phyast.pitt.edu/~micheles/scheme/aps.zip
+
 .. _7: http://www.artima.com/weblogs/viewpost.jsp?thread=240781
 .. _8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
 .. _9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804

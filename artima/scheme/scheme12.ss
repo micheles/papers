@@ -1,4 +1,9 @@
 #|
+Are macros really useful?
+===================================================================
+
+In this episode I discuss the utility of macros for enterprise programmers.
+
 Are macros "just syntactic sugar"?
 ----------------------------------------------------
 

@@ -1,3 +1,10 @@
+About scheme implementations
+=======================================================================
+
+Scheme is a language with many implementations and with few
+libraries. In this episode I will discuss the current situation and I
+will give some useful indication to the Scheme beginner.
+
 About Scheme implementations
 -------------------------------------------------------------------
 

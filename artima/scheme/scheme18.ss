@@ -1,4 +1,12 @@
 #|
+Streams
+=============================================
+
+This episode is about streams, a typical data structure of functional
+languages. The differences between functional streams and imperative
+iterators are discussed. En passant, I give a solution of the classic
+eight queens problem.
+
 The eight queens puzzle
 -----------------------------------------------------------
 

@@ -1,4 +1,11 @@
 #|
+Features of (sweet-)macros
+===================================================
+
+Yet another episode fully devoted to macros. I will discuss
+introspection, guarded patterns, literal identifiers, and a couple of
+common beginner's mistakes.
+
 ``syntax-match`` and introspection features of sweet-macros
 -----------------------------------------------------------------
 

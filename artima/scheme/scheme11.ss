@@ -1,4 +1,12 @@
 #|
+The multiple evaluation problem (and easy-test)
+================================================
+
+In this episode I will discuss the multiple evaluation issue, then I
+will show how macros can improve performance. Finally, I will give a
+practical example of how macros can be used to define a unit test
+framework.
+
 The problem of multiple evaluation
 -------------------------------------------------------------------
 

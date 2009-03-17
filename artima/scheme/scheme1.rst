@@ -1,3 +1,11 @@
+A bit of history 
+=====================================================
+
+This is the first episode of a long running series of articles about
+Scheme. Currently I have published the first 11 episodes of it on
+Stacktrace. This episode is a revised translation of
+http://stacktrace.it/2008/02/le-avventure-di-un-pythonista-schemeland-1/
+
 My target
 -------------------------------------------------------------------
 

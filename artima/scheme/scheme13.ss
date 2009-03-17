@@ -1,4 +1,10 @@
 #|
+Micro-introduction to functional programming
+=======================================================
+
+The first installment of my long-awaited third cycle of a Pythonista's
+adventures with Scheme is devoted to Scheme's functional aspects.
+
 A minimal introduction to functional programming
 -----------------------------------------------------------------
 

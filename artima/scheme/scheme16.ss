@@ -1,4 +1,12 @@
 #|
+Multiple values (and opt-lambda)
+================================================
+
+This episode is a direct continuation of latest issue: it gives
+example of use of the destructuring bind form let+ introduced there. I
+also discuss multiple values, unary functions and functions with
+optional arguments.
+
 list destructuring versus let-values
 ---------------------------------------------------------------------------
 

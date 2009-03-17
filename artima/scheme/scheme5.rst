@@ -1,3 +1,6 @@
+About tail call optimization (and the module system)
+=================================================================
+
 In order to speak of Scheme performance one needs to write at least a
 few benchmarks. This is not completely trivial, for at least a couple
 of reasons. The first reason is shallow, but it may be baffling for

@@ -1,4 +1,13 @@
 #|
+List destructuring
+=================================================================
+
+In my Adventures I have referred many times to pattern matching, but
+only in the context of compile time pattern matching in macros. There
+is another form of pattern matching, which is quite common in Scheme
+and in other functional languages: run time pattern matching. This
+episode will shed some light on the technique.
+
 About pattern matching
 ---------------------------------------------
 

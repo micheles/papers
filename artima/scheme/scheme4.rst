@@ -1,3 +1,6 @@
+Scheme bibliography (and a first program)
+===========================================================
+
 Scheme resources for beginners
 -----------------------------------------------------------------
 
