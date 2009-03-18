@@ -1,5 +1,91 @@
 #|
-Simple second order macros
+Can a language be both easy and powerful?
+-----------------------------------------------------------------------
+
+When it comes to designing programming languages, easy of use and
+power seems to go in opposite directions. There are plenty of examples
+where something went wrong, i.e. simple languages which however are
+good only for teaching and not for professional use, and
+professional languages which are definitely too tricky to use
+for the beginner/casual programmer. We have also examples of languages which
+are both weak in power *and* difficult to use. Nevertheless, I think
+it is perfectly possible to design a language which is both easy to
+use and powerful, and Python is already there to prove this
+point. What's the secret of Python? There are many reasons to it, the
+most important ones being the following, in my opinion:
+
+1. it is a one-man language (i.e. not a comprimise language made by a
+   committee) and Guido knows his job;
+
+2. between (premature) optimization and easy of use always choose the latter;
+
+3. it provides special syntax/libraries for common operations.
+
+Scheme does not share any of these characters, and as a consequence it
+is definitively not an easy language. It is just a powerful language.
+Actually, it is powerful enough that you can make it easy to use,
+but that requires (a lot of work) on the part of the programmer,
+whereas nowadays we are all spoiled and we expect the language implementors
+to do this kind of work for us.
+
+.. image:: bikeshed.jpg
+ :class: right
+ :width: 400
+
+I think the explanation for the current situation is more historical
+and social than technical. On one side, a lot of people in the Scheme
+world want Scheme to stay the way it is, i.e. a language for language
+experimentations and research more than a language for enterprise
+work.  On the other side, the fact that there are so many
+implementations of Scheme makes difficult/impossible to specify too
+much: this the reason why there are no standard debugging tools for
+Scheme, but only implementation-specific ones.
+
+Finally, there is the infamous `bikeshed effect`_ to take in account.
+The bikeshed effect is typical of any project designed by a committee:
+when it comes to proposing advanced functionalities that very few
+can understand, it is easy to get approval from the larger community.
+However, when it comes to simple functionality of common usage, everybody
+has got a different opinion and it is practically impossible to get
+anything approved at all.
+
+To avoid that, the standard does not provide
+directly usable instruments: instead, it provides general instruments
+which are intended as building blocks on that of which everybody can
+write the usable abstractions he/she prefers. Most people nowadays
+prefer to have ready-made solutions, because they have deadlines,
+projects to complete and no time nor interest in writing things
+that should be made by language designers, so that Scheme is little
+used in the enterprise world.
+
+There are other options, however, if you are interested in a Scheme
+for usage in the enterprise world. You can just use a Scheme
+implementation running on the .NET or the Java platform, or a Scheme-like
+language such as Clojure_. Clojure runs on the Java Virtual Machine,
+it is half lisp and half Scheme, it has a strong functional flavour in
+it, it has interesting things to say about concurrency_,
+it is a one-man language (Rich Hickey is the BDFL) and provides
+access to all the Java libraries. Moreover it provides a whole set
+of `syntax conveniences`_ that would never enter in the Scheme standard.
+
+If I wanted to use a Scheme-like language on the Java platform I would
+consider Clojure very seriously; however, professionally I have never
+interacted with the Java platform (and even there I would probably
+choose Jython over Clojure for reason of familiarity) so I have not
+checked out Clojure and I have no idea about it except what you can
+infer after reading its web site. If amongst my readers
+there is somebody with experience in Clojure, please feel free to add
+a comment to this post.
+
+I personally am using Scheme since I am interested in macrology and no
+language in existence can beat Scheme in this respect.
+
+.. _Clojure: http://clojure.org/
+.. _syntax conveniences: http://clojure.org/special_forms
+.. _concurrency: http://clojure.org/concurrent_programming
+.. _bikeshed effect: http://en.wikipedia.org/wiki/Bikeshed
+
+Second order macros
 -------------------------------------------------------------
 
 There is not upper limit to the level of sophistication you can reach
@@ -93,120 +179,31 @@ in practice Scheme only provides the low level syntax, leaving to
 the final user the freedom (and the burden) of implementing his
 own preferred high level syntax.
 
-.. fatto sia per motivi politici (è un linguaggio disegnato da un
-.. comitato, è impossibile accordarsi su una sintassi di alto livello che
-.. piaccia a tutti) che ideologici (alla maggior parte dei programmatori
-.. Scheme va bene così, non amano le imposizioni).
-
-``with-syntax`` and ``generate-temporaries``
------------------------------------------------------
-
-The R6RS standard provides a few convenient utilities to work with
-macros. One of such utilities is the ``with-syntax`` form, which
-allows to introduce auxiliary pattern variables into a skeleton.
-``with-syntax`` is often used in conjunction with the ``generate-temporaries``
-function, which returns a list of temporary identifiers.
-For instance, here is ``fold`` macro
-providing a nicer syntax for the ``fold-left`` and ``fold-right``
-higher order functions:
-
-$$list-utils:FOLD
-
-In this example, for each variable ``x`` a pattern variable ``a`` is
-generated with a temporary name; the temporary variable is used
-as argument in the lambda function. For instance, in Ypsilon
-
-
-  ``(fold left (s 0) (x in (range 3)) (y in (range 3)) (+ s x y))``
-
-expands to
-
-::
-
- (fold-left
-   (lambda (s \x2E;L271 \x2E;L272)
-     (let+ (x \x2E;L271) (y \x2E;L272) (+ s x y)))
-   0 (range 3) (range 3))
-
-as you can check by using ``syntax-expand``.
-The temporary
-names are quite arbitrary, and you will likely get different names,
-since each time ``generate-temporaries`` is called, different names are
-generated. ``generated-temporaries`` is perfect to generate dummy names
-used as argument of functions, as seen in this example. Another typical
-usage is to generate dummy names for helper functions, as shown in
-the following paragraph.
-
-A record macro
+Modern languages vs old languages
 ---------------------------------------------------------------
 
-Scheme has a vector data type, which is used to manage finite sequences
-with a fixed number *n* of values, known at compile time. Each element
-can be accessed in O(1) time by specifying an integer index starting from
-*0* to *n*, with the notation ``(vector-ref v i)``. Vectors are perfect
-to implement records, since you can see a record as a vector with *n+1*
-argumments, where the 0-th element specify the type of the vector
-and the i-th element is the i-th field of the record.
-Notice that the stardard specifies a record system, but writing a
-record system based on macros is a good exercise nonetheless.
-It also provides a good example of a second order macro expanding
-to a macro. Here is the code:
+Once upon a time (say twenty years ago), people did not expect much
+from a programming language. The common philosophy was that a language
+should provide just the basic stuff and leave to the users the writing
+of their own utilities.  Nowadays the philosophy is more or less the
+same, but the meaning of the words *basic stuff* has changed
+completely.
 
-$$DEF-RECORD
+Let me give an example: a few weeks ago Bruce Eckel `blogged about a
+new language called Fan`_; I looked at the web site of Fan_, and I see
+that it is an object oriented language with a C-style syntax,
+offerings some functional features such as first class functions and
+closures, and a standard library including a GUI toolkit, an SQL
+toolkit, a web framework, and XML parser, JSON serialization, a REST
+library, etc. I would say that nowadays all of this is "basic stuff"
+and I would expect all of that to be supported out of the box from a
+new language. Actually, I could not use professionally a language not
+supporting all of this stuff.  However, the Scheme (and Common Lisp)
+standards are still twenty years behind.  There are however new
 
-An example will make everything clear. Suppose we want to define a
-``Book`` record type; we can do so by writing
 
-``(def-record Book title author)``
-
-which expands to::
-
- (begin
-  (def-syntax Book
-    (syntax-match
-      (<new> <signature> ? title author)
-      (sub (Book <new>) (syntax record-new))
-      (sub (Book <signature>) (syntax '(Book title author)))
-      (sub (Book ?) (syntax record?))
-      (sub (Book title) (syntax \x2E;L30))
-      (sub (Book author) (syntax \x2E;L31))))
-  (define (record-new title author) (vector 'Book title author))
-  (define (record? b) (eq? 'Book (vector-ref b 0)))
-  (define (\x2E;L30 b) (assert (record? b)) (vector-ref b 1))
-  (define (\x2E;L31 b) (assert (record? b)) (vector-ref b 2)))
-
-This code defines a ``Book`` macro and a few auxiliary functions such
-as ``record-new``, ``record?`` and two others with temporary names.
-The ``Book`` macro allows to create new records
-
-::
-
- > (define book ((Book <new>) "title" "author"))
- > book
- #(Book "title" "author")
-
-to introspect records
-
-::
-
- > ((Book ?) book)
- #t
-
- > (Book <signature>)
- (book title author)
-
-and to retrieve the elements of a record by field name::
-
- > ((Book title) book)
- "title"
-
- > ((Book author) book)
- "author"
-
-Since I am a fan of functional programming, I am not providing mutation
-methods, so that you may regard them as immutable records (actually
-they are not, since you can change them by using ``vector-set!``,
-but that would be a dirty trick ;)
+.. _blogged about a new language called Fan:
+.. _Fan:
 |#
 
 (import (rnrs) (sweet-macros) (for (aps lang) run expand)
@@ -237,59 +234,3 @@ but that would be a dirty trick ;)
  )
 
 ;;END
-
-;;DEF-RECORD
-(def-syntax (def-record name field ...)
-  (: with-syntax
-     (getter ...) (generate-temporaries #'(field ...))
-     (i ...) (range 1 (+ (length #'(field ...)) 1))
-     #`(begin
-         (def-syntax name
-           (syntax-match (<new> <signature> ? field ...)
-              (sub (name <new>) #'record-new)
-              (sub (name <signature>) #''(name field ...))
-              (sub (name ?) #'record?)
-              (sub (name field) #'getter)
-              ...))
-         (define (record-new field ...) (vector 'name field ...))
-         (define (record? b) (eq? 'name (vector-ref b 0)))
-         (define (getter b) (assert (record? b)) (vector-ref b i)) ...
-      )))
-;;END
-
-;;RECORD
-(def-syntax (record-syntax name field ...)
-  (: with-syntax
-     (getter ...) (generate-temporaries #'(field ...))
-     (i ...) (range 1 (+ (length #'(field ...)) 1))
-     #`(let ()
-         (define (record-new field ...) (vector 'name field ...))
-         (define (record? b) (eq? 'name (vector-ref b 0)))
-         (define (getter b) (assert (record? b)) (vector-ref b i))
-         ...
-         (syntax-match (<new> <signature> ? field ...)
-            (sub (name <new>) #'record-new)
-            (sub (name <signature>) #''(name field ...))
-            (sub (name ?) #'record?)
-            (sub (name field) #'getter)
-            ...))))
-;;END
-
-;(def-syntax Book (record-syntax Book title author))
-;(pretty-print (syntax-expand (record-syntax Book title author)))
-
-(def-record Book title author)
-(define b ((Book <new>) "T" "A"))
-(display b)
-(newline)
-(display (Book <signature>))
-(display ((Book ?) b))
-
-
-(display (syntax-expand (Book title)))
-(newline)
-(display ((Book title) b))
-(newline)
-
-(display ((Book author) b))
-

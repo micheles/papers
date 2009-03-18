@@ -173,7 +173,6 @@ Petrofsky's essay, which is intended for Scheme wizards with a vein
 of foolinesh ;)
 
 .. _An Advanced Syntax-Rules Primer for the Mildly Insane: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/86c338837de3a020/eb6cc6e11775b619?#eb6cc6e11775b619
-.. _bikeshed effect: http://en.wikipedia.org/wiki/Bikeshed
 .. _6: http://www.artima.com/weblogs/viewpost.jsp?thread=240198
 
 .. _Syntax-Rules Primer for the Merely Eccentric: http://www.xs4all.nl/~hipster/lib/scheme/gauche/define-syntax-primer.txt
