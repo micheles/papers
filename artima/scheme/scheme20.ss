@@ -6,33 +6,44 @@ When it comes to designing programming languages, easy of use and
 power seems to go in opposite directions. There are plenty of examples
 where something went wrong, i.e. simple languages which however are
 good only for teaching and not for professional use, and
-professional languages which are definitely too tricky to use
-for the beginner/casual programmer. We have also examples of languages which
-are both weak in power *and* difficult to use. Nevertheless, I think
-it is perfectly possible to design a language which is both easy to
-use and powerful, and Python is already there to prove this
-point. What's the secret of Python? There are many reasons to it, the
-most important ones being the following, in my opinion:
+professional languages which are however too tricky to use
+for the casual programmer. We have also examples of languages which
+are both weak in power *and* difficult to use (insert your chosen
+language here).
 
-1. it is a one-man language (i.e. not a comprimise language made by a
-   committee) and Guido knows his job;
+Nevertheless, I think it is perfectly possible to design a language
+which is both easy to use and powerful. For instance, Python is a good
+example of such language (others will prefer Ruby, or Scala, or
+anything else they like).
 
-2. between (premature) optimization and easy of use always choose the latter;
+There are various reasons why Python can be both easy to use and powerful,
+the most important ones being the following, in my opinion:
 
-3. it provides special syntax/libraries for common operations.
+1. it is a one-man language (i.e. it is not a comprimise language made by a
+   committee);
+
+2. it is language made from scratch, with no preoccupations of backward
+   compatibility;
+
+3. between (premature) optimization and easy of use Python always chooses
+   the latter;
+
+4. it provides special syntax/libraries for common operations.
 
 Scheme does not share any of these characters, and as a consequence it
 is definitively not an easy language. It is just a powerful language.
-Actually, it is powerful enough that you can make it easy to use,
-but that requires (a lot of work) on the part of the programmer,
-whereas nowadays we are all spoiled and we expect the language implementors
-to do this kind of work for us.
+
+However, it is powerful enough that you can make it easy to use, but
+that requires (a lot of work) on the part of the programmer, which must
+implement point 4 by himself, whereas
+nowadays we are all spoiled and we expect the language implementors to
+do this kind of work for us.
 
 .. image:: bikeshed.jpg
  :class: right
  :width: 400
 
-I think the explanation for the current situation is more historical
+I think the explanation for the current situation in Scheme is more historical
 and social than technical. On one side, a lot of people in the Scheme
 world want Scheme to stay the way it is, i.e. a language for language
 experimentations and research more than a language for enterprise
@@ -68,8 +79,7 @@ it is a one-man language (Rich Hickey is the BDFL) and provides
 access to all the Java libraries. Moreover it provides a whole set
 of `syntax conveniences`_ that would never enter in the Scheme standard.
 
-If I wanted to use a Scheme-like language on the Java platform I would
-consider Clojure very seriously; however, professionally I have never
+Professionally I have never
 interacted with the Java platform (and even there I would probably
 choose Jython over Clojure for reason of familiarity) so I have not
 checked out Clojure and I have no idea about it except what you can
@@ -179,31 +189,6 @@ in practice Scheme only provides the low level syntax, leaving to
 the final user the freedom (and the burden) of implementing his
 own preferred high level syntax.
 
-Modern languages vs old languages
----------------------------------------------------------------
-
-Once upon a time (say twenty years ago), people did not expect much
-from a programming language. The common philosophy was that a language
-should provide just the basic stuff and leave to the users the writing
-of their own utilities.  Nowadays the philosophy is more or less the
-same, but the meaning of the words *basic stuff* has changed
-completely.
-
-Let me give an example: a few weeks ago Bruce Eckel `blogged about a
-new language called Fan`_; I looked at the web site of Fan_, and I see
-that it is an object oriented language with a C-style syntax,
-offerings some functional features such as first class functions and
-closures, and a standard library including a GUI toolkit, an SQL
-toolkit, a web framework, and XML parser, JSON serialization, a REST
-library, etc. I would say that nowadays all of this is "basic stuff"
-and I would expect all of that to be supported out of the box from a
-new language. Actually, I could not use professionally a language not
-supporting all of this stuff.  However, the Scheme (and Common Lisp)
-standards are still twenty years behind.  There are however new
-
-
-.. _blogged about a new language called Fan:
-.. _Fan:
 |#
 
 (import (rnrs) (sweet-macros) (for (aps lang) run expand)

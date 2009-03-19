@@ -1,4 +1,12 @@
-#|Should everybody be designing her own programming language?
+#|Recursive macros
+=====================================================================
+
+After a short introduction about the relevance of macros for
+programming language design, I show a few common patterns of Scheme
+macrology: recursive macros, accumulators, and the usage of literals
+to incorporate helpers in macros.
+
+Should everybody be designing her own programming language?
 ------------------------------------------------------------------
 
 Macros are the main reason why I first became interested in Scheme. At
@@ -62,9 +70,12 @@ You can the replace the words "web framework" with "programming
 language" here and the quote still makes sense. You should read my
 *Adventures* in this spirit: the goal of this series is to give
 the technical competence to write your own language by means of
-macros. Notice that, whereas I am interested in the
-technical competence, I am much less interested in *actually
-writing a language* with it. There are already lots of languages
+macros. Even if you are not going to design your own language,
+macros will help you to understand how languages work.
+
+I personally am interested only in the
+technical competence, *I do not want to write a new language*.
+There are already lots of languages
 out there, and writing a real language is a lot of grunt work, because
 it means writing debugging tools, good error messages, wondering about
 portability, interacting with an user community, et cetera et cetera.
