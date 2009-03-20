@@ -5,7 +5,7 @@ GET_PKEYS = '''\
 SELECT attname FROM pg_attribute
 WHERE attrelid = (
    SELECT indexrelid FROM pg_index AS i
-   WHERE i.indrelid = (SELECT oid FROM pg_class WHERE relname=?)
+   WHERE i.indrelid = (SELECT oid FROM pg_class WHERE relname=:table)
    AND i.indisprimary = 't')
 ORDER BY attnum
 '''
@@ -22,19 +22,19 @@ def drop_db_postgres(uri):
               'DROP DATABASE %(database)s' % uri)
 
 def get_sizeK_postgres(conn, table):
-    return conn.execute('SELECT relpages*8 FROM pg_class WHERE relname=?', 
+    return conn.execute('SELECT relpages*8 FROM pg_class WHERE relname=:table', 
                         (table,), scalar=True)
 
-def get_tables_postgres(conn, schema=None):
+def get_tables_postgres(conn, schema):
     query = 'SELECT tablename FROM pg_tables'
     if schema:
-        res = conn.execute(query + ' WHERE schemaname=?', (schema,))
+        res = conn.execute(query + ' WHERE schemaname=:a', (schema,))
     else:
         res = conn.execute(query)
     return [r[0] for r in res]
 
 def exists_table_postgres(conn, tname):
-    return conn.execute('SELECT count(*) FROM pg_tables WHERE tablename=?',
+    return conn.execute('SELECT count(*) FROM pg_tables WHERE tablename=:table',
                         (tname,), scalar=True)
     
 def exists_db_postgres(uri):
@@ -77,22 +77,24 @@ def load_file_postgres(uri, tname, filename, mode, sep='\t', null='\N'):
 
 ## pg_dump and pg_restore should be used for multiple tables or whole databases
 
-def pg_dump(uri, table, filename, *args):
+def pg_dump(uri, filename, *args):
     """
     A small wrapper over pg_dump. Example:
     >> pg_dump(uri, thetable, thefile)
     """
     cmd = ['pg_dump', '-h', uri['host'], '-U', uri['user'],
-           '-d', uri['database'], '-t', table, '-f', filename] + list(args)
+           '-d', uri['database'], '-f', filename] + list(args)
+    print ' '.join(cmd)
     return getoutput(cmd)
 
-def pg_restore(uri, table, filename, *args):
+def pg_restore(uri, filename, *args):
     """
     A small wrapper over pg_restore. Example:
     >> pg_restore(uri, thetable, thefile)
     """
     cmd = ['pg_restore', '-h', uri['host'], '-U', uri['user'],
-           '-d', uri['database'], '-t', table, filename] + list(args)
+           '-d', uri['database'], filename] + list(args)
+    print ' '.join(cmd)
     return getoutput(cmd)
 
 

@@ -1,9 +1,9 @@
-from sqlplain import lazyconnect
+from sqlplain import connect
 from sqlplain.table import table
 
 Client = table('client', 'client', 'provider')
 
-conn = lazyconnect('srs_dev')
+conn = connect('srs_dev')
 client = Client(conn)
 
 if __name__ == '__main__':

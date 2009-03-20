@@ -4,7 +4,7 @@ Notice: create_db and drop_db are not transactional.
 
 import os, sys, re, subprocess
 from sqlplain.uri import URI
-from sqlplain import lazyconnect, do
+from sqlplain import connect, do
 from sqlplain.connection import Transaction
 from sqlplain.namedtuple import namedtuple
 try:
@@ -62,7 +62,7 @@ def openclose(uri, templ, *args, **kw):
     if unexpected:
         raise ValueError('Received unexpected keywords: %s' % unexpected)
     isolation_level = kw.get('isolation_level', None)
-    conn = lazyconnect(uri, isolation_level)
+    conn = connect(uri, isolation_level)
     try:
         if isolation_level is None:
             return conn.execute(templ, args)
@@ -113,12 +113,12 @@ def create_db(uri, force=False, scriptdir=None, **kw):
     uri.import_driver() # import the driver
     if exists_db(uri):
         if force:
-            _call('drop_db', uri)
+            drop_db(uri)
         else:
             raise RuntimeError(
                 'There is already a database %s!' % uri)
     _call('create_db', uri)
-    db = lazyconnect(uri, **kw)
+    db = connect(uri, **kw)
     scriptdir = uri.scriptdir or scriptdir
     if scriptdir:
         runscripts(db, scriptdir, ('.sql', '.py'))

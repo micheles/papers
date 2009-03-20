@@ -1,5 +1,5 @@
 import threading
-from sqlplain import lazyconnect, do
+from sqlplain import connect, do
 from sqlplain.util import create_db
 
 create_book = do('''

@@ -46,7 +46,7 @@ class Connection(object):
             self._cnx.query("begin tran")
             self._cnx.fetch_array()
         except Exception, e:
-            raise OperationalError("can't commit: %s" % e)
+            raise OperationalError, "can't commit: %s" % e, sys.exc_info()[2]
 
     def rollback(self):
         if self._cnx is None:
@@ -57,7 +57,12 @@ class Connection(object):
             self._cnx.query("begin tran")
             self._cnx.fetch_array()
         except Exception, e:
-            raise OperationalError("can't rollback: %s" % e)
+            # XXX: sometimes the can't rollback message is wrong; a typical
+            # example is to try to create an already existing table with
+            # try: <create> except: <rollback>; SQL server performs an
+            # inner rollback, so that you should not call the second one
+            # the error here can be declassed to a Warning
+            raise OperationalError, "can't rollback: %s" % e, sys.exc_info()[2]
 
 def connect(params, isolation_level=None):
     user, pwd, host, port, db = params

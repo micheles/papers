@@ -249,8 +249,8 @@ if __name__ == '__main__':
     print tt.__class__.mro()
 
     Book = KTable.type('book', 'pubdate', 'title author')
-    from sqlplain import lazyconnect
-    conn = lazyconnect('srs_dev')
+    from sqlplain import connect
+    conn = connect('srs_dev')
     book = Book(conn)
     #help(Book.select_row)
     #help(Book.insert_row)

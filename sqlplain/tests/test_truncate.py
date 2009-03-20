@@ -1,6 +1,6 @@
 from __future__ import with_statement
 import os
-from sqlplain import lazyconnect, util
+from sqlplain import connect, util
 from test_million import makedb, makedatafile, clock, create_price_table
 
 databases = 'postgres_test sqlite_test'.split()

@@ -41,6 +41,6 @@ class BookImporter(object):
 
 
 if __name__ == '__main__':
-    db = lazyconnect('bookdb')
+    db = connect('bookdb')
     imp = BookImporter(db)
     imp.import_all()

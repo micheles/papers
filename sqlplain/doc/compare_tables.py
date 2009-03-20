@@ -1,10 +1,10 @@
-from sqlplain import lazyconnect, do
+from sqlplain import connect, do
 from cStringIO import StringIO
 #from sqlplain.postgres_util import get_schema_postgres
 #print get_schema_postgres(rcare.uri, 'customer')
 
-rcare = lazyconnect('rcare')
-rcare_prod = lazyconnect('rcare_prod')
+rcare = connect('rcare')
+rcare_prod = connect('rcare_prod')
 
 CREATE_CUSTOMER = '''
 CREATE TABLE $customer (

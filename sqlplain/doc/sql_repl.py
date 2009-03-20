@@ -4,7 +4,7 @@ usage: sql_repl <dbname>
 # alias sql_repl="rlwrap -m python ~/gcode/sqlplain/doc/sql_repl.py"
 
 import os, sys, subprocess                              
-from sqlplain import lazyconnect
+from sqlplain import connect
 
 def less(text):
     "Send a text to less via a pipe"
@@ -22,7 +22,7 @@ class Console(object):
     "A textual console to interact with a database"
     
     def __init__(self, dbname, input_src=sys.stdin):
-        self.db = lazyconnect(dbname)
+        self.db = connect(dbname)
         self.input_src = input_src
         self.prompt = '%s> ' % self.db.name
 

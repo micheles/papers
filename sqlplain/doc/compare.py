@@ -61,7 +61,7 @@ def compare(db, table1, table2, kfields=(), dfields=()):
     return sub12, sub21, db.execute(TEMPL % locals())
 
 if __name__ == '__main__':
-    from sqlplain import lazyconnect
-    db = lazyconnect('dbserver2')
+    from sqlplain import connect
+    db = connect('dbserver2')
     #compare(db, 'riskfactor', 'riskfactor2')
     print sub(db, 'riskfactor', 'riskfactor2')

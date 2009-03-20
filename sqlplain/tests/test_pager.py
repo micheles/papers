@@ -1,9 +1,9 @@
-from sqlplain import lazyconnect
+from sqlplain import connect
 from sqlplain.pager import SqlPaginator
 
 def setup():
     global pager
-    srs = lazyconnect('dbserver2')
+    srs = connect('dbserver2')
     pager = SqlPaginator(srs, ('select * from CSFBCreditDefaultSwaps', ()), 
                          'csfb_issuer_id')
 

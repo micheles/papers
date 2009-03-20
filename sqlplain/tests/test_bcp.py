@@ -1,7 +1,7 @@
-from sqlplain import lazyconnect
+from sqlplain import connect
 from sqlplain.mssql_util import *
 
-srs = lazyconnect('dbserver2')
+srs = connect('dbserver2')
 
 bcp_dump(srs.uri, 'client', '/tmp/client.bcpdump')
 

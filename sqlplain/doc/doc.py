@@ -95,8 +95,8 @@ Asimov. That can be done with the following code:
 
 .. code-block:: python
 
- >> from sqlplain import lazyconnect
- >> bookdb = lazyconnect('mssql://pyadmin:secret@localhost/bookdb')
+ >> from sqlplain import connect
+ >> bookdb = connect('mssql://pyadmin:secret@localhost/bookdb')
  >> bookdb.execute("SELECT * FROM book WHERE author LIKE :author",
                    ('%Asimov%',))
 
@@ -267,7 +267,7 @@ However, if you are writing functional tests and you invoke them
 with (say) nose_, you cannot use this pattern since ``sys.argv[1]``
 is the name of the file to be tested. When writing nose tests it makes sense to
 use a global lazy connection, instantiated at the top of your
-testing script, something like ``testdb = lazyconnect('testdb')`` where
+testing script, something like ``testdb = connect('testdb')`` where
 ``testdb`` is an alias to the database used for your automatic tests.
 
 .. _nose: http://somethingaboutorange.com/mrl/projects/nose/
@@ -283,7 +283,7 @@ with methods ``commit`` and ``rollback``
 
 .. code-block:: python
 
- >> bookdb = lazyconnect('mssql://pyadmin:secret@localhost/bookdb',
+ >> bookdb = connect('mssql://pyadmin:secret@localhost/bookdb',
                          isolation_level='SERIALIZABLE')
 
 Transactional connections have support the ``with`` statement,

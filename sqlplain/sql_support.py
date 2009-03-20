@@ -8,7 +8,7 @@ class _SymbolReplacer(object):
     a placeholder. Used by get_args_templ.
     """
     STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
-    SYMBOL = re.compile(r":(\w+)")
+    SYMBOL = re.compile(r"(?<!:):(\w+)")
     
     def __init__(self, placeholder):
         self.placeholder = placeholder
@@ -22,7 +22,7 @@ class _SymbolReplacer(object):
             if argname in argnames:
                 raise NameError('Duplicate argument %r in SQL template'
                                 % argname)
-                argnames.append(argname)
+            argnames.append(argname)
             return self.placeholder or mo.group()
         out = []
         for i, chunk in enumerate(self.STRING_OR_COMMENT.split(templ)):

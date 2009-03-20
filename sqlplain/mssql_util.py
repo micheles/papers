@@ -17,6 +17,41 @@ def bcp(uri, table_or_query, filename, in_out, *flags):
 def get_kfields_mssql(conn, table):
     return [x.COLUMN_NAME for x in conn.execute('sp_pkeys %s' % table)]
 
+def _normalize(ref):
+    """Convert a string of the form REFERENCES dbname.dbowner.tname into
+    REFERENCES tname."""
+    references, rest = ref.split(' ', 1)
+    return references + ' ' + rest.split('.')[-1]
+
+## similar info also comes from get_descr
+def get_columns_mssql(conn, table):
+    return conn.execute('sp_columns %s' % table)
+
+def get_keys_mssql(conn, table):
+    """
+    Return a list of strings describing the keys (both primary and foreign)
+    of the given table.
+    """
+    info = iter(conn.execute("sp_helpconstraint %s, 'nomsg'" % table))
+    result = []
+    for row in info:
+        ctype = row.constraint_type
+        if ctype == 'FOREIGN KEY':
+            nextrow = info.next()
+            ref = '(%s) %s' % (row.constraint_keys, _normalize(
+                    nextrow.constraint_keys))
+        elif ctype.startswith('PRIMARY KEY'):
+            ref = '(%s)' % row.constraint_keys
+        result.append('%s %s' % (ctype, ref))
+    return result
+
+GET_DEF = '''SELECT definition FROM sys.sql_modules WHERE object_id=\
+(SELECT object_id FROM sys.objects WHERE name=:name)'''
+
+def get_source_mssql(conn, objname):
+    "Extracts the source code for views and procedures"
+    return conn.execute(GET_DEF, (objname,), scalar=True)
+
 def dump_file_mssql(uri, table_or_query, fname, mode, sep='\t', null='\N'):
     """
     Dump a table or query into a CSV file by using bcp. Examples:
@@ -61,7 +96,8 @@ def exists_db_mssql(uri):
     dbname = uri['database']
     master = uri.copy(database='master')
     # for misterious reasons you must be transactional to use sp_databases
-    for row in openclose(master, 'sp_databases', isolation_level='SERIALIZABLE'):
+    for row in openclose(
+        master, 'sp_databases', isolation_level='SERIALIZABLE'):
         if row[0] == dbname:
             return True
     return False

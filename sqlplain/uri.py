@@ -111,8 +111,7 @@ class URI(object):
         # make the interpolation syntax (string-templ % self) possible
         return self.__dict__[name]
     
-    def __str__(self):
+    def __repr__(self):
         if self.dbtype == 'sqlite':
-            return 'sqlite:///' + self.database
-        t = '%(dbtype)s://%(user)s:xxxxx@%(server)s/%(database)s'
-        return t % self
+            return '<sqlite:///%s>' % self.database
+        return '<%(dbtype)s://%(user)s:xxxxx@%(server)s/%(database)s>' % self

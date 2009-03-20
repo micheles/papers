@@ -8,6 +8,9 @@ from sqlplain.uri import URI
 from sqlplain.sql_support import get_args_templ
 from decorator import decorator
 
+class NotFoundError(Exception):
+    pass
+
 @decorator
 def retry(func, conn, *args, **kw):
     """
@@ -142,11 +145,11 @@ class LazyConnection(object):
         """
         cursor = self._storage.curs
         try:
-            cursor.execute(templ, args)
-            #if args:
-            #    cursor.execute(templ, args)
-            #else:
-            #    cursor.execute(templ)
+            # this special casing is needed for psycopg2
+            if args:
+                cursor.execute(templ, args)
+            else:
+                cursor.execute(templ)
         except Exception, e:
             tb = sys.exc_info()[2]
             raise e.__class__, '%s\nQUERY WAS:%s%s' % (e, templ, args), tb
@@ -167,24 +170,24 @@ class LazyConnection(object):
                     lst.append(a)
             args = tuple(lst)
         if self.driver.placeholder: # the template has to be interpolated
-            argnames, templ = get_args_templ(templ, self.driver.placeholder) 
+            argnames, templ = get_args_templ(templ, self.driver.placeholder)
             if len(argnames) != len(args): # especially useful for mssql
                 raise TypeError(
-                    "Expected %d arguments (%s), got %d (%s)" %
+                    "Expected %d arguments (%s), got %d %s" %
                     (len(argnames), ', '.join(argnames), len(args), args))
         descr, res = self._raw_execute(templ, args)
-        if scalar: # you expect a scalar result
+        cursor = self._storage.curs # needed to make the reset work
+        if self.chatty:
+            print(cursor.rowcount, templ, args)
+        if scalar: # you expected a scalar result
             if not res:
-                raise KeyError(
-                    "Missing record, QUERY WAS:%s%s\n" % (templ, args))
+                raise NotFoundError(
+                    "No result\nQUERY WAS: %s%s\n" % (templ, args))
             elif len(res) > 1:
                 raise ValueError(
                     "Expected to get a scalar result, got %s\nQUERY WAS:%s%s\n"
                     % (res, templ, args))
             return res[0][0]
-        cursor = self._storage.curs # needed to make the reset work
-        if self.chatty:
-            print(cursor.rowcount, templ, args)
         if descr: # the query was a SELECT
             fields = [Field(*d) for d in descr]
             header = [f.name or noname() for f in fields]
@@ -210,6 +213,10 @@ class LazyConnection(object):
             self._storage.curs.executescript(sql)
         else: # psycopg and pymssql are already able to execute chunks
             self.execute(sql)
+
+    def cursor(self):
+        "Return a new cursor at each call. Here for DB API 2 compatibility"
+        return self._storage.conn.cursor()
 
     def open(self):
         "Return the low level underlying connection"

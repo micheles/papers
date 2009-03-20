@@ -10,7 +10,7 @@ $ python %s <db-uri> <table>
 """
 
 import os, sys
-from sqlplain import lazyconnect, util
+from sqlplain import connect, util
 from sqlplain.table import KTable
 
 def strip(value):
@@ -47,4 +47,4 @@ if __name__ == '__main__':
         uri, tablename = sys.argv[1:]
     except ValueError:
         sys.exit(__doc__ % sys.argv[0])
-    replace_blanks(lazyconnect(uri), tablename)
+    replace_blanks(connect(uri), tablename)
