@@ -6,17 +6,18 @@
 
 (define-syntax syntax-match
   (guarded-syntax-case () (sub)
+        
     ((self (literal ...) (sub patt skel rest ...) ...)
      #'(guarded-syntax-case ()
          (<literals> <patterns> literal ...)
-         ((ctx <literals>)
-          #''(literal ...))
-         ((ctx <patterns>)
-          #''((... (... patt)) ...))
-         (patt skel rest ...) ...)
+         ((ctx <literals>) #''(literal ...))
+         ((ctx <patterns>) #''((... (... patt)) ...))
+         (patt skel rest ...)
+         ...)
      (for-all identifier? #'(literal ...))
      (syntax-violation 'syntax-match "Found non identifier" #'(literal ...)
                        (remp identifier? #'(literal ...))))
+    
     ((self x (literal ...) (sub patt skel rest ...) ...)
      #'(guarded-syntax-case x (literal ...) (patt skel rest ...) ...))
     ))
