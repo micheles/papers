@@ -103,7 +103,9 @@ that at run time.
 
 In order to give an example of usage of the accumulator trick, let me
 define a conditional macro ``cond-`` which works like ``cond``, but
-with less parenthesis::
+with less parenthesis:
+
+.. code-block:: scheme
 
  (cond-
     cond-1? return-1
@@ -111,7 +113,9 @@ with less parenthesis::
         ...
     else return-default)
 
-We want the code above to expand to::
+We want the code above to expand to:
+
+.. code-block:: scheme
 
  (cond 
    (cond-1? return-1)

@@ -8,6 +8,8 @@ from twill import commands as c
 IMAGE = re.compile('e::\s+([-+\w\.]+)') # figure/image
 
 def replace_image_links(txt):
+    "Remove code-block directives and relative images to make Artima happy"
+    txt = re.sub(r'.. code-block:: \w+', '::', txt)
     return IMAGE.sub(r'e:: http://www.phyast.pitt.edu/~micheles/scheme/\1', txt)
 
 if __name__ == '__main__':
