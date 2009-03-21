@@ -22,7 +22,7 @@ BIGCOMMENT = re.compile(r'#\|(.*)\|#(.*)', re.DOTALL)
 SNIPPET = re.compile(r'\n\s*;+\s*(%s)\s*\n(.*?)\n\s*;+\s*END' % identifier,
                      re.DOTALL)
 SNIPPETNAME = re.compile(r'\n\$\$(%s)\n' % identifier)
-INCLUDE = re.compile(r'\$\$([-\w\d_\.]+):')
+INCLUDE = re.compile(r'\$\$([-\w\d_\./]+):')
 INCLUDESNIPPET = re.compile(r'\$\$([-\w\d_\.]+):(%s)\n' % identifier)
 
 PATH = os.environ['IKARUS_LIBRARY_PATH']
