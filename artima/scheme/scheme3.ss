@@ -80,7 +80,7 @@ various tricks to reduce their number (I myself I tried various
 approaches when I began programming in Scheme). 
 
 There is also an SRFI (SRFI-49_:  *Indentation-sensitive syntax*)
-that proposes to use indentation instead of parenthesi keeping
+that proposes to use indentation instead of parenthesis keeping
 inspiration from Python (!) The proposal should be considered as
 curiosity; discussing about indentation could have had some sense
 thirty years ago, at the time Scheme was designed. Nowadays, when

@@ -163,7 +163,7 @@ for instance Paul Graham's Arc_ uses less parenthesis. This is
 possible since it does not provide a macro system based on
 pattern matching (which is a big *minus* in my opinion). Is it possible
 to have both? A syntax with few parenthesis for writing code manually
-and a syntax with many parenthesi for writing macros. The answer is yes:
+and a syntax with many parenthesis for writing macros. The answer is yes:
 the price to pay is to double the constructs of the language and to
 use a Python-like approach.
 

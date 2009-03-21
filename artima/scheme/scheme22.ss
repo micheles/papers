@@ -1,15 +1,17 @@
-#|
-In the last dozen episodes I defined plenty of macros, but I did not
-really explain what macros are and how they work. This episode will
-close the gap, and will explain the true meaning of macros by
-introducting the concept of *syntax object* and the concept of
-*transformer* over syntax objects.
+#|Syntax objects, hygiene and pattern matching
+===================================================================
+
+In the last dozen episodes I have defined plenty of macros, but I have
+not really explained what macros are and how they work. This episode
+will close the gap, and will explain the true meaning of macros by
+introducing the concepts of *syntax object* and of *transformer* over
+syntax objects.
 
 Syntax objects
 ------------------------------------------------------------------
 
 Scheme macros are built over the concept of *syntax object*.
-This concept is peculiar to Scheme and has no counterpart in other 
+The concept is peculiar to Scheme and has no counterpart in other 
 languages (including Common Lisp), therefore it is worth to spend some time
 on it.
 
@@ -17,27 +19,30 @@ A *syntax-object* is a kind of enhanced *s*-espression: it contains
 the source code as a list of symbols and primitive values, plus
 additional informations, such as
 the name of the file containing the source code, the line numbers,
-a system of marks to distinguish identifiers according to their
+a set of marks to distinguish identifiers according to their
 lexical context, and more.
 
-It is possible to convert a variable or a literal value into a 
+It is possible to convert a name or a literal value into a 
 syntax object with the syntax quoting operation, i.e. the funny
 ``#'`` symbol you have seen in all the macros I have defined until now::
 
- > #'x ; convert a variable into an identifier
+ > #'x ; convert a name into an identifier
  #<syntax x>
  > #''x ; convert a literal symbol
  #<syntax 'x>
  > #'1 ; convert a literal number
  #<syntax 1>
- > #''(1 2) ; convert a literal data structure
- #<syntax '(1 2)>
+ > #'"s" ; convert a literal string
+ #<syntax "s">
+ > #''(1 "a" 'b) ; convert a literal data structure
+ #<syntax '(1 "a" 'b)>
 
-Notice that I am running all my examples under Ikarus; your Scheme
+Here I am running all my examples under Ikarus; your Scheme
 system may have a slightly different output representation for syntax
 objects.
 
-In general ``#'`` can be applied to any expression::
+In general ``#'`` - also spelled ``(syntax )`` - can be "applied"
+to any expression::
 
  > (define syntax-expr #'(display "hello"))
  > syntax-expr
@@ -61,7 +66,7 @@ the sense that both corresponds to the same datum::
 It is possible to promote a datum to a syntax object with the
 ``datum->syntax`` procedure, but in order
 to do so you need to provide a lexical context, which can be specified
-by using a dummy identifier::
+by using an identifier::
 
  > (datum->syntax #'dummy-context '(display "hello"))
  #<syntax (display "hello")
@@ -69,18 +74,20 @@ by using a dummy identifier::
 (the meaning of the lexical context in ``datum->syntax`` is tricky and
 I will go back to that in future episodes).
 
-In analogy to the ``quasiquote`` concept, there is a 
-``quasisyntax`` operator denoted with ``#```; moreover, in analogy
-to the operation ``,`` and ``,@`` on regular lists, there are two operations
-``unsyntax``
-``#,`` (*sharp comma*) e ``unsyntax-splicing`` ``#,@`` (*sharp comma splice*)
-on lists (inclusing improper lists) of syntax objects. Here is an example
-using ``#,``::
+The ``(syntax )`` macro is analogous to the ``(quote )`` macro;
+moreover, there is a ``quasisyntax`` macro denoted with ``#``` which
+is analogous to the ``quasiquote`` macro (`````) and, in analogy to
+the operation ``,`` and ``,@`` on regular lists, there are two
+operations ``unsyntax`` ``#,`` (*sharp comma*) e ``unsyntax-splicing``
+``#,@`` (*sharp comma splice*) on lists (including improper lists) of
+syntax objects.
+
+Here is an example using sharp-comma::
 
  > (let ((user "michele")) #`(display #,user))
  (#<syntax display> "michele" . #<syntax ()>)
 
-and here is an example using ``#,@``::
+and here is an example using sharp-comma-splice::
 
  > (define users (list #'"michele" #'"mario"))
  > #`(display (list #,@users))
@@ -136,34 +143,63 @@ Here is an example using ``quasisyntax`` and ``unsyntax-splicing``::
  (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
 
 As you see, it easy to write hieroglyphs if you use ``quasisyntax`` 
-and ``unsyntax-splicing``. To avoid that, Scheme provides a ``with-syntax``
-form::
+and ``unsyntax-splicing``. You can avoid that by means of the ``with-syntax``
+form introduced in the previous episode::
 
  > (syntax-match #'(a 1 2 3) ()
-     (sub (name . args) (with-syntax (((a ...) #'args))
-                           #'(name a ...))))
+     (sub (name . args) (: with-syntax (a ...) #'args #'(name a ...))))
  (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
  
 
-``with-syntax`` allow to introduce a set of pattern variables which
+The pattern variables introduced by ``with-syntax``
 are automatically expanded inside the syntax template, without
 resorting to the quasisyntax notation (i.e. there is no need for
 ``#```, ``#,``, ``#,@``).
 
-A concrete example
------------------------------------------------------
+Example 1: breaking hygiene
+--------------------------------------------------------------
 
-The previous paragraphs about syntax objects have been a bit abstract and
+The previous paragraphs about syntax objects have been a little abstract and
 probably of unclear utility (but what would you expect from
 an advanced macro tutorial? ;). In this paragraph I will be more
-concrete and I will provide an useful example of a macro providing
+concrete and I will provide an useful example of usage for ``datum->syntax``.
+
+The typical use case for ``datum->syntax`` is to turn symbols
+into proper identifiers which can be introduced in macros and made
+visible to expanded code, thus breaking hygiene. Coming back
+to the example in the latest issue, the ``def-book`` macro,
+we can introduce two identifiers for the fields ``title`` and
+``author`` as follows:
+
+$$DEF-BOOK
+
+where the helper function ``identifier-append`` is defined as
+
+$$lang:IDENTIFIER-APPEND
+
+All the functions used here (``string->symbol``, ``string-append``,
+``symbol->string`` work in the obvious way. Notice that for convenience
+I have put ``identifier-append``, together with a companion function
+``identifier-prepend`` in the ``aps`` package, in the ``(aps lang)`` module.
+
+Here is a test, showing that hygiene is effectively broken and that
+the identifiers ``name-title`` and ``name-author`` are really introduced
+in the namespace after expansion:
+
+$$TEST-DEF-BOOK
+
+Example 2: matching generic syntax lists
+--------------------------------------------------------------
+
+In this paragraph I will show an example of ``syntax-match``, used
+at its fullest potential to define a macro providing
 a nicer syntax for association lists (an association list is just
 a non-empty list of non-empty lists). The macro will accepts a variable
 number of arguments; every argument will be be of the form ``(name value)`` or
 just a single identifier: in this case it will be magically converted
 into the form ``(name value)`` where ``value`` is the value of the
 identifier, assuming it is bound in the current scope, otherwise
-a run time error will be raised ("unbound identifier"). If you try to
+a run time error will be raised (``"unbound identifier"``). If you try to
 pass an argument which is not of the expected form, a compile time
 syntax error will be raised.
 In concrete, the macro will work as follows:
@@ -178,60 +214,39 @@ $$ALIST
 As you see the core of the macro is the ``syntax-match`` transformer,
 which is able to convert identifiers of the form ``n`` into couples ``(n n)``,
 whereas it leaves couples ``(n v)`` unchanged, but checking that ``n`` is an
-identifier. ``with-syntax`` introduces a set of pattern variables
-``(name value)`` which are later used in the macro template, the ``let*``
-form.
-
-There is a little problem with ``alist``; it would look nicer to
-give a name to the logic of management of the arguments:
-
-$$NORMALIZE
-
-Having defined this helper function, the original macro becomes more readable:
-
-$$ALIST2
-
-The major advantage, however, is that now you can reuse the argument
-normalization procedure in other macros. To this aim it is enough
-to save the ``normalize`` procedure in a separated module and import it
-when needed. This is however quite nontrivial, since it involves
-a hairy discussion of compile-time vs run-time and implementation-specific
-caveats that will take a whole episode to explain in detail. That
-will be the subject of episode 20. See you next time!
+identifier. 
 
 |#
-(import (rnrs) (sweet-macros) (aps list-utils) (aps easy-test))
+(import (rnrs) (sweet-macros) (aps list-utils) (aps easy-test) (aps compat)
+        (for (aps lang) expand run))
 
 ;;ALIST
 (def-syntax (alist arg ...)
-  (with-syntax ((((name value) ...)
-                 (list-of (syntax-match a ()
-                            (sub n #'(n n) (identifier? #'n))
-                            (sub (n v) #'(n v) (identifier? #'n)))
-                          (a in #'(arg ...)))))
-    #'(let* ((name value) ...)
-        (list (list 'name name) ...))))
-;;END
-
-;;NORMALIZE
-(define (normalize ls)
-  (list-of (syntax-match a ()
-              (sub n #'(n n) (identifier? #'n))
-              (sub (n v) #'(n v) (identifier? #'n)))
-           (a in ls)))
-;;END
-
-;;ALIST2
-(def-syntax (alist2 arg ...)
-  (: with-syntax ((name value) ...) (normalize #'(arg ...))
-     (if (for-all identifier? #'(name ...))
-         #'(let* ((name value) ...)
-             (list (list 'name name) ...))
-         (syntax-violation 'alist "Found non identifier" #'(name ...)
-                           (remp identifier? #'(name ...))))))
+  (: with-syntax
+     ((name value) ...)
+     (list-of (syntax-match a ()
+                (sub n #'(n n) (identifier? #'n))
+                (sub (n v) #'(n v) (identifier? #'n)))
+              (a in #'(arg ...)))
+     #'(let* ((name value) ...)
+         (list (list 'name name) ...))))
 ;;END
 
 (display (syntax-expand (alist2 (a 1) (b (* 2 a)))))
+
+;;DEF-BOOK
+(def-syntax (def-book name title author)
+  (: with-syntax
+     name-title (identifier-append #'name "-title")
+     name-author (identifier-append #'name "-author")
+     #'(begin
+         (define name (vector title author))
+         (define name-title (vector-ref name 0))
+         (define name-author (vector-ref name 1)))))
+
+;;END
+(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
+
 
 (run
 
@@ -240,13 +255,20 @@ will be the subject of episode 20. See you next time!
        (alist (a 1) (b (* 2 a)))
        '((a 1) (b 2)))
  
- (let ((a 1))
-   (test "mixed"
-         (alist2 a (b (* 2 a)))
-         '((a 1) (b 2))))
-
- ;(test "with-error"
- ;      (catch-error (alist2 (a 1) (2 3)))
- ;      "invalid syntax")
  ;;END
- )
+ ;(test "with-error"
+ ;     (catch-error (alist2 (a 1) (2 3)))
+ ;     "invalid syntax")
+
+
+ ;;TEST-DEF-BOOK
+ (test "def-book"
+       (let ()
+         (def-book bible "The Bible" "God")
+         (list bible-title bible-author))
+       (list "The Bible" "God"))
+ ;;END
+)
+
+
+

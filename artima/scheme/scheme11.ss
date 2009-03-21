@@ -73,7 +73,7 @@ As an exercise, you could extend ``for`` to accept a generic step.
 You can find the solution in the Italian `original version`_ of this article,
 which is quite different and uses ``syntax-rules``.
 
-.. image:: gears.gif
+.. image:: gears.png
    :width: 240
 
 .. _episode #10: http://www.artima.com/weblogs/viewpost.jsp?thread=240805

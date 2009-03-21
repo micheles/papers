@@ -92,7 +92,7 @@ Recursive macros with accumulators
 The goal of learning macros well enough to implement a programming language
 is an ambitious one; it is not something we can attain in an episode of the
 Adventures, nor in six. However, one episode is enough to explain at least
-one useful tecniques which is commonly used in Scheme macrology and which
+one useful techniques which is commonly used in Scheme macrology and which
 is good to know in order to reach our final goal, in time.
 The technique we will discuss in this episode is the accumulator trick,
 which is analogous to the accumulator trick we first discussed in episode

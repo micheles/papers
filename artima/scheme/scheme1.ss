@@ -19,7 +19,7 @@ similar: interpreted, very dynamic, with a strong support for
 scripting (ok, maybe PHP does not fit the last point, but you get the
 idea ;)
 
-Scheme is different. Even if it is very dinamic and well
+Scheme is different. Even if it is very dynamic and well
 suited for scripting, very often it is also compiled (both
 to native code or to a target language such as C, Java or the CLR)
 and can work at C speed. Moreover Scheme is a functional
@@ -81,7 +81,7 @@ artificial intelligence and related topics.
 Both fields had first class brains and the result of their effort
 were Fortran, which is still - after fifty years - the reference point
 for numeric computation, and Lisp, which is still the reference
-point for metaprogramming tecniques. Both languages had and still
+point for metaprogramming techniques. Both languages had and still
 have and enormous success in they market niche and will be probably
 still be us one hundred years from now.
 Nevertheless, both Fortran and Lisp are nowadays languages of small

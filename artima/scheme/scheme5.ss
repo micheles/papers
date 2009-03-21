@@ -238,7 +238,7 @@ with the following R6RS-compliant script (written in Ikarus Scheme)::
  (display "result:") (display (fac n)) (newline)
 
 
-.. image:: clessidra.gif
+.. image:: clessidra.png
    :width: 175
 
 I will notice two things:
