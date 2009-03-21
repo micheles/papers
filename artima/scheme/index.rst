@@ -2,7 +2,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-The Adventures of a Pythonista in Schemeland's
+The Adventures of a Pythonista in Schemeland
 ========================================================================
 
 Contents:

@@ -141,7 +141,7 @@ table-of-contents: table-of-contents.txt
 	$(POST) table-of-contents.txt 251474
 
 fourth-cycle: fourth-cycle.txt
-	$(POST) fourth-cycle.txt 
+	$(POST) fourth-cycle.txt 253071
 
 19: scheme19.ss
 	$(RST) scheme19.ss; $(POST) scheme19.rst 251476
