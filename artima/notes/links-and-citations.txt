@@ -18,3 +18,10 @@ http://groups.google.com/group/comp.lang.scheme/msg/a1e76fd2d76cd47d?hl=en
 -- REST
 http://www.turbogears.org/2.0/docs/main/RestControllers.html
 
+Sometimes Python is accused of having too many web frameworks. And it’
+s true, there are a lot. That said, I think writing a framework is a
+useful exercise. It doesn’t let you skip over too much without
+understanding it. It removes the magic. So even if you go on to use
+another existing framework (which I’d probably advise you do), you’
+ll be able to understand it better if you’ve written something like
+it on your own. -- Ian Bicking http://pythonpaste.org/webob/do-it-yourself.html

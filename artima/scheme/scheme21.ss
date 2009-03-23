@@ -146,6 +146,8 @@ wait for a future episode ;)
 Hygiene
 ---------------------------------------------------------------------
 
+.. hygiene in R6RS: http://docs.plt-scheme.org/r6rs-lib-std/r6rs-lib-Z-H-13.html#node_sec_12.1
+
 There is a subtle point about the ``def-record-type`` macro defined in
 the previous paragraph. Such a macro introduces a lots
 of auxiliary functions, such as ``record-new``, ``record?``, and an accessor

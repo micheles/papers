@@ -30,29 +30,29 @@ Python 2.6 thanks to the Abstact Base Class mechanism (ABC_);
 it is enought to register ``SimplePictureContainer`` as an ABC of
 ``PictureContainer2`` and you are done.
 
-Cosa si può fare in questa situazione? Direi che ci sono almeno tre
-possibili atteggiamenti:
+What can we do in such a situation? In my view there are at least
+three possible attitudes:
 
-1. La rassegnazione. Rendersi conto che ormai il linguaggio
-   permette l'ereditarietà multipla e/o i mixin, che molti framework li usano e
-   che non cambierà mai. Inventare dei workaround per cercare di
-   sopravvivere, come il decoratore ``warn_overriding`` che ho
-   definito nel primo articolo della serie e scrivere dei tool di
-   introspezioni migliori per orientarsi nella selva dei mixin (il
-   problema di pydoc è che dà *troppa* informazione).
+1. Resignation. Acknowledge that the language allows multiple inheritance
+   and mixins, which is used by many frameworks and that it will never go
+   away. Therefore one should focus of discovering solution to cope with
+   the situation, like the ``warn_overriding`` decorator that I introduced
+   in the first article of this series; one can also write better introspection
+   tools to navigate though mixins (the issue with pydoc is that it give
+   *too much* information);
 
-2. L'educazione. Darsi da fare per rendere noti al grande pubblico i
+2. Education. Darsi da fare per rendere noti al grande pubblico i
    problemi dei mixin e convincere gli autori dei framework del futuro
-   a usare design alternativi. È quello che ho cercato di fare con
-   il secondo articolo di questa serie.
+   a usare design alternativi. That is what I tried to accomplish with the
+   second paper in this series.
 
-3. La ricerca. Studiare implementazioni migliori dell'idea dei mixin:
+3. Research. Studiare implementazioni migliori dell'idea dei mixin:
    anche se non ci sono speranze per il linguaggio che si sta usando
-   per motivi di compatibilità con il passato, la ricerca non è
-   inutile perché potrebbe essere implementata nei linguaggi del futuro. 
-   Lo stesso Python può essere usato come linguaggio di 
+   per motivi di compatibilit con il passato, la ricerca non 
+   inutile perch potrebbe essere implementata nei linguaggi del futuro. 
+   Lo stesso Python pu essere usato come linguaggio di 
    sperimentazione ed in questo articolo mostro come implementare
-   i mixin in termini di descrittori e non di ereditarità.
+   i mixin in termini di descrittori e non di ereditarita.
 
 An exercise in design
 -------------------------------------------------------------
@@ -77,6 +77,7 @@ con la GUI (settaggio dei parametri, dei menu, dei bottoni, metodi
 ausiliari e chi più ne ha più ne metta). Potremmo mettere tutti
 questi 50 metodi in una classe mixin chiamata ``GUI`` ed ereditare
 da ``DictMixin`` e da ``GUI``. 
+
 
 Fin qui nulla di male. Supponiamo però che
 la versione 2 della nostra applicazione debba andare su Web;
@@ -109,12 +110,10 @@ centinaia di metodi.  Questo scenario non è affatto
 irrealistico: è esattamente quello che è avvenuto in
 Zope/Plone. 
 
-In queste condizioni
-viene da chiedersi se esistono design alternative ai mixin che evitano
-il problema del sovraffollamento dei metodi.  La risposta è sì ed è
-sempre la solita, usare la composizione al posto dell'ereditarietà,
-pratica comunemente consigliata in ogni buon manuale di programmazione
-orientata agli oggetti ma messa in opera non abbastanza spesso.
+In such a situation one must ask if there are alternative designs that
+would avoid the overpopulation problem. The answer is yes, and it is the
+standard one: *use composition instead of inheritance*. Everybody recommends
+this practice, but yet it is not followed enough in real life.
 
 .. _articolo precedente: mixins1.html
 .. _Plone Site: http://www.phyast.pitt.edu/~micheles/python/plone-hierarchy.png

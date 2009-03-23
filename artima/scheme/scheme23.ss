@@ -1,205 +1,211 @@
-#|Phase separation
-===============================================================
+#|
+Relation with standard macros
+---------------------------------------------------------------
 
-Phase separation
+In episode 9_ I akwnoledged the fact that Scheme provides at least three
+different macro systems - ``syntax-rules``, ``syntax-case`` and
+``define-macro`` - yet I have
+decided to explain only my own personal macro system - ``sweet-macros``.
+The decision was motivated by pedagogical reasons,  because I did not want
+to confuse my readers by describe too many macro frameworks
+at the same time, and also because I want to make macros
+easier, by providing a nicer syntax and introspection features.
+However now, after more than a dozen
+episodes about macros, I can assume my readers are beginners no more,
+and it is time to have a look at the larger Scheme world and to
+compare/contrast ``sweet-macro`` with the other systems out there.
+
+syntax-match vs syntax-rules
+-----------------------------------------------------------------
+
+``syntax-rules`` can be quite trivially defined in terms of
+``syntax-match``::
+
+ (def-syntax (syntax-rules (literal ...) (patt templ) ...)
+   #'(syntax-match (literal ...) (sub patt #'templ) ...))
+
+As you see, the difference between ``syntax-rules`` (a part
+for missing the ``sub`` literal)
+is that ``syntax-rules`` automatically adds the syntax-quote ``#'``
+operator to you templates. That means that you cannot use
+quasisyntax tricks and that ``syntax-rules`` is strictly less
+powerful than ``syntax-match``: in particular you cannot
+break hygiene with it. Moreover, ``syntax-rules`` macros
+do not have guarded patterns; the most direct consequence is that
+providing good error messages for wrong syntaxes is more difficult.
+
+syntax-match vs syntax-cases
+-----------------------------------------------------------------
+
+``syntax-case`` can also be defined in terms of ``syntax-match`` as follows::
+
+ (def-syntax syntax-case
+   (syntax-match ()
+    (sub (syntax-case x (literal ...) (patt guard skel) ...)
+     #'(syntax-match x (literal ...) (sub patt skel guard) ...))
+    (sub (syntax-case x (literal ...) (patt skel) ...)
+     #'(syntax-match x (literal ...) (sub patt skel) ...))
+  ))
+
+In practice, however, ``syntax-case`` is a Scheme primitive and
+``syntax-match`` is defined on top of it. So, ``syntax-case`` has
+theoretically the same power as ``syntax-match``, but in practice
+``syntax-match`` is more convenient to use because of the
+introspection features.
+
+The major syntactic difference (apart from the absense of the ``sub`` literal)
+is the position of the guard, which in ``syntax-case`` is positioned *before*
+the skeleton, whereas in ``syntax-match`` is positioned *after* the skeleton.
+Changing the position has cost me a lot of reflection, since I *hate*
+gratuitous breaking. However, I am convinced that the position of the
+guard in ``syntax-case`` is really broken, so I had to *fix* the issue.
+Why do I say so?
+
+``syntax-match`` versus ``define-macro``
+---------------------------------------------------------------
+
+Nowadays macros based on ``define-macro`` are much less used than in past,
+in part because of the hygiene issue, and in part because macro systems based
+on pattern matching are much more powerful and easy to use. The R6RS
+specification made ``syntax-case`` enters in the standard and this is
+the preferred macro system for most implementation.  For instance
+Chicken Scheme, which traditionally used ``define-macro`` a lot, is
+going to remove it from the core, using ``syntax-case`` instead: this
+is the reason why the next major Chicken version, Chicken 4.0, will be
+called "hygienic Chicken".
+
+Nowadays, there is a good chance that your Scheme implementation does
+not provide ``define-macro`` out of the box, therefore you need to implement
+it in term of ``syntax-case`` (or ``syntax-match``). Here is an example
+of such an implementation:
+
+$$DEFINE-MACRO
+
+The code should be clear: the arguments of the macro are converted into
+a regular list which is then transformed with the expander, and converted
+back into a syntax object in the context of the macro. The problem with
+``define-macro`` (and the reason it is becoming less and less used in
+the Scheme world) is the hygiene problem.
+
+.. _9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
+
+More on the hygiene problem
 -------------------------------------------------
 
-Phase separation is one of the trickiest concepts in Scheme macrology,
-and perhaps the one that gave me the most headaches when I was learning
-macros. It still beats me sometimes. Actually, the concept it is not
-that difficult, it is its practical implementation which is extremely
-tricky because it is *unspecified by the Scheme standard* and
-totally *implementation-dependendent*: worse than
-that, the *same* implementation can implement phase separation *differently*
-in compiled code and in interpreted code, and/or differently in the REPL 
-and in scripts!
+I have already said a few words about hygiene last week.
+If you have experience in Common Lisp or other Lisp dialects, you will
+have heard about the problem of hygiene in macros. You can find good
+discussions of the hygiene problem in Common Lisp in many places; I am
+familiar with Paul Graham's book `On Lisp`_ which I definitively
+recommend. In Scheme such
+problem usually does not exist, but it is worth to know about it, since
+often people wants to break hygiene on purpose.
+Consider for instance the following macro:
 
-Consider for instance this example in Ypsilon, which tries to implement
-a macro registry: 
+$$DEFINE-A
 
-$$registry.ypsilon:
+``(define-a x)`` expands to ``(define a x)``, so you may find the following
+surprising::
 
-You can run the example and you will get
+ > (define-a 1)
+ > a
+ Unhandled exception
+  Condition components:
+    1. &undefined
+    2. &who: eval
+    3. &message: "unbound variable"
+    4. &irritants: (a)
 
-``registry: ((#<syntax m>)``
+Why is the variable ``a`` not defined? The reason is that Scheme macros
+are hygienic, i.e. they *do not introduce identifiers implicitly*.
+This just another (and perhaps simpler) manifestation of the behavior
+we discussed last week.
 
-as result (notice however that if you comment out the macro use, i.e.
-the ``(m)`` line, the registry will *not* be populated).
-So everything seems to work as one would expect.
-However, if you try to run the same
-example in Ikarus or in PLT Scheme or in most other R6RS Scheme
-implementations you will get an error. Let me
-show the PLT error message message, which is rather
-clear if you understand what phase separation is, wheread
-the Ikarus error message is somewhat misleading for reasons misterious to me::
 
- $ plt-r6rs registry.ypsilon.ss 
- registry.ypsilon.ss:10:5: compile: unbound variable in module
- (in the transformer environment, which does not include the
- run-time definition) in: register
+``define-macro`` works as you would expect:
 
-Ypsilon, as most interpreted Scheme implementations, has no phase separation:
-there is no big difference between macros and functions, which are
-simply recognized in the order given by their position in the source code.
-In our example the ``register`` function comes before the ``m`` macro,
-so it can be used in the right hand side of the macro definition.
+$$DEFINE-A-NH
 
-Life is different when you have a Scheme implementation supporting phase
-separation, which means most Scheme implementations. For such implementations
-macro definitions are taken in consideration
-*before* function definitions, independently from their relative
-position in the source code. Therefore our example fails to compile
-since the ``m`` macro makes use of the ``register`` function which is
-*not yet defined* at the time the macro is considered, i.e. at compilation
-time. The only way to make available a function defined
-at runtime at compilation time is to define the function in a different
-module and to import it in the original module.
-This is enough to solve the problem for Ikarus, which has *weak phase
-separation*, but it is not enough for PLT Scheme or Larceny, which have
-*strong phase separation*.
+ > (define-a 1)
+ > a
+ 1
 
-An example will clarify the point. Suppose we define a registry module
-as follows
+The question is: why I see that this behavior is a problem? It looks like
+the natural things to do, isn't it? The issue is that having macros
+introducing identifiers implicitly can cause unespected side
+effects. The problem is called variable capture. As Paul Graham puts it,
+"viciousness".
 
-$$experimental/registry:
+Here is an example of subtle bug caused by variable capture:
 
-(for convenience I am storing all this
-code in a package called ``experimental``) and suppose we use it as follows:
 
-$$use-registry.ikarus:
+bound-identifier=? and free-identifier=?
+=======================================================================
 
-In Ikarus everything works fine (in Ypsilon too of course)
-and running the script will return you something like
+The question if two identifiers refers to the same binding or not
 
-::
+$$EXPAND-X
 
- registering #<syntax m [char 83 of use-registry.ikarus.ss]>
- (#<syntax m [char 83 of use-registry.ikarus.ss]>)
-
-(notice the annotation about the position of the identifier ``m`` in
-the source code of the script, a signature of the fact that ``m``
-is a bona fide syntax object).
-
-In PLT Scheme instead running the script raise an error::
-
- $ plt-r6rs use-registry.ikarus.ss
- use-registry.ikarus.ss:5:5: compile: unbound variable in module
- (transformer environment) in: register
-
-The problem is that PLT Scheme has *strong phase separation*: by default
-names defined in external modules are imported *only* at runtime.
-In some sense this is absurd since
-names defined in an external pre-compiled modules
-are of course known at compile time
-(this is why Ikarus has no trouble to import them at compile time);
-nevertheless PLT Scheme and Larceny Scheme forces you to specify
-at which phase the functions must be imported. If you want to import
-them at expansion time (the time when macros are processed; often
-incorrectly used as synonymous for compilation time) you must say so:
-
-$$use-registry.mzscheme:
-
-Notice also that I did specify importation at run time for the
-``registry`` function, since it is called at runtime, i.e. not inside
-macros. If you run this script you will get::
-
- $ plt-r6rs use-registry.mzscheme.ss
- registering #<syntax:/home/micheles/gcode/artima/scheme/use-registry.mzscheme.ss:8:16>
- ()
-
-The PLT Scheme representation of syntax objects shows the line number and
-the column number, therefore you should interpret the previous out as
-*I am registering the syntax object defined in the source file
-use-registry.mzscheme.ss, at line 8 and column 16*, which corresponds
-to the identifier ``m``.
-
-This is close, but not quite cigar. The script now runs, but it returns a
-rather unexpected empty list. The reason why the registry is empty has
-nothing to do with phase separation, but rather another "feature"
-of PLT Scheme (and only of PLT Scheme) which goes under the name
-of multiple instantiation of modules. Since it would be confusing
-to discuss it in this moment, and since I do not want to complicate
-the matters with phase separations, which is already complicated as
-it is, let me defer a full explanation of this point to a future
-episode of my *Adventures*.
-
-Discussion
--------------------------------------------------
-
-Is phase separation a good thing?
-It is clear that for the programmer's point of view, the simplest thing
-is lack of phase separation. This is the semantic typically (but now
-always) chosen by Scheme interpreters and REPLs: as soon as you type
-it in, an helper function is available for use in macros.
-If you look at it with honesty, at the end phase separation is
-nothing else that a *performance hack*: by separing compilation time
-from runtime you can perform some computation at compilation time only
-and gain performance.
-
-Therefore, if you have a compiled version of Scheme,
-it makes sense to separate compilation time from runtime, and to
-expand macros *before* compiling the helper functions (in absence of
-phase separation, macros are still expanded before running any runtime
-code, but *after* recognizing the helper functions).
-Notice that Scheme has a concept of *macro expansion time* which is
-valid even for interpreted implementation when there is no compilation
-time. The `expansion process`_ of Scheme source code is specified in
-the R6RS.
-
-There is still the question if strong phase separation is a good thing,
-or if weak phase separation (as in Ikarus) is enough. For the programmer
-weak phase separation is easier, since he does not need to specify
-the phase in which he want to import names. Strong phase separation
-has been introduced so that at compile time a language which is
-completely different from the language you use at runtime. In particular
-you could decided to use in macros a subset of the full R6RS language.
-
-Suppose for instance you are a teacher, and you want to force your
-students to write their macros using only a functional subset of Scheme.
-You could then import at compile time all R6RS procedures except the
-nonfunctional ones (like ``set!``) while keeping import at runtime
-the whole R6RS. You could even perform the opposite, and remove ``set!``
-from the runtime, but allowing it at compile time.
-
-Therefore strong phase separation is strictly more powerful than week
-phase separation, since it gives you more control. In Ikarus, when
-you import a name in your module, the name is imported in all phases,
-and there is nothing you can do about it.
-On the other hand strong phase separation makes everything more complicated:
-it is somewhat akin to the introduction of multiple namespace, because
-the same name can be imported in a given phase and not in another,
-and that can lead to confusion.
-
-There are people in the Scheme community thinking that strong phase
-separation is a mistake, and that weak phase separation is the right thing
-to do. On the other side people (especially from the PLT community where
-all this originated) sing the virtues of strong phase separation and say
-all good things about it. I personally I have not seen a compelling
-use case for strong phase separation yet, and I would be happy is
-some of my readers could give me such an example.
-On the other hand, I am well known for preferring simplicity over
-(unneeded) power. 
-
-.. _expansion process: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-13.html#node_chap_10
 |#
 
-(import (rnrs) (sweet-macros) (aps list-utils) (aps easy-test) (aps compat)
-        (for (aps lang) expand run))
+(import (rnrs) (sweet-macros) (aps lang) (aps list-utils) (aps compat)
+        (aps test-utils))
 
-;;ALIST2
-(def-syntax (alist2 arg ...)
-  (: with-syntax ((name value) ...) (normalize #'(arg ...))
-     (if (for-all identifier? #'(name ...))
-         #'(let* ((name value) ...)
-             (list (list 'name name) ...))
-         (syntax-violation 'alist "Found non identifier" #'(name ...)
-                           (remp identifier? #'(name ...))))))
+;DEFINE-MACRO
+(def-syntax define-macro
+  (syntax-match ()
+     (sub (define-macro (name . params) body1 body2 ...)
+         #'(define-macro name (lambda params body1 body2 ...)))
+     (sub (define-macro name expander)
+         #'(def-syntax (name . args)
+             (datum->syntax #'name (apply expander (syntax->datum #'args)))))
+     ))
+;END
+
+;DEFINE-A
+(def-syntax (define-a x)
+  #'(define a x))
+;END
+
+;DEFINE-A-NH
+(define-macro (define-a* x)
+  `(define a ,x))
+;END
+
+(def-syntax (let-3 name list-3 body body* ...)
+  #`(let+ ((x y z) list-3)
+          (let ((#,(identifier-append #'name  ".x") x)
+                (#,(identifier-append #'name  ".y") y)
+                (#,(identifier-append #'name  ".z") z))
+            body body* ...)))
+ 
+(pretty-print (syntax-expand             
+  (let-3 v '(a b c)
+   (display (list v.x v.y v.z)))
+))
+
+
+(let-3 v '(a b c)
+   (display (list v.x v.y v.z)))
+(newline)
+
+;;EXPAND-X
+(def-syntax expand-x
+  (syntax-match ()
+    (sub (expand-x id) "bound x" (bound-identifier=? #'id #'x))
+    (sub (expand-x id) "free x" (free-identifier=? #'id #'x))   
+    (sub (expand-x id) "other")))
 ;;END
 
 (run
- (let ((a 1))
-   (test "mixed"
-         (alist2 a (b (* 2 a)))
-         '((a 1) (b 2))))
- )
+ (test "free identifier"
+       (expand-x x)
+       "free x")
+ (test "non-free identifier"
+       (let ((x 1)) (display (expand-x x)))
+       "other")
+ (test "other identifier"
+       (expand-x y)
+       "other"))
+
 

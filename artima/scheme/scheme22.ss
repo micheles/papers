@@ -188,6 +188,17 @@ in the namespace after expansion:
 
 $$TEST-DEF-BOOK
 
+**Warning**: if you have a macro depending on helper functions, like
+the previous one, you must put the helper functions in a separated
+module if you want to ensure portability. Moreover, you must
+import the helper functions with the syntax ``(for (module-name) expand)``
+meaning that the helper functions are intended to be used at expand
+time, in macros. Ikarus is quite forgiving and can just use a regular
+import, but PLT Scheme and Larceny will raise an error if you do not
+use the ``for expand``. A full description of the module system, with
+all the gory details, will require six more episodes, and will constitute
+part V of these *Adventures*.
+
 Example 2: matching generic syntax lists
 --------------------------------------------------------------
 
@@ -217,22 +228,22 @@ whereas it leaves couples ``(n v)`` unchanged, but checking that ``n`` is an
 identifier. 
 
 |#
-(import (rnrs) (sweet-macros) (aps list-utils) (aps easy-test) (aps compat)
+(import (rnrs) (sweet-macros) (aps easy-test) (aps compat)
         (for (aps lang) expand run))
 
 ;;ALIST
 (def-syntax (alist arg ...)
   (: with-syntax
      ((name value) ...)
-     (list-of (syntax-match a ()
-                (sub n #'(n n) (identifier? #'n))
-                (sub (n v) #'(n v) (identifier? #'n)))
-              (a in #'(arg ...)))
+     (map (syntax-match ()
+            (sub n #'(n n) (identifier? #'n))
+            (sub (n v) #'(n v) (identifier? #'n)))
+          #'(arg ...))
      #'(let* ((name value) ...)
          (list (list 'name name) ...))))
 ;;END
 
-(display (syntax-expand (alist2 (a 1) (b (* 2 a)))))
+(display (syntax-expand (alist (a 1) (b (* 2 a)))))
 
 ;;DEF-BOOK
 (def-syntax (def-book name title author)

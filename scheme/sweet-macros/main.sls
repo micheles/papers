@@ -59,12 +59,13 @@
     
     (sub (def-syntax name transformer)
      #'(define-syntax name
-         (syntax-match (<source> <transformer>)
-           (sub (name <transformer>) #'(... (... transformer)))
-           (sub (name <source>) #''(... (... transformer)))
-           (sub x (transformer #'x))))
-     (identifier? #'name)
-     (syntax-violation 'def-syntax "Invalid name" #'name))
+         (lambda (x)
+           (syntax-case x (<source> <transformer>)
+             ((name <transformer>) #'(... (... transformer)))
+             ((name <source>) #''(... (... transformer)))
+             (x (transformer #'x)))))
+     (identifier? #'name))
+     ;(syntax-violation 'def-syntax "Invalid name" #'name))
 
     (sub (def-syntax name (extends parent) (literal ...) clause ...)
      #'(def-syntax name
