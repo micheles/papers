@@ -100,35 +100,6 @@ familiar with Paul Graham's book `On Lisp`_ which I definitively
 recommend. In Scheme such
 problem usually does not exist, but it is worth to know about it, since
 often people wants to break hygiene on purpose.
-Consider for instance the following macro:
-
-$$DEFINE-A
-
-``(define-a x)`` expands to ``(define a x)``, so you may find the following
-surprising::
-
- > (define-a 1)
- > a
- Unhandled exception
-  Condition components:
-    1. &undefined
-    2. &who: eval
-    3. &message: "unbound variable"
-    4. &irritants: (a)
-
-Why is the variable ``a`` not defined? The reason is that Scheme macros
-are hygienic, i.e. they *do not introduce identifiers implicitly*.
-This just another (and perhaps simpler) manifestation of the behavior
-we discussed last week.
-
-
-``define-macro`` works as you would expect:
-
-$$DEFINE-A-NH
-
- > (define-a 1)
- > a
- 1
 
 The question is: why I see that this behavior is a problem? It looks like
 the natural things to do, isn't it? The issue is that having macros
@@ -136,8 +107,30 @@ introducing identifiers implicitly can cause unespected side
 effects. The problem is called variable capture. As Paul Graham puts it,
 "viciousness".
 
-Here is an example of subtle bug caused by variable capture:
+Consider for instance this "dirty" definition of the ``for`` loop:
 
+.. code-block:: scheme
+
+ (define-macro (dirty-for i i1 i2 . body)
+   `(let ((start ,i1) (stop ,i2))
+      (let loop ((i start))
+        (unless (>= i stop) ,@body (loop (+ 1 i))))))
+
+The mistake here is having forgotten to ``gensym`` the newly
+introduced variables ``start`` and ``stop``, a common mistake for
+beginners (and occasionally, even for non beginners). That means that
+the macro is not safe under variable capture and indeed code such as
+
+.. code-block:: scheme
+
+ > (let ((start 42))
+    (dirty-for i 1 3 (print start)))
+ 11
+
+prints twice the number 1 and not the number 42. On the other hand,
+everything works fine if the ``for`` macro is defined using ``def-syntax``.
+There is no doubt that ``def-syntax`` is nicer/simpler to writer
+than ``define-macro`` *and* much less error prone.
 
 bound-identifier=? and free-identifier=?
 =======================================================================

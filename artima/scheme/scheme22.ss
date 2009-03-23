@@ -63,17 +63,6 @@ the sense that both corresponds to the same datum::
            (syntax->datum #'(display "hello")))
  #t
 
-It is possible to promote a datum to a syntax object with the
-``datum->syntax`` procedure, but in order
-to do so you need to provide a lexical context, which can be specified
-by using an identifier::
-
- > (datum->syntax #'dummy-context '(display "hello"))
- #<syntax (display "hello")
-
-(the meaning of the lexical context in ``datum->syntax`` is tricky and
-I will go back to that in future episodes).
-
 The ``(syntax )`` macro is analogous to the ``(quote )`` macro;
 moreover, there is a ``quasisyntax`` macro denoted with ``#``` which
 is analogous to the ``quasiquote`` macro (`````) and, in analogy to
@@ -110,6 +99,35 @@ an atomic syntax object. The lesson is that you cannot
 rely on properties of the inner representation of syntax objects:
 what matters is the code they correspond to, i.e. the result of
 ``datum->syntax``.
+
+It is possible to promote a datum to a syntax object with the
+``datum->syntax`` procedure, but in order
+to do so you need to provide a lexical context, which can be specified
+by using an identifier::
+
+ > (datum->syntax #'dummy-context '(display "hello"))
+ #<syntax (display "hello")
+
+(the meaning of the lexical context in ``datum->syntax`` is tricky and
+I will go back to that in future episodes).
+
+The typical use case for ``datum->syntax`` is to turn symbols
+into proper identifiers which can be introduced in macros and made
+visible to expanded code, thus breaking hygiene. Here is how
+you can define a macro introducing an identifier ``a``:
+
+$$DEFINE-A
+
+.. code-block:: scheme
+
+I have used the name of the macro ``define-a`` as the context identifier
+in ``datum->syntax``, which is the common practice, but any dummy
+identifier would have worked for this example. You can check that
+the identifier ``a`` is really introduced as follows:
+
+ > (define-a 1)
+ > a
+ 1
 
 What ``syntax-match`` really is
 --------------------------------------------------------------
@@ -156,68 +174,43 @@ are automatically expanded inside the syntax template, without
 resorting to the quasisyntax notation (i.e. there is no need for
 ``#```, ``#,``, ``#,@``).
 
-Example 1: breaking hygiene
+Macros are in one to one correspondence with list transformers;
+for you convenience, it is possible to extract the associated
+transformer for each macro defined via ``def-syntax``. For instance,
+here is the transformer associated to  the ``define-a`` macro:
+
+.. code-block:: scheme
+
+ > (define tr (define-a <transformer>))
+ > (tr (list #'dummy #'1))
+ (#<syntax define> #<syntax a> 1)
+
+Notice that the name of the macro (in this case ``define-a`` is ignored
+by the transformer, i.e. it is a dummy identifier.
+
+Matching generic syntax lists
 --------------------------------------------------------------
 
 The previous paragraphs about syntax objects have been a little abstract and
 probably of unclear utility (but what would you expect from
 an advanced macro tutorial? ;). In this paragraph I will be more
-concrete and I will provide an useful example of usage for ``datum->syntax``.
-
-The typical use case for ``datum->syntax`` is to turn symbols
-into proper identifiers which can be introduced in macros and made
-visible to expanded code, thus breaking hygiene. Coming back
-to the example in the latest issue, the ``def-book`` macro,
-we can introduce two identifiers for the fields ``title`` and
-``author`` as follows:
-
-$$DEF-BOOK
-
-where the helper function ``identifier-append`` is defined as
-
-$$lang:IDENTIFIER-APPEND
-
-All the functions used here (``string->symbol``, ``string-append``,
-``symbol->string`` work in the obvious way. Notice that for convenience
-I have put ``identifier-append``, together with a companion function
-``identifier-prepend`` in the ``aps`` package, in the ``(aps lang)`` module.
-
-Here is a test, showing that hygiene is effectively broken and that
-the identifiers ``name-title`` and ``name-author`` are really introduced
-in the namespace after expansion:
-
-$$TEST-DEF-BOOK
-
-**Warning**: if you have a macro depending on helper functions, like
-the previous one, you must put the helper functions in a separated
-module if you want to ensure portability. Moreover, you must
-import the helper functions with the syntax ``(for (module-name) expand)``
-meaning that the helper functions are intended to be used at expand
-time, in macros. Ikarus is quite forgiving and can just use a regular
-import, but PLT Scheme and Larceny will raise an error if you do not
-use the ``for expand``. A full description of the module system, with
-all the gory details, will require six more episodes, and will constitute
-part V of these *Adventures*.
-
-Example 2: matching generic syntax lists
---------------------------------------------------------------
-
-In this paragraph I will show an example of ``syntax-match``, used
+concrete and I will provide an useful example of usage for
+``syntax-match``, used
 at its fullest potential to define a macro providing
 a nicer syntax for association lists (an association list is just
-a non-empty list of non-empty lists). The macro will accepts a variable
-number of arguments; every argument will be be of the form ``(name value)`` or
-just a single identifier: in this case it will be magically converted
+a non-empty list of non-empty lists). The macro accepts a variable
+number of arguments; every argument is of the form ``(name value)`` or
+just a single identifier: in this case it is magically converted
 into the form ``(name value)`` where ``value`` is the value of the
 identifier, assuming it is bound in the current scope, otherwise
-a run time error will be raised (``"unbound identifier"``). If you try to
+a run time error is raised (``"unbound identifier"``). If you try to
 pass an argument which is not of the expected form, a compile time
-syntax error will be raised.
-In concrete, the macro will work as follows:
+syntax error is raised.
+In concrete, the macro works as follows:
 
 $$TEST-ALIST
 
-``(alist a (b (* 2 a)))`` will raise an error ``unbound identifier a``.
+``(alist a (b (* 2 a)))`` raises an error ``unbound identifier a``.
 Here is the implementation:
 
 $$ALIST
@@ -245,19 +238,10 @@ identifier.
 
 (display (syntax-expand (alist (a 1) (b (* 2 a)))))
 
-;;DEF-BOOK
-(def-syntax (def-book name title author)
-  (: with-syntax
-     name-title (identifier-append #'name "-title")
-     name-author (identifier-append #'name "-author")
-     #'(begin
-         (define name (vector title author))
-         (define name-title (vector-ref name 0))
-         (define name-author (vector-ref name 1)))))
-
+;;DEFINE-A
+(def-syntax (define-a x)
+  #`(define #,(datum->syntax #'define-a 'a) x))
 ;;END
-(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
-
 
 (run
 
@@ -271,14 +255,6 @@ identifier.
  ;     (catch-error (alist2 (a 1) (2 3)))
  ;     "invalid syntax")
 
-
- ;;TEST-DEF-BOOK
- (test "def-book"
-       (let ()
-         (def-book bible "The Bible" "God")
-         (list bible-title bible-author))
-       (list "The Bible" "God"))
- ;;END
 )
 
 

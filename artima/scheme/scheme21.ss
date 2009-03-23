@@ -181,40 +181,28 @@ mechanism of macro expansion is much simpler to explain, since the
 expansion is literal: you could just cut and paste the result of
 the expansion in your original code. In Scheme instead, the expansion
 is not literally inserted in the original code, and a lot of magic
-takes place to avoid name clashes. This may be surprising at first;
-for instance consider the following simple ``def-book`` macro:
+takes place to avoid name clashes.
 
-$$DEF-BOOK
+This may look surprising at first;
+consider for instance the following simple macro:
 
-if we now define a book as follows
+$$DEFINE-A
 
-.. code-block:: scheme
+``(define-a x)`` expands to ``(define a x)``, so you may find the following
+surprising::
 
- > (def-book bible "The Bible" "God")
-
-from the expansion
-
-.. code-block:: scheme
-
- > (syntax-expand (def-book bible "The Bible" "God"))
- (begin
-   (define bible (vector "The Bible" "God"))
-   (define book-title (vector-ref bible 0))
-   (define book-author (vector-ref bible 1)))
-
-one would expect the name ``book-title`` and ``book-author``
-to be defined, but this is not the case:
-
-.. code-block:: scheme
-
- > book-title
- Unhandled exception:
+ > (define-a 1)
+ > a
+ Unhandled exception
   Condition components:
-    1. &who: book-title
-    2. &message: "unbound identifier"
-    3. &undefined
+    1. &undefined
+    2. &who: eval
+    3. &message: "unbound variable"
+    4. &irritants: (a)
 
-However, once you get used to the idea that the expansion is not
+Why is the variable ``a`` not defined? The reason is that Scheme macros
+are hygienic, i.e. they *do not introduce identifiers implicitly*.
+Once you get used to the idea that the expansion is not
 literal, and that all the names internally defined by a macro
 are opaque unless they are explicitly marked as visible, you will
 see the advantages of hygiene.
@@ -234,12 +222,12 @@ frees your from wondering about name clashes.
 
 To be fair, I should
 remark that in Common Lisp there
-are ways to work around the absence of hygiene, for instance by
-introducing names with ``gensym``; nevertheless I like the Scheme way
+are ways to work around the absence of hygiene;
+nevertheless I like the Scheme way
 better, since by default you cannot introduce unwanted names. If
 want to introduce new names you can, but you must say so. Introducing
 new names in a macro is called *breaking hygiene* and will be discussed
-in the next episodes.
+in the next episode.
 |#
 
 (import (rnrs) (sweet-macros) (for (aps lang) run expand)
@@ -304,14 +292,3 @@ in the next episodes.
 
 (display ((Book author) b))
 
-;;DEF-BOOK
-(def-syntax (def-book name title author)
-  #'(begin
-      (define name (vector title author))
-      (define book-title (vector-ref name 0))
-      (define book-author (vector-ref name 1))))
-;;END
-(def-book bible "The Bible" "God")
-(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
-;book-title
-;book-author
