@@ -6,6 +6,12 @@
 (define-syntax def-syntax
   (syntax-match (extends)
 
+    (sub (def-syntax name (extends parent) (literal ...) clause ...)
+     #'(def-syntax name
+         (syntax-match (literal ...)
+           clause ...
+           (sub x ((parent <transformer>) #'x)))))
+    
     (sub (def-syntax (name . args) skel rest ...)
      #'(def-syntax name (syntax-match () (sub (name . args) skel rest ...))))
     
@@ -16,13 +22,8 @@
              ((name <transformer>) #'(... (... transformer)))
              ((name <source>) #''(... (... transformer)))
              (x (transformer #'x)))))
-     (identifier? #'name))
-     ;(syntax-violation 'def-syntax "Invalid name" #'name))
+     (identifier? #'name)
+     (syntax-violation 'def-syntax "Invalid name" #'name))
 
-    (sub (def-syntax name (extends parent) (literal ...) clause ...)
-     #'(def-syntax name
-         (syntax-match (literal ...)
-           clause ...
-           (sub x ((parent <transformer>) #'x)))))
     ))
 )

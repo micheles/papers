@@ -21,39 +21,41 @@
                   ))))))
     (lambda (x)
       (syntax-case x ()
-        ((guarded-syntax-case () (literal ...) clause ...)
-         #'(lambda (y) (guarded-syntax-case y (literal ...) clause ...)))
         ((guarded-syntax-case y (literal ...) clause ...)
-         (with-syntax
-             (((c ...) (fold-right add-clause '() #'(clause ...))))
-           #'(syntax-case y (literal ...) c ...)))
-        ))))
+         (with-syntax (((c ...) (fold-right add-clause '() #'(clause ...))))
+           #'(syntax-case y (literal ...) c ...)))))))
 ;;END
 
 ;;SYNTAX-MATCH
 (define-syntax syntax-match
-  (guarded-syntax-case () (sub)
-        
-    ((self (literal ...) (sub patt skel rest ...) ...)
-     #'(guarded-syntax-case ()
-         (<literals> <patterns> literal ...)
-         ((ctx <literals>) #''(literal ...))
-         ((ctx <patterns>) #''((... (... patt)) ...))
-         (patt skel rest ...)
-         ...)
-     (for-all identifier? #'(literal ...))
-     (syntax-violation 'syntax-match "Found non identifier" #'(literal ...)
-                       (remp identifier? #'(literal ...))))
-    
-    ((self x (literal ...) (sub patt skel rest ...) ...)
-     #'(guarded-syntax-case x (literal ...) (patt skel rest ...) ...))
-    ))
+  (lambda (y)
+    (guarded-syntax-case y (sub)
+      
+      ((self (literal ...) (sub patt skel rest ...) ...)
+       #'(lambda (x) (self x (literal ...) (sub patt skel rest ...) ...)))
+      
+      ((self x (literal ...) (sub patt skel rest ...) ...)
+       #'(guarded-syntax-case x (<literals> <patterns> literal ...)
+           ((ctx <literals>) #''(literal ...))
+           ((ctx <patterns>) #''((... (... patt)) ...))
+           (patt skel rest ...)
+           ...)
+       (for-all identifier? #'(literal ...))
+       (syntax-violation 'syntax-match "Found non identifier" #'(literal ...)
+                         (remp identifier? #'(literal ...))))
+      )))
 ;;END
 
 ;; DEF-SYNTAX
 (define-syntax def-syntax
   (syntax-match (extends)
 
+    (sub (def-syntax name (extends parent) (literal ...) clause ...)
+     #'(def-syntax name
+         (syntax-match (literal ...)
+           clause ...
+           (sub x ((parent <transformer>) #'x)))))
+    
     (sub (def-syntax (name . args) skel rest ...)
      #'(def-syntax name (syntax-match () (sub (name . args) skel rest ...))))
     
@@ -64,14 +66,9 @@
              ((name <transformer>) #'(... (... transformer)))
              ((name <source>) #''(... (... transformer)))
              (x (transformer #'x)))))
-     (identifier? #'name))
-     ;(syntax-violation 'def-syntax "Invalid name" #'name))
+     (identifier? #'name)
+     (syntax-violation 'def-syntax "Invalid name" #'name))
 
-    (sub (def-syntax name (extends parent) (literal ...) clause ...)
-     #'(def-syntax name
-         (syntax-match (literal ...)
-           clause ...
-           (sub x ((parent <transformer>) #'x)))))
     ))
 ;;END
 

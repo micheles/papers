@@ -21,11 +21,7 @@
                   ))))))
     (lambda (x)
       (syntax-case x ()
-        ((guarded-syntax-case () (literal ...) clause ...)
-         #'(lambda (y) (guarded-syntax-case y (literal ...) clause ...)))
         ((guarded-syntax-case y (literal ...) clause ...)
-         (with-syntax
-             (((c ...) (fold-right add-clause '() #'(clause ...))))
-           #'(syntax-case y (literal ...) c ...)))
-        ))))
+         (with-syntax (((c ...) (fold-right add-clause '() #'(clause ...))))
+           #'(syntax-case y (literal ...) c ...)))))))
 )
