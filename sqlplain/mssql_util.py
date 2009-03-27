@@ -30,7 +30,7 @@ def get_columns_mssql(conn, table):
 def get_keys_mssql(conn, table):
     """
     Return a list of strings describing the keys (both primary and foreign)
-    of the given table.
+    of a given table.
     """
     info = iter(conn.execute("sp_helpconstraint %s, 'nomsg'" % table))
     result = []
@@ -45,6 +45,7 @@ def get_keys_mssql(conn, table):
         result.append('%s %s' % (ctype, ref))
     return result
 
+# works only for views and procedures, and constraints
 GET_DEF = '''SELECT definition FROM sys.sql_modules WHERE object_id=\
 (SELECT object_id FROM sys.objects WHERE name=:name)'''
 
