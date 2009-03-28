@@ -1,204 +1,254 @@
 #|
-Relation with standard macros
----------------------------------------------------------------
+Generating temporary identifiers
+=========================================================================
 
-In episode 9_ I akwnoledged the fact that Scheme provides at least three
-different macro systems - ``syntax-rules``, ``syntax-case`` and
-``define-macro`` - yet I have
-decided to explain only my own personal macro system - ``sweet-macros``.
-The decision was motivated by pedagogical reasons,  because I did not want
-to confuse my readers by describe too many macro frameworks
-at the same time, and also because I want to make macros
-easier, by providing a nicer syntax and introspection features.
-However now, after more than a dozen
-episodes about macros, I can assume my readers are beginners no more,
-and it is time to have a look at the larger Scheme world and to
-compare/contrast ``sweet-macro`` with the other systems out there.
+In this episode I show how to introduce auxiliary identifiers in a
+macro, by using the standard R6RS utilities ``with-syntax`` and
+``generate-temporaries``. As an example, I show how you can define
+record types and I discuss the hygienic feature of Scheme macros.
 
-syntax-match vs syntax-rules
------------------------------------------------------------------
+``generate-temporaries``
+-----------------------------------------------------
 
-``syntax-rules`` can be quite trivially defined in terms of
-``syntax-match``::
+The R6RS standard provides a few convenient utilities to work with
+macros. One of such utilities is the ``with-syntax`` form, which
+allows to introduce auxiliary pattern variables into a skeleton.
+``with-syntax`` is often used in conjunction with the ``generate-temporaries``
+function, which returns a list of temporary identifiers.
+For instance, here is ``fold`` macro
+providing a nicer syntax for the ``fold-left`` and ``fold-right``
+higher order functions:
 
- (def-syntax (syntax-rules (literal ...) (patt templ) ...)
-   #'(syntax-match (literal ...) (sub patt #'templ) ...))
+$$list-utils:FOLD
 
-As you see, the difference between ``syntax-rules`` (a part
-for missing the ``sub`` literal)
-is that ``syntax-rules`` automatically adds the syntax-quote ``#'``
-operator to you templates. That means that you cannot use
-quasisyntax tricks and that ``syntax-rules`` is strictly less
-powerful than ``syntax-match``: in particular you cannot
-break hygiene with it. Moreover, ``syntax-rules`` macros
-do not have guarded patterns; the most direct consequence is that
-providing good error messages for wrong syntaxes is more difficult.
 
-syntax-match vs syntax-cases
------------------------------------------------------------------
+Notice the usage of the literals ``left`` and ``right`` to avoid
+writing two separated macros, and the usage of ``in`` to enhance
+readability.
 
-``syntax-case`` can also be defined in terms of ``syntax-match`` as follows::
-
- (def-syntax syntax-case
-   (syntax-match ()
-    (sub (syntax-case x (literal ...) (patt guard skel) ...)
-     #'(syntax-match x (literal ...) (sub patt skel guard) ...))
-    (sub (syntax-case x (literal ...) (patt skel) ...)
-     #'(syntax-match x (literal ...) (sub patt skel) ...))
-  ))
-
-In practice, however, ``syntax-case`` is a Scheme primitive and
-``syntax-match`` is defined on top of it. So, ``syntax-case`` has
-theoretically the same power as ``syntax-match``, but in practice
-``syntax-match`` is more convenient to use because of the
-introspection features.
-
-The major syntactic difference (apart from the absense of the ``sub`` literal)
-is the position of the guard, which in ``syntax-case`` is positioned *before*
-the skeleton, whereas in ``syntax-match`` is positioned *after* the skeleton.
-Changing the position has cost me a lot of reflection, since I *hate*
-gratuitous breaking. However, I am convinced that the position of the
-guard in ``syntax-case`` is really broken, so I had to *fix* the issue.
-Why do I say so?
-
-``syntax-match`` versus ``define-macro``
----------------------------------------------------------------
-
-Nowadays macros based on ``define-macro`` are much less used than in past,
-in part because of the hygiene issue, and in part because macro systems based
-on pattern matching are much more powerful and easy to use. The R6RS
-specification made ``syntax-case`` enters in the standard and this is
-the preferred macro system for most implementation.  For instance
-Chicken Scheme, which traditionally used ``define-macro`` a lot, is
-going to remove it from the core, using ``syntax-case`` instead: this
-is the reason why the next major Chicken version, Chicken 4.0, will be
-called "hygienic Chicken".
-
-Nowadays, there is a good chance that your Scheme implementation does
-not provide ``define-macro`` out of the box, therefore you need to implement
-it in term of ``syntax-case`` (or ``syntax-match``). Here is an example
-of such an implementation:
-
-$$DEFINE-MACRO
-
-The code should be clear: the arguments of the macro are converted into
-a regular list which is then transformed with the expander, and converted
-back into a syntax object in the context of the macro. The problem with
-``define-macro`` (and the reason it is becoming less and less used in
-the Scheme world) is the hygiene problem.
-
-.. _9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
-
-More on the hygiene problem
--------------------------------------------------
-
-I have already said a few words about hygiene last week.
-If you have experience in Common Lisp or other Lisp dialects, you will
-have heard about the problem of hygiene in macros. You can find good
-discussions of the hygiene problem in Common Lisp in many places; I am
-familiar with Paul Graham's book `On Lisp`_ which I definitively
-recommend. In Scheme such
-problem usually does not exist, but it is worth to know about it, since
-often people wants to break hygiene on purpose.
-
-The question is: why I see that this behavior is a problem? It looks like
-the natural things to do, isn't it? The issue is that having macros
-introducing identifiers implicitly can cause unespected side
-effects. The problem is called variable capture. As Paul Graham puts it,
-"viciousness".
-
-Consider for instance this "dirty" definition of the ``for`` loop:
+In this example, for each variable ``x`` a pattern variable ``a`` is
+generated with a temporary name; the temporary variable is used
+as argument in the lambda function. For instance, in Ypsilon
 
 .. code-block:: scheme
 
- (define-macro (dirty-for i i1 i2 . body)
-   `(let ((start ,i1) (stop ,i2))
-      (let loop ((i start))
-        (unless (>= i stop) ,@body (loop (+ 1 i))))))
+  (fold left (s 0) (x in (range 3)) (y in (range 3)) (+ s x y))
 
-The mistake here is having forgotten to ``gensym`` the newly
-introduced variables ``start`` and ``stop``, a common mistake for
-beginners (and occasionally, even for non beginners). That means that
-the macro is not safe under variable capture and indeed code such as
+expands to
 
 .. code-block:: scheme
 
- > (let ((start 42))
-    (dirty-for i 1 3 (print start)))
- 11
+ (fold-left
+   (lambda (s \x2E;L271 \x2E;L272)
+     (let+ (x \x2E;L271) (y \x2E;L272) (+ s x y)))
+   0 (range 3) (range 3))
 
-prints twice the number 1 and not the number 42. On the other hand,
-everything works fine if the ``for`` macro is defined using ``def-syntax``.
-There is no doubt that ``def-syntax`` is nicer/simpler to writer
-than ``define-macro`` *and* much less error prone.
+as you can check by using ``syntax-expand``.
+The temporary
+names are quite arbitrary, and you will likely get different names,
+since each time ``generate-temporaries`` is called, different names are
+generated. ``generated-temporaries`` is perfect to generate dummy names
+used as arguments, as seen in this example. Another typical
+usage is to generate dummy names for helper functions, as shown in
+the following paragraph.
 
-bound-identifier=? and free-identifier=?
-=======================================================================
+A record type macro
+---------------------------------------------------------------
 
-The question if two identifiers refers to the same binding or not
+Scheme has a vector data type, which is used to manage finite sequences
+with a fixed number *n* of values, known at compile time. Each element
+can be accessed in O(1) time by specifying an integer index starting from
+*0* to *n*, with the notation ``(vector-ref v i)``. Vectors are perfect
+to implement records, since you can see a record as a vector with *n+1*
+arguments, where the 0-th element specify the type of the vector
+and the i-th element is the i-th field of the record.
+Notice that the stardard specifies a record system, but writing a
+record system based on macros is a good exercise nonetheless.
+It also provides a good example of a second order macro expanding
+to a macro. Here is the code:
 
-$$EXPAND-X
+$$DEF-RECORD-TYPE
+
+An example will make everything clear. Suppose we want to define a
+``Book`` record type; we can do so by writing
+
+``(def-record-type Book title author)``
+
+which expands to (in Ikarus):
+
+.. code-block:: scheme
+
+ (begin
+  (def-syntax Book
+    (syntax-match (New Signature ? title author)
+      (sub (Book New) #'record-new)
+      (sub (Book Signature) #''(Book title author))
+      (sub (Book ?) #'record?)
+      (sub (Book title) #'#{title |Ivhf4sEgOry2IG%W|})
+      (sub (Book author) #'#{author |r=hJyxJbHsP$j&$3|})))
+  (define (record-new title author)
+    (vector 'Book title author))
+  (define (record? b) (eq? 'Book (vector-ref b 0)))
+  (define (#{title |Ivhf4sEgOry2IG%W|} b)
+    (assert (record? b))
+    (vector-ref b 1))
+  (define (#{author |r=hJyxJbHsP$j&$3|} b)
+    (assert (record? b))
+    (vector-ref b 2)))
+
+This code defines a ``Book`` macro and a few auxiliary functions such
+as ``record-new``, ``record?`` and two others with temporary names.
+The temporary names are of course implementation-specific. Ikarus
+here does a nice thing by prefixing them with the names coming
+from the list given as argument to ``generate-temporaries``, so
+that you can ascertain their origin.
+
+The ``Book`` macro allows to create new records
+
+::
+
+ > (define book ((Book New) "title" "author"))
+ > book
+ #(Book "title" "author")
+
+to introspect records
+
+::
+
+ > ((Book ?) book)
+ #t
+
+ > (Book Signature)
+ (book title author)
+
+and to retrieve the elements of a record by field name::
+
+ > ((Book title) book)
+ "title"
+
+ > ((Book author) book)
+ "author"
+
+Since I am a fan of functional programming, I am not providing mutation
+methods, so that you may regard them as immutable records (actually
+they are not, since you can change them by using ``vector-set!``,
+but that would be a dirty trick ;)
+
+Notice that a record system like the one presented here features record types
+which are not first class objects - since they are macros; in this respect
+it is more similar to the type system of languages like SML, where types
+are not objects, and very different from a type system like the Python one,
+where classes are objects. Of course in Scheme you can also implement a
+Python-like object system, where it is possible to create dynamic record types
+at runtime and not only at compile time. You can implement it yourself, or
+wait for a future episode ;)
+
+Hygiene
+---------------------------------------------------------------------
+
+.. hygiene in R6RS: http://docs.plt-scheme.org/r6rs-lib-std/r6rs-lib-Z-H-13.html#node_sec_12.1
+
+There is a subtle point about the ``def-record-type`` macro defined in
+the previous paragraph. Such a macro introduces a lots
+of auxiliary functions, such as ``record-new``, ``record?``, and an accessor
+function with a temporary name for every record field.
+One may expect those names
+to litter the namespace: i.e., after expansion, you would expect the names
+``record-new``, ``record?`` and the temporary names to be defined in
+the namespaces.
+Actually this is not the case: Scheme macros are *hygienic*,
+and auxiliary names introduced in the macro *are not visible outside*.
+
+.. image:: hygienic-paper-small.jpg 
+
+This is a major difference with respect to Common Lisp macros.
+The only names which enter in the namespace are the ones we put in;
+in the case of ``def-record-type`` only the name of the record type (i.e.
+``Book``) enters in the namespace after macro expansion. Nonetheless,
+the auxiliary names are known to ``Book`` macro, and for instance
+``(Book ?)`` will expand to the right ``record?`` function.
+
+Everything works even if
+in the same module you define a different record type with a different
+``record?`` function: there will be no nameclashes. The reason is that
+the implementation of macros takes care of distinguishing the
+names in some way (it could be based on marking the names, or on
+explicit renaming).
+
+In particular, in the ``def-record-type``
+macro, I should notice that I have been able to use the name ``record?``
+only because is an internal name: if the macroexpansion were literal,
+I would have incurred in a name clash, since ``record?`` is a builtin
+name.
+
+In general, if you are writing a library which can be imported
+in an unknown environment, in absence of hygiene you could introduce
+name clashes impossible to foresee in advance, and that could be solved
+only by the final user, which however will likely be ignorant of how
+your library works. Therefore hygiene is a very good think, since it
+frees your from wondering about name clashes.
 
 |#
 
-(import (rnrs) (sweet-macros) (aps lang) (aps list-utils) (aps compat)
-        (aps test-utils))
+(import (rnrs) (sweet-macros) (for (aps lang) run expand)
+        (aps easy-test) (for (aps list-utils) run expand) (aps compat))
 
-;DEFINE-MACRO
-(def-syntax define-macro
-  (syntax-match ()
-     (sub (define-macro (name . params) body1 body2 ...)
-         #'(define-macro name (lambda params body1 body2 ...)))
-     (sub (define-macro name expander)
-         #'(def-syntax (name . args)
-             (datum->syntax #'name (apply expander (syntax->datum #'args)))))
-     ))
-;END
-
-;DEFINE-A
-(def-syntax (define-a x)
-  #'(define a x))
-;END
-
-;DEFINE-A-NH
-(define-macro (define-a* x)
-  `(define a ,x))
-;END
-
-(def-syntax (let-3 name list-3 body body* ...)
-  #`(let+ ((x y z) list-3)
-          (let ((#,(identifier-append #'name  ".x") x)
-                (#,(identifier-append #'name  ".y") y)
-                (#,(identifier-append #'name  ".z") z))
-            body body* ...)))
- 
-(pretty-print (syntax-expand             
-  (let-3 v '(a b c)
-   (display (list v.x v.y v.z)))
-))
-
-
-(let-3 v '(a b c)
-   (display (list v.x v.y v.z)))
-(newline)
-
-;;EXPAND-X
-(def-syntax expand-x
-  (syntax-match ()
-    (sub (expand-x id) "bound x" (bound-identifier=? #'id #'x))
-    (sub (expand-x id) "free x" (free-identifier=? #'id #'x))   
-    (sub (expand-x id) "other")))
+;;DEF-RECORD-TYPE
+(def-syntax (def-record-type name field ...)
+  (: with-syntax
+     (getter ...) (generate-temporaries #'(field ...))
+     (i ...) (range 1 (+ (length #'(field ...)) 1))
+     #`(begin
+         (def-syntax name
+           (syntax-match (New Signature ? field ...)
+              (sub (name New) #'record-new)
+              (sub (name Signature) #''(name field ...))
+              (sub (name ?) #'record?)
+              (sub (name field) #'getter)
+              ...))
+         (define (record-new field ...) (vector 'name field ...))
+         (define (record? b) (eq? 'name (vector-ref b 0)))
+         (define (getter b) (assert (record? b)) (vector-ref b i)) ...
+      )))
 ;;END
 
-(run
- (test "free identifier"
-       (expand-x x)
-       "free x")
- (test "non-free identifier"
-       (let ((x 1)) (display (expand-x x)))
-       "other")
- (test "other identifier"
-       (expand-x y)
-       "other"))
+;;RECORD
+(def-syntax (record-syntax name field ...)
+  (: with-syntax
+     (getter ...) (generate-temporaries #'(field ...))
+     (i ...) (range 1 (+ (length #'(field ...)) 1))
+     #`(let ()
+         (define (record-new field ...) (vector 'name field ...))
+         (define (record? b) (eq? 'name (vector-ref b 0)))
+         (define (getter b) (assert (record? b)) (vector-ref b i))
+         ...
+         (syntax-match (New Signature ? field ...)
+            (sub (name New) #'record-new)
+            (sub (name Signature) #''(name field ...))
+            (sub (name ?) #'record?)
+            (sub (name field) #'getter)
+            ...))))
+;;END
 
+           
+;(def-syntax Book (record-syntax Book title author))
+;(pretty-print (syntax-expand (record-syntax Book title author)))
+
+(def-record-type Book title author)
+
+(pretty-print (syntax-expand (def-record-type Book title author)))
+
+(define b ((Book New) "T" "A"))
+(display b)
+(newline)
+(display (Book Signature))
+(display ((Book ?) b))
+
+
+(display (syntax-expand (Book title)))
+(newline)
+(display ((Book title) b))
+(newline)
+
+(display ((Book author) b))
 

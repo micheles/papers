@@ -474,3 +474,16 @@ to the guard:
 The extended for ``def-syntax`` is
 ``(def-syntax (name . args) body fender else ...)``
 where the fender and/or the else clause are optional.
+
+
+---------------------
+
+The Scheme module system is extremely complex, because of the
+complications caused by macros and because of the want of
+separate compilation. However, fortunately, the complication
+is hidden, and the module system works well enough for many
+simple cases. The proof is that we introduced the R6RS module
+system in episode 5_, and for 20 episode we could go on safely
+by just using the basic import/export syntax. However, once
+nontrivial macros enters in the game, things start to become
+complicated.

@@ -1,294 +1,280 @@
-#|
-Hygienic macros
-=========================================================================
+#|Syntax objects
+===================================================================
 
-In this episode I show how to introduce auxiliary identifiers in a
-macro, by using the standard R6RS utilities ``with-syntax`` and
-``generate-temporaries``. As an example, I show how you can define
-record types and I discuss the hygienic feature of Scheme macros.
+In the last dozen episodes I have defined plenty of macros, but I have
+not really explained what macros are and how they work. This episode
+will close the gap, and will explain the true meaning of macros by
+introducing the concepts of *syntax object* and of *transformer* over
+syntax objects.
 
-``with-syntax`` and ``generate-temporaries``
------------------------------------------------------
+Syntax objects
+------------------------------------------------------------------
 
-The R6RS standard provides a few convenient utilities to work with
-macros. One of such utilities is the ``with-syntax`` form, which
-allows to introduce auxiliary pattern variables into a skeleton.
-``with-syntax`` is often used in conjunction with the ``generate-temporaries``
-function, which returns a list of temporary identifiers.
-For instance, here is ``fold`` macro
-providing a nicer syntax for the ``fold-left`` and ``fold-right``
-higher order functions:
+Scheme macros are built over the concept of *syntax object*.
+The concept is peculiar to Scheme and has no counterpart in other 
+languages (including Common Lisp), therefore it is worth to spend some time
+on it.
 
-$$list-utils:FOLD
+A *syntax-object* is a kind of enhanced *s*-espression: it contains
+the source code as a list of symbols and primitive values, plus
+additional informations, such as
+the name of the file containing the source code, the line numbers,
+a set of marks to distinguish identifiers according to their
+lexical context, and more.
 
+It is possible to convert a name or a literal value into a 
+syntax object with the syntax quoting operation, i.e. the funny
+``#'`` symbol you have seen in all the macros I have defined until now::
 
-Notice the usage of the literals ``left`` and ``right`` to avoid
-writing two separated macros, and the usage of ``in`` to enhance
-readability.
+ > #'x ; convert a name into an identifier
+ #<syntax x>
+ > #''x ; convert a literal symbol
+ #<syntax 'x>
+ > #'1 ; convert a literal number
+ #<syntax 1>
+ > #'"s" ; convert a literal string
+ #<syntax "s">
+ > #''(1 "a" 'b) ; convert a literal data structure
+ #<syntax '(1 "a" 'b)>
 
-In this example, for each variable ``x`` a pattern variable ``a`` is
-generated with a temporary name; the temporary variable is used
-as argument in the lambda function. For instance, in Ypsilon
+Here I am running all my examples under Ikarus; your Scheme
+system may have a slightly different output representation for syntax
+objects.
 
-.. code-block:: scheme
+In general ``#'`` - also spelled ``(syntax )`` - can be "applied"
+to any expression::
 
-  (fold left (s 0) (x in (range 3)) (y in (range 3)) (+ s x y))
+ > (define syntax-expr #'(display "hello"))
+ > syntax-expr
+ #<syntax (display "hello")>
 
-expands to
+It is possible to extract the *s*-expression underlying the
+syntax object with the ``syntax->datum`` primitive::
 
-.. code-block:: scheme
-
- (fold-left
-   (lambda (s \x2E;L271 \x2E;L272)
-     (let+ (x \x2E;L271) (y \x2E;L272) (+ s x y)))
-   0 (range 3) (range 3))
-
-as you can check by using ``syntax-expand``.
-The temporary
-names are quite arbitrary, and you will likely get different names,
-since each time ``generate-temporaries`` is called, different names are
-generated. ``generated-temporaries`` is perfect to generate dummy names
-used as arguments, as seen in this example. Another typical
-usage is to generate dummy names for helper functions, as shown in
-the following paragraph.
-
-A record macro
----------------------------------------------------------------
-
-Scheme has a vector data type, which is used to manage finite sequences
-with a fixed number *n* of values, known at compile time. Each element
-can be accessed in O(1) time by specifying an integer index starting from
-*0* to *n*, with the notation ``(vector-ref v i)``. Vectors are perfect
-to implement records, since you can see a record as a vector with *n+1*
-arguments, where the 0-th element specify the type of the vector
-and the i-th element is the i-th field of the record.
-Notice that the stardard specifies a record system, but writing a
-record system based on macros is a good exercise nonetheless.
-It also provides a good example of a second order macro expanding
-to a macro. Here is the code:
-
-$$DEF-RECORD-TYPE
-
-An example will make everything clear. Suppose we want to define a
-``Book`` record type; we can do so by writing
-
-``(def-record-type Book title author)``
-
-which expands to (in Ikarus):
-
-.. code-block:: scheme
-
- (begin
-  (def-syntax Book
-    (syntax-match (New Signature ? title author)
-      (sub (Book New) #'record-new)
-      (sub (Book Signature) #''(Book title author))
-      (sub (Book ?) #'record?)
-      (sub (Book title) #'#{title |Ivhf4sEgOry2IG%W|})
-      (sub (Book author) #'#{author |r=hJyxJbHsP$j&$3|})))
-  (define (record-new title author)
-    (vector 'Book title author))
-  (define (record? b) (eq? 'Book (vector-ref b 0)))
-  (define (#{title |Ivhf4sEgOry2IG%W|} b)
-    (assert (record? b))
-    (vector-ref b 1))
-  (define (#{author |r=hJyxJbHsP$j&$3|} b)
-    (assert (record? b))
-    (vector-ref b 2)))
-
-This code defines a ``Book`` macro and a few auxiliary functions such
-as ``record-new``, ``record?`` and two others with temporary names.
-The temporary names are of course implementation-specific. Ikarus
-here does a nice thing by prefixing them with the names coming
-from the list given as argument to ``generate-temporaries``, so
-that you can ascertain their origin.
-
-The ``Book`` macro allows to create new records
-
-::
-
- > (define book ((Book New) "title" "author"))
- > book
- #(Book "title" "author")
-
-to introspect records
-
-::
-
- > ((Book ?) book)
+ > (equal? (syntax->datum syntax-expr) '(display "hello"))
  #t
 
- > (Book Signature)
- (book title author)
+Different syntax-objects can be equivalent: for instance
+the improper list of syntax objects ``(cons #'display (cons #'"hello" #'()))``
+is equivalent to the syntax object ``#'(display "hello")`` in
+the sense that both corresponds to the same datum::
 
-and to retrieve the elements of a record by field name::
+ > (equal? (syntax->datum (cons #'display (cons #'"hello" #'())))
+           (syntax->datum #'(display "hello")))
+ #t
 
- > ((Book title) book)
- "title"
+The ``(syntax )`` macro is analogous to the ``(quote )`` macro;
+moreover, there is a ``quasisyntax`` macro denoted with ``#``` which
+is analogous to the ``quasiquote`` macro (`````) and, in analogy to
+the operation ``,`` and ``,@`` on regular lists, there are two
+operations ``unsyntax`` ``#,`` (*sharp comma*) e ``unsyntax-splicing``
+``#,@`` (*sharp comma splice*) on lists (including improper lists) of
+syntax objects.
 
- > ((Book author) book)
- "author"
+Here is an example using sharp-comma::
 
-Since I am a fan of functional programming, I am not providing mutation
-methods, so that you may regard them as immutable records (actually
-they are not, since you can change them by using ``vector-set!``,
-but that would be a dirty trick ;)
+ > (let ((user "michele")) #`(display #,user))
+ (#<syntax display> "michele" . #<syntax ()>)
 
-Notice that a record system like the one presented here features record types
-which are not first class objects - since they are macros; in this respect
-it is more similar to the type system of languages like SML, where types
-are not objects, and very different from a type system like the Python one,
-where classes are objects. Of course in Scheme you can also implement a
-Python-like object system, where it is possible to create dynamic record types
-at runtime and not only at compile time. You can implement it yourself, or
-wait for a future episode ;)
+and here is an example using sharp-comma-splice::
 
-Hygiene
+ > (define users (list #'"michele" #'"mario"))
+ > #`(display (list #,@users))
+ (#<syntax display>
+ (#<syntax list> #<syntax "michele"> #<syntax "mario">) . #<syntax ()>)
+
+Notice that the output is an improper list. This is somewhat consistent
+with the behavior of usual quoting: for usual quoting ``'(a b c)``
+is a shortcut for ``(cons* 'a 'b 'c '())``, which is a proper list,
+and for syntax-quoting ``#'(a b c)`` is equivalent to
+``(cons* #'a #'b #'c #'())``, which is an improper list.
+The ``cons*`` operator here is a R6RS shortcut for nested conses:
+``(cons* w x y z)`` is the same as ``(cons w (cons x (cons y z)))``.
+
+However, the result of a quasi quote interpolation is very much
+*implementation-dependent*: Ikarus returns an improper list, but other
+implementations returns different results; for instance ypsilon
+returns a proper list of syntax objects whereas PLT Scheme returns
+an atomic syntax object. The lesson is that you cannot
+rely on properties of the inner representation of syntax objects:
+what matters is the code they correspond to, i.e. the result of
+``syntax->datum``.
+
+It is possible to promote a datum to a syntax object with the
+``datum->syntax`` procedure, but in order
+to do so you need to provide a lexical context, which can be specified
+by using an identifier::
+
+ > (datum->syntax #'dummy-context '(display "hello"))
+ #<syntax (display "hello")
+
+(the meaning of the lexical context in ``datum->syntax`` is tricky and
+I will go back to that in future episodes).
+
+What ``syntax-match`` really is
+--------------------------------------------------------------
+
+``syntax-match`` is a general utility to perform pattern matching
+on syntax objects; it takes a syntax object in output and returns
+another syntax object in output, depending on the patterns, skeletons and guards
+used::
+
+ > (define transformer 
+     (syntax-match ()
+       (sub (name . args) #'name))); return the name as a syntax object
+
+ > (transformer #'(a 1 2 3))
+ #<syntax a>
+
+For convenience, ``syntax-match`` also accepts a second syntax
+``(syntax-match x (lit ...) clause ...)`` to match syntax expressions
+directly, more convenient than using
+``((syntax-match (lit ...) clause ...) x)``.
+Here is a simple example of usage::
+
+ > (syntax-match #'(a 1 2 3) ()
+    (sub (name . args) #'args)); return the args as a syntax object
+ #<syntax (1 2 3)>
+
+Here is an example using ``quasisyntax`` and ``unsyntax-splicing``::
+
+ > (syntax-match #'(a 1 2 3) ()
+     (sub (name . args) #`(name #,@#'args)))
+ (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
+
+As you see, it easy to write hieroglyphs if you use ``quasisyntax`` 
+and ``unsyntax-splicing``. You can avoid that by means of the ``with-syntax``
+form introduced in the previous episode::
+
+ > (syntax-match #'(a 1 2 3) ()
+     (sub (name . args) (: with-syntax (a ...) #'args #'(name a ...))))
+ (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
+ 
+
+The pattern variables introduced by ``with-syntax``
+are automatically expanded inside the syntax template, without
+resorting to the quasisyntax notation (i.e. there is no need for
+``#``` ``#,`` ``#,@``). Incidentally, let me notice that I do not
+the name ``with-syntax``, which I find confusing; a much better
+name would have been ``let-pattern-ids``, since this is a kind of
+``let`` form introducing identifiers which are intended to be used
+as auxiliary pattern variables inside macro templates.
+
+Matching generic syntax lists
+--------------------------------------------------------------
+
+The previous paragraphs about syntax objects were a little abstract and
+probably of unclear utility (but what would you expect from
+an advanced macro tutorial? ;). Here I will be more
+concrete and I will provide an example where
+``syntax-match`` is used as a list matcher inside a bigger macro.
+The final goal is to provide
+a nicer syntax for association lists (an association list is just
+a non-empty list of non-empty lists). The macro accepts a variable
+number of arguments; every argument is of the form ``(name value)`` or
+it is a single identifier: in this case latter case it must be
+magically converted
+into the form ``(name value)`` where ``value`` is the value of the
+identifier, assuming it is bound in the current scope, otherwise
+a run time error is raised ``"unbound identifier"``. If you try to
+pass an argument which is not of the expected form, a compile time
+syntax error must be raised.
+In concrete, the macro works as follows:
+
+$$TEST-ALIST
+
+``(alist a (b (* 2 a)))`` would raise an error ``unbound identifier a``.
+Here is the implementation:
+
+$$ALIST
+
+The expression ``#'(arg ...)`` expands to a list of syntax
+objects which are then transformed by is the ``syntax-match`` transformer,
+which converts identifiers of the form ``n`` into couples of the form
+``(n n)``, whereas it leaves couples ``(n v)`` unchanged, however
+by checking that ``n`` is an identifier.
+
+Macros as list transformers
 ---------------------------------------------------------------------
 
-.. hygiene in R6RS: http://docs.plt-scheme.org/r6rs-lib-std/r6rs-lib-Z-H-13.html#node_sec_12.1
+Macros are in one-to-one correspondence with list transformers, i.e. every
+macro is associated to a transformer which converts a list of syntax objects
+(the arguments of the macro) into another list of syntax objects (the expansion
+of the macro). Scheme itself takes care of converting the input code
+into a list of syntax objects (if you wish, internally there is a
+``datum->syntax`` conversion) and the output syntax list into code
+(an internal ``syntax->datum`` conversion).
+The sharp-quote notation in macros is just an abbreviation for the underlying
+list: for instance a macro describing function composition
 
-There is a subtle point about the ``def-record-type`` macro defined in
-the previous paragraph. Such a macro introduces a lots
-of auxiliary functions, such as ``record-new``, ``record?``, and an accessor
-function with a temporary name for every record field.
-One may expect those names
-to litter the namespace: i.e., after expansion, you would expect the names
-``record-new``, ``record?`` and the temporary names to be defined in
-the namespaces.
-Actually this is not the case: Scheme macros are *hygienic*,
-and auxiliary names introduced in the macro *are not visible outside*.
+:: 
 
-.. image:: hygienic-paper-small.jpg 
+  (def-syntax (app f g)
+    #'(f g))
 
-This is a major difference with respect to Common Lisp macros.
-The only names which enter in the namespace are the ones we put in;
-in the case of ``def-record-type`` only the name of the record type (i.e.
-``Book``) enters in the namespace after macro expansion. Nonetheless,
-the auxiliary names are known to ``Book`` macro, and for instance
-``(Book ?)`` will expand to the right ``record?`` function.
+can be written equivalently also as
 
-Everything works even if
-in the same module you define a different record type with a different
-``record?`` function: there will be no nameclashes. The reason is that
-the implementation of macros takes care of distinguishing the
-names in some way (it could be based on marking the names, or on
-explicit renaming).
+::
 
-Hygiene is regarded as a great virtue in the Scheme
-community, less so in the Common Lisp community. In Common Lisp the
-mechanism of macro expansion is much simpler to explain, since the
-expansion is literal: you could just cut and paste the result of
-the expansion in your original code. In Scheme instead, the expansion
-is not literally inserted in the original code, and a lot of magic
-takes place to avoid name clashes.
+ (def-syntax (app f g)
+   (list #'f #'g))
 
-This may look surprising at first;
-consider for instance the following simple macro:
+or
 
-$$DEFINE-A
+::
 
-``(define-a x)`` expands to ``(define a x)``, so you may find the following
-surprising::
+ (def-syntax (app f g)
+   (cons* #'f #'g #'()))
 
- > (define-a 1)
- > a
- Unhandled exception
-  Condition components:
-    1. &undefined
-    2. &who: eval
-    3. &message: "unbound variable"
-    4. &irritants: (a)
+The sharp-quoted syntax is more readable, but it hides the underlying list
+representation which in some cases is pretty useful. This is why
+``syntax-match`` macros are much more powerful than ``syntax-rules``
+macros.
 
-Why is the variable ``a`` not defined? The reason is that Scheme macros
-are hygienic, i.e. they *do not introduce identifiers implicitly*.
-Once you get used to the idea that the expansion is not
-literal, and that all the names internally defined by a macro
-are opaque unless they are explicitly marked as visible, you will
-see the advantages of hygiene.
+``sweet-macros`` provide a convenient feature:
+it is possible to extract the associated
+transformer for each macro defined via ``def-syntax``. For instance,
+here is the transformer associated to  the ``define-a`` macro:
 
-In particular, in the ``def-record-type``
-macro, I should notice that I have been able to use the name ``record?``
-only because is an internal name: if the macroexpansion were literal,
-I would have incurred in a name clash, since ``record?`` is a builtin
-name.
+.. code-block:: scheme
 
-In general, if you are writing a library which can be imported
-in an unknown environment, in absence of hygiene you could introduce
-name clashes impossible to foresee in advance, and that could be solved
-only by the final user, which however will likely be ignorant of how
-your library works. Therefore hygiene is a very good think, since it
-frees your from wondering about name clashes.
+ > (define tr (define-a <transformer>))
+ > (tr (list #'dummy #'1))
+ (#<syntax define> #<syntax a> 1)
 
-To be fair, I should
-remark that in Common Lisp there
-are ways to work around the absence of hygiene;
-nevertheless I like the Scheme way
-better, since by default you cannot introduce unwanted names. If
-want to introduce new names you can, but you must say so. Introducing
-new names in a macro is called *breaking hygiene* and will be discussed
-in the next episode.
+Notice that the name of the macro (in this case ``define-a`` is ignored
+by the transformer, i.e. it is a dummy identifier.
+
 |#
+(import (rnrs) (sweet-macros) (aps easy-test) (aps compat))
 
-(import (rnrs) (sweet-macros) (for (aps lang) run expand)
-        (aps easy-test) (for (aps list-utils) run expand) (aps compat))
-
-;;DEF-RECORD-TYPE
-(def-syntax (def-record-type name field ...)
-  (: with-syntax
-     (getter ...) (generate-temporaries #'(field ...))
-     (i ...) (range 1 (+ (length #'(field ...)) 1))
-     #`(begin
-         (def-syntax name
-           (syntax-match (New Signature ? field ...)
-              (sub (name New) #'record-new)
-              (sub (name Signature) #''(name field ...))
-              (sub (name ?) #'record?)
-              (sub (name field) #'getter)
-              ...))
-         (define (record-new field ...) (vector 'name field ...))
-         (define (record? b) (eq? 'name (vector-ref b 0)))
-         (define (getter b) (assert (record? b)) (vector-ref b i)) ...
-      )))
+;;ALIST
+(def-syntax (alist arg ...)
+  (with-syntax ((
+     ((name value) ...)
+     (map (syntax-match ()
+            (sub n #'(n n) (identifier? #'n))
+            (sub (n v) #'(n v) (identifier? #'n)))
+          #'(arg ...)) ))
+     #'(let* ((name value) ...)
+         (list (list 'name name) ...))))
 ;;END
 
-;;RECORD
-(def-syntax (record-syntax name field ...)
-  (: with-syntax
-     (getter ...) (generate-temporaries #'(field ...))
-     (i ...) (range 1 (+ (length #'(field ...)) 1))
-     #`(let ()
-         (define (record-new field ...) (vector 'name field ...))
-         (define (record? b) (eq? 'name (vector-ref b 0)))
-         (define (getter b) (assert (record? b)) (vector-ref b i))
-         ...
-         (syntax-match (New Signature ? field ...)
-            (sub (name New) #'record-new)
-            (sub (name Signature) #''(name field ...))
-            (sub (name ?) #'record?)
-            (sub (name field) #'getter)
-            ...))))
-;;END
+(display (syntax-expand (alist (a 1) (b (* 2 a)))))
 
-           
-;(def-syntax Book (record-syntax Book title author))
-;(pretty-print (syntax-expand (record-syntax Book title author)))
+(run
 
-(def-record-type Book title author)
+ ;;TEST-ALIST
+ (test "simple"
+       (alist (a 1) (b (* 2 a)))
+       '((a 1) (b 2)))
+ 
+ ;;END
+ ;(test "with-error"
+ ;     (catch-error (alist2 (a 1) (2 3)))
+ ;     "invalid syntax")
 
-(pretty-print (syntax-expand (def-record-type Book title author)))
-
-(define b ((Book New) "T" "A"))
-(display b)
-(newline)
-(display (Book Signature))
-(display ((Book ?) b))
+)
 
 
-(display (syntax-expand (Book title)))
-(newline)
-(display ((Book title) b))
-(newline)
-
-(display ((Book author) b))
 
