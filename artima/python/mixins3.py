@@ -1,66 +1,137 @@
 """
-The first two articles of this series were very practical in scope
-and focused on concrete examples of usages of mixins in the Python
-world. This third paper is a bit more theoretical, and tries to
-enlighten the differences between multiple inheritance, mixins and traits,
-as well as extending the analysis to languages other than Python.
+.. _first: http://www.artima.com/weblogs/viewpost.jsp?thread=246341
+.. _second: http://www.artima.com/weblogs/viewpost.jsp?thread=246483
+.. _multimethod: http://www.artima.com/weblogs/viewpost.jsp?thread=237764
+.. _generic function: http://en.wikipedia.org/wiki/Multiple_dispatch
+.. _ABC: http://www.python.org/dev/peps/pep-3119/
+.. _strait: http://pypi.python.org/pypi/strait
 
-How to avoid multiple inheritance
+What attitude to keep towards multiple inheritance and mixins
+-------------------------------------------------------------------------------
+
+In recent years I have become an opponent of multiple inheritance and
+mixins, for reason which I have discussed at length in the
+first_ and second_ paper of this series: namespace pollution,
+insufficient separation of concerns, fragility with respect to name
+clashes, complication of the method resolution order, non scalability
+of the design and even simple conceptual confusion with the *is a*
+relation.
+
+Moreover, I have argued that mixins are the wrong tool for the job: if
+you need a method to be mixed in different classes, then you are
+better off not mixing it, putting it at toplevel and promoting it to a
+multimethod_/`generic function`_.
+
+Nevertheless, a lot of people think that mixins are very
+cool and a lot of new languages present mixins as the panacea
+to all evil in object oriented design. This is the reason why
+I have started this series, which is intended for developers using
+languages which features multiple inheritance or mixins and not
+only for Python developers, even if all of my examples here
+are in Python, since I am primarily a Python developer.
+
+In my view there are at least three possible attitudes
+for a developer using a language with mixins:
+
+1. Resignation. Acknowledge that since the language allows mixins and
+   they are used by many frameworks, they will never go away.
+   Therefore one should focus on discovering workarounds to cope
+   with the situation, like the ``warn_overriding`` decorator that I
+   introduced in the first article of this series; one can also write
+   better introspection tools to navigate though mixins (the issue
+   with pydoc is that it give *too much* information);
+
+2. Education. We (the "experts") should make an effort to communicate
+   to the large public the issues with mixins and try to convince framework
+   authors to use alternative design. That is what I am trying to accomplish
+   with this series.
+   
+3. Research. Study better implementations of the mixin idea: even if there
+   is no hope for the language you are using, research is not useless
+   since it may be implemented in languages yet to be written.
+   Python itself can be used as an experimentation language, as I show
+   in my strait_ module, where I pervert the Python object system to
+   become a single inheritance + traits object system, instead of
+   a multiple inheritance system. In the fourth paper of this series
+   I will show yet another approach, by implementing the mixin idea
+   in terms of descriptors and not of inheritance.
+
+Ways to avoid multiple inheritance
 ------------------------------------------------------------------
 
-In recent years I have become a strong opponent of multiple inheritance.
-It is a useful for quick and dirty hack, but I advice against starting with a
-design based on multiple inheritance for new code; actually, I usually
-recommend to use as little as possible even single inheritance!
-In our example, we could have solved the design problem
-without using multiple inheritance, just with composition + delegation:
+While I think that multimethods are the right way to solve the problem
+that mixins are tring to solve, the multiple dispatch solution of defining
+functions outside classes is a radical departure from the traditional
+style of object oriented programming, which is based on single
+dispatch and methods defined inside classes.
+
+If you want to keep single dispatch, then there is basically only one
+way to avoid inheritance, i.e. to replace it with *composition*,
+possibly by adding delegation to the mix.  The practical
+implementations of this idea are very different and one can think of
+many ways to replace inheritance with composition.
+
+The strait_ module for instance just inject methods in a class
+directly (provided they satisfy some checks) and as such it is a not
+a big improvements with respect to inheritance: the advantages are in
+the protection against name clashes and in the simplication of the
+method resolution order. However, one could still argue that those
+advantages are not enough, since the namespace pollution
+problem is still there.
+
+An alternative solution is to use composition plus delegation, i.e.
+to make use of proxies. The cognitive load of a proxy - an object
+dispatching to another method - is much smaller than the cognitive
+load imposed by inheritance.
+
+If I see an object which is an instance of a class, I feel obliged to
+know all the methods of that class, including all the methods of its
+ancestors, because I could override them accidentally. On the other
+hand, if an object is a proxy, I just note in my mind that it contains
+a reference to the proxied object, but I do not feel obliged to know
+everything about the proxied object; it is enough for me to know
+which methods are called by the proxy methods, if any. It is more
+of a psychological effect, but I like proxies since they keep the
+complexity confined, whereas inheritance exposes it directly.
+
+In particular, if the proxy has a method which accidentally shadows a
+method of the underlying object, nothing particularly bad happens.
+That method will not work, but the other methods will keep working,
+since they will call the methods of the original object. In
+inheritance instead, an accidental overriding may cause havoc, since
+other methods of the object may call the accidentally overridden
+method, with errors appearing in apparently unrelated portions of
+code.
+
+Just to give a concrete example, in the case discussed in the second_
+paper of this series, we could have solved the design problem without
+using multiple inheritance, just with composition + delegation:
 
 $$PictureContainer
 
 Thanks to the ``__getattr__`` trick, all the methods of
 ``SimplePictureContainer`` are available to ``PictureContainer2``,
-on top of the methods coming from `DictMixin``: we did basically
+on top of the methods coming from ``DictMixin``: we did basically
 fake multiple inheritance without complicating the hierarchy.
+
 A disadvantage of ``PictureContainer2`` is that its instances are no
 more instances of ``SimplePictureContainer``, therefore if your code
 contained checks like ``isinstance(obj, SimplePictureContainer)``
 (which is a very bad practice, at least for Python versions below Python 2.6)
 the check would fail. The problem has been solved in 
-Python 2.6 thanks to the Abstact Base Class mechanism (ABC_);
+Python 2.6 thanks to the Abstract Base Class mechanism (ABC_);
 it is enought to register ``SimplePictureContainer`` as an ABC of
 ``PictureContainer2`` and you are done.
-
-What can we do in such a situation? In my view there are at least
-three possible attitudes:
-
-1. Resignation. Acknowledge that the language allows multiple inheritance
-   and mixins, which is used by many frameworks and that it will never go
-   away. Therefore one should focus of discovering solution to cope with
-   the situation, like the ``warn_overriding`` decorator that I introduced
-   in the first article of this series; one can also write better introspection
-   tools to navigate though mixins (the issue with pydoc is that it give
-   *too much* information);
-
-2. Education. Darsi da fare per rendere noti al grande pubblico i
-   problemi dei mixin e convincere gli autori dei framework del futuro
-   a usare design alternativi. That is what I tried to accomplish with the
-   second paper in this series.
-
-3. Research. Studiare implementazioni migliori dell'idea dei mixin:
-   anche se non ci sono speranze per il linguaggio che si sta usando
-   per motivi di compatibilit con il passato, la ricerca non 
-   inutile perch potrebbe essere implementata nei linguaggi del futuro. 
-   Lo stesso Python pu essere usato come linguaggio di 
-   sperimentazione ed in questo articolo mostro come implementare
-   i mixin in termini di descrittori e non di ereditarita.
 
 An exercise in design
 -------------------------------------------------------------
 
+.. image:: box.jpg
+
 Since I do not like to talk in abstract, let me consider a concrete
 design problem, which I will solve by using mixin classes but without
-incurring in the overpopulaion issuer. To this aim, let me refer back
-to my `previous article`_, specifically to the class
+incurring in the overpopulation issue. To this aim, let me refer back
+to the `second`_ article in this series, specifically to the class
 ``PictureContainer2`` which inherits from``DictMixin``.
 As I said, deriving from ``DictMixin`` is good since ``DictMixin``
 provided only 19 attributes (you can see them with ``dir(DictMixin)``)
@@ -69,78 +140,57 @@ the cognitive load is null.
 
 The problem begins when you decide that you need to add features to
 ``PictureContainer2``.
-Per esempio, se stiamo scrivendo un'applicazione GUI, potremo
-aver bisogno di metodi tipo ``set_thumbnails_size, get_thumbnails_size, 
+For instance, if we are writing a GUI application, we may need methods
+such as ``set_thumbnails_size, get_thumbnails_size, 
 generate_thumbnails, show_thumbnails, make_picture_menu, show_picture_menu``,
-eccetera; diciamo che abbiamo almeno 50 metodi che hanno a che fare
-con la GUI (settaggio dei parametri, dei menu, dei bottoni, metodi
-ausiliari e chi più ne ha più ne metta). Potremmo mettere tutti
-questi 50 metodi in una classe mixin chiamata ``GUI`` ed ereditare
-da ``DictMixin`` e da ``GUI``. 
+et cetera; let us say we need 50 GUI-related methods or more (methods to set
+parameters, methods to make menus, buttons, auxiliary methods and more).
+We could include all those methods into a mixin class called 
+``GUI`` and we could inherit from both ``DictMixin`` and ``GUI``. 
 
+That's all good. However, suppose version 2.0 of our application is
+required to be available through a Web interface; we may therefore need
+to implement the 8 methods of the HTTP protocol
+(``HEAD, GET, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT``) into another
+mixin class. Moreover, if we want to give the ability to edit the images
+to our users, we may need to implement a WebDAV interface too, with 7
+additional methods ``PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK``.
 
-Fin qui nulla di male. Supponiamo però che
-la versione 2 della nostra applicazione debba andare su Web;
-può avere allora senso implementare gli 8 metodi del protocollo HTTP
-(``HEAD, GET, POST, PUT, DELETE, TRACE, OPTIONS, CONNECT``) in un'altra
-classe mixin; se vogliamo dare anche la possibilità di editare le immagini
-ai nostri utenti, può aver senso
-anche un'interfaccia WebDAV (quindi con 7 metodi addizionali rispetto
-al protocollo HTTP: ``PROPFIND, PROPPATCH, MKCOL, COPY, MOVE, LOCK, UNLOCK``).
+On the other hand, there are users who may prefer the old FTP protocol
+to transfer the pictures and therefore we would need to implemente 43
+other methods (``ABOR, ALLO, APPE, CDUP, CWD, DELE, EPRT, EPSV, FEAT,
+HELP, LIST, MDTM, MLSD, MLST, MODE, MKD, NLST, NOOP, OPTS, PASS, PASV,
+PORT, PWD, QUIT, REIN, REST, RETR, RMD, RNFR, RNTO, SIZE, STAT, STOR,
+STOU, STRU, SYST, TYPE, USER, XCUP, XCWD, XMKD, XPWD, XRMD``).
+Finally, we will need a few authorization-related methods (``is_admin,
+is_logged_user, is_anonymous_user, is_picture_owner, is_friend_of``,
+eccetera), let's say 20 methods to be stored into another mixin class
+``AUTH``.
 
-D'altra parte, ci sono utenti che potrebbero preferire il buon vecchio
-protocollo FPT per trasferire le immagini
-(quindi 43 metodi ``ABOR, ALLO, APPE, CDUP, CWD, DELE, EPRT, 
-EPSV, FEAT, HELP, LIST, MDTM, MLSD, MLST, MODE, MKD, NLST, NOOP, OPTS, PASS, 
-PASV, PORT, PWD, QUIT, REIN, REST, RETR, RMD, RNFR, RNTO, SIZE, STAT, STOR, 
-STOU, STRU, SYST, TYPE, USER, XCUP, XCWD, XMKD, XPWD, XRMD``). Infine,
-ci sarà bisogno di metodi di autorizzazione vari (``is_admin, is_logged_user,
-is_anonymous_user, is_picture_owner, is_friend_of``, eccetera), diciamo altri
-20 metodi nella classe mixin AUTH.
-
-A questo punto avremmo sei classi mixin (DictMixin, GUI, HTTP, WEBDAV,
-FTP, AUTH) ed un totale di almeno 20 (da DictMixin) + 50 (da GUI) + 8
-(da HTTP) + 7 (da WEBDAV) + 44 (da FTP) + 20 (da AUTH) = 148 metodi
-derivanti dalle classi mixin. A questi vanno aggiunti i metodi
-specifici della classe ``PictureContainer``.  Non è un bello scenario,
-soprattutto se pensate che domani potrei avere bisogno di supportare
-un'altra interfaccia e quindi di aggiungere ancora altri metodi. Nelle
-mie stime sono stato conservativo, ma si fa presto a raggiunger le
-centinaia di metodi.  Questo scenario non è affatto
-irrealistico: è esattamente quello che è avvenuto in
-Zope/Plone. 
+Now we are left with six mixin classes (``DictMixin``, ``GUI``,
+``HTTP``, ``WEBDAV``, ``FTP``, ``AUTH``) and a total of at least 20
+(from ``DictMixin``) + 50 (from ``GUI``) + 8 (from ``HTTP``) + 7 (from
+``WEBDAV``) + 44 (from ``FTP``) + 20 (from ``AUTH``) = 148 methods
+coming from the mixin classes. To those methods you may add the
+methods coming from the ``PictureContainer`` class.  This is not nice,
+especially if you think that in future versions you may need to
+support yet another interface and more mixin methods.  In my estimate
+I have been conservative, but it is easy to reach hundreds of
+methods. This scenario is exactly what happened in Zope/Plone.
 
 In such a situation one must ask if there are alternative designs that
 would avoid the overpopulation problem. The answer is yes, and it is the
 standard one: *use composition instead of inheritance*. Everybody recommends
 this practice, but yet it is not followed enough in real life.
 
+.. _from Aristotle's times: http://en.wikipedia.org/wiki/Categories_(Aristotle)
 .. _articolo precedente: mixins1.html
 .. _Plone Site: http://www.phyast.pitt.edu/~micheles/python/plone-hierarchy.png
-
-Conclusion
-----------------------------------------
-
-My position is that mixins should be considered more
-of a hack than a legitimate design technique: they may be useful
-when you need to integrate with pre-existing
-code with a minimal offert, or as a debugging tool, when you want to
-instrument a third party hierarchy, but if are designing an application
-from scratch you are often better off if you do not rely on mixins.
-Recent versions of Python make attractive many alternatives to inheritance
-and I would say that the general trend of modern frameworks is to favor
-`component programming`_ rather than inheritance. You should take in
-account this fact. You should also take in account the fact that the
-problems of mixin programming become visible only when programming in
-the large, so you will find them only when your application will grow
-out of control. In the next post I will discuss how to avoid mixins
-in large frameworks. The solution is always the same: you should use
-*composition instead of inheritance* and you should *keep separated
-namespaces separated*.
-
-.. _ABC: http://www.python.org/dev/peps/pep-3119/
-.. _component programming: http://www.muthukadan.net/docs/zca.html
 """
+
+from UserDict import DictMixin
+from mixins2 import Picture, SimplePictureContainer
+from datetime import datetime
 
 class PictureContainer(DictMixin):
   from utility import log
