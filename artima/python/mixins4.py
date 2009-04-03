@@ -1,38 +1,20 @@
+'''
 Una possibile soluzione
 ---------------------------------------------------------------
 
-La mia soluzione, come anticipato nell'`articolo precedente`_ sarà
-quella di sostituire l'ereditarietà con la composizione + delegazione,
-ovverossia fare uso di oggetti proxy.
-Il carico cognitivo richiesto da un proxy - un
-oggetto che fa dispatch su di un altro oggetto - è molto
-inferiore al carico cognitivo imposto dall'ereditarietà.
+This latter point is extremely important. The human brain can memorize
+a limited amount of information. An object with ten methods can be memorized
+easily enough, but an object with a hundred methods is outside the reach
+of the average programmer. The solution is to split the hundred methods
+into ten categories with ten methods each: at this point you can keep
+the ten categories in your mind. This hierarchical solution scales
+well: if I needed a thousand methods, I would just define ten macro-categories,
+each macro-category including ten micro-categories, and I would keep in
+mind the macro-categories. Hierarchical catalogs are the natural way
+to memorize information for the human mind, at least from
+`Aristotle's times`_: this is the right solution, not to have
+a thousand methods at the same level in the same namespace.
 
-Se un oggetto è un' instanza di una classe, mi sento obbligato
-a conoscere tutti i suoi metodi (inclusi quelli di tutti i suoi
-antenati) se non altro perché potrei sovrascriverli accidentalmente
-mentre se un oggetto è un proxy mi basta sapere qual è
-l'oggetto a cui si riferisce,
-so che se voglio posso andare a vedere i metodi dell'oggetto, 
-ma non mi sento obbligato a farlo.
-È più un motivo psicologico che altro, ma il proxy piace perché
-permette di tenere confinata la complessità, mentre l'ereditarietà
-la espone direttamente.
-
-Quest'ultimo punto è estremamente importante. Il cervello
-umano può memorizzare un numero limitato di cose. Un
-oggetto con dieci metodi può essere memorizzato abbastanza agevolmente
-mentre un oggetto con cento metodi esce dalle capacità del programmatore
-medio. La soluzione è quella di dividire i cento metodi in dieci categorie
-con dieci metodi ognuna: a questo punto le dieci categorie possono essere
-tenute in mente. La soluzione gerarchica scala: se avessi bisogno di
-mille metodi, basta definire dieci macro-categorie, ognuna contenente
-dieci categorie semplici, e tenere a mente le macro-categorie. La
-catalogazione gerarchica è la maniera naturale per la mente umana
-per memorizzare l'informazione, come formalizzato per lo meno `dai tempi 
-di Aristotele`_, quindi è questa la cosa giusta
-da fare, non tenere i mille metodi tutti sullo stesso piano nello stesso
-namespace.
 
 Nel caso in esame, ho deciso di trasformare tutte le classi di mixin in
 proxy: se un attributo non viene trovato nel namespace del mixin, viene
@@ -110,8 +92,7 @@ Vedrete che l'autocompletamento funziona perfettamente
  pc.ftp.SEND       
  ...
 
-che l'help
-non vi sommerge di informazioni inutili
+che l'help non vi sommerge di informazioni inutili
 
 .. code-block:: python
 
@@ -151,7 +132,32 @@ più curiosi l'implementazione del ``dispatcher``::
 
 $$mdispatcher
 
-.. _dai tempi di Aristotele: http://it.wikipedia.org/w/index.php?title=Categoria_aristotelica
+Conclusion
+----------------------------------------
+
+My position is that mixins should be considered more
+of a hack than a legitimate design technique: they may be useful
+when you need to integrate with pre-existing
+code with a minimal offert, or as a debugging tool, when you want to
+instrument a third party hierarchy, but if are designing an application
+from scratch you are often better off if you do not rely on mixins.
+Recent versions of Python make attractive many alternatives to inheritance
+and I would say that the general trend of modern frameworks is to favor
+`component programming`_ rather than inheritance. You should take in
+account this fact. You should also take in account the fact that the
+problems of mixin programming become visible only when programming in
+the large, so you will find them only when your application will grow
+out of control. In the next post I will discuss how to avoid mixins
+in large frameworks. The solution is always the same: you should use
+*composition instead of inheritance* and you should *keep separated
+namespaces separated*.
+
+.. _ABC: http://www.python.org/dev/peps/pep-3119/
+.. _component programming: http://www.muthukadan.net/docs/zca.html
+
+It is a useful for quick and dirty hack, but I advice against starting with a
+design based on multiple inheritance for new code; actually, I usually
+recommend to use as little as possible even single inheritance!
 '''
 
 import os, copy, mdispatcher
@@ -293,7 +299,7 @@ if __name__ == '__main__': # test
     c = C()
     print c.m.add1(2)
 
-'''
+
 Parafrasando il celebre articolo di Dijkstra_ del 1969 
 `Goto Considered Harmful`_, potremmo titolare questa parte 
 *Mixins Considered Harmful*. Notate che una ricerca con Google 

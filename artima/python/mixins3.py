@@ -6,11 +6,11 @@
 .. _ABC: http://www.python.org/dev/peps/pep-3119/
 .. _strait: http://pypi.python.org/pypi/strait
 
-What attitude to keep towards multiple inheritance and mixins
+Three attitudes
 -------------------------------------------------------------------------------
 
 In recent years I have become an opponent of multiple inheritance and
-mixins, for reason which I have discussed at length in the
+mixins, for reasons which I have discussed at length in the
 first_ and second_ paper of this series: namespace pollution,
 insufficient separation of concerns, fragility with respect to name
 clashes, complication of the method resolution order, non scalability
@@ -18,22 +18,22 @@ of the design and even simple conceptual confusion with the *is a*
 relation.
 
 Moreover, I have argued that mixins are the wrong tool for the job: if
-you need a method to be mixed in different classes, then you are
+you need a method to be mixed into different classes, then you are
 better off not mixing it, putting it at toplevel and promoting it to a
 multimethod_/`generic function`_.
 
 Nevertheless, a lot of people think that mixins are very
 cool and a lot of new languages present mixins as the panacea
 to all evil in object oriented design. This is the reason why
-I have started this series, which is intended for developers using
-languages which features multiple inheritance or mixins and not
-only for Python developers, even if all of my examples here
-are in Python, since I am primarily a Python developer.
+I have started this series, which is intended to make developers using
+languages which features multiple inheritance or mixins think.
 
 In my view there are at least three possible attitudes
-for a developer using a language with mixins:
+for a developer using a language with mixins (say Python):
 
-1. Resignation. Acknowledge that since the language allows mixins and
+1. Resignation
+
+   Acknowledge that since the language allows mixins and
    they are used by many frameworks, they will never go away.
    Therefore one should focus on discovering workarounds to cope
    with the situation, like the ``warn_overriding`` decorator that I
@@ -41,12 +41,16 @@ for a developer using a language with mixins:
    better introspection tools to navigate though mixins (the issue
    with pydoc is that it give *too much* information);
 
-2. Education. We (the "experts") should make an effort to communicate
+2. Education
+
+   We (the "experts") should make an effort to communicate
    to the large public the issues with mixins and try to convince framework
-   authors to use alternative design. That is what I am trying to accomplish
+   authors to use alternative designs. That is what I am trying to accomplish
    with this series.
    
-3. Research. Study better implementations of the mixin idea: even if there
+3. Research
+
+   Study better implementations of the mixin idea: even if there
    is no hope for the language you are using, research is not useless
    since it may be implemented in languages yet to be written.
    Python itself can be used as an experimentation language, as I show
@@ -54,16 +58,16 @@ for a developer using a language with mixins:
    become a single inheritance + traits object system, instead of
    a multiple inheritance system. In the fourth paper of this series
    I will show yet another approach, by implementing the mixin idea
-   in terms of descriptors and not of inheritance.
+   in terms of composition and not of inheritance.
 
-Ways to avoid multiple inheritance
+Avoiding multiple inheritance with proxies
 ------------------------------------------------------------------
 
 While I think that multimethods are the right way to solve the problem
-that mixins are tring to solve, the multiple dispatch solution of defining
-functions outside classes is a radical departure from the traditional
-style of object oriented programming, which is based on single
-dispatch and methods defined inside classes.
+that mixins are tring to solve, the solution of defining functions
+outside classes and leveraging on multiple dispatch is a radical
+departure from the traditional style of object oriented programming,
+which is based on single dispatch and methods defined inside classes.
 
 If you want to keep single dispatch, then there is basically only one
 way to avoid inheritance, i.e. to replace it with *composition*,
@@ -75,26 +79,50 @@ The strait_ module for instance just inject methods in a class
 directly (provided they satisfy some checks) and as such it is a not
 a big improvements with respect to inheritance: the advantages are in
 the protection against name clashes and in the simplication of the
-method resolution order. However, one could still argue that those
+method resolution order. However, one could argue that those
 advantages are not enough, since the namespace pollution
 problem is still there.
 
 An alternative solution is to use composition plus delegation, i.e.
-to make use of proxies. The cognitive load of a proxy - an object
+to make use of proxies. For instance, in the case discussed in the second_
+paper of this series, we could have solved the design problem without
+using multiple inheritance, just with composition + delegation:
+
+$$PictureContainer
+
+Thanks to the ``__getattr__`` trick, ``PictureContainer`` is now
+a proxy to a ``SimplePictureContainer`` and all the methods of
+``SimplePictureContainer`` are available to ``PictureContainer``,
+on top of the methods coming from ``DictMixin``: we did basically
+fake multiple inheritance without complicating the hierarchy.
+
+.. image:: box.jpg
+
+A disadvantage of ``PictureContainer`` is that its instances are no
+more instances of ``SimplePictureContainer``, therefore if your code
+contained checks like ``isinstance(obj, SimplePictureContainer)``
+(which is a very bad practice, at least for Python versions below Python 2.6)
+the check would fail. The problem has been solved in 
+Python 2.6 thanks to the Abstract Base Class mechanism (ABC_);
+it is enought to register ``SimplePictureContainer`` as an ABC of
+``PictureContainer`` and you are done.
+
+I like proxies because the cognitive load of a proxy - an object
 dispatching to another method - is much smaller than the cognitive
 load imposed by inheritance.
 
 If I see an object which is an instance of a class, I feel obliged to
 know all the methods of that class, including all the methods of its
-ancestors, because I could override them accidentally. On the other
-hand, if an object is a proxy, I just note in my mind that it contains
-a reference to the proxied object, but I do not feel obliged to know
-everything about the proxied object; it is enough for me to know
-which methods are called by the proxy methods, if any. It is more
-of a psychological effect, but I like proxies since they keep the
-complexity confined, whereas inheritance exposes it directly.
+ancestors, because I could override them accidentally.
 
-In particular, if the proxy has a method which accidentally shadows a
+On the other hand, if an object is a proxy, I just note in my mind
+that it contains a reference to the proxied object, but I do not feel
+obliged to know everything about the proxied object; it is enough for
+me to know which methods are called by the proxy methods, if any. It
+is more of a psychological effect, but I like proxies since they keep
+the complexity confined, whereas inheritance exposes it directly.
+
+I should notice that if the proxy has a method which accidentally shadows a
 method of the underlying object, nothing particularly bad happens.
 That method will not work, but the other methods will keep working,
 since they will call the methods of the original object. In
@@ -103,43 +131,28 @@ other methods of the object may call the accidentally overridden
 method, with errors appearing in apparently unrelated portions of
 code.
 
-Just to give a concrete example, in the case discussed in the second_
-paper of this series, we could have solved the design problem without
-using multiple inheritance, just with composition + delegation:
-
-$$PictureContainer
-
-Thanks to the ``__getattr__`` trick, all the methods of
-``SimplePictureContainer`` are available to ``PictureContainer2``,
-on top of the methods coming from ``DictMixin``: we did basically
-fake multiple inheritance without complicating the hierarchy.
-
-A disadvantage of ``PictureContainer2`` is that its instances are no
-more instances of ``SimplePictureContainer``, therefore if your code
-contained checks like ``isinstance(obj, SimplePictureContainer)``
-(which is a very bad practice, at least for Python versions below Python 2.6)
-the check would fail. The problem has been solved in 
-Python 2.6 thanks to the Abstract Base Class mechanism (ABC_);
-it is enought to register ``SimplePictureContainer`` as an ABC of
-``PictureContainer2`` and you are done.
-
 An exercise in design
 -------------------------------------------------------------
 
-.. image:: box.jpg
+As well as I like proxies, they are not perfect. I can see two
+problems with them: they slowdown attribute access quite a lot (this a
+performance problem, therefore not something that should concern a
+Pythonista a lot) and they are pretty opaque, since they hide the
+underlying object quite a lot (this is a feature, of course, but
+sometimes you would prefer to be more explicit). Moreover, if you have
+a complex problem, you do not want to solve it *onion-style*, by using
+proxies to proxies to proxies.
 
-Since I do not like to talk in abstract, let me consider a concrete
-design problem, which I will solve by using mixin classes but without
-incurring in the overpopulation issue. To this aim, let me refer back
-to the `second`_ article in this series, specifically to the class
-``PictureContainer2`` which inherits from``DictMixin``.
-As I said, deriving from ``DictMixin`` is good since ``DictMixin``
-provided only 19 attributes (you can see them with ``dir(DictMixin)``)
-which are well known to everybody knowing Python dictionaries, therefore
-the cognitive load is null.
+Since I do not like to talk in abstract, let me refer to the
+``PictureContainer`` example again.
 
+The class ``PictureContainer`` inherits from ``DictMixin`` and I said that
+this is good since ``DictMixin`` provided only 19 attributes (you can see
+them with ``dir(DictMixin)``) which are well known to everybody
+knowing Python dictionaries, therefore the cognitive load is null.
 The problem begins when you decide that you need to add features to
-``PictureContainer2``.
+``PictureContainer``.
+
 For instance, if we are writing a GUI application, we may need methods
 such as ``set_thumbnails_size, get_thumbnails_size, 
 generate_thumbnails, show_thumbnails, make_picture_menu, show_picture_menu``,
@@ -178,14 +191,19 @@ support yet another interface and more mixin methods.  In my estimate
 I have been conservative, but it is easy to reach hundreds of
 methods. This scenario is exactly what happened in Zope/Plone.
 
-In such a situation one must ask if there are alternative designs that
-would avoid the overpopulation problem. The answer is yes, and it is the
-standard one: *use composition instead of inheritance*. Everybody recommends
-this practice, but yet it is not followed enough in real life.
+It is clear that making a six level proxy of proxy wrapping a set of methods
+over the other is not a better solution than using mixins. Using traits
+would not be better either.
+One must ask if there are alternative designs that
+avoid the overpopulation problem. The answer is yes, of course,
+but in order to keep the suspence up, I will not show any solution
+to this design problem in this issue. I leave it for my next
+(and last) paper on the subject, so that you have some time to come
+up with a solution of your own ;)
 
-.. _from Aristotle's times: http://en.wikipedia.org/wiki/Categories_(Aristotle)
-.. _articolo precedente: mixins1.html
-.. _Plone Site: http://www.phyast.pitt.edu/~micheles/python/plone-hierarchy.png
+.. image:: diavolo.png
+
+*to be continued ...*
 """
 
 from UserDict import DictMixin
@@ -193,6 +211,7 @@ from mixins2 import Picture, SimplePictureContainer
 from datetime import datetime
 
 class PictureContainer(DictMixin):
+  "PictureContainer is a proxy to the underlying SimplePictureContainer"
   from utility import log
 
   def __init__(self, id, pictures_or_containers):
@@ -216,16 +235,6 @@ class PictureContainer(DictMixin):
   def __getattr__(self, name):
     return getattr(self._pc, name)
 
-# def subclass(cls, base):
-#   bases = cls.__bases__
-#   if bases and bases != (object,):
-#       raise TypeError('Nontrivial base classes %s' % bases)
-#   return type(cls.__name__, (base, object), vars(cls).copy())
-
-# class DLPictureContainer(subclass(SimplePictureContainer, DictMixin)):
-#   pass
-
-#help(DLPictureContainer)
 p1 = Picture('pic00001', '/home/micheles/mypictures/pic00001', 
              "Michele al mare", datetime(2008, 06, 10))
 
