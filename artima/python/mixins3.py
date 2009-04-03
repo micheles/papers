@@ -5,6 +5,7 @@
 .. _generic function: http://en.wikipedia.org/wiki/Multiple_dispatch
 .. _ABC: http://www.python.org/dev/peps/pep-3119/
 .. _strait: http://pypi.python.org/pypi/strait
+.. _traits: http://www.artima.com/weblogs/viewpost.jsp?thread=246488
 
 Three attitudes
 -------------------------------------------------------------------------------
@@ -192,7 +193,7 @@ I have been conservative, but it is easy to reach hundreds of
 methods. This scenario is exactly what happened in Zope/Plone.
 
 It is clear that making a six level proxy of proxy wrapping a set of methods
-over the other is not a better solution than using mixins. Using traits
+over the other is not a better solution than using mixins. Using traits_
 would not be better either.
 One must ask if there are alternative designs that
 avoid the overpopulation problem. The answer is yes, of course,
