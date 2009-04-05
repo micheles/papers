@@ -41,5 +41,8 @@ mixins2: mixins2.py
 mixins3: mixins3.py
 	$(MINIDOC) -d mixins3; $(POST) /tmp/mixins3.rst 254367
 
+mixins4: mixins4.py
+	$(MINIDOC) -d mixins4; $(POST) /tmp/mixins4.rst 254507
+
 traits: traits.txt
 	$(POST) traits.txt 246488

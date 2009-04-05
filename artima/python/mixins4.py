@@ -1,89 +1,117 @@
 '''
-Una possibile soluzione
+A possible solution
 ---------------------------------------------------------------
 
-This latter point is extremely important. The human brain can memorize
-a limited amount of information. An object with ten methods can be memorized
-easily enough, but an object with a hundred methods is outside the reach
-of the average programmer. The solution is to split the hundred methods
-into ten categories with ten methods each: at this point you can keep
-the ten categories in your mind. This hierarchical solution scales
-well: if I needed a thousand methods, I would just define ten macro-categories,
-each macro-category including ten micro-categories, and I would keep in
-mind the macro-categories. Hierarchical catalogs are the natural way
-to memorize information for the human mind, at least from
+The design problem described in the last article is clearly a problem
+of interfaces. We have an object and we want to interact with it
+through multiple interfaces (GUI, HTTP, FTP, etc.). The mixin
+solution just adds a bunch of methods for each interface, with the
+result of creating a monster object with hundreds of methods.
+
+This is a maintenance nightmare since the human brain can manage a
+limited amount of information. An object with ten methods can be
+kept in mind easily enough, but an object with a hundred methods is
+outside the reach of the average programmer.
+
+The solution is to split the hundred methods into ten
+categories with ten methods each: at this point you can keep the ten
+categories in your mind.
+This solution scales well: if I
+needed a thousand methods, I would just define ten macro-categories,
+each macro-category including ten micro-categories, and I would keep
+in mind the macro-categories.
+
+Hierarchical catalogs are the natural
+way to memorize information for the human mind, at least from
 `Aristotle's times`_: this is the right solution, not to have
-a thousand methods at the same level in the same namespace.
+a hundred methods at the same level in the same namespace.
 
+We need therefore a mixin-like solution which however keeps the methods
+in separate namespaces *explicitly* (usual mixins keeps the methods
+in separate namespaces but *implicitly*, without visibility to the
+use of the class).
 
-Nel caso in esame, ho deciso di trasformare tutte le classi di mixin in
-proxy: se un attributo non viene trovato nel namespace del mixin, viene
-cercato anche nel namespace dell'oggetto sottostante.
-Tecnicamente questa idea può essere implementata definendo
-degli oggetti *dispatcher* 
-da usare come attributi di classe (*attribute descriptors*).
-Potete trovare l'implementazione in appendice.
-Un esempio d'uso è il seguente:
+Technically this idea can be implemented by defining an
+*interface wrapper* object
+which is also an `attribute descriptor`_:
+
+$$mdispatcher
+
+Interface wrapper objects are proxies: they are intended to wrap the inner
+object, by dispatching first on the mixin methods and then to the inner
+methods. In practice, if you want to add an interface to an instance ``c``
+of a class ``C``, and the methods of the interface are stored into a mixin
+class ``M``, you can just add an interface wrapper to ``C``:
+
+.. code-block:: python
+
+  class C(object):
+      m = iwrapper(M)
+
+Now ``c.m`` is an instance of ``M`` which can be passed to all
+functions and methods expecting the interface defined by ``M`` ;
+moreover all the methods and attributes of the underlying object are
+available via the ``__getattr__`` trick. For simplicity I
+assuming that there are no name clashes between the names of the
+interface methods and the names of the inner methods.
+
+Here is how you would use interface wrappers in the ``PictureContainer``
+example:
 
 $$PictureContainer
 
-Notate come io abbia rifattorizzato la classe ``PictureContainer2``
-dell'`articolo precedente`_ per renderla più pulita.
-In particolare ho definito esplicitamente la proprietà ``log`` invece
-di importarla dal modulo di utilità (``from utility import log``)
-come fatto. Tutto sommato, visto che si
-tratta di tre sole righe, può avere senso riscriverle ed evitare
-al lettore di andare a guardare un altro modulo. C'è sempre da trovare
-un punto di equilibrio tra riuso del codice da una parte e codice
-spaghetti dall'altra. Nel dubbio, tenete conto che *readability counts*.
+Notice that I have refactored ``PictureContainer`` a bit.  I have
+defined the property ``log`` explicitly (before it was imported,
+``from utility import log``).  Since it takes only three lines, it
+makes sense to write them out and to avoid forcing the reader to look
+in another module. There is always a compromise between code reuse and
+spaghetti code. When in doubt, I always remind myself that
+*readability counts*.
 
-Come vedete è sparita l'ereditarietà da tutte le classi mixin
-tranne ``DictMixin``. 
-Un oggetto ``PictureContainer`` *è* un dizionario e quindi
-è giusto che erediti da ``DictMixin``; ha meno senso che erediti
-da GUI, HTTP, WEBDAV, FTP, AUTH, perché è uno stiracchiare la
-realtà dire che ``PictureContainer`` sia anche un oggetto GUI, HTTP, WEBDAV, 
-FTP, AUTH.
+As you see, I have removed all mixin classes except ``DictMixin``.
+After all, I have decided that a ``PictureContainer`` *is* like a dictionary,
+but it is not really also an object GUI, HTTP, WEBDAV, FTP, AUTH.
+Logically those are different interfaces or wrappers over the basic object.
 
-Ho ereditato esplicitamente da ``object``, perché la classe
-``DictMixin`` è una cosiddetta classe *old-style* (per motivi di
-compatibilità con il passato), mentre il ``dispatcher``
-è pensato per essere usato con classi *new-style*; ereditare da ``object``
-fa sì che ``PictureContainer`` diventi una classe new-style. Questo
-è uno dei casi in cui l'ereditarietà multipla è comoda, ma il caso
-d'uso sparirà in Python 3.0, in cui tutte le classi sono new-style.
+There is still multiple inheritance from ``object``, because
+``DictMixin`` is an *old-style* class (for backward compatibility reasons)
+whereas interface wrappers, being attribute descriptors,
+are intended to be used with *new-style*
+classes. Inheriting from ``object`` makes ``PictureContainer`` a new style
+class. This is one of the rare cases where multiple inheritance is
+convenient, but this use case has already disappeared in Python 3.0,
+where all classes are new-style.
 
 .. _Zen di Python: http://www.python.org/dev/peps/pep-0020/
 
-Discussione
+Discussion
 -----------------------------------------------------------------
 
-Proviamo adesso che la nostra soluzione al problema di design
-è consistente con i principi enunciati
-nello `Zen di Python`_. Il fatto che l'implementazione del dispatcher
-sia semplice - circa 20 righe di codice - 
-è già un primo passo nella direzione giusta
+Let me check if the solution to the design problem is consistent
+with the `Zen di Python`_.
+First of all, the implementation of the interface wrapper concept is simple
+- 20 lines of code - and this is already a step in the right direction
 (*if the implementation is hard to
-explain, it's a bad idea*). Il fatto che tutti i metodi dei mixin restino 
-localizzati nel loro proprio namespace senza inquinare il namespace 
-della classe figlia è ancora più pythonico
-(*namespaces are one honking great idea -- let's do more of those!*).
-Infine, il fatto che per accedere al metodo ``POST`` del mixin ``HTTP`` 
-dobbiamo scrivere esplicitamente ``self.http.POST`` è pythonicissimo
-perché *explicit is better than implicit*; in questo modo
-non c'è bisogno di tirare ad indovinare per capire la provenienza
-di un metodo (*in the face of ambiguity, refuse the temptation to guess*).
+explain, it's a bad idea*).
+All the methods of the mixin are localized in the mixin namespace
+and they do not pollute the namespace of the original class, and
+that's good (*namespaces are one honking great idea -- let's do more of
+those!*).
+Moreover, we are following the  *explicit is better than implicit* principle.
+For instance, to access the ``POST`` method of the ``HTTP`` mixin we need 
+to write ``self.http.POST``, which is good, since the readers of our code
+will not need to guess the origin of the method
+(*in the face of ambiguity, refuse the temptation to guess*).
 
-La nostra soluzione, comunque, non è soltanto pythonica, ma anche
-usabile (*practicality beats purity*): provate ad istanziare un
-oggetto ``PictureContainer`` e a fare
-qualche esperimento dalla console interattiva:
+The solution is also usable (*practicality beats purity*): you can instantiate
+a ``PictureContainer`` object and perform some experiment from the Python
+prompt:
 
 .. code-block:: python
 
  >>> pc = PictureContainer('root', [])
 
-Vedrete che l'autocompletamento funziona perfettamente 
+Autocompletion works pretty well:
 
 .. code-block:: python
 
@@ -92,7 +120,7 @@ Vedrete che l'autocompletamento funziona perfettamente
  pc.ftp.SEND       
  ...
 
-che l'help non vi sommerge di informazioni inutili
+the ``help`` function does not provide excessive information
 
 .. code-block:: python
 
@@ -107,61 +135,79 @@ che l'help non vi sommerge di informazioni inutili
  |  Methods defined here:
  |  ...
  | 
- |  auth = <AUTHDispatcher {is_admin ...} >
- |  ftp = <FTPDispatcher {RECV, SEND ...} >
- |  gui = <GUIDispatcher {draw_button, draw_buttons ...} >
- |  http = <HTTPDispatcher {GET, POST ...} >
- |  webdav = <WEBDAVDispatcher {GET, POST, LOCK, UNLOCK ...} >
+ |  auth = <AUTHWrapper {is_admin ...} >
+ |  ftp = <FTPWrapper {RECV, SEND ...} >
+ |  gui = <GUIWrapper {draw_button, draw_buttons ...} >
+ |  http = <HTTPWrapper {GET, POST ...} >
+ |  webdav = <WEBDAVWrapper {GET, POST, LOCK, UNLOCK ...} >
  ...
 
-e potete fare introspezione soltanto sulle caratteristiche che
-vi interessano, senza che tutto sia mescolato (*sparse is better than dense*):
+and it is possible to introspect just the features you are interested
+in, without having everything mixed in (*sparse is better than dense*):
+
+.. code-block:: python
 
  >>> print dir(pc.http)
  ['GET, 'POST', ...]
 
-È anche molto facile adattare un oggetto composto da dispatchers,
-per renderlo compatibile con diverse interfacce. Ma per spiegare 
-propriamente questo punto mi servirebbe
-un'altra serie di articoli, che potrei intitolare *I vantaggi della
-programmazione a componenti*. Per il momento, mi fermo qui,
-sperando di avervi dato qualche spunto interessante. Lascio ai
-più curiosi l'implementazione del ``dispatcher``::
-
- $ cat mdispatcher.py
-
-$$mdispatcher
+It is also easy to adapt an object made from iwrappers.
+However to explain this point in detail would require another
+series of articles about component programming and adaptation.
 
 Conclusion
 ----------------------------------------
 
-My position is that mixins should be considered more
-of a hack than a legitimate design technique: they may be useful
-when you need to integrate with pre-existing
-code with a minimal offert, or as a debugging tool, when you want to
-instrument a third party hierarchy, but if are designing an application
-from scratch you are often better off if you do not rely on mixins.
-Recent versions of Python make attractive many alternatives to inheritance
-and I would say that the general trend of modern frameworks is to favor
-`component programming`_ rather than inheritance. You should take in
-account this fact. You should also take in account the fact that the
-problems of mixin programming become visible only when programming in
-the large, so you will find them only when your application will grow
-out of control. In the next post I will discuss how to avoid mixins
-in large frameworks. The solution is always the same: you should use
-*composition instead of inheritance* and you should *keep separated
-namespaces separated*.
+Is the solution I presented here the only solution or even the best
+solution to the problem of adding multiple interfaces to an object?
+Certainly not. I have written it down in half an hour an I am not
+even using it, since (fortunately) I am not a framework writer.
+
+The solution is intended as a suggestion
+for people which are refactoring a framework based
+on mixins and which already have they methods organized in mixin
+classes. Then, the ``iwrapper`` function is able to convert
+such pre-existing classes into objects which can be used as
+class attributes, replacing multiple inheritance with composition.
+
+If you do not already have the mixin classes, you may be better
+off with a different solution. Moreover, if you are using Python 2.6
+or later, it is natural to tackle this problem in terms of
+Abstract Base Classes (ABC_), which I have completely ignored.
+
+The solution I have presented lists all the interfaces supported
+by an object directly (statically); however you could use a different
+design based on adapters, where the object is dynamically adapted
+with the correct interface before being passed to its consumer object.
+A solution based on adapters is fine if the list of supported
+interfaces is not know a priori.
+
+My point here was to show here that Python (at least from Python 2.2)
+makes it easy to implement solutions based on composition than than on
+inheritance.
+
+Actually, I would say that the general trend of modern Python
+frameworks is to favor `component programming`_ rather than
+inheritance. You should take in account this fact. Instead of my home
+made solution you may want to try out an enterprise-ready solution,
+like the component framework of Zope 3 (I personally prefer home made
+solutions to over-engineered frameworks, but YMMV).
+
+Nowadays I tend to consider multiple inheritance and mixins more of
+a hack than a legitimate design technique: they may be useful when you
+need to integrate with pre-existing code with a minimal offert, or as
+a debugging tool, when you want to instrument a third party hierarchy,
+but you if are designing an application from scratch you are often
+better off if you do not rely on mixins.  I usually
+recommend to use as little as possible even single inheritance.
 
 .. _ABC: http://www.python.org/dev/peps/pep-3119/
 .. _component programming: http://www.muthukadan.net/docs/zca.html
-
-It is a useful for quick and dirty hack, but I advice against starting with a
-design based on multiple inheritance for new code; actually, I usually
-recommend to use as little as possible even single inheritance!
+.. _Aristotle's times: http://en.wikipedia.org/wiki/Categories_(Aristotle)
+.. _attribute descriptor: http://users.rcn.com/python/download/Descriptor.htm
 '''
 
 import os, copy, mdispatcher
-from mdispatcher import dispatcher
+from mdispatcher import iwrapper
 from UserDict import DictMixin
 
 class GUI(object):
@@ -195,9 +241,9 @@ class AUTH(object):
     pass
 
 class WebPictureContainer(DictMixin):
-    http = dispatcher(HTTP)
-    ftp = dispatcher(FTP)
-    webdav = dispatcher(WEBDAV)
+    http = iwrapper(HTTP)
+    ftp = iwrapper(FTP)
+    webdav = iwrapper(WEBDAV)
 
     def __init__(self, id, pictures_or_containers):
       self.id = id
@@ -234,13 +280,13 @@ def walk(container, path='/'):
       yield newpath, obj
 
 class PictureContainer(DictMixin, object):
-  # dispatchers objects have the same methods as the corresponding mixin
-  # class; moreover they dispatch on self, i.e. on PictureContainer objects
-  gui = dispatcher(GUI)
-  http = dispatcher(HTTP)
-  webdav = dispatcher(WEBDAV)
-  ftp = dispatcher(FTP)
-  auth = dispatcher(AUTH)
+  # interface wrappers are instances of the corresponding mixin class;
+  # moreover they dispatch on self, i.e. on PictureContainer objects
+  gui = iwrapper(GUI)
+  http = iwrapper(HTTP)
+  webdav = iwrapper(WEBDAV)
+  ftp = iwrapper(FTP)
+  auth = iwrapper(AUTH)
 
   @property
   def log(self):
@@ -295,19 +341,7 @@ if __name__ == '__main__': # test
         def add1(self, x):
             return self.helper() + x
     class C(object):
-        m = dispatcher(M)
+        m = iwrapper(M)
     c = C()
     print c.m.add1(2)
-
-
-Parafrasando il celebre articolo di Dijkstra_ del 1969 
-`Goto Considered Harmful`_, potremmo titolare questa parte 
-*Mixins Considered Harmful*. Notate che una ricerca con Google 
-mi dà 14700 hits per "Mixins Considered Harmful", quindi non sono
-l'unico a pensarla così ma comunque secondo me c'è ancora bisogno 
-di parlare male dei mixins.
-
-.. _Dijkstra: http://en.wikipedia.org/wiki/Edsger_Dijkstra
-.. _Goto Considered Harmful: http://www.cs.utexas.edu/users/EWD/ewd02xx/EWD215.PDF
-
-'''
+    print c.m
