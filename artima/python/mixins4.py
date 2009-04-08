@@ -8,7 +8,7 @@ through multiple interfaces (GUI, HTTP, FTP, etc.). The mixin
 solution just adds a bunch of methods for each interface, with the
 result of creating a monster object with hundreds of methods.
 
-This is a maintenance nightmare since the human brain can manage a
+This design is a maintenance nightmare. The human brain can manage a
 limited amount of information. An object with ten methods can be
 kept in mind easily enough, but an object with a hundred methods is
 outside the reach of the average programmer.
@@ -17,27 +17,30 @@ The solution is to split the hundred methods into ten
 categories with ten methods each: at this point you can keep the ten
 categories in your mind.
 This solution scales well: if I
-needed a thousand methods, I would just define ten macro-categories,
-each macro-category including ten micro-categories, and I would keep
+need a thousand methods, I can just define ten macro-categories,
+each macro-category including ten micro-categories, and I can keep
 in mind the macro-categories.
 
-Hierarchical catalogs are the natural
+Hierarchical categories are the natural
 way to memorize information for the human mind, at least from
 `Aristotle's times`_: this is the right solution, not to have
 a hundred methods at the same level in the same namespace.
 
-We need therefore a mixin-like solution which however keeps the methods
+We need therefore a mixin-like solution which keeps the methods
 in separate namespaces *explicitly* (usual mixins keeps the methods
 in separate namespaces but *implicitly*, without visibility to the
 use of the class).
 
 Technically this idea can be implemented by defining an
 *interface wrapper* object
-which is also an `attribute descriptor`_:
+which is also an *attribute descriptor* (if you are not
+familiar with the concept of descriptors in Python, you must read
+the `beautiful essay by R. Hettinger`_ on the subject):
 
 $$mdispatcher
 
-Interface wrapper objects are proxies: they are intended to wrap the inner
+Interface wrapper objects are instances of the mixin (interface) class
+but also proxies: they are intended to wrap the inner
 object, by dispatching first on the mixin methods and then to the inner
 methods. In practice, if you want to add an interface to an instance ``c``
 of a class ``C``, and the methods of the interface are stored into a mixin
@@ -48,10 +51,8 @@ class ``M``, you can just add an interface wrapper to ``C``:
   class C(object):
       m = iwrapper(M)
 
-Now ``c.m`` is an instance of ``M`` which can be passed to all
-functions and methods expecting the interface defined by ``M`` ;
-moreover all the methods and attributes of the underlying object are
-available via the ``__getattr__`` trick. For simplicity I
+Now ``c.m`` is an instance of ``M`` which can also be used as a fake
+``C`` object thanks to the ``__getattr__`` trick. For simplicity I
 assuming that there are no name clashes between the names of the
 interface methods and the names of the inner methods.
 
@@ -69,8 +70,8 @@ spaghetti code. When in doubt, I always remind myself that
 *readability counts*.
 
 As you see, I have removed all mixin classes except ``DictMixin``.
-After all, I have decided that a ``PictureContainer`` *is* like a dictionary,
-but it is not really also an object GUI, HTTP, WEBDAV, FTP, AUTH.
+After all, I have decided that a ``PictureContainer`` *is* a dictionary,
+but it is not really also an object of type GUI, HTTP, WEBDAV, FTP, AUTH.
 Logically those are different interfaces or wrappers over the basic object.
 
 There is still multiple inheritance from ``object``, because
@@ -87,7 +88,7 @@ where all classes are new-style.
 Discussion
 -----------------------------------------------------------------
 
-Let me check if the solution to the design problem is consistent
+Let me check if this solution to our design problem is consistent
 with the `Zen di Python`_.
 First of all, the implementation of the interface wrapper concept is simple
 - 20 lines of code - and this is already a step in the right direction
@@ -150,21 +151,17 @@ in, without having everything mixed in (*sparse is better than dense*):
  >>> print dir(pc.http)
  ['GET, 'POST', ...]
 
-It is also easy to adapt an object made from iwrappers.
-However to explain this point in detail would require another
-series of articles about component programming and adaptation.
-
 Conclusion
 ----------------------------------------
 
-Is the solution I presented here the only solution or even the best
+Is the solution presented here the only solution or even the best
 solution to the problem of adding multiple interfaces to an object?
 Certainly not. I have written it down in half an hour an I am not
 even using it, since (fortunately) I am not a framework writer.
 
 The solution is intended as a suggestion
 for people which are refactoring a framework based
-on mixins and which already have they methods organized in mixin
+on mixins and which have their methods organized in mixin
 classes. Then, the ``iwrapper`` function is able to convert
 such pre-existing classes into objects which can be used as
 class attributes, replacing multiple inheritance with composition.
@@ -182,11 +179,11 @@ A solution based on adapters is fine if the list of supported
 interfaces is not know a priori.
 
 My point here was to show here that Python (at least from Python 2.2)
-makes it easy to implement solutions based on composition than than on
+makes it easy to implement solutions based on composition rather than on
 inheritance.
 
 Actually, I would say that the general trend of modern Python
-frameworks is to favor `component programming`_ rather than
+frameworks is to favor `component programming`_ over
 inheritance. You should take in account this fact. Instead of my home
 made solution you may want to try out an enterprise-ready solution,
 like the component framework of Zope 3 (I personally prefer home made
@@ -197,13 +194,13 @@ a hack than a legitimate design technique: they may be useful when you
 need to integrate with pre-existing code with a minimal offert, or as
 a debugging tool, when you want to instrument a third party hierarchy,
 but you if are designing an application from scratch you are often
-better off if you do not rely on mixins.  I usually
+better off if you do not rely on mixins.  Actually I usually
 recommend to use as little as possible even single inheritance.
 
 .. _ABC: http://www.python.org/dev/peps/pep-3119/
 .. _component programming: http://www.muthukadan.net/docs/zca.html
 .. _Aristotle's times: http://en.wikipedia.org/wiki/Categories_(Aristotle)
-.. _attribute descriptor: http://users.rcn.com/python/download/Descriptor.htm
+.. _beautiful essay by R. Hettinger: http://users.rcn.com/python/download/Descriptor.htm
 '''
 
 import os, copy, mdispatcher
@@ -281,7 +278,7 @@ def walk(container, path='/'):
 
 class PictureContainer(DictMixin, object):
   # interface wrappers are instances of the corresponding mixin class;
-  # moreover they dispatch on self, i.e. on PictureContainer objects
+  # moreover they dispatch on PictureContainer objects
   gui = iwrapper(GUI)
   http = iwrapper(HTTP)
   webdav = iwrapper(WEBDAV)
