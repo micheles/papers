@@ -138,6 +138,77 @@ The colon macro expects as argument another macro, the
 ... expr)``, by removing four parenthesis. The latest version of the
 ``aps`` package provides a colon form in the ``(aps lang)`` module.
 
+macros generating macros
+----------------------------------------------------
+
+In this paragraph I will give an example of a second order macro
+expanding to a regular (first order) macro. Here it is:
+
+$$DEF-VECTOR-TYPE
+
+``def-vector-type`` is a macro which defines a macro which is used to
+manage classes of vectors; for instance
+
+$$BOOK
+
+defines a ``Book`` macro which is able to manage two-dimensional vectors
+with fields ``title`` and ``author``. The expansion of ``Book`` is the
+following:
+
+.. code-block:: scheme
+
+ (def-syntax Book
+  (syntax-match (new ref set! title author)
+   (sub (ctx <name>) #''Book)
+   (sub (ctx <fields>) #'(list 'title 'author))
+   (sub (ctx from-list ls) #'(list->vector ls))
+   (sub (ctx new arg ...) #'(vector arg ...))
+   (sub (ctx v ref title) #'(vector-ref v 0))
+   (sub (ctx v ref author) #'(vector-ref v 1))
+   (sub (ctx v set! title x) #'(vector-set! v 0 x))
+   (sub (ctx v set! author x) #'(vector-set! v 1 x))))
+
+From this expansion it is clear how ``Book`` works. For instance,
+
+.. code-block:: scheme
+
+ > (define b (Book new "Title" "Author"))
+
+defines a vector of two strings:
+
+.. code-block:: scheme
+
+ > b
+ #("Title" "Author")
+
+``(Book b ref title)`` retrieves the ``title`` field whereas
+``(Book b ref author)`` retrieves the ``author`` field:
+
+.. code-block:: scheme
+
+ > (Book b ref title)
+ "Title"
+ > (Book b ref author)
+ "Author"
+
+``(Book b set! title new-title)`` and ``(Book b set! author new-author)``
+allows to change the ``title`` and ``author`` fields.
+It is also possible to convert a list into a ``Book`` vector:
+
+ > (Book from-list '("t" "a"))
+ #("t" "a")
+
+Finally, the ``Book`` macro provides introspection features:
+
+.. code-block:: scheme
+
+ > (Book <name>)
+ Book
+ > (book <fields>)
+ (title author)
+
+The secret of the ellipsis
+-----------------------------------------------------------------
 
 .. _case: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_384
 ..  _Arc: http://www.paulgraham.com/arcll1.html
@@ -208,7 +279,10 @@ own preferred high level syntax.
           ))))
 ;;END
 
+;;BOOK
 (def-vector-type Book title author)
+;;END
+
 (pretty-print (syntax-expand (def-vector-type Book title author)))
 
 ;;COLLECTING-PAIRS
