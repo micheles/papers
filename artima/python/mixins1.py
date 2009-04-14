@@ -9,7 +9,7 @@ in my opinion worth the effort.
 
 Injecting methods into a class namespace is a bad idea for a very
 simple reason: every time you use a mixin,
-you are actually polluting your class namespace and loosing track of the
+you are actually polluting your class namespace and losing track of the
 origin of your methods. In this sense, using a mixin in a class is just
 as bad as using ``from module import *`` in a module.
 However, everybody agrees that it is much better to
