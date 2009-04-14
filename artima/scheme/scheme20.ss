@@ -192,7 +192,24 @@ own preferred high level syntax.
 |#
 
 (import (rnrs) (sweet-macros) (for (aps lang) run expand)
-        (aps easy-test) (for (aps list-utils) expand) (aps compat))
+        (aps easy-test) (for (aps list-utils) run expand) (aps compat))
+
+;;DEF-VECTOR-TYPE
+(def-syntax (def-vector-type name field-name ...)
+  (with-syntax (((i ...) (range (length #'(field-name ...)))))
+    #'(def-syntax name
+        (syntax-match (new ref set! field-name ...)
+          (sub (ctx <name>) #''name)
+          (sub (ctx <fields>) #'(list 'field-name ...))
+          (sub (ctx from-list ls) #'(list->vector ls))
+          (sub (ctx new arg (... ...)) #'(vector arg (... ...)))
+          (sub (ctx v ref field-name) #'(vector-ref v i)) ...
+          (sub (ctx v set! field-name x) #'(vector-set! v i x)) ...
+          ))))
+;;END
+
+(def-vector-type Book title author)
+(pretty-print (syntax-expand (def-vector-type Book title author)))
 
 ;;COLLECTING-PAIRS
 (def-syntax collecting-pairs
@@ -216,6 +233,12 @@ own preferred high level syntax.
 ;  (test "err"
 ;     (catch-error (: let* x 1 y x z (+ x y)))
 ;      "Odd number of arguments")
+
+ (test "nv1"
+       (let ()
+         (define b (Book new "T" "A"))
+         (Book b ref title))
+       "T")
  )
 
 ;;END
