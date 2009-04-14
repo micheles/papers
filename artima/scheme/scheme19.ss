@@ -13,7 +13,7 @@ Macros are the main reason why I first became interested in Scheme. At
 the time - more or less six years ago - there was a bunch of lispers
 trolling in comp.lang.python, and arguing for the addition of macros
 to Python.  Of course most Pythonista opposed the idea, but at the
-time I had no idea of the advantages/disadvantges of macros; I felt
+time I had no idea of the advantages/disadvantages of macros; I felt
 quite ignorant and powerless to argue. I never liked to feel ignorant,
 so I decided to learn macros, especially Scheme macros, since they are
 the state of the art.
@@ -38,7 +38,7 @@ can solve his doubts by implementing the feature with macros.
 
 Perhaps not everybody should design its own programming language,
 and certainly not everybody should *distribute* its own personal
-language, however I think lots of people will get a benifit trying
+language, however I think lots of people will get a benefit trying
 to think about how to design a language and making some experiment.
 The easier thing is to start from a Domain Specific Language (DSL),
 which does not need to be a full grown programming language; for
@@ -184,8 +184,7 @@ Al Petrofsky.
 
 Marshall's essay is quite nontrivial, and it is intended for expert
 Scheme programmers. On the other hand, it is child play compared to
-Petrofsky's essay, which is intended for Scheme wizards with a vein
-of foolinesh ;)
+Petrofsky's essay, which is intended for foolish Scheme wizards ;)
 
 .. _An Advanced Syntax-Rules Primer for the Mildly Insane: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/86c338837de3a020/eb6cc6e11775b619?#eb6cc6e11775b619
 .. _6: http://www.artima.com/weblogs/viewpost.jsp?thread=240198

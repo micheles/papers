@@ -246,7 +246,8 @@ Notice that the name of the macro (in this case ``define-a`` is ignored
 by the transformer, i.e. it is a dummy identifier.
 
 |#
-(import (rnrs) (sweet-macros) (aps easy-test) (aps compat))
+(import (rnrs) (sweet-macros) (aps easy-test) (aps compat)
+        (for (aps list-utils) expand) (for (aps record-syntax) expand run))
 
 ;;ALIST
 (def-syntax (alist arg ...)
@@ -259,6 +260,17 @@ by the transformer, i.e. it is a dummy identifier.
      #'(let* ((name value) ...)
          (list (list 'name name) ...))))
 ;;END
+
+(def-syntax book (record-syntax title author))
+(pretty-print (syntax-expand (record-syntax title author))) (newline)
+
+(define b (vector "T" "A"))
+(display (list (book b title) (book b author))) ;; seems an Ypsilon bug
+;since this works
+;(def-syntax book
+;  (syntax-match (title author)
+;   (sub (ctx v title) (syntax (vector-ref v 0)))
+;   (sub (ctx v author) (syntax (vector-ref v 1)))))
 
 (display (syntax-expand (alist (a 1) (b (* 2 a)))))
 
