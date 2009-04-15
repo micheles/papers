@@ -135,7 +135,106 @@ However, I do not want to
 complicate the explanation of phase separation now, which is already
 complicated as it is, so let me defer a full explanation of this point
 to a future episode of my *Adventures*.
+      
+Discussion
+-------------------------------------------------
+
+Is phase separation a good thing?
+It is clear that for the programmer's point of view, the simplest thing
+is lack of phase separation. This is the semantic typically (but now
+always) chosen by Scheme interpreters and REPLs: as soon as you type
+it in, an helper function is available for use in macros.
+If you look at it with honesty, at the end phase separation is
+nothing else that a *performance hack*: by separing compilation time
+from runtime you can perform some computation at compilation time only
+and gain performance.
+
+Therefore, if you have a compiled version of Scheme,
+it makes sense to separate compilation time from runtime, and to
+expand macros *before* compiling the helper functions (in absence of
+phase separation, macros are still expanded before running any runtime
+code, but *after* recognizing the helper functions).
+Notice that Scheme has a concept of *macro expansion time* which is
+valid even for interpreted implementation when there is no compilation
+time. The `expansion process`_ of Scheme source code is specified in
+the R6RS.
+
+There is still the question if strong phase separation is a good thing,
+or if weak phase separation (as in Ikarus) is enough. For the programmer
+weak phase separation is easier, since he does not need to specify
+the phase in which he want to import names. Strong phase separation
+has been introduced so that at compile time a language which is
+completely different from the language you use at runtime. In particular
+you could decided to use in macros a subset of the full R6RS language.
+
+Suppose for instance you are a teacher, and you want to force your
+students to write their macros using only a functional subset of Scheme.
+You could then import at compile time all R6RS procedures except the
+nonfunctional ones (like ``set!``) while keeping import at runtime
+the whole R6RS. You could even perform the opposite, and remove ``set!``
+from the runtime, but allowing it at compile time.
+
+Therefore strong phase separation is strictly more powerful than week
+phase separation, since it gives you more control. In Ikarus, when
+you import a name in your module, the name is imported in all phases,
+and there is nothing you can do about it.
+On the other hand strong phase separation makes everything more complicated:
+it is somewhat akin to the introduction of multiple namespace, because
+the same name can be imported in a given phase and not in another,
+and that can lead to confusion.
+
+There are people in the Scheme community thinking that strong phase
+separation is a mistake, and that weak phase separation is the right thing
+to do. On the other side people (especially from the PLT community where
+all this originated) sing the virtues of strong phase separation and say
+all good things about it. I personally I have not seen a compelling
+use case for strong phase separation yet, and I would be happy is
+some of my readers could give me such an example.
+On the other hand, I am well known for preferring simplicity over
+(unneeded) power. 
+
+.. _expansion process: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-13.html#node_chap_10
+
 |#
 
-(import (rnrs) (sweet-macros) (aps list-utils) (aps easy-test) (aps compat)
-        (for (aps lang) expand run))
+(import (rnrs) (sweet-macros) (for (aps lang) expand) (aps compat))
+         
+;;DEF-BOOK
+(def-syntax (def-book name title author)
+  (: with-syntax
+     name-title (identifier-append #'name "-title")
+     name-author (identifier-append #'name "-author")
+     #'(begin
+         (define name (vector title author))
+         (define name-title (vector-ref name 0))
+         (define name-author (vector-ref name 1)))))
+
+;;END
+(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
+
+
+ ;;TEST-DEF-BOOK
+ (test "def-book"
+       (let ()
+         (def-book bible "The Bible" "God")
+         (list bible-title bible-author))
+       (list "The Bible" "God"))
+ ;;END
+
+             
+;;ALIST2
+(def-syntax (alist2 arg ...)
+  (: with-syntax ((name value) ...) (normalize #'(arg ...))
+     (if (for-all identifier? #'(name ...))
+         #'(let* ((name value) ...)
+             (list (list 'name name) ...))
+         (syntax-violation 'alist "Found non identifier" #'(name ...)
+                           (remp identifier? #'(name ...))))))
+;;END
+
+(run
+ (let ((a 1))
+   (test "mixed"
+         (alist2 a (b (* 2 a)))
+         '((a 1) (b 2))))
+ )

@@ -1,259 +1,283 @@
-#|Runtime pattern matching and object oriented APIs
-=======================================================
+#|
+Hygienic macros
+=========================================================================
 
-As a final example of macros power, this episode will implement a syntax
-for full runtime pattern matching of lists .
+In this episode I show how to introduce auxiliary identifiers in a
+macro, by using the standard R6RS utilities ``with-syntax`` and
+``generate-temporaries``. As an example, I show how you can define
+record types and I discuss the hygienic feature of Scheme macros.
 
-.. _13: http://www.artima.com/weblogs/viewpost.jsp?thread=248953
-.. _15: http://www.artima.com/weblogs/viewpost.jsp?thread=249681
-.. _association lists:
+``with-syntax`` and ``generate-temporaries``
+-----------------------------------------------------
 
-list-match
-----------------------------------------------------------------
+The R6RS standard provides a few convenient utilities to work with
+macros. One of such utilities is the ``with-syntax`` form, which
+allows to introduce auxiliary pattern variables into a skeleton.
+``with-syntax`` is often used in conjunction with the ``generate-temporaries``
+function, which returns a list of temporary identifiers.
+For instance, here is ``fold`` macro
+providing a nicer syntax for the ``fold-left`` and ``fold-right``
+higher order functions:
 
-In episode 15_ I have discussed a very limited form of pattern
-matching, i.e. list destructuring. There is more to
-pattern matching than that.
+$$list-utils:FOLD
 
-A general list matcher should be able to
-destructure a list, whatever complicate it may be, and to perform
-*different* actions for different structures. In this sense, pattern
-matching is a kind of if statement on steroids.
 
-The Scheme standard does not provide a default list matcher, but there
-are tons of libraries providing such a feature, and in the appendix
-we will provide an implementation of ``list-match`` ourselves, so
-let us assume we have list matcher accepting the following patterns:
+Notice the usage of the literals ``left`` and ``right`` to avoid
+writing two separated macros, and the usage of ``in`` to enhance
+readability.
 
-.. code-block:: scheme
-
- > (list-match <patterns>)
- ((list-match lst (sub pattern action guard ...) ...))
-
-Given an object (which usually is a list), the matcher compares
-it with various patterns, and perform different actions depending
-on the match, which can be further restricted with a guard.
-Here are a few trivial tests:
-
-$$MATCH-TESTS
-
-As usual, the understore ``_`` means "match but do not bind.
-Here are two further tests, that makes use of the following helper function:
-
-$$MATCH-ODD
-
-``replace-odd`` makes use of guarded patterns to replace the odd
-numbers in a list of numbers with the string "odd":
-
-$$MATCH-ODD1
-
-``replace-odd`` only recognizes numbers and lists: it chokes on strings
-or any other kind of object, by raising a ``pattern failure`` error:
-
-$$MATCH-ODD2
-
-This example is simple, but it does not make justice to the power of
-pattern matching. The following example, however, will do (or at least
-I hope so): it explains how to implement object oriented APIs in terms
-of pattern matching functions.
-
-Pattern matching vs message passing
--------------------------------------------------------
-
-A typical use case for
-full pattern matching is message passing: in functional languages you
-can send lists as messages to an object, and the object will respond
-differently depending on the structure of the list.  This is the
-standard mechanism to send messages in Erlang, but can be done in any
-functional language with pattern matching.
-
-I you think about it for a minute, you will recognize that pattern
-matching makes the creation of object oriented APIs rather trivial.
-Let consider for instance Scheme `association lists`_, which by default
-have a functional API, and suppose we want to provide an object oriented
-interface on top on it, say a Python-like API. The task can be easily
-performed via pattern matching, as follows:
-
-$$ALIST
-
-Here we used the R6RS procedures ``(assq k a)`` to extract the slot
-corresponding to the key ``k`` from the association list ``a``, as
-well as the procedure ``set-cdr!`` described in episode 13_ to modify
-the ``cdr`` of a slot (imported from ``(rnrs mutable-pairs)``).
-Notice that I am using the term *slot* here to refer to
-the inner lists that compose an association list.
-
-Here are a few tests:
-
-$$ALIST-TESTS
-
-Appendix: implementation of ``list-match``
--------------------------------------------------------------
-
-The implementation below is not my own, I have adapted
-(i.e. shamelessly copied) it from Phil Bewig, which in turns copied it
-from Jos Koot, which maybe is the original author, or maybe he copied
-it from some other source.  But attribution is not important, the
-important thing is the code:
-
-$$aps/list-match:
-
-The implementation above makes use of a few tricks which are well known
-to experienced Schemers, but may look unfamiliar to my readers.
-
-First of all, we leverage on the fact that ``(and boolean expr)`` returns
-``expr`` if ``boolean`` is true and ``#f`` otherwise, i.e. it is equivalent
-to ``(if boolean expr #f)``. Then, we use the ``=>`` form of the conditional
-expression.
-As explained in the `cond specification`, a ``cond`` clause may
-have the form ``(value => func)``; when the value is not false,
-then the function is applied to it and ``cond`` returns the result,
-otherwise ``cond`` looks at the next clause. For instance
+In this example, for each variable ``x`` a pattern variable ``a`` is
+generated with a temporary name; the temporary variable is used
+as argument in the lambda function. For instance, in Ypsilon
 
 .. code-block:: scheme
 
- > (cond (#f => any-function) ('(1) => car))
- 1
+  (fold left (s 0) (x in (range 3)) (y in (range 3)) (+ s x y))
 
-I have exported the internal macro ``_match``, to make it
-possible to understand how the implementation works. ``_match`` is
-able to match a single pattern. For instance we have
+expands to
 
 .. code-block:: scheme
 
- > (_match '(1 2) (x y) (list (+ x y)))
- (3)
+ (fold-left
+   (lambda (s \x2E;L271 \x2E;L272)
+     (let+ (x \x2E;L271) (y \x2E;L272) (+ s x y)))
+   0 (range 3) (range 3))
 
-Using ``syntax-expand`` we can see the inner working of ``_match``:
+as you can check by using ``syntax-expand``.
+The temporary
+names are quite arbitrary, and you will likely get different names,
+since each time ``generate-temporaries`` is called, different names are
+generated. ``generated-temporaries`` is perfect to generate dummy names
+used as arguments, as seen in this example. Another typical
+usage is to generate dummy names for helper functions, as shown in
+the following paragraph.
+
+A record type macro
+---------------------------------------------------------------
+
+Scheme has a vector data type, which is used to manage finite sequences
+with a fixed number *n* of values, known at compile time. Each element
+can be accessed in O(1) time by specifying an integer index starting from
+*0* to *n*, with the notation ``(vector-ref v i)``. Vectors are perfect
+to implement records, since you can see a record as a vector with *n+1*
+arguments, where the 0-th element specify the type of the vector
+and the i-th element is the i-th field of the record.
+Notice that the stardard specifies a record system, but writing a
+record system based on macros is a good exercise nonetheless.
+It also provides a good example of a second order macro expanding
+to a macro. Here is the code:
+
+$$DEF-RECORD-TYPE
+
+An example will make everything clear. Suppose we want to define a
+``Book`` record type; we can do so by writing
+
+``(def-record-type Book title author)``
+
+which expands to (in Ikarus):
 
 .. code-block:: scheme
 
- > (syntax-expand(_match '(1 2) (x y) (list (+ x y)) #t))
- (let ((ob '(1 2)))
-  (and (pair? ob)
-       (let ((kar-obj ob) (kdr-obj (cdr ob)))
-         (_match kar-obj x
-           (_match kdr-obj (y) (list (+ x y)) #t)))))
+ (begin
+  (def-syntax Book
+    (syntax-match (New Signature ? title author)
+      (sub (Book New) #'record-new)
+      (sub (Book Signature) #''(Book title author))
+      (sub (Book ?) #'record?)
+      (sub (Book title) #'#{title |Ivhf4sEgOry2IG%W|})
+      (sub (Book author) #'#{author |r=hJyxJbHsP$j&$3|})))
+  (define (record-new title author)
+    (vector 'Book title author))
+  (define (record? b) (eq? 'Book (vector-ref b 0)))
+  (define (#{title |Ivhf4sEgOry2IG%W|} b)
+    (assert (record? b))
+    (vector-ref b 1))
+  (define (#{author |r=hJyxJbHsP$j&$3|} b)
+    (assert (record? b))
+    (vector-ref b 2)))
 
+This code defines a ``Book`` macro and a few auxiliary functions such
+as ``record-new``, ``record?`` and two others with temporary names.
+The temporary names are of course implementation-specific. Ikarus
+here does a nice thing by prefixing them with the names coming
+from the list given as argument to ``generate-temporaries``, so
+that you can ascertain their origin.
 
-.. _cond specification: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_376
+The ``Book`` macro allows to create new records
+
+::
+
+ > (define book ((Book New) "title" "author"))
+ > book
+ #(Book "title" "author")
+
+to introspect records
+
+::
+
+ > ((Book ?) book)
+ #t
+
+ > (Book Signature)
+ (book title author)
+
+and to retrieve the elements of a record by field name::
+
+ > ((Book title) book)
+ "title"
+
+ > ((Book author) book)
+ "author"
+
+Since I am a fan of functional programming, I am not providing mutation
+methods, so that you may regard them as immutable records (actually
+they are not, since you can change them by using ``vector-set!``,
+but that would be a dirty trick ;)
+
+Notice that a record system like the one presented here features record types
+which are not first class objects - since they are macros; in this respect
+it is more similar to the type system of languages like SML, where types
+are not objects, and very different from a type system like the Python one,
+where classes are objects. Of course in Scheme you can also implement a
+Python-like object system, where it is possible to create dynamic record types
+at runtime and not only at compile time. You can implement it yourself, or
+wait for a future episode ;)
+
+Hygiene
+---------------------------------------------------------------------
+
+.. hygiene in R6RS: http://docs.plt-scheme.org/r6rs-lib-std/r6rs-lib-Z-H-13.html#node_sec_12.1
+
+There is a subtle point about the ``def-record-type`` macro defined in
+the previous paragraph. Such a macro introduces a lots
+of auxiliary functions, such as ``record-new``, ``record?``, and an accessor
+function with a temporary name for every record field.
+One may expect those names
+to litter the namespace: i.e., after expansion, you would expect the names
+``record-new``, ``record?`` and the temporary names to be defined in
+the namespaces.
+Actually this is not the case: Scheme macros are *hygienic*,
+and auxiliary names introduced in the macro *are not visible outside*.
+
+.. image:: hygienic-paper-small.jpg 
+
+This is a major difference with respect to Common Lisp macros.
+The only names which enter in the namespace are the ones we put in;
+in the case of ``def-record-type`` only the name of the record type (i.e.
+``Book``) enters in the namespace after macro expansion. Nonetheless,
+the auxiliary names are known to ``Book`` macro, and for instance
+``(Book ?)`` will expand to the right ``record?`` function.
+
+Everything works even if
+in the same module you define a different record type with a different
+``record?`` function: there will be no nameclashes. The reason is that
+the implementation of macros takes care of distinguishing the
+names in some way (it could be based on marking the names, or on
+explicit renaming).
+
+Hygiene is regarded as a great virtue in the Scheme
+community, less so in the Common Lisp community. In Common Lisp the
+mechanism of macro expansion is much simpler to explain, since the
+expansion is literal: you could just cut and paste the result of
+the expansion in your original code. In Scheme instead, the expansion
+is not literally inserted in the original code, and a lot of magic
+takes place to avoid name clashes.
+
+This may look surprising at first;
+consider for instance the following simple macro:
+
+$$DEFINE-A
+
+``(define-a x)`` expands to ``(define a x)``, so you may find the following
+surprising::
+
+ > (define-a 1)
+ > a
+ Unhandled exception
+  Condition components:
+    1. &undefined
+    2. &who: eval
+    3. &message: "unbound variable"
+    4. &irritants: (a)
+
+Why is the variable ``a`` not defined? The reason is that Scheme macros
+are hygienic, i.e. they *do not introduce identifiers implicitly*.
+Once you get used to the idea that the expansion is not
+literal, and that all the names internally defined by a macro
+are opaque unless they are explicitly marked as visible, you will
+see the advantages of hygiene.
+
+In particular, in the ``def-record-type``
+macro, I should notice that I have been able to use the name ``record?``
+only because is an internal name: if the macroexpansion were literal,
+I would have incurred in a name clash, since ``record?`` is a builtin
 
 |#
 
-(import (rnrs) (sweet-macros) (aps list-utils) (aps list-match)
-        (rnrs mutable-pairs) (aps easy-test) (aps compat))
-                    
-;;ALIST
-;; a function performing pattern matching which provides a Pythonic
-;; dictionary interface over an association list
-(define (alist . a)
-  (lambda args
-    (list-match args
-     (sub () a); return the underlying alist
-     (sub ('->keys); return the keys 
-          (map car a))
-     (sub ('->values); return the values
-          (map cdr a))
-     (sub (k); emulate Python .__getitem__
-          (let ((slot (assq k a)))
-            (if slot
-                (cdr slot)
-                (error 'alist (format "Missing key ~a" k)))))
-     (sub (k 'or val); emulate Python .get
-          (let ((slot (assq k a)))
-            (if slot
-                (cdr slot)
-                val)))
-     (sub (k '! val); emulate Python .__setitem__
-          (let ((slot (assq k a)))
-            (if slot
-                ;; modify existing slot
-                (begin (set-cdr! slot val) a)
-                ;; else append new slot    
-                (let ((new-a (append a (list (cons k val)))))
-                  (set! a new-a) a))))
-     )))
+(import (rnrs) (sweet-macros) (for (aps lang) run expand)
+        (aps easy-test) (for (aps list-utils) run expand) (aps compat))
+
+;;DEFINE-A
+(def-syntax (define-a x)
+  #`(define a x))
 ;;END
 
-(define a (alist '(x . 1) '(y . 2)))
-
-;;MATCH-ODD
-(define (replace-odd obj)
-  (list-match obj
-    (sub x "odd" (and (integer? x) (odd? x)))
-    (sub x x (integer? x))
-    (sub x (map replace-odd x) (list? x))
-    ))
+;;DEF-RECORD-TYPE
+(def-syntax (def-record-type name field ...)
+  (: with-syntax
+     (getter ...) (generate-temporaries #'(field ...))
+     (i ...) (range 1 (+ (length #'(field ...)) 1))
+     #`(begin
+         (def-syntax name
+           (syntax-match (New Signature ? field ...)
+              (sub (name New) #'record-new)
+              (sub (name Signature) #''(name field ...))
+              (sub (name ?) #'record?)
+              (sub (name field) #'getter)
+              ...))
+         (define (record-new field ...) (vector 'name field ...))
+         (define (record? b) (eq? 'name (vector-ref b 0)))
+         (define (getter b) (assert (record? b)) (vector-ref b i)) ...
+      )))
 ;;END
 
-(run
+;;RECORD
+(def-syntax (record-syntax name field ...)
+  (: with-syntax
+     (getter ...) (generate-temporaries #'(field ...))
+     (i ...) (range 1 (+ (length #'(field ...)) 1))
+     #`(let ()
+         (define (record-new field ...) (vector 'name field ...))
+         (define (record? b) (eq? 'name (vector-ref b 0)))
+         (define (getter b) (assert (record? b)) (vector-ref b i))
+         ...
+         (syntax-match (New Signature ? field ...)
+            (sub (name New) #'record-new)
+            (sub (name Signature) #''(name field ...))
+            (sub (name ?) #'record?)
+            (sub (name field) #'getter)
+            ...))))
+;;END
 
- (test "patterns"
-       (list-match <patterns>)
-       '((list-match lst (sub pattern template guard ...) ...)))
+           
+;(def-syntax Book (record-syntax Book title author))
+;(pretty-print (syntax-expand (record-syntax Book title author)))
 
- ;;MATCH-TESTS
- (test "match1"
-       (list-match '(1) (sub (x) x))
-       1)
- 
- (test "match2"
-       (list-match '(1 2) (sub (_ y) y))
-       2)
+(def-record-type Book title author)
 
- (test "match3"
-       (list-match '(1 (2 3)) (sub (_ (_ z)) z))
-       3)
- ;;END
+(pretty-print (syntax-expand (def-record-type Book title author)))
 
- ;;MATCH-ODD1
- (test "match-odd1"
-       (replace-odd '(1 (2 3)))
-       '("odd" (2 "odd")))
- ;;END
+(define b ((Book New) "T" "A"))
+(display b)
+(newline)
+(display (Book Signature))
+(display ((Book ?) b))
 
- ;;MATCH-ODD2
- (test "match-odd2"
-       (catch-error (replace-odd "string"))
-       "pattern failure")
- ;;END
- 
- ;;ALIST-TESTS
- (test "alist1"
-       (a 'x)
-       1)
- 
- (test "alist2"
-       (a 'y)
-       2)
 
- (test "alist3"
-       (catch-error (a 'z))
-       "Missing key z")
- 
- (test "alist4"
-       (a 'z 'or 3)
-       3)
- 
- (test "alist5"
-       (a 'z '! 3)
-       '((x . 1) (y . 2) (z . 3)))
- 
- (test "alist6"
-       (a 'y '! 4)
-       '((x . 1) (y . 4) (z . 3)))
+(display (syntax-expand (Book title)))
+(newline)
+(display ((Book title) b))
+(newline)
 
- (test "alist7"
-       (a '->keys)
-       '(x y z))
+(display ((Book author) b))
 
- (test "alist8"
-       (a '->values)
-       '(1 4 3))
- ;;END
- )
-
-; (test "match4"
-;       (list-match '(1 (2 (x 4) 5) 6)
-;                   (sub x (and (integer? x) (odd? x)) "odd")
-;                   (sub x (and (integer? x) (odd? x)) "odd")) 1)

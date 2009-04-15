@@ -3,7 +3,7 @@ Generating temporary identifiers
 =========================================================================
 
 In this episode I show how to introduce auxiliary identifiers in a
-macro, by using the standard R6RS utilities ``with-syntax`` and
+macro, by using the standard R6RS utility
 ``generate-temporaries``. As an example, I show how you can define
 record types and I discuss the hygienic feature of Scheme macros.
 
@@ -15,20 +15,20 @@ macros. One of such utilities is the ``with-syntax`` form, which
 allows to introduce auxiliary pattern variables into a skeleton.
 ``with-syntax`` is often used in conjunction with the ``generate-temporaries``
 function, which returns a list of temporary identifiers.
-For instance, here is ``fold`` macro
+
+Here is an example where the temporary variable is used
+as argument in the lambda function: a ``fold`` macro
 providing a nicer syntax for the ``fold-left`` and ``fold-right``
-higher order functions:
+higher order functions.
 
 $$list-utils:FOLD
-
 
 Notice the usage of the literals ``left`` and ``right`` to avoid
 writing two separated macros, and the usage of ``in`` to enhance
 readability.
 
 In this example, for each variable ``x`` a pattern variable ``a`` is
-generated with a temporary name; the temporary variable is used
-as argument in the lambda function. For instance, in Ypsilon
+generated with a temporary name. For instance, in Ypsilon
 
 .. code-block:: scheme
 
@@ -43,14 +43,13 @@ expands to
      (let+ (x \x2E;L271) (y \x2E;L272) (+ s x y)))
    0 (range 3) (range 3))
 
-as you can check by using ``syntax-expand``.
-The temporary
-names are quite arbitrary, and you will likely get different names,
-since each time ``generate-temporaries`` is called, different names are
-generated. ``generated-temporaries`` is perfect to generate dummy names
-used as arguments, as seen in this example. Another typical
-usage is to generate dummy names for helper functions, as shown in
-the following paragraph.
+as you can check by using ``syntax-expand``.  The temporary names are
+quite arbitrary, and you will likely get different names, since each
+time ``generate-temporaries`` is called, different names are
+generated. ``generated-temporaries`` is perfect to generate dummy
+names used as arguments, as seen in this example. Another typical
+usage is to generate dummy names for helper functions, as shown in the
+following paragraph.
 
 A record type macro
 ---------------------------------------------------------------

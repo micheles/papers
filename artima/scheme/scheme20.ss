@@ -266,24 +266,34 @@ own preferred high level syntax.
         (aps easy-test) (for (aps list-utils) run expand) (aps compat))
 
 ;;DEF-VECTOR-TYPE
-(def-syntax (def-vector-type name field-name ...)
+(def-syntax (def-vector-type name (field-name checker?) ...)
   (with-syntax (((i ...) (range (length #'(field-name ...)))))
-    #'(def-syntax name
-        (syntax-match (new ref set! field-name ...)
-          (sub (ctx <name>) #''name)
-          (sub (ctx <fields>) #'(list 'field-name ...))
-          (sub (ctx from-list ls) #'(list->vector ls))
-          (sub (ctx new arg (... ...)) #'(vector arg (... ...)))
-          (sub (ctx v ref field-name) #'(vector-ref v i)) ...
-          (sub (ctx v set! field-name x) #'(vector-set! v i x)) ...
-          ))))
+    #'(begin
+        (define (check-all vec)
+          (vector-map
+           (lambda (check? field arg)
+             (if (check? arg) arg (error 'name "TypeError" field arg)))
+           (vector checker? ...) (vector 'field-name ...) vec))
+        (def-syntax name
+          (syntax-match (check <name> fields new ref set! field-name ...)
+            (sub (ctx check vec) #'(check-all vec))
+            (sub (ctx <name>) #''name)
+            (sub (ctx fields) #'(list 'field-name ...))
+            (sub (ctx from-list ls) #'(check-all (list->vector ls)))
+            (sub (ctx new arg (... ...)) #'(ctx from-list (list arg (... ...))))
+            (sub (ctx v ref field-name) #'(vector-ref v i)) ...
+            (sub (ctx v set! field-name x) #'(vector-set! v i x)) ...
+          )))))
 ;;END
 
 ;;BOOK
-(def-vector-type Book title author)
+(def-vector-type Book (title string?) (author string?))
 ;;END
 
-(pretty-print (syntax-expand (def-vector-type Book title author)))
+(display (Book <name>)) (newline)
+
+(pretty-print (syntax-expand
+               (def-vector-type Book (title string?) (author string?))))
 
 ;;COLLECTING-PAIRS
 (def-syntax collecting-pairs

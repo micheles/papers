@@ -18,9 +18,10 @@ macro writers who want to write portable code.
 The phase separation concept
 ------------------------------------------------------------------
 
-The Scheme module system is extremely complex, because of the
+The Scheme module system is complex, because of the
 complications caused by macros and because of the want of
-separate compilation. However, fortunately, the complication
+separate compilation and cross compilation.
+However, fortunately, the complication
 is hidden, and the module system works well enough for many
 simple cases. The proof is that we introduced the R6RS module
 system in episode 5_, and for 20 episode we could go on safely
@@ -53,7 +54,7 @@ $$TEST-DEF-BOOK
 
 Everything *seems* to work, if you try this at the REPL; in some
 Scheme implementation, like Ypsilon, this will also work as a
-script.
+script, unless the strict R6RS-compatibility flag is set.
 However, in most implementations, if you cut and paste the previous
 lines from the REPL and convert it into a script, you will run into
 an error!

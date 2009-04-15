@@ -4,7 +4,7 @@
 Working around phase separation
 --------------------------------------------------------------
 
-I have always hated being force to put my helper functions in an
+I have always hated being forced to put my helper functions in an
 auxiliary module, because I often use auxiliary functions which
 are intended to be used only once inside a given macro, thus
 it makes sense to put those auxiliary functions *in the same
@@ -91,23 +91,6 @@ to use different languages at different phases.
 I have yet to see a convincing example of why keeping
 different languages at different phases is worth
 the annoyance.
-
-Compile time module systems versus runtime module systems
------------------------------------------------------------------
-
-Since the title of this series is "The Adventures of a Pythonista in
-Schemeland" I have decided to begin my escursion of the R6RS module
-system by contrasting it with Python module system.
-Python modules are runtime objects which can be introspected
-(they are basically dictionaries); Scheme modules instead are
-compile time entities which are not first class objects, and cannot
-be introspected. It is not difficult to implement a Python-like
-module system in Scheme, by making use of hash-tables (the equivalent
-of Python dictionaries): let me begin by performing this exercise,
-to make clear what a runtime module system is and to contrast it
-with the compile time module system than Scheme is actually using.
-The trick to define a module object is to collect all the definitions
-(for simplicity let me consider only ``define`` forms) into a hashtable
 
 Implementing a first class module system
 -----------------------------------------
