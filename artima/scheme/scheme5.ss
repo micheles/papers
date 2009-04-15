@@ -84,7 +84,7 @@ Let me point out two things before closing this paragraph:
      > (let ((a 1) (b 2)) (+ a b)) ; => 3
 
    The scope of ``a`` and ``b`` is limited to the current block;
-   if ``a`` and ``b`` are defined outsid the ``let`` block, internally
+   if ``a`` and ``b`` are defined outside the ``let`` block, internally
    ``a`` and ``b`` *shadow* the outer names.
 
 2) there is actually a ``do`` loop in the language, but it is cumbersome
