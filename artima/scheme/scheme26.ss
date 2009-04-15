@@ -55,7 +55,18 @@ about the helper macros, so it can use them. Systems with
 strong phase separation are effectively using different namespaces
 for each phase.
 
-Let me make an example. Suppose you wanted to define the macros
+Let me make an example. Consider the "colon" macro defined as follows:
+
+$$lang:COLON
+
+The colon macro expects as argument another macro, the
+``let-form``, which can be any binding macro such that
+``(let-form ((patt value) ...) expr)`` is a valid syntax. For instance
+``(let ((name value) ...) expr)`` can be rewritten as ``(: let name value
+... expr)``, by removing four parenthesis. The latest version of the
+``aps`` package provides a colon form in the ``(aps lang)`` module.
+
+Suppose you wanted to define the macros
 ``define-ct`` and ``alist`` in the same module:
 
 .. code-block:: scheme
@@ -95,6 +106,8 @@ the annoyance.
 Implementing a first class module system
 -----------------------------------------
 
+This is the same as implementing a Pythonic interface over hash tables
+or association lists.
 |#
             
 (import (rnrs) (sweet-macros) (for (aps lang) expand) (aps compat))

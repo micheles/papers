@@ -1,23 +1,6 @@
 #|Phase separation
 ================================================
 
-Introduction
----------------------------------------------------------
-
-For nearly 30 years Scheme lived without a standard module system.
-That lead to neverending debate and to the proliferation of dozens
-of different module systems.
-The situation changed with the R6RS report: now finally Scheme has
-a standard module system. Problem is: after 30 years of discussion,
-they still got it wrong! It will takes me six full episodes
-to explain the module system and its trickiness, especially for
-macro writers who want to write portable code.
-
-.. _5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
-
-The phase separation concept
-------------------------------------------------------------------
-
 The Scheme module system is complex, because of the
 complications caused by macros and because of the want of
 separate compilation and cross compilation.
@@ -29,71 +12,96 @@ by just using the basic import/export syntax. However, once
 nontrivial macros enters in the game, things start to become
 interesting.
 
+.. _5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
+
+Interpreter semantics vs compiler semantics
+------------------------------------------------------------------
+
+One of the trickiest things about Scheme, coming from Python, is
+its distinction between *interpreter semantics* and *compiler semantics*.
+In Python there is no such distinction, since Python has only
+interpreter semantics, i.e. basically everything happens
+at runtime. It is true that technically, bytecode compilation is cached, but
+conceptually you may very well think that every module is recompiled
+at runtime, when you import it (which is actually what happens if
+the module has changed). Scheme instead has both interpreter
+semantics, which is typically used at the REPL and is *unspecified*,
+and compiler semantics which is *specified* by the R6RS standard.
+The two semantics are quite different. When a program is read in interpreter
+semantics, everything happens at runtime: it is possible to define
+a function and immediately after a macro using that function, or
+viceversa. Each expression entered is compiled (possibly to native
+code as in Ikarus) and executed immediately.
+
+When a program is read in compiler semantics instead, all the definitions
+and the expressions are read, the macro expanded and the program compiled,
+but *not* executed. Whereas an interpreter looks at a program one expression
+at the time, a compiler looks at it as a whole: in particular, the order
+of evaluation of expressions in a compiled program is unspecified,
+unless you specify it by using a ``begin`` form. In my opinion having
+an unspecified evaluation order is an abominable case of premature
+optimization and a horrible mistake, but unfortunately this is the
+way it is. The rationale is that in some specific circumstances
+some compiler could take advantage of the  unspecified evaluation order
+to optimize the computation of some expression and run a few percent
+faster but this is certainly *not* worth the complication.
+
+Anyway, since the interpreter semantics is not specified by the R6RS
+and thus very much implementation-dependent, I will focus on the
+compiler semantics of Scheme programs. Such semantics is quite
+tricky, especially when nontrivial macros enters in the game.
+
 You can see the beginning of the problem once you start using macros
-which depend from auxiliary functions. For instance, suppose you want
-to define an utility to generate identifiers to be inserted
-unhygienically inside macros. A typical use case is the definition of
-a bunch of identifiers with different suffixes. We can perform the
-task with the following helper function:
+which depend from auxiliary functions. For instance, consider this
+simple macro
 
-$$lang:IDENTIFIER-APPEND
+$$ASSERT-DISTINCT
 
-All the functions used here (``string->symbol``, ``string-append``,
-``symbol->string`` work in the obvious way.
-Here is a trivial example of usage of ``identifier-append`` in a
-``def-book`` macro which introduces two identifiers for the fields
-``title`` and ``author``:
+which raises a compile-time exception (syntax-violation) if it is
+invoked with duplicated arguments. The macro
+relies on the helper function ``distinct``
 
-$$DEF-BOOK
+$$lang-utils:distinct?
 
-Here is a test, showing that hygiene is effectively broken and that
-the identifiers ``name-title`` and ``name-author`` are really introduced
-in the namespace after expansion:
+and on the builtin function
+``free-identifier=?`` which returns true when two identifiers
+are equal and false otherwise.
 
-$$TEST-DEF-BOOK
-
-Everything *seems* to work, if you try this at the REPL; in some
+If you define first the function and then the macro at the REPL
+everything *seems* to work; in some
 Scheme implementation, like Ypsilon, this will also work as a
 script, unless the strict R6RS-compatibility flag is set.
-However, in most implementations, if you cut and paste the previous
+However, in R6RS-conforming implementations, if you cut and paste the previous
 lines from the REPL and convert it into a script, you will run into
 an error!
 
-The problem is due to *phase separation*, i.e. the fact that usually (except
-for some REPLs and for some Scheme implementations) macro definitions
-and function definitions happens at *different times*.
+The problem is due to the fact than in the compiler semantics macro
+definitions and function definitions happens at *different times*. In
+particular, macro definitions are taken in consideration *before*
+function definitions, independently from their relative position in
+the source code. Therefore our example fails to compile since the
+``assert-distinct`` macro makes use of the ``distinct?`` function
+which is *not yet defined* at the time the macro is considered,
+i.e. at compilation time. Actually, functions are not evaluated
+at compile time, since functions are first class values and the right
+hand side of any definition is left unevaluated by the compiler.
+For instance both ``(define x (/ 1 0))`` and
+``(define (f) (/ 1 0))`` (i.e. ``(define f (lambda () (/ 1 0)))``) are
+compiled correctly but not evaluated until the runtime, therefore
+both ``x`` and ``f`` cannot be used inside a macro.
 
-Ypsilon, as most interpreted Scheme implementations, has no phase
-separation: there is no big difference between macros and functions,
-which are simply recognized in the order given by their position in
-the source code.  In our example the ``identifier-append`` function is
-defined before the ``def-book`` macro, so it can be used in the right
-hand side of the macro definition.
+The only portable way to make
+available a function defined at runtime at compilation time is to
+define the function in a different module and to import it in the
+original module.
 
-Life is different when you have a Scheme implementation supporting phase
-separation, which means most Scheme implementations. For such implementations
-macro definitions are taken in consideration
-*before* function definitions, independently from their relative
-position in the source code. Therefore our example fails to compile
-since the ``def-book`` macro makes use of the ``identifier-append``
-function which is
-*not yet defined* at the time the macro is considered, i.e. at compilation
-time. The only way to make available a function defined
-at runtime at compilation time is to define the function in a different
-module and to import it in the original module.
+For convenience I have put ``distinct?`` in the ``(aps list-utils)``
+module, so that you can import it.  This is enough to solve the
+problem for Ikarus, which has no *phase separation*, but it is not
+enough for PLT Scheme or Larceny, which have *phase separation*.
 
-Notice that for convenience I have put ``identifier-append``, together
-with a companion function ``identifier-prepend`` of obvious meaning in
-the ``aps`` package, in the ``(aps lang)`` module.
-
-
-Strong phase separation
+Phase separation
 --------------------------------------------------------------
-
-This is enough to solve the problem for Ikarus, which has *weak phase
-separation*, but it is not enough for PLT Scheme or Larceny, which have
-*strong phase separation*.
-
 
 In PLT Scheme instead running the script raise an error::
 
@@ -110,24 +118,43 @@ names defined in an external pre-compiled modules
 are of course known at compile time
 (this is why Ikarus has no trouble to import them at compile time);
 nevertheless PLT Scheme and Larceny Scheme forces you to specify
-at which phase the functions must be imported. If you want to import
-them at expansion time (the time when macros are processed; often
-incorrectly used as synonymous for compilation time) you must say so:
+at which phase the functions must be imported.
+Notice that personally I do not like the PLT and Larceny semantics
+since it makes things more complicated than needed,
+and that I prefer Ikarus/IroScheme/Mosh semantics: nevertheless,
+if you want to write portable code, you must use the PLT/Larceny
+semantics, which is the one blessed by the R6RS document.
 
-``(import (for (only (aps lang) identifier-append) expand))``
+You may think the R6RS document to be schizophrenic, since it
+accepts both implementations with phase separation and without
+phase separation, but using the semantics without phase separation results in
+non-portable code. Here a bold decision was required to ensure
+portability: to declare the PLT semantics as the only acceptable one.
+
+De facto, the R6RS document is the result
+of a compromise between the partisans of phase separation
+and absence of phase separation. 
+
+If you want to import a few auxiliary functions
+at expansion time (the time when macros are processed; often
+incorrectly used as synonymous for compilation time) you must
+use the ``(for expand)`` form:
+
+``(import (for (only (aps list-utils) distinct?) expand))``
+
+With this import form, the script compiles in all R6RS implementations.
 
 Discussion
 -------------------------------------------------
 
-Is phase separation a good thing?
+Is compiler semantics and phase separation a good thing?
 It is clear that for the programmer's point of view, the simplest thing
-is lack of phase separation. This is the semantic typically (but now
-always) chosen by Scheme interpreters and REPLs: as soon as you type
+is lack of phase separation, i.e. interpreter semantics: as soon as you type
 it in, an helper function is available for use in macros.
-If you look at it with honesty, at the end phase separation is
+If you look at it with honesty, at the end the compiler semantics is
 nothing else that a *performance hack*: by separing compilation time
-from runtime you can perform some computation at compilation time only
-and gain performance.
+from runtime you can perform some computation only once at compilation time
+and gain performance. 
 
 Therefore, if you have a compiled version of Scheme,
 it makes sense to separate compilation time from runtime, and to
@@ -142,10 +169,10 @@ the R6RS.
 There is still the question if strong phase separation is a good thing,
 or if weak phase separation (as in Ikarus) is enough. For the programmer
 weak phase separation is easier, since he does not need to specify
-the phase in which he want to import names. Strong phase separation
+the phase in which he wants to import names. Strong phase separation
 has been introduced so that at compile time a language which is
 completely different from the language you use at runtime. In particular
-you could decided to use in macros a subset of the full R6RS language.
+you could decide to use in macros a subset of the full R6RS language.
 
 Suppose for instance you are a teacher, and you want to force your
 students to write their macros using only a functional subset of Scheme.
@@ -161,15 +188,22 @@ and there is nothing you can do about it.
 On the other hand strong phase separation makes everything more complicated:
 it is somewhat akin to the introduction of multiple namespace, because
 the same name can be imported in a given phase and not in another,
-and that can lead to confusion.
+and that can lead to confusion. To contain the confusion, the R6RS
+documents states that *the same name cannot be used in different phases
+with different meaning in the same module*.
+For instance, if the identifier ``x`` is bound to the
+value ``v`` at the compilation time and ``x`` is defined even
+at runtime, ``x`` must be bound to ``v`` even at runtime. However, it
+is possible to have ``x`` bound at runtime and not at compile time, or
+viceversa. This is a compromise, since PLT Scheme in non R6RS-compliant mode
+can use different bindings for the same name at different phases.
 
 There are people in the Scheme community thinking that strong phase
 separation is a mistake, and that weak phase separation is the right thing
 to do. On the other side people (especially from the PLT community where
 all this originated) sing the virtues of strong phase separation and say
 all good things about it. I personally I have not seen a compelling
-use case for strong phase separation yet, and I would be happy is
-some of my readers could give me such an example.
+use case for strong phase separation yet.
 On the other hand, I am well known for preferring simplicity over
 (unneeded) power. 
 
@@ -177,8 +211,18 @@ On the other hand, I am well known for preferring simplicity over
 
 |#
 
-(import (rnrs) (sweet-macros) (for (aps lang) expand) (aps compat))
-         
+(import (rnrs) (sweet-macros) (for (aps list-utils) expand)
+        (for (aps lang) expand run) (aps compat) (aps easy-test))
+
+;;ASSERT-DISTINCT
+(def-syntax (assert-distinct arg ...)
+  #'((void))
+  (distinct? free-identifier=? #'(arg ...))
+  (syntax-violation 'assert-distinct "Duplicate name" #'(arg ...)))
+;;END
+
+;(assert-distinct a b a)
+
 ;;DEF-BOOK
 (def-syntax (def-book name title author)
   (: with-syntax

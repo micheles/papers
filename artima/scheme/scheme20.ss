@@ -127,17 +127,6 @@ with the case_ expression::
        else 'unknown))
  one
 
-Our second example if is a ``:`` macro defined as follows:
-
-$$lang:COLON
-
-The colon macro expects as argument another macro, the
-``let-form``, which can be any binding macro such that
-``(let-form ((patt value)) expr)`` is a valid syntax. For instance
-``(let ((name value)) expr)`` can be rewritten as ``(: let name value
-... expr)``, by removing four parenthesis. The latest version of the
-``aps`` package provides a colon form in the ``(aps lang)`` module.
-
 macros generating macros
 ----------------------------------------------------
 
@@ -283,7 +272,8 @@ own preferred high level syntax.
             (sub (ctx new arg (... ...)) #'(ctx from-list (list arg (... ...))))
             (sub (ctx v ref field-name) #'(vector-ref v i)) ...
             (sub (ctx v set! field-name x) #'(vector-set! v i x)) ...
-          )))))
+          ))))
+  (distinct? free-identifier=? #'(field-name ...)))
 ;;END
 
 ;;BOOK

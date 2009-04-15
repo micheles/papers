@@ -10,5 +10,6 @@
 
 (define (register id)
   (printf "registering ~a\n" id)
-  (set! _registry (append _registry (list id))))
+  (set! _registry (append _registry (list id)))
+  _registry)
 )

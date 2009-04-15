@@ -144,7 +144,7 @@ Here is an example using ``quasisyntax`` and ``unsyntax-splicing``::
 
 As you see, it easy to write hieroglyphs if you use ``quasisyntax`` 
 and ``unsyntax-splicing``. You can avoid that by means of the ``with-syntax``
-form introduced in the previous episode::
+form introduced in episode XX::
 
  > (syntax-match #'(a 1 2 3) ()
      (sub (name . args) (: with-syntax (a ...) #'args #'(name a ...))))
@@ -154,11 +154,7 @@ form introduced in the previous episode::
 The pattern variables introduced by ``with-syntax``
 are automatically expanded inside the syntax template, without
 resorting to the quasisyntax notation (i.e. there is no need for
-``#``` ``#,`` ``#,@``). Incidentally, let me notice that I do not
-the name ``with-syntax``, which I find confusing; a much better
-name would have been ``let-pattern-ids``, since this is a kind of
-``let`` form introducing identifiers which are intended to be used
-as auxiliary pattern variables inside macro templates.
+``#``` ``#,`` ``#,@``).
 
 Matching generic syntax lists
 --------------------------------------------------------------

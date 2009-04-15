@@ -25,8 +25,6 @@ opinion of course)! It will takes me six full episodes to
 explain the module system and its trickiness, especially for macro
 writers who want to write portable code.
 
-.. _5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
-
 Compiling Scheme modules vs compiling Python modules
 --------------------------------------------------------------
 
@@ -129,18 +127,20 @@ You can compile the library and run the script without seeing any error::
  $ ikarus --r6rs-script script.ss
 
 The difference with Python is the following: in Python, importing a module
-means *evaluating* it; in Scheme importing a module means *visiting* it,
-i.e. taking notes of the names exported by the module and of all its
-dependencies; however, the module is not evaluated, unless it is used.
-In particular, only when you try to access the ``x`` variable, you will
-get the division error at runtime:
+(which is done at runtime) means both *compiling* and *evaluating* it;
+in Scheme importing a module (which is done at compile time) means
+*compiling* and *visiting* it, i.e. taking notes of the names exported
+by the module and of all its dependencies; however, the module is not
+evaluated, unless it is used.  In particular, only when you try to
+access the ``x`` variable, you will get the division error at runtime:
 
 ::
  
  $ echo script.ss
  (import (rnrs) (prefix (lib) lib:))
- (display "running ...\n")
- (display lib:x)
+ (begin
+   (display "running ...\n")
+   (display lib:x))
  $  ikarus --r6rs-script script.ss
  Unhandled exception:
   Condition components:
@@ -155,7 +155,7 @@ the Scheme world people do not use prefixes; by default all
 exported names are imported, just as it is the case for Python
 when the (discouraged) style ``from lib import *`` is used.
 
-Is it a good thing to have so little checking at compile-time?
+Why there is so little checking at compile-time?
 ------------------------------------------------------------------------
 
 I asked myself why Scheme compilers (but also the Python compiler)
@@ -200,6 +200,8 @@ This semantics also enable *cross compilation*: the compile time structure
 will be compiled independently from the architecture, whereas the
 runtime structures will be compiled differently depending on the
 architecture of the target processor.
+
+.. image:: compiler-crosscompiler.jpg
 
 .. _cross compilation: http://chicken.wiki.br/cross-compilation
 

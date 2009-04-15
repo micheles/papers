@@ -12,7 +12,9 @@ record types and I discuss the hygienic feature of Scheme macros.
 
 The R6RS standard provides a few convenient utilities to work with
 macros. One of such utilities is the ``with-syntax`` form, which
-allows to introduce auxiliary pattern variables into a skeleton.
+allows to introduce auxiliary pattern variables into a skeleton
+(a better name would have been ``let-pattern-vars``).
+
 ``with-syntax`` is often used in conjunction with the ``generate-temporaries``
 function, which returns a list of temporary identifiers.
 

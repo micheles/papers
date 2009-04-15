@@ -487,3 +487,28 @@ system in episode 5_, and for 20 episode we could go on safely
 by just using the basic import/export syntax. However, once
 nontrivial macros enters in the game, things start to become
 complicated.
+
+identifier-append
+------------------------------------------
+
+Suppose you want
+to define an utility to generate identifiers to be inserted
+unhygienically inside macros. A typical use case is the definition of
+a bunch of identifiers with different suffixes. We can perform the
+task with the following helper function:
+
+$$lang:IDENTIFIER-APPEND
+
+All the functions used here (``string->symbol``, ``string-append``,
+``symbol->string`` work in the obvious way.
+Here is a trivial example of usage of ``identifier-append`` in a
+``def-book`` macro which introduces two identifiers for the fields
+``title`` and ``author``:
+
+$$DEF-BOOK
+
+Here is a test, showing that hygiene is effectively broken and that
+the identifiers ``name-title`` and ``name-author`` are really introduced
+in the namespace after expansion:
+
+$$TEST-DEF-BOOK
