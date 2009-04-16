@@ -25,3 +25,9 @@ understanding it. It removes the magic. So even if you go on to use
 another existing framework (which I’d probably advise you do), you’
 ll be able to understand it better if you’ve written something like
 it on your own. -- Ian Bicking http://pythonpaste.org/webob/do-it-yourself.html
+
+
+ Scheme had a dual
+defined purpose as an implementation experimental platform and as a
+teaching language ... the fact that it can actually be used
+productively is, in some sense, incidental. -- George Neuner on c.l.s.

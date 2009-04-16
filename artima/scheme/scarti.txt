@@ -512,3 +512,59 @@ the identifiers ``name-title`` and ``name-author`` are really introduced
 in the namespace after expansion:
 
 $$TEST-DEF-BOOK
+
+Are fexpr better than macros?
+---------------------------------------------
+
+http://en.wikipedia.org/wiki/Fexpr
+
+
+#|
+(define sentinel (gensym))
+
+(def-syntax (hash-lambda h)
+  (syntax-match ()
+     (sub ())))
+
+;; I would write the module system over alists
+(define (alist->hash a)
+  (define h (make-eq-hashtable))                                                
+  (for-each (lambda (x) (hashtable-set! h (car x) (cadr x))) a)
+  (case-lambda
+    (() h)
+    ((name) (hashtable-ref h name sentinel))))
+ 
+(def-syntax (module-object def ...)
+  (: with-syntax (name ...) (map get-name-from-define #'(def ...))
+     #'(let ()
+         def ...
+         (alist->hash (list (list 'name name) ...)))))
+
+(display (syntax-expand (module-object
+                         (define a 1)
+                         (define (f) a))))
+                         
+(define mod1
+  (module-object
+   (define a 1)
+   (define (f) a)))
+
+(display (mod1 'a))
+(display ((mod1 'f)))
+
+;(define mod1 (alist (a 1) (f (lambda () a))))
+
+(define-ct example
+  (define x 1)
+  (define y (* x 2)))
+
+(pretty-print (syntax-expand
+(define-ct example
+  (define x 1)
+  (define y (* x 2)))))
+
+(display (list (example x) (example y)))
+         
+|#
+
+

@@ -1,4 +1,4 @@
-#|Phase separation
+#|The evaluation strategy of Scheme programs
 ================================================
 
 The Scheme module system is complex, because of the
@@ -19,28 +19,32 @@ Interpreter semantics vs compiler semantics
 
 One of the trickiest things about Scheme, coming from Python, is
 its distinction between *interpreter semantics* and *compiler semantics*.
-In Python there is no such distinction, since Python has only
-interpreter semantics, i.e. basically everything happens
-at runtime. It is true that technically, bytecode compilation is cached, but
+Python has only interpreter semantics and basically everything happens
+at runtime. It is true that technically bytecode compilation is cached, but
 conceptually you may very well think that every module is recompiled
 at runtime, when you import it (which is actually what happens if
-the module has changed). Scheme instead has both interpreter
-semantics, which is typically used at the REPL and is *unspecified*,
-and compiler semantics which is *specified* by the R6RS standard.
-The two semantics are quite different. When a program is read in interpreter
-semantics, everything happens at runtime: it is possible to define
-a function and immediately after a macro using that function, or
-viceversa. Each expression entered is compiled (possibly to native
-code as in Ikarus) and executed immediately.
+the module has changed).
+
+Scheme has both interpreter semantics, which is typically used at the
+REPL and is *not specified* properly, and compiler semantics which is
+specified by the R6RS standard and is used in scripts and libraries.
+The two semantics are quite different. When a
+program is read in interpreter semantics, everything happens at
+runtime: it is possible to define a function and immediately after a
+macro using that function. Each expression entered is
+compiled (possibly to native code as in Ikarus) and executed
+immediately.
 
 When a program is read in compiler semantics instead, all the definitions
-and the expressions are read, the macro expanded and the program compiled,
-but *not* executed. Whereas an interpreter looks at a program one expression
+and the expressions are read, the macros are expanded and the program compiled,
+*before* execution. Whereas an interpreter looks at a program one expression
 at the time, a compiler looks at it as a whole: in particular, the order
 of evaluation of expressions in a compiled program is unspecified,
-unless you specify it by using a ``begin`` form. In my opinion having
+unless you specify it by using a ``begin`` form.
+
+Let me notice that in my opinion having
 an unspecified evaluation order is an abominable case of premature
-optimization and a horrible mistake, but unfortunately this is the
+optimization and a serious mistake, but unfortunately this is the
 way it is. The rationale is that in some specific circumstances
 some compiler could take advantage of the  unspecified evaluation order
 to optimize the computation of some expression and run a few percent
@@ -49,7 +53,7 @@ faster but this is certainly *not* worth the complication.
 Anyway, since the interpreter semantics is not specified by the R6RS
 and thus very much implementation-dependent, I will focus on the
 compiler semantics of Scheme programs. Such semantics is quite
-tricky, especially when nontrivial macros enters in the game.
+tricky, especially when macros enters in the game.
 
 You can see the beginning of the problem once you start using macros
 which depend from auxiliary functions. For instance, consider this
@@ -58,8 +62,9 @@ simple macro
 $$ASSERT-DISTINCT
 
 which raises a compile-time exception (syntax-violation) if it is
-invoked with duplicated arguments. The macro
-relies on the helper function ``distinct``
+invoked with duplicated arguments (a typical use case where you can
+use such macro is when definining specialized lambda forms).  The
+macro relies on the helper function ``distinct?`` defined as follows
 
 $$lang-utils:distinct?
 
@@ -82,10 +87,10 @@ function definitions, independently from their relative position in
 the source code. Therefore our example fails to compile since the
 ``assert-distinct`` macro makes use of the ``distinct?`` function
 which is *not yet defined* at the time the macro is considered,
-i.e. at compilation time. Actually, functions are not evaluated
-at compile time, since functions are first class values and the right
+i.e. at expansion time. Actually, functions are not evaluated
+at expansion time, since functions are first class values and the right
 hand side of any definition is left unevaluated by the compiler.
-For instance both ``(define x (/ 1 0))`` and
+As we saw in the previous episode, both ``(define x (/ 1 0))`` and
 ``(define (f) (/ 1 0))`` (i.e. ``(define f (lambda () (/ 1 0)))``) are
 compiled correctly but not evaluated until the runtime, therefore
 both ``x`` and ``f`` cannot be used inside a macro.
@@ -103,7 +108,7 @@ enough for PLT Scheme or Larceny, which have *phase separation*.
 Phase separation
 --------------------------------------------------------------
 
-In PLT Scheme instead running the script raise an error::
+In PLT Scheme running the script raises an error::
 
  $ plt-r6rs use-registry.ikarus.ss
  use-registry.ikarus.ss:5:5: compile: unbound variable in module
@@ -117,13 +122,13 @@ In some sense this is absurd since
 names defined in an external pre-compiled modules
 are of course known at compile time
 (this is why Ikarus has no trouble to import them at compile time);
-nevertheless PLT Scheme and Larceny Scheme forces you to specify
-at which phase the functions must be imported.
-Notice that personally I do not like the PLT and Larceny semantics
-since it makes things more complicated than needed,
-and that I prefer Ikarus/IroScheme/Mosh semantics: nevertheless,
-if you want to write portable code, you must use the PLT/Larceny
-semantics, which is the one blessed by the R6RS document.
+nevertheless PLT Scheme and Larceny Scheme forces you to specify at
+which phase the functions must be imported.  Notice that personally I
+do not like the PLT and Larceny semantics since it makes things more
+complicated than needed, and that I prefer the Ikarus semantics (also
+used in IroScheme and Mosh): nevertheless, if you want to write
+portable code, you must use the PLT/Larceny semantics, which is the
+one blessed by the R6RS document.
 
 You may think the R6RS document to be schizophrenic, since it
 accepts both implementations with phase separation and without

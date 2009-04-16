@@ -1,7 +1,18 @@
 #!r6rs
 (library (aps lang)
-(export : identifier-append identifier-prepend get-name-from-define)
+(export define-ct : identifier-append identifier-prepend get-name-from-define)
 (import (rnrs) (sweet-macros))
+
+;;DEFINE-CT
+(def-syntax define-ct
+  (syntax-match ()
+    (sub (define-ct name expr)
+         #'(def-syntax name (identifier-syntax expr))
+         (identifier? #'name))
+    (sub (define-ct (name . args) body body* ...)
+         #'(define-ct name (lambda args body body* ...)))
+    ))
+;;END
 
 ;;COLON
 (def-syntax :
@@ -35,9 +46,8 @@
 ;;IDENTIFIER-APPEND
 ;; take an identifier and return a new one with an appended suffix
 (define (identifier-append id . strings)
-  (datum->syntax id (string->symbol
-                     (apply string-append
-                            (symbol->string (syntax->datum id)) strings))))
+  (define id-str (symbol->string (syntax->datum id)))
+  (datum->syntax id (string->symbol (apply string-append id-str strings))))
 ;;END
 
 ;;IDENTIFIER-PREPEND
