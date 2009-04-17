@@ -22,6 +22,8 @@ It will takes me six full episodes to
 explain the module system and its trickiness, especially for macro
 writers who want to write portable code.
 
+.. image:: Jigsaw.png
+
 Compiling Scheme modules vs compiling Python modules
 --------------------------------------------------------------
 
@@ -78,7 +80,7 @@ Modules are not first class objects
 There is a major difference between Python modules and Scheme modules:
 Python modules are first class runtime objects which can be passed and
 returned from functions, as well as modified and introspected freely;
-Scheme modules are instead compile time entities which are not first
+Scheme modules instead are compile time entities which are not first
 class objects, cannot be modified and cannot be introspected.
 
 Python modules are so flexible because they are basically
@@ -89,13 +91,13 @@ follow this route, because Scheme modules may contain macros which are
 not first class objects, therefore they cannot be first class objects
 themselves.
 
-If you have a Scheme library ``lib.sls`` which defines a variable
-``x``, and you import it with a prefix ``lib.``, you can access
-the variable with the Python-like syntax ``lib.x``. However,
-``lib.x`` in Scheme means something completely
-different from ``lib.x`` in Python: ``lib.x`` in Scheme is just a name with a
-prefix, whereas ``lib.x`` in Python means
-*take the attribute ``x`` of the object ``lib``*
+A remark is in order: if you have a Scheme library ``lib.sls`` which
+defines a variable ``x``, and you import it with a prefix ``lib.``,
+you can access the variable with the Python-like syntax
+``lib.x``. However, ``lib.x`` in Scheme means something completely
+different from ``lib.x`` in Python: ``lib.x`` in Scheme is just a name
+with a prefix, whereas ``lib.x`` in Python means
+"take the attribute ``x`` of the object ``lib``"
 and that involves a function call.
 In other words, Python must perform an hash table lookup everytime you
 use the syntax ``lib.x``, whereas Scheme does not need to do so.
@@ -242,24 +244,39 @@ whereas Abdul Aziz Ghoulum wrote:
 
 Aziz went further and explained to me the rationale for
 the current specification. The reason is that we want
-a function like
+expressions like
 
- ``(define (raise-zero-division-error) (/ 1 0))``
+.. code-block:: scheme
 
-to be compilable. Of course, ``raise-zero-division-error`` will raise
-an error when called, but the function itself is a valid compilable procedure.
-You can think of a module like a giant thunk; using a module calls the
-thunk and possibly raises errors at runtime, but the module per se is
-compilable even if contains errors which are detectable at compile time.
+ (define x (/ 1 0))
 
-This evaluation strategy keeps the compiler simple: we know that the
+and
+
+.. code-block:: scheme
+
+ (define thunk (lambda () (/ 1 0)))
+
+to be compilable. The second expression is really the same as
+the first one, only nested one level more. Even if the thunk
+will raise an error when called, the thunk itself should
+be a valid compilable procedure. It is useful
+to have functions that can raise predictable errors, especially
+when writing test case, so a compiler should not reject them.
+In general, you can think of a module as of a giant thunk; using a
+module calls the thunk (the process is called *module instantiation*)
+and possibly raises errors at runtime, but the module per se must be
+compilable even if contains errors which are detectable at compile
+time.
+
+This evaluation strategy also keeps the compiler simple: we know that the
 compiler will just expand the macros, but will not perform any evaluation.
-This semantics also enable *cross compilation*: the compile time structure
-will be compiled independently from the architecture, whereas the
-runtime structures will be compiled differently depending on the
+Finally, this semantics enable `cross compilation`_: macros will be expanded
+independently from the architecture, whereas the
+runtime structures will be compiled and linked differently depending on the
 architecture of the target processor.
 
 .. image:: compiler-crosscompiler.jpg
 
 .. _cross compilation: http://chicken.wiki.br/cross-compilation
+.. _cross compilation: http://en.wikipedia.org/wiki/Cross_compilation
 |#

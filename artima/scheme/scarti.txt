@@ -568,3 +568,18 @@ http://en.wikipedia.org/wiki/Fexpr
 |#
 
 
+
+Suppose you wanted to define the macros
+``define-ct`` and ``alist`` in the same module:
+
+.. code-block:: scheme
+
+ (import (rnrs) (sweet-macros))
+
+ (def-syntax (alist arg ...)
+    <code here> ...)
+
+  (def-syntax (define-ct kw (define name value) ...)
+    #'(def-syntax kw
+        (let ((a (alist (name value) ...)))
+             <more code here> ...)))

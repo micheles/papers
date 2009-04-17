@@ -1,6 +1,9 @@
 #|More on phase separation
 ===================================================================
 
+In this episode I will discuss in detail the trickiness
+associated with the concept of phase separation.
+
 More examples of macros depending on helper functions
 -----------------------------------------------------------------
 
@@ -125,31 +128,6 @@ namespace, so that it would be seen by the second syntax definition.
 Systems with strong phase separation instead are effectively using
 different namespaces for each phase.
 
-Let me make an example. Consider the "colon" macro defined as follows:
-
-$$lang:COLON
-
-The colon macro expects as argument another macro, the
-``let-form``, which can be any binding macro such that
-``(let-form ((patt value) ...) expr)`` is a valid syntax. For instance
-``(let ((name value) ...) expr)`` can be rewritten as ``(: let name value
-... expr)``, by removing four parenthesis. The latest version of the
-``aps`` package provides a colon form in the ``(aps lang)`` module.
-
-Suppose you wanted to define the macros
-``define-ct`` and ``alist`` in the same module:
-
-.. code-block:: scheme
-
- (import (rnrs) (sweet-macros))
-
- (def-syntax (alist arg ...)
-    <code here> ...)
-
-  (def-syntax (define-ct kw (define name value) ...)
-    #'(def-syntax kw
-        (let ((a (alist (name value) ...)))
-             <more code here> ...)))
 
 Implementing a first class module system
 -----------------------------------------
