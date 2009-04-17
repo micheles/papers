@@ -1,16 +1,17 @@
 #!r6rs
 (library (aps lang)
-(export define-ct : identifier-append identifier-prepend get-name-from-define)
+(export literal-replace : identifier-append identifier-prepend
+        get-name-from-define)
 (import (rnrs) (sweet-macros))
 
-;;DEFINE-CT
-(def-syntax define-ct
+;;LITERAL-REPLACE
+(def-syntax literal-replace
   (syntax-match ()
-    (sub (define-ct name expr)
+    (sub (literal-replace name expr)
          #'(def-syntax name (identifier-syntax expr))
          (identifier? #'name))
-    (sub (define-ct (name . args) body body* ...)
-         #'(define-ct name (lambda args body body* ...)))
+    (sub (literal-replace (name . args) body body* ...)
+         #'(literal-replace name (lambda args body body* ...)))
     ))
 ;;END
 

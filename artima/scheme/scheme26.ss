@@ -187,14 +187,7 @@ part of the R6RS specification, you can still work around phase
 separation with some clever hack. For instance, you could
 use the following macro:
 
-(def-syntax define-ct
-  (syntax-match ()
-    (sub (define-ct name expr)
-         #'(def-syntax name (identifier-syntax expr))
-         (identifier? name))
-    (sub (define-ct (name . args) body body* ...)
-         (define-ct name (lambda args body body* ...)))))
-
+$$lang:literal-replace
 |#
             
 (import (rnrs) (sweet-macros) (for (aps list-utils) expand run)
