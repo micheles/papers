@@ -1,288 +1,210 @@
-#|Syntax objects
+#|More on phase separation
 ===================================================================
 
-In the last dozen episodes I have defined plenty of macros, but I have
-not really explained what macros are and how they work. This episode
-will close the gap, and will explain the true meaning of macros by
-introducing the concepts of *syntax object* and of *transformer* over
-syntax objects.
+In this episode I will discuss in detail the trickiness
+associated with the concept of phase separation.
 
-Syntax objects
-------------------------------------------------------------------
+More examples of macros depending on helper functions
+-----------------------------------------------------------------
 
-Scheme macros are built over the concept of *syntax object*.
-The concept is peculiar to Scheme and has no counterpart in other 
-languages (including Common Lisp), therefore it is worth to spend some time
-on it.
+In the previous episode I have shown an example of a macro
+(``assert-distinct``) depending by a helper function (``distinct?``)
+appearing in a guarded pattern. This is not the only example of
+macros depending on an external function; actually, external
+functions appears more commonly in conjunction with the R6RS standard
+form ``with-syntax``, which
+allows to introduce auxiliary pattern variables
+(a better name would have been ``let-pattern-vars``).
+Here is a simple example of usage of ``with-syntax`` in conjunction
+with the ``range`` function we introduced in episode 5_, to define
+a compile-time indexer macro:
 
-A *syntax-object* is a kind of enhanced *s*-espression: it contains
-the source code as a list of symbols and primitive values, plus
-additional informations, such as
-the name of the file containing the source code, the line numbers,
-a set of marks to distinguish identifiers according to their
-lexical context, and more.
+$$INDEXER-SYNTAX
 
-It is possible to convert a name or a literal value into a 
-syntax object with the syntax quoting operation, i.e. the funny
-``#'`` symbol you have seen in all the macros I have defined until now::
+Since both ``range`` and ``distinct?`` are defined in the list-utils
+module and used at compile-time, everything works if you use
+the import form ``(for (aps list-utils) expand)``.
 
- > #'x ; convert a name into an identifier
- #<syntax x>
- > #''x ; convert a literal symbol
- #<syntax 'x>
- > #'1 ; convert a literal number
- #<syntax 1>
- > #'"s" ; convert a literal string
- #<syntax "s">
- > #''(1 "a" 'b) ; convert a literal data structure
- #<syntax '(1 "a" 'b)>
-
-Here I am running all my examples under Ikarus; your Scheme
-system may have a slightly different output representation for syntax
-objects.
-
-In general ``#'`` - also spelled ``(syntax )`` - can be "applied"
-to any expression::
-
- > (define syntax-expr #'(display "hello"))
- > syntax-expr
- #<syntax (display "hello")>
-
-It is possible to extract the *s*-expression underlying the
-syntax object with the ``syntax->datum`` primitive::
-
- > (equal? (syntax->datum syntax-expr) '(display "hello"))
- #t
-
-Different syntax-objects can be equivalent: for instance
-the improper list of syntax objects ``(cons #'display (cons #'"hello" #'()))``
-is equivalent to the syntax object ``#'(display "hello")`` in
-the sense that both corresponds to the same datum::
-
- > (equal? (syntax->datum (cons #'display (cons #'"hello" #'())))
-           (syntax->datum #'(display "hello")))
- #t
-
-The ``(syntax )`` macro is analogous to the ``(quote )`` macro;
-moreover, there is a ``quasisyntax`` macro denoted with ``#``` which
-is analogous to the ``quasiquote`` macro (`````) and, in analogy to
-the operation ``,`` and ``,@`` on regular lists, there are two
-operations ``unsyntax`` ``#,`` (*sharp comma*) e ``unsyntax-splicing``
-``#,@`` (*sharp comma splice*) on lists (including improper lists) of
-syntax objects.
-
-Here is an example using sharp-comma::
-
- > (let ((user "michele")) #`(display #,user))
- (#<syntax display> "michele" . #<syntax ()>)
-
-and here is an example using sharp-comma-splice::
-
- > (define users (list #'"michele" #'"mario"))
- > #`(display (list #,@users))
- (#<syntax display>
- (#<syntax list> #<syntax "michele"> #<syntax "mario">) . #<syntax ()>)
-
-Notice that the output is an improper list. This is somewhat consistent
-with the behavior of usual quoting: for usual quoting ``'(a b c)``
-is a shortcut for ``(cons* 'a 'b 'c '())``, which is a proper list,
-and for syntax-quoting ``#'(a b c)`` is equivalent to
-``(cons* #'a #'b #'c #'())``, which is an improper list.
-The ``cons*`` operator here is a R6RS shortcut for nested conses:
-``(cons* w x y z)`` is the same as ``(cons w (cons x (cons y z)))``.
-
-However, the result of a quasi quote interpolation is very much
-*implementation-dependent*: Ikarus returns an improper list, but other
-implementations returns different results; for instance ypsilon
-returns a proper list of syntax objects whereas PLT Scheme returns
-an atomic syntax object. The lesson is that you cannot
-rely on properties of the inner representation of syntax objects:
-what matters is the code they correspond to, i.e. the result of
-``syntax->datum``.
-
-It is possible to promote a datum to a syntax object with the
-``datum->syntax`` procedure, but in order
-to do so you need to provide a lexical context, which can be specified
-by using an identifier::
-
- > (datum->syntax #'dummy-context '(display "hello"))
- #<syntax (display "hello")
-
-(the meaning of the lexical context in ``datum->syntax`` is tricky and
-I will go back to that in future episodes).
-
-What ``syntax-match`` really is
---------------------------------------------------------------
-
-``syntax-match`` is a general utility to perform pattern matching
-on syntax objects; it takes a syntax object in output and returns
-another syntax object in output, depending on the patterns, skeletons and guards
-used::
-
- > (define transformer 
-     (syntax-match ()
-       (sub (name . args) #'name))); return the name as a syntax object
-
- > (transformer #'(a 1 2 3))
- #<syntax a>
-
-For convenience, ``syntax-match`` also accepts a second syntax
-``(syntax-match x (lit ...) clause ...)`` to match syntax expressions
-directly, more convenient than using
-``((syntax-match (lit ...) clause ...) x)``.
-Here is a simple example of usage::
-
- > (syntax-match #'(a 1 2 3) ()
-    (sub (name . args) #'args)); return the args as a syntax object
- #<syntax (1 2 3)>
-
-Here is an example using ``quasisyntax`` and ``unsyntax-splicing``::
-
- > (syntax-match #'(a 1 2 3) ()
-     (sub (name . args) #`(name #,@#'args)))
- (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
-
-As you see, it easy to write hieroglyphs if you use ``quasisyntax`` 
-and ``unsyntax-splicing``. You can avoid that by means of the ``with-syntax``
-form introduced in episode XX::
-
- > (syntax-match #'(a 1 2 3) ()
-     (sub (name . args) (: with-syntax (a ...) #'args #'(name a ...))))
- (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
- 
-
-The pattern variables introduced by ``with-syntax``
-are automatically expanded inside the syntax template, without
-resorting to the quasisyntax notation (i.e. there is no need for
-``#``` ``#,`` ``#,@``).
-
-Matching generic syntax lists
---------------------------------------------------------------
-
-The previous paragraphs about syntax objects were a little abstract and
-probably of unclear utility (but what would you expect from
-an advanced macro tutorial? ;). Here I will be more
-concrete and I will provide an example where
-``syntax-match`` is used as a list matcher inside a bigger macro.
-The final goal is to provide
-a nicer syntax for association lists (an association list is just
-a non-empty list of non-empty lists). The macro accepts a variable
-number of arguments; every argument is of the form ``(name value)`` or
-it is a single identifier: in this case latter case it must be
-magically converted
-into the form ``(name value)`` where ``value`` is the value of the
-identifier, assuming it is bound in the current scope, otherwise
-a run time error is raised ``"unbound identifier"``. If you try to
-pass an argument which is not of the expected form, a compile time
-syntax error must be raised.
-In concrete, the macro works as follows:
-
-$$TEST-ALIST
-
-``(alist a (b (* 2 a)))`` would raise an error ``unbound identifier a``.
-Here is the implementation:
-
-$$ALIST
-
-The expression ``#'(arg ...)`` expands to a list of syntax
-objects which are then transformed by is the ``syntax-match`` transformer,
-which converts identifiers of the form ``n`` into couples of the form
-``(n n)``, whereas it leaves couples ``(n v)`` unchanged, however
-by checking that ``n`` is an identifier.
-
-Macros as list transformers
----------------------------------------------------------------------
-
-Macros are in one-to-one correspondence with list transformers, i.e. every
-macro is associated to a transformer which converts a list of syntax objects
-(the arguments of the macro) into another list of syntax objects (the expansion
-of the macro). Scheme itself takes care of converting the input code
-into a list of syntax objects (if you wish, internally there is a
-``datum->syntax`` conversion) and the output syntax list into code
-(an internal ``syntax->datum`` conversion).
-The sharp-quote notation in macros is just an abbreviation for the underlying
-list: for instance a macro describing function composition
-
-:: 
-
-  (def-syntax (app f g)
-    #'(f g))
-
-can be written equivalently also as
-
-::
-
- (def-syntax (app f g)
-   (list #'f #'g))
-
-or
-
-::
-
- (def-syntax (app f g)
-   (cons* #'f #'g #'()))
-
-The sharp-quoted syntax is more readable, but it hides the underlying list
-representation which in some cases is pretty useful. This is why
-``syntax-match`` macros are much more powerful than ``syntax-rules``
-macros.
-
-``sweet-macros`` provide a convenient feature:
-it is possible to extract the associated
-transformer for each macro defined via ``def-syntax``. For instance,
-here is the transformer associated to  the ``define-a`` macro:
+You can understand how the macro works by expanding it; for instance
+``(indexer-syntax a b c)`` expands into a macro transformer that
+associates an index from 0 to 2 to each literal identifier from
+``a`` to ``c``:
 
 .. code-block:: scheme
 
- > (define tr (define-a <transformer>))
- > (tr (list #'dummy #'1))
- (#<syntax define> #<syntax a> 1)
+ > (syntax-expand (indexer-syntax a b c))
+ (syntax-match (a b c)
+   (sub (ctx a) #'0)
+   (sub (ctx b) #'1)
+   (sub (ctx c) #'2))
 
-Notice that the name of the macro (in this case ``define-a`` is ignored
-by the transformer, i.e. it is a dummy identifier.
+The ``with-syntax`` form introduces the list of pattern variables ``(i ...)``
+corresponding to the list ``(0 1 2)`` generated by the ``range`` function
+by looking at the number of arguments, the ``(name ...)`` list.
+The guarded pattern also checks that the names are distinct.
+Thus, the following test passes:
 
+$$TEST-INDEXER-SYNTAX
+
+The basic feature of the indexer is that ``i`` is a macro and therefore literal
+identifiers are turned into integers at compile time, *without runtime
+penalty*. On the other hand, if you want to turn symbols known only
+at runtime into integers, the previous approach does not work, and
+you can define a runtime indexer as follows:
+
+$$INDEXER
+
+Here the indexer is a simple function; the acceptable symbols
+are specified (and checked) at expand time, but the dispatch
+is performed at runtime. Here is a test:
+
+$$TEST-INDEXER
+
+You may enjoy yourself with performance benchmarks comparing the macro
+solution with the function solution; moreover you
+can contrast this solution with the builtin way of R6RS Scheme
+to build indexers as sets.
+
+The problem with auxiliary macros
+------------------------------------------------------------------
+
+We said a few times that auxiliary functions are not available to macros
+defined in the same module, but actually in general
+there is the *same* problem for any identifier which is used in the
+right hand side of a macro definition, *including auxiliary macros*.
+For instance, we may regard the ``indexer-syntax`` macro 
+as an auxiliary macro, to be used in the right hand side of a
+``def-syntax`` form.
+
+In systems with strong phase separation, like
+PLT Scheme and Larceny, auxiliary macros
+are not special, and they behave as auxiliary functions: you
+must put them into a separare module and you must import them
+with ``(for (only (module) helper-macro) expand)`` before using them.
+This is why the following script
+
+$$indexer-syntax:
+
+fails in PLT scheme:
+
+
+ $ plt-r6rs indexer-syntax.ss
+ indexer-syntax.ss:9:0: def-syntax: bad syntax in: (def-syntax (indexer-syntax a b c))
+
+  === context ===
+ /usr/lib/plt/collects/rnrs/base-6.ss:492:6
+
+
+The problem is that in PLT and Larceny, the second ``def-syntax`` does
+not see the binding for the ``indexer-syntax`` macro.
+
+This is a precise design choice: systems with strong phase
+separation are making the life harder for programmers,
+by forcing them to put auxiliary functions/macros/objects
+in auxiliary modules, to keep absolute control on how the
+names enter in the different phases and to make possible
+to use different languages at different phases.
+
+I have yet to see a convincing example of why keeping
+different languages at different phases is worth
+the annoyance.
+
+On the other hand, in systems with weak phase separation,
+like Ikarus/IronScheme/Mosh/Ypsilon,
+*there is no need to put auxiliary
+macros in an external module.* The reason is that all macro
+definitions are read at the same time, and the compiler knows
+about the helper macros, so it can use them. The consequence
+is that a long as the compiler reads macro definitions, it expands
+the compile-time namespace of recognized names which are available
+to successive syntax definitions.
+
+In Ikarus the script ``identifier-syntax.ss`` is
+perfectly valid: the first syntax
+definition would add a binding for ``identifier-syntax`` to the macro
+namespace, so that it would be seen by the second syntax definition.
+
+
+Systems with strong phase separation instead are effectively using
+different namespaces for each phase.
+
+
+Implementing a first class module system
+-----------------------------------------
+
+This is the same as implementing a Pythonic interface over hash tables
+or association lists.
+
+Working around phase separation
+--------------------------------------------------------------
+
+I have always hated being forced to put my helper functions in an
+auxiliary module, because I often use auxiliary functions which
+are intended to be used only once inside a given macro, thus
+it makes sense to put those auxiliary functions *in the same
+module* as the macro the are used in.
+In principle you could solve the problem by definining all the
+functions *inside* the macro, but I hate this, both for dogmatic
+reasons (it is a Pythonista dogma that *flat is better than nested*)
+and for pragmatic reasons, i.e. I want to be able to debug my
+helper functions and this is impossible if they are hidden inside
+the macro. They must be available at the top-level. Moreover, you
+never know, and a functionality which was intended for use in a specific
+macro my turn useful for another macro after all, and it is much
+more convenient if the functionality is already encapsulated in
+a nice exportable top level function.
+
+I am not the only to believe that it should be possible to define
+helper functions in the same module as the macro and actually
+many Scheme implementations provide a way to do so via a
+``define-for-syntax`` form which allows to define function
+at *expand time*, so that they are available for usage in macros.
+
+If your Scheme does not provide ``define-for-syntax``, which is not
+part of the R6RS specification, you can still work around phase
+separation with some clever hack. For instance, you could
+use the following macro:
+
+$$lang:literal-replace
 |#
-(import (rnrs) (sweet-macros) (aps easy-test) (aps compat)
-        (for (aps list-utils) expand) (for (aps record-syntax) expand run))
+            
+(import (rnrs) (sweet-macros) (for (aps list-utils) expand run)
+        (for (aps lang) expand) (aps compat) (aps easy-test))
 
-;;ALIST
-(def-syntax (alist arg ...)
-  (with-syntax ((
-     ((name value) ...)
-     (map (syntax-match ()
-            (sub n #'(n n) (identifier? #'n))
-            (sub (n v) #'(n v) (identifier? #'n)))
-          #'(arg ...)) ))
-     #'(let* ((name value) ...)
-         (list (list 'name name) ...))))
+;;INDEXER-SYNTAX
+(def-syntax (indexer-syntax name ...)
+  (with-syntax (((i ...) (range (length #'(name ...)))))
+    #'(syntax-match (name ...) (sub (ctx name) #'i) ...))
+  (distinct? free-identifier=? #'(name ...))
+  (syntax-violation 'assert-distinct "Duplicate name" #'(name ...)))
 ;;END
 
-(def-syntax book (record-syntax title author))
-(pretty-print (syntax-expand (record-syntax title author))) (newline)
 
-(define b (vector "T" "A"))
-(display (list (book b title) (book b author))) ;; seems an Ypsilon bug
-;since this works
-;(def-syntax book
-;  (syntax-match (title author)
-;   (sub (ctx v title) (syntax (vector-ref v 0)))
-;   (sub (ctx v author) (syntax (vector-ref v 1)))))
+;;INDEXER
+(def-syntax (indexer name ...)
+  (with-syntax (((i ...) (range (length #'(name ...)))))
+    #'(lambda (x) (case x ((name) i) ...)))
+  (distinct? free-identifier=? #'(name ...))
+  (syntax-violation 'assert-distinct "Duplicate name" #'(name ...)))
+;;END
 
-(display (syntax-expand (alist (a 1) (b (* 2 a)))))
+(display (syntax-expand (indexer-syntax a b c))) (newline)
 
 (run
 
- ;;TEST-ALIST
- (test "simple"
-       (alist (a 1) (b (* 2 a)))
-       '((a 1) (b 2)))
- 
- ;;END
- ;(test "with-error"
- ;     (catch-error (alist2 (a 1) (2 3)))
- ;     "invalid syntax")
+;;TEST-INDEXER-SYNTAX
+(test "indexer-syntax"
+      (let ()
+        (def-syntax i (indexer-syntax a b c))
+        (list (i a) (i b) (i c)))
+      '(0 1 2))
+;;END
 
+;;TEST-INDEXER
+(test "indexer"
+      (let ()
+        (define i (indexer a b c))
+        (list (i 'a) (i 'b) (i 'c)))
+      '(0 1 2))
+;;END
 )
-
-
-

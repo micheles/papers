@@ -1,318 +1,345 @@
-#|
-Can a language be both easy and powerful?
------------------------------------------------------------------------
+#|The evaluation strategy of Scheme programs
+================================================
 
-When it comes to designing programming languages, easy of use and
-power seems to go in opposite directions. There are plenty of examples
-where something went wrong, i.e. simple languages which however are
-good only for teaching and not for professional use, and
-professional languages which are however too tricky to use
-for the casual programmer. We have also examples of languages which
-are both weak in power *and* difficult to use (insert your chosen
-language here).
+The Scheme module system is complex, because of the
+complications caused by macros and because of the want of
+separate compilation and cross compilation.
+However, fortunately, the complication
+is hidden, and the module system works well enough for many
+simple cases. The proof is that we introduced the R6RS module
+system in episode 5_, and for 20 episode we could go on safely
+by just using the basic import/export syntax. However, once
+nontrivial macros enters in the game, things start to become
+interesting.
 
-Nevertheless, I think it is perfectly possible to design a language
-which is both easy to use and powerful. For instance, Python is a good
-example of such language (others will prefer Ruby, or Scala, or
-anything else they like).
+.. _5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
+.. _R6RS document: http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-13.html#node_idx_1142
 
-There are various reasons why Python can be both easy to use and powerful,
-the most important ones being the following, in my opinion:
+Interpreter semantics vs compiler semantics
+------------------------------------------------------------------
 
-1. it is a one-man language (i.e. it is not a comprimise language made by a
-   committee);
+One of the trickiest things about Scheme, coming from Python, is its
+distinction between *interpreter semantics* and *compiler semantics*.
 
-2. it is language made from scratch, with no preoccupations of backward
-   compatibility;
+To understand the issue, let me first point out that having
+interpreter semantics or compiler semantics has nothing to do with
+being an interpreted or compiled language: both Scheme interpreters
+and Scheme compilers exhibit both semantics. For instance, Ikarus,
+which is a native code compiler provides interpreter semantics at
+the REPL whereas Ypsilon which is an interpreter, provides
+compiler semantics in scripts, when the R6RS compatibility flag is set.
 
-3. between (premature) optimization and easy of use Python always chooses
-   the latter;
+In general the same program in the same implementation can be run both
+with interpreter semantics (when typed at the REPL) and with compiler
+semantics (when used as a library), but the way the program behaves is
+different, depending on the semantics used.
 
-4. it provides special syntax/libraries for common operations.
+There is no such distinction in Python, which has only
+interpreter semantics.  In Python, everything happens at runtime,
+including bytecode compilation (it is true that technically bytecode
+compilation is cached, but conceptually you may very well think that
+every module is recompiled at runtime, when you import it - which is
+actually what happens if the module has changed in the
+meanwhile). Since Python has only interpreter semantics there is no
+substantial difference between typing commands at the REPL and writing
+a script.
 
-Scheme does not share any of these characters, and as a consequence it
-is definitively not an easy language. It is just a powerful language.
+Things are quite different in Scheme. The interpreter semantics is
+*not specified* by the R6RS standard and it is completely
+implementation-dependent. It is also compatible with the standard to
+not provide interpreter semantics at all, and to not provide a REPL:
+for instance PLT Scheme does not provide a REPL for R6RS programs.  On
+the other hand, the compiler semantics is specified by the R6RS
+standard and is used in scripts and libraries.
 
-However, it is powerful enough that you can make it easy to use, but
-that requires (a lot of work) on the part of the programmer, which must
-implement point 4 by himself, whereas
-nowadays we are all spoiled and we expect the language implementors to
-do this kind of work for us.
+The two semantics are quite different. When a
+program is read in interpreter semantics, everything happens at
+runtime: it is possible to define a function and immediately after a
+macro using that function. Each expression entered is
+compiled (possibly to native code as in Ikarus) and executed
+immediately. Each new definition augments the namespace of known
+names at runtime, both for first class objects and macros. Macros
+are also expanded at runtime.
 
-.. image:: bikeshed.jpg
- :class: right
- :width: 400
+When a program is read in compiler semantics instead, all the definitions
+and the expressions are read, the macros are expanded and the program compiled,
+*before* execution. Whereas an interpreter looks at a program one expression
+at the time, a compiler looks at it as a whole: in particular, the order
+of evaluation of expressions in a compiled program is unspecified,
+unless you specify it by using a ``begin`` form.
 
-I think the explanation for the current situation in Scheme is more historical
-and social than technical. On one side, a lot of people in the Scheme
-world want Scheme to stay the way it is, i.e. a language for language
-experimentations and research more than a language for enterprise
-work.  On the other side, the fact that there are so many
-implementations of Scheme makes difficult/impossible to specify too
-much: this the reason why there are no standard debugging tools for
-Scheme, but only implementation-specific ones.
+Let me notice that in my opinion having
+an unspecified evaluation order is an clear case of premature
+optimization and a serious mistake, but unfortunately this is the
+way it is. The rationale is that in some specific circumstances
+some compiler could take advantage of the  unspecified evaluation order
+to optimize the computation of some expression and run a few percent
+faster but this is certainly *not* worth the complication.
 
-Finally, there is the infamous `bikeshed effect`_ to take in account.
-The bikeshed effect is typical of any project designed by a committee:
-when it comes to proposing advanced functionalities that very few
-can understand, it is easy to get approval from the larger community.
-However, when it comes to simple functionality of common usage, everybody
-has got a different opinion and it is practically impossible to get
-anything approved at all.
+Anyway, since the interpreter semantics is not specified by the R6RS
+and thus very much implementation-dependent, I will focus on the
+compiler semantics of Scheme programs. Such semantics is quite
+tricky, especially when macros enters in the game.
 
-To avoid that, the standard does not provide
-directly usable instruments: instead, it provides general instruments
-which are intended as building blocks on that of which everybody can
-write the usable abstractions he/she prefers. Most people nowadays
-prefer to have ready-made solutions, because they have deadlines,
-projects to complete and no time nor interest in writing things
-that should be made by language designers, so that Scheme is little
-used in the enterprise world.
+Macros and helper functions
+---------------------------------------------------------------------
 
-There are other options, however, if you are interested in a Scheme
-for usage in the enterprise world. You can just use a Scheme
-implementation running on the .NET or the Java platform, or a Scheme-like
-language such as Clojure_. Clojure runs on the Java Virtual Machine,
-it is half lisp and half Scheme, it has a strong functional flavour in
-it, it has interesting things to say about concurrency_,
-it is a one-man language (Rich Hickey is the BDFL) and provides
-access to all the Java libraries. Moreover it provides a whole set
-of `syntax conveniences`_ that would never enter in the Scheme standard.
+You can see the problem of compiler semantics once you start using macros
+which depend from auxiliary functions. For instance, consider this
+simple macro
 
-Professionally I have never
-interacted with the Java platform (and even there I would probably
-choose Jython over Clojure for reason of familiarity) so I have not
-checked out Clojure and I have no idea about it except what you can
-infer after reading its web site. If amongst my readers
-there is somebody with experience in Clojure, please feel free to add
-a comment to this post.
+$$ASSERT-DISTINCT
 
-I personally am using Scheme since I am interested in macrology and no
-language in existence can beat Scheme in this respect.
+which raises a compile-time exception (syntax-violation) if it is
+invoked with duplicate arguments. A typical use case for such macro
+is definining specialized lambda forms.  The
+macro relies on the builtin function
+``free-identifier=?`` which returns true when two identifiers
+are equal and false otherwise (this is a simplified explanation,
+let me refer to the `R6RS document`_ for the gory details) and
+on the helper function ``distinct?`` defined as follows:
 
-.. _Clojure: http://clojure.org/
-.. _syntax conveniences: http://clojure.org/special_forms
-.. _concurrency: http://clojure.org/concurrent_programming
-.. _bikeshed effect: http://en.wikipedia.org/wiki/Bikeshed
+$$list-utils:DISTINCT?
 
-Second order macros
--------------------------------------------------------------
+Here are a couple of test cases for ``distinct?``:
 
-There is not upper limit to the level of sophistication you can reach
-with macros: in particular it is possible to define higher order
-macros, i.e. macros taking other macros as arguments or macros
-expanding to other macros. Higher order macros allows an extremely
-elegant programming style; on the other hand, they are exposed to the
-risk of making the code incomprehensible and very hard to debug.
-In this episode we will give a couple of examples of second order
-macros taking other macros as argument.
+$$TEST-DISTINCT
 
-Our first example is a generalization of the accumulator trick we
-used last week to define the ``cond-`` macro. We will define a
-``collecting-pairs`` macro, which as input another macro and a
-sequence of arguments, and calls the input macro with the arguments
-grouped in pairs.
-Here is the code:
+The problem with the evaluation semantics is that it is natural, when
+writing the code, to define first the function and then the macro, and
+to try things at the REPL. Here everything works; in some
+Scheme implementation, like Ypsilon, this will also work as a
+script, unless the strict R6RS-compatibility flag is set.
+However, in R6RS-conforming implementations, if you cut and paste
+from the REPL and convert it into a script, you will run into
+an error!
 
-$$COLLECTING-PAIRS
+The problem is due to the fact than in the compiler semantics macro
+definitions and function definitions happens at *different times*. In
+particular, macro definitions are taken in consideration *before*
+function definitions, independently from their relative position in
+the source code. Therefore our example fails to compile since the
+``assert-distinct`` macro makes use of the ``distinct?`` function
+which is *not yet defined* at the time the macro is considered,
+i.e. at expansion time. Actually, functions are not evaluated
+at expansion time, since functions are first class values and the right
+hand side of any definition is left unevaluated by the compiler.
+As we saw in the previous episode, both ``(define x (/ 1 0))`` and
+``(define (f) (/ 1 0))`` (i.e. ``(define f (lambda () (/ 1 0)))``) are
+compiled correctly but not evaluated until the runtime, therefore
+both ``x`` and ``f`` cannot be used inside a macro.
 
-``collecting-pairs`` can be used with many syntactic expressions like
-``cond``, ``case``, ``syntax-rules``, et cetera. Here is an example
-with the case_ expression::
+*The only portable way to make
+available at expand time a function defined at runtime is to
+define the function in a different module and to import it at
+expand time*
 
- > (collecting-pairs (case 1)
-       (1) 'one
-       (2) 'two
-       (3) 'three
-       else 'unknown))
- one
+Phase separation
+--------------------------------------------------------------
 
-macros generating macros
-----------------------------------------------------
+I have put ``distinct?`` in the ``(aps list-utils)``
+module, so that you can import it.  This is enough to solve the
+problem for Ikarus, which has no concept of *phase separation*, but it is not
+enough for PLT Scheme or Larceny, which have full *phase separation*.
+In other words, in Ikarus (but also Ypsilon, IronScheme and Mosh)
+the following script
 
-In this paragraph I will give an example of a second order macro
-expanding to a regular (first order) macro. Here it is:
+$$assert-distinct:
 
-$$DEF-VECTOR-TYPE
+is correct, but in PLT Scheme and Larceny it raises an error::
 
-``def-vector-type`` is a macro which defines a macro which is used to
-manage classes of vectors; for instance
+ $ plt-r6rs assert-distinct.ss 
+ assert-distinct.ss:5:3: compile: unbound variable in module
+ (transformer environment) in: distinct?
 
-$$BOOK
+.. image:: salvador-dali-clock.jpg
 
-defines a ``Book`` macro which is able to manage two-dimensional vectors
-with fields ``title`` and ``author``. The expansion of ``Book`` is the
-following:
+The problem is that PLT Scheme has *strong phase separation*: by default
+names defined in external modules are imported *only* at runtime, *not*
+at compile time. In some sense this is absurd since
+names defined in an external pre-compiled modules
+are of course known at compile time
+(this is why Ikarus has no trouble to import them at compile time);
+nevertheless PLT Scheme and Larceny Scheme forces you to specify at
+which phase the functions must be imported.  Notice that personally I
+do not like the PLT and Larceny semantics since it makes things more
+complicated, and that I prefer the Ikarus semantics:
+nevertheless, if you want to write
+portable code, you must use the PLT/Larceny semantics, which is the
+one blessed by the R6RS document.
+
+If you want to import a few auxiliary functions
+at expansion time (the time when macros are processed; often
+incorrectly used as synonymous for compilation time) you must
+use the ``(for expand)`` form:
+
+``(import (for (only (aps list-utils) distinct?) expand))``
+
+With this import form, the script is portable in all R6RS implementations.
+
+Discussion
+-------------------------------------------------
+
+Is phase separation a good thing?
+In my opinion, from the programmer's point of view, the simplest thing
+is lack of complete lack of phase separation, and interpreter semantics, in
+which everything happens at runtime.
+If you look at it with honesty, at the end the compiler semantics is
+nothing else that a *performance hack*: by separing compilation time
+from runtime you can perform some computation only once at compilation time
+and gain performance. Moreover, in this way you can make cross compilation
+easier. Therefore the compiler semantics has practical advantages and
+I am willing cope with it, even if conceptually I still prefer the
+straightforwardness of interpreter semantics.
+Moreover, there are (non-portable) tricks to define helper functions
+at expand time without need to move them into a separate module, therefore
+compiler semantics is not so unbearable.
+
+The thing I really dislike is full phase separation. But a full discussion
+of the issues releated to phase separation will require a whole episode.
+See you next week!
+
+Therefore, if you have a compiled version of Scheme,
+it makes sense to separate compilation time from runtime, and to
+expand macros *before* compiling the helper functions (in absence of
+phase separation, macros are still expanded before running any runtime
+code, but *after* recognizing the helper functions).
+Notice that Scheme has a concept of *macro expansion time* which is
+valid even for interpreted implementation when there is no compilation
+time. The `expansion process`_ of Scheme source code is specified in
+the R6RS.
+
+There is still the question if strong phase separation is a good thing,
+or if weak phase separation (as in Ikarus) is enough. For the programmer
+weak phase separation is easier, since he does not need to specify
+the phase in which he wants to import names. Strong phase separation
+has been introduced so that at compile time a language which is
+completely different from the language you use at runtime. In particular
+you could decide to use in macros a subset of the full R6RS language.
+
+Suppose for instance you are a teacher, and you want to force your
+students to write their macros using only a functional subset of Scheme.
+You could then import at compile time all R6RS procedures except the
+nonfunctional ones (like ``set!``) while keeping import at runtime
+the whole R6RS. You could even perform the opposite, and remove ``set!``
+from the runtime, but allowing it at compile time.
+
+Therefore strong phase separation is strictly more powerful than week
+phase separation, since it gives you more control. In Ikarus, when
+you import a name in your module, the name is imported in all phases,
+and there is nothing you can do about it. For instance this program
+in Ikarus (but also IronScheme, Ypsilon, MoshScheme)
 
 .. code-block:: scheme
+ (import (rnrs) (for (only (aps list-utils) distinct?) expand))
+ (display distinct?)
 
- (def-syntax Book
-  (syntax-match (new ref set! title author)
-   (sub (ctx <name>) #''Book)
-   (sub (ctx <fields>) #'(list 'title 'author))
-   (sub (ctx from-list ls) #'(list->vector ls))
-   (sub (ctx new arg ...) #'(vector arg ...))
-   (sub (ctx v ref title) #'(vector-ref v 0))
-   (sub (ctx v ref author) #'(vector-ref v 1))
-   (sub (ctx v set! title x) #'(vector-set! v 0 x))
-   (sub (ctx v set! author x) #'(vector-set! v 1 x))))
+runs, contrarily to what one would expect, because it is impossible
+to import the name ``distinct?`` at expand time and not at runtime.
+In PLT Scheme and Larceny instead the program will not run, as you
+would expect.
 
-From this expansion it is clear how ``Book`` works. For instance,
+You may think the R6RS document to be schizophrenic, since it
+accepts both implementations with phase separation and without
+phase separation. The previous program is *conforming* R6RS code, but
+behaves *differently* in R6RS-compliant implementations!
 
-.. code-block:: scheme
+but using the semantics without phase separation results in
+non-portable code. Here a bold decision was required to ensure
+portability: to declare the PLT semantics as the only acceptable one,
+or to declare the Dibvig-Gouloum semantics as the only acceptable one. 
 
- > (define b (Book new "Title" "Author"))
+De facto, the R6RS document is the result
+of a compromise between the partisans of phase separation
+and absence of phase separation.
 
-defines a vector of two strings:
 
-.. code-block:: scheme
+On the other hand strong phase separation makes everything more complicated:
+it is somewhat akin to the introduction of multiple namespace, because
+the same name can be imported in a given phase and not in another,
+and that can lead to confusion. To contain the confusion, the R6RS
+documents states that *the same name cannot be used in different phases
+with different meaning in the same module*.
+For instance, if the identifier ``x`` is bound to the
+value ``v`` at the compilation time and ``x`` is defined even
+at runtime, ``x`` must be bound to ``v`` even at runtime. However, it
+is possible to have ``x`` bound at runtime and not at compile time, or
+viceversa. This is a compromise, since PLT Scheme in non R6RS-compliant mode
+can use different bindings for the same name at different phases.
 
- > b
- #("Title" "Author")
+There are people in the Scheme community thinking that strong phase
+separation is a mistake, and that weak phase separation is the right thing
+to do. On the other side people (especially from the PLT community where
+all this originated) sing the virtues of strong phase separation and say
+all good things about it. I personally I have not seen a compelling
+use case for strong phase separation yet.
+On the other hand, I am well known for preferring simplicity over
+(unneeded) power. 
 
-``(Book b ref title)`` retrieves the ``title`` field whereas
-``(Book b ref author)`` retrieves the ``author`` field:
-
-.. code-block:: scheme
-
- > (Book b ref title)
- "Title"
- > (Book b ref author)
- "Author"
-
-``(Book b set! title new-title)`` and ``(Book b set! author new-author)``
-allows to change the ``title`` and ``author`` fields.
-It is also possible to convert a list into a ``Book`` vector:
-
- > (Book from-list '("t" "a"))
- #("t" "a")
-
-Finally, the ``Book`` macro provides introspection features:
-
-.. code-block:: scheme
-
- > (Book <name>)
- Book
- > (book <fields>)
- (title author)
-
-The secret of the ellipsis
------------------------------------------------------------------
-
-.. _case: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_384
-..  _Arc: http://www.paulgraham.com/arcll1.html
-
-A two-level syntax
--------------------------------------------------------------
-
-Parens-haters may want to use ``collecting-pairs`` and the colon macro
-to avoid parenthesis. They may even go further, and rant that the
-basic Scheme syntax should require less parenthesis, since for
-most programmers it is easier to write code with less parenthesis.
-However, the Scheme philosophy favors automatic code generation
-over manual writing. For instance, when writing macros, it is much easier
-to use a conditional with more parenthesis like ``cond`` than a
-conditional with less parenthesis like ``cond-``. The parenthesis
-allows you to group expressions in group that can be repeated via
-the ellipsis symbol; in practice, you can writing things like
-``(cond (cnd? do-this ...) ...)`` which cannot be written
-with ``cond-``.
-
-On the other hand, different languages adopt different philosophies;
-for instance Paul Graham's Arc_ uses less parenthesis. This is
-possible since it does not provide a macro system based on
-pattern matching (which is a big *minus* in my opinion). Is it possible
-to have both? A syntax with few parenthesis for writing code manually
-and a syntax with many parenthesis for writing macros. The answer is yes:
-the price to pay is to double the constructs of the language and to
-use a Python-like approach.
-
-Python is a perfect example of language with a two-level syntax: a
-simple syntax, limited but able to cover the most common case, and a
-fully fledged syntax, giving all the power which is needed, which
-however should be used only rarely. The best designed programming
-language I know is Python. While not perfect, Python takes full
-advantage of the two-level syntax idea. For instance
-
-====================    =================================
-Simplified syntax       Full syntax          
-====================    =================================
-obj.attr                getattr(obj, 'attr')
-x + y                   x.__add__(y)
-c = C()                 c = C.__new__(C); c.__init__()
-====================    =================================
-
-In the case of the conditional syntax, in principle we could have
-a fully parenthesised ``__cond__`` syntax for usage in macros and
-``cond`` syntax with less parens for manual usage. That, in theory:
-in practice Scheme only provides the low level syntax, leaving to
-the final user the freedom (and the burden) of implementing his
-own preferred high level syntax.
+.. _expansion process: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-13.html#node_chap_10
 
 |#
 
-(import (rnrs) (sweet-macros) (for (aps lang) run expand)
-        (aps easy-test) (for (aps list-utils) run expand) (aps compat))
+(import (rnrs) (sweet-macros) (for (aps list-utils) expand)
+        (for (aps lang) expand run) (aps compat) (aps easy-test))
 
-;;DEF-VECTOR-TYPE
-(def-syntax (def-vector-type name (field-name checker?) ...)
-  (with-syntax (((i ...) (range (length #'(field-name ...)))))
-    #'(begin
-        (define (check-all vec)
-          (vector-map
-           (lambda (check? field arg)
-             (if (check? arg) arg (error 'name "TypeError" field arg)))
-           (vector checker? ...) (vector 'field-name ...) vec))
-        (def-syntax name
-          (syntax-match (check <name> fields new ref set! field-name ...)
-            (sub (ctx check vec) #'(check-all vec))
-            (sub (ctx <name>) #''name)
-            (sub (ctx fields) #'(list 'field-name ...))
-            (sub (ctx from-list ls) #'(check-all (list->vector ls)))
-            (sub (ctx new arg (... ...)) #'(ctx from-list (list arg (... ...))))
-            (sub (ctx v ref field-name) #'(vector-ref v i)) ...
-            (sub (ctx v set! field-name x) #'(vector-set! v i x)) ...
-          ))))
-  (distinct? free-identifier=? #'(field-name ...)))
+;;ASSERT-DISTINCT
+(def-syntax (assert-distinct arg ...)
+  #'(#f)
+  (distinct? free-identifier=? #'(arg ...))
+  (syntax-violation 'assert-distinct "Duplicate name" #'(arg ...)))
 ;;END
 
-;;BOOK
-(def-vector-type Book (title string?) (author string?))
+;(assert-distinct a b a)
+
+;;DEF-BOOK
+(def-syntax (def-book name title author)
+  (: with-syntax
+     name-title (identifier-append #'name "-title")
+     name-author (identifier-append #'name "-author")
+     #'(begin
+         (define name (vector title author))
+         (define name-title (vector-ref name 0))
+         (define name-author (vector-ref name 1)))))
+
 ;;END
+(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
 
-(display (Book <name>)) (newline)
 
-(pretty-print (syntax-expand
-               (def-vector-type Book (title string?) (author string?))))
-
-;;COLLECTING-PAIRS
-(def-syntax collecting-pairs
-  (syntax-match ()
-    (sub (collecting-pairs (name arg ...) x1 x2 ...)
-     #'(collecting-pairs "helper" (name arg ...) () x1 x2 ...))
-    (sub (collecting-pairs "helper" (name arg ...) (acc ...))
-     #'(name arg ... acc ...))
-    (sub (collecting-pairs "helper" (name arg ...) (acc ...) x)
-     #'(syntax-violation 'name "Mismatched pairs" '(name arg ... acc ... x) 'x))
-    (sub (collecting-pairs "helper" (name arg ...) (acc ...) x1 x2 x3 ...)
-     #'(collecting-pairs "helper" (name arg ...) (acc ... (x1 x2)) x3 ...))
-    ))
-;;END
-
-;;TEST-COLON
-(run
- (test "ok"
-       (: let* x 1 y x (+ x y))
-       2)
-;  (test "err"
-;     (catch-error (: let* x 1 y x z (+ x y)))
-;      "Odd number of arguments")
-
- (test "nv1"
+ ;;TEST-DEF-BOOK
+ (test "def-book"
        (let ()
-         (define b (Book new "T" "A"))
-         (Book b ref title))
-       "T")
+         (def-book bible "The Bible" "God")
+         (list bible-title bible-author))
+       (list "The Bible" "God"))
+ ;;END
+
+             
+;;ALIST2
+ (def-syntax (alist2 arg ...)
+   (: with-syntax ((name value) ...) (normalize #'(arg ...))
+     (if (for-all identifier? #'(name ...))
+         #'(let* ((name value) ...)
+             (list (list 'name name) ...))
+         (syntax-violation 'alist "Found non identifier" #'(name ...)
+                           (remp identifier? #'(name ...))))))
+;;END
+
+(run
+
+ ;;TEST-DISTINCT
+ (test "distinct"
+       (distinct? eq? '(a b c))
+       #t)
+ 
+ (test "not-distinct"
+       (distinct? eq? '(a b a))
+       #f)
+ ;;END
+ 
+ (let ((a 1))
+   (test "mixed"
+         (alist2 a (b (* 2 a)))
+         '((a 1) (b 2))))
  )
 
-;;END
