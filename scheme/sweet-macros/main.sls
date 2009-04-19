@@ -1,6 +1,10 @@
 (library (sweet-macros)
-(export syntax-match def-syntax syntax-expand)
+(export syntax-match def-syntax syntax-expand sub)
 (import (rnrs))
+
+(define-syntax sub ; needed to make Ikarus REPL happy
+  (lambda (x)
+    (syntax-violation #f "incorrect use of auxiliary keyword" x)))
 
 ;;GUARDED-SYNTAX-CASE
 (define-syntax guarded-syntax-case
