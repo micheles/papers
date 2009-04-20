@@ -1,19 +1,77 @@
 #|The evaluation strategy of Scheme programs
 ================================================
 
-The Scheme module system is complex, because of the
-complications caused by macros and because of the want of
-separate compilation and cross compilation.
-However, fortunately, the complication
-is hidden, and the module system works well enough for many
-simple cases. The proof is that we introduced the R6RS module
-system in episode 5_, and for 20 episode we could go on safely
-by just using the basic import/export syntax. However, once
-nontrivial macros enters in the game, things start to become
-interesting.
-
-.. _5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
 .. _R6RS document: http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-13.html#node_idx_1142
+
+Why there is so little checking at compile-time?
+------------------------------------------------------------------------
+
+I asked myself why Scheme compilers (but also the Python compiler) are
+so stupid that they cannot recognize obvious errors like the zero
+division error just discussed. I could not find an answer so I asked
+on the Ikarus mailing list. It turns out the compilers are not stupid
+at all: they can recognize the zero division error, but they cannot
+signal it since it is forbidden by the Scheme specifications. For
+instance, Llewellyn Pritchard (Leppie), the implementor of IronScheme
+wrote:
+
+.. epigraph::
+
+ In IronScheme, if I can detect there is an issue at compile
+ time, I simply defer the computation to the runtime, or could even
+ just convert it into a closure that will return an error. This is only
+ one of the things that make Scheme quite hard to implement on a statically
+ typed runtime such as the CLR, as it forces me to box values at method
+ boundries and plenty type checking at runtime.
+
+whereas Abdul Aziz Ghoulum wrote:
+
+.. epigraph::
+
+
+ Actually, Ikarus does some type checking, and it does
+ detect the division by 0.  It however cannot do anything
+ about it in this case since Scheme requires that the
+ exception be raised when the division operation is
+ performed at run time.
+
+Aziz went further and explained to me the rationale for
+the current specification. The reason is that we want
+expressions like
+
+.. code-block:: scheme
+
+ (define x (/ 1 0))
+
+and
+
+.. code-block:: scheme
+
+ (define thunk (lambda () (/ 1 0)))
+
+to be compilable. The second expression is really the same as
+the first one, only nested one level more. Even if the thunk
+will raise an error when called, the thunk itself should
+be a valid compilable procedure. It is useful
+to have functions that can raise predictable errors, especially
+when writing test case, so a compiler should not reject them.
+In general, you can think of a module as of a giant thunk; using a
+module calls the thunk (the process is called *module instantiation*)
+and possibly raises errors at runtime, but the module per se must be
+compilable even if contains errors which are detectable at compile
+time.
+
+This evaluation strategy also keeps the compiler simple: we know that the
+compiler will just expand the macros, but will not perform any evaluation.
+Finally, this semantics enable `cross compilation`_: macros will be expanded
+independently from the architecture, whereas the
+runtime structures will be compiled and linked differently depending on the
+architecture of the target processor.
+
+.. image:: compiler-crosscompiler.jpg
+
+.. cross compilation: http://chicken.wiki.br/cross-compilation
+.. _cross compilation: http://en.wikipedia.org/wiki/Cross_compilation
 
 Interpreter semantics vs compiler semantics
 ------------------------------------------------------------------
@@ -187,47 +245,6 @@ use the ``(for expand)`` form:
 ``(import (for (only (aps list-utils) distinct?) expand))``
 
 With this import form, the script is portable in all R6RS implementations.
-
-Discussion
--------------------------------------------------
-
-Personally, I find the interpreter semantics the most intuitive and
-easier to understand. In such semantics everything happens at runtime,
-and there is no phase separation at all; it is true that the code may
-still be compiled before being executed, as it happens in Ikarus, but
-this is an implementation detail: from the point of view of the
-programmer the feeling is the same as using an interpreter.
-The interpreter semantics is also the most powerful semantics at all:
-for instance, it is possible to redefine identifiers and it is
-possible to import modules at runtime, things which are both impossible
-in compiler semantics.
-
-After all, if you look at it with honesty, the compiler semantics is
-nothing else that a *performance hack*: by separing compilation time
-from runtime you can perform some computation only once (at compilation time)
-and gain performance. This is not strange at all: compilers *are*
-performance hacks. It is just more efficient to convert a a program into
-machine code with a compiler than to interpret one expression at the time.
-Since in practice there are lots of situations where performance is
-important and one does need a compiler, it makes a lot of sense to
-have a compiler semantics. The compiler
-semantics is also designed to make separate compilation and cross compilation
-possible. Therefore the compiler semantics
-has many practical advantages and
-I am willing cope with it, even if it is not as
-straightforward as interpreter semantics.
-
-Moreover, there are (non-portable) tricks to define helper functions
-at expand time without need to move them into a separate module, therefore
-it is not so difficult to work around the restrictions of the compiler
-semantics.
-
-The thing I really dislike is full phase separation. But a full discussion
-of the issues releated to phase separation will require a whole episode.
-See you next week!
-
-.. _expansion process: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-13.html#node_chap_10
-
 |#
 
 (import (rnrs) (sweet-macros) (for (aps list-utils) expand)

@@ -1,10 +1,66 @@
 #|Phase separation
 ===================================================================
 
+The Scheme module system is complex, because of the
+complications caused by macros and because of the want of
+separate compilation and cross compilation.
+However, fortunately, the complication
+is hidden, and the module system works well enough for many
+simple cases. The proof is that we introduced the R6RS module
+system in episode 5_, and for 20 episode we could go on safely
+by just using the basic import/export syntax. However, once
+nontrivial macros enters in the game, things start to become
+interesting.
+
+.. _5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
+
 We saw in the last episode that Scheme programs executed
 in compiler semantics exhibit phase separation, i.e. some code
 is executed at compile (expand) time and some code is executed
 at runtime. Things, however, are more complicated than that.
+
+Discussion
+-------------------------------------------------
+
+Personally, I find the interpreter semantics the most intuitive and
+easier to understand. In such semantics everything happens at runtime,
+and there is no phase separation at all; it is true that the code may
+still be compiled before being executed, as it happens in Ikarus, but
+this is an implementation detail: from the point of view of the
+programmer the feeling is the same as using an interpreter.
+The interpreter semantics is also the most powerful semantics at all:
+for instance, it is possible to redefine identifiers and it is
+possible to import modules at runtime, things which are both impossible
+in compiler semantics.
+
+After all, if you look at it with honesty, the compiler semantics is
+nothing else that a *performance hack*: by separing compilation time
+from runtime you can perform some computation only once (at compilation time)
+and gain performance. This is not strange at all: compilers *are*
+performance hacks. It is just more efficient to convert a a program into
+machine code with a compiler than to interpret one expression at the time.
+Since in practice there are lots of situations where performance is
+important and one does need a compiler, it makes a lot of sense to
+have a compiler semantics. The compiler
+semantics is also designed to make separate compilation and cross compilation
+possible. Therefore the compiler semantics
+has many practical advantages and
+I am willing cope with it, even if it is not as
+straightforward as interpreter semantics.
+
+Moreover, there are (non-portable) tricks to define helper functions
+at expand time without need to move them into a separate module, therefore
+it is not so difficult to work around the restrictions of the compiler
+semantics.
+
+The thing I really dislike is full phase separation. But a full discussion
+of the issues releated to phase separation will require a whole episode.
+See you next week!
+
+.. _expansion process: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-13.html#node_chap_10
+
+Strong vs week phase separation
+-----------------------------------------------------------
 
 There are two different concepts of phase
 separation, even for R6RS-conforming implementations.
