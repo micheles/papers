@@ -1,10 +1,7 @@
 (library (aps compat)
-(export printf
-        (rename (ypsilon:format format)
-                (ypsilon:gensym gensym)
-                (ypsilon:pretty-print pretty-print)))
-(import (rnrs) (prefix (core) ypsilon:))
+(export printf format gensym pretty-print)))
+(import (rnrs) (core))
 
 (define (printf format-string . args)
-  (display (apply ypsilon:format format-string args)))
+  (display (apply format format-string args)))
 )

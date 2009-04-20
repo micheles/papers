@@ -1,8 +1,93 @@
-#|More on phase separation
+#|Phase separation
 ===================================================================
 
-In this episode I will discuss in detail the trickiness
-associated with the concept of phase separation.
+We saw in the last episode that Scheme programs executed
+in compiler semantics exhibit phase separation, i.e. some code
+is executed at compile (expand) time and some code is executed
+at runtime. Things, however, are more complicated than that.
+
+There are two different concepts of phase
+separation, even for R6RS-conforming implementations.
+Ikarus, Ypsilon, IronScheme e MoshScheme have
+a weak (partial) form of phase separation: there is a distinction
+between expand time and runtime, but it is not possible to import
+names only at runtime or only at expand time, i.e. the phases are
+not fully separated. PLT Scheme and Larceny instead have a strong
+form of phase separation in which phases are completely separated:
+in such implementations, when you import (more correctly
+*instantiate*) a module, you may specify in which phases to import
+it, and each phases sees a *different instance* of the module.
+The consequence is that the language used at at compile time (the
+language seen by a piece of code is the sum of the imported names)
+can be completely different from the language used at runtime. In particular
+you could decide to use in macros a subset of the full R6RS language.
+
+Suppose for instance you are a teacher, and you want to force your
+students to write their macros using only a functional subset of Scheme.
+You could then import at compile time all R6RS procedures except the
+nonfunctional ones (like ``set!``) while importing at runtime
+the whole R6RS. You could even perform the opposite, and remove ``set!``
+from the runtime, but allowing it at compile time.
+
+Therefore strong phase separation is strictly *more powerful* than week
+phase separation, since it gives you more control. In implementations
+with weak/partial phase separation when
+you import a name in your module, the name is imported in all phases,
+and there is nothing you can do about it. For instance this program
+in Ikarus (but also IronScheme, Ypsilon, MoshScheme)
+
+.. code-block:: scheme
+
+ (import (rnrs) (for (only (aps list-utils) distinct?) expand))
+ (display distinct?)
+
+runs, contrarily to what one would expect, because it is impossible
+to import the name ``distinct?`` at expand time and not at runtime.
+In PLT Scheme and Larceny instead the program will not run, as you
+would expect.
+
+You may think the R6RS document to be schizophrenic, since it
+accepts both implementations with phase separation and without
+phase separation. The previous program is *conforming* R6RS code, but
+behaves *differently* in R6RS-compliant implementations!
+
+but using the semantics without phase separation results in
+non-portable code. Here a bold decision was required to ensure
+portability: to declare the PLT semantics as the only acceptable one,
+or to declare the Dibvig-Gouloum semantics as the only acceptable one. 
+
+De facto, the R6RS document is the result
+of a compromise between the partisans of phase separation
+and absence of phase separation.
+
+
+There is still the question if strong phase separation is a good thing,
+or if weak phase separation (as in Ikarus) is enough. For the programmer
+weak phase separation is easier, since he does not need to specify
+the phase in which he wants to import names.
+On the other hand strong phase separation makes everything more complicated:
+it is somewhat akin to the introduction of multiple namespace, because
+the same name can be imported in a given phase and not in another,
+and that can lead to confusion. To contain the confusion, the R6RS
+documents states that *the same name cannot be used in different phases
+with different meaning in the same module*.
+For instance, if the identifier ``x`` is bound to the
+value ``v`` at the compilation time and ``x`` is defined even
+at runtime, ``x`` must be bound to ``v`` even at runtime. However, it
+is possible to have ``x`` bound at runtime and not at compile time, or
+viceversa. This is a compromise, since PLT Scheme in non R6RS-compliant mode
+can use different bindings for the same name at different phases.
+
+There are people in the Scheme community thinking that strong phase
+separation is a mistake, and that weak phase separation is the right thing
+to do. On the other side people (especially from the PLT community where
+all this originated) sing the virtues of strong phase separation and say
+all good things about it. I personally I have not seen a compelling
+use case for strong phase separation yet.
+On the other hand, I am well known for preferring simplicity over
+(unneeded) power. 
+
+.. _5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
 
 More examples of macros depending on helper functions
 -----------------------------------------------------------------
@@ -69,24 +154,25 @@ The problem with auxiliary macros
 ------------------------------------------------------------------
 
 We said a few times that auxiliary functions are not available to macros
-defined in the same module, but actually in general
+defined in the same module, but in general
 there is the *same* problem for any identifier which is used in the
 right hand side of a macro definition, *including auxiliary macros*.
-For instance, we may regard the ``indexer-syntax`` macro 
-as an auxiliary macro, to be used in the right hand side of a
-``def-syntax`` form.
 
 In systems with strong phase separation, like
 PLT Scheme and Larceny, auxiliary macros
 are not special, and they behave as auxiliary functions: you
 must put them into a separare module and you must import them
 with ``(for (only (module) helper-macro) expand)`` before using them.
-This is why the following script
+
+In particular, the ``indexer-syntax`` macro defined before is
+an auxiliary macro, to be used in the right hand side of a
+``def-syntax`` form. The following script
 
 $$indexer-syntax:
 
-fails in PLT scheme:
+fails in PLT scheme
 
+::
 
  $ plt-r6rs indexer-syntax.ss
  indexer-syntax.ss:9:0: def-syntax: bad syntax in: (def-syntax (indexer-syntax a b c))
@@ -95,10 +181,10 @@ fails in PLT scheme:
  /usr/lib/plt/collects/rnrs/base-6.ss:492:6
 
 
-The problem is that in PLT and Larceny, the second ``def-syntax`` does
+because the second ``def-syntax`` does
 not see the binding for the ``indexer-syntax`` macro.
 
-This is a precise design choice: systems with strong phase
+This is a precise design choice: systems with full phase
 separation are making the life harder for programmers,
 by forcing them to put auxiliary functions/macros/objects
 in auxiliary modules, to keep absolute control on how the
@@ -119,53 +205,14 @@ is that a long as the compiler reads macro definitions, it expands
 the compile-time namespace of recognized names which are available
 to successive syntax definitions.
 
-In Ikarus the script ``identifier-syntax.ss`` is
+In such systems the script ``identifier-syntax.ss`` is
 perfectly valid: the first syntax
 definition would add a binding for ``identifier-syntax`` to the macro
 namespace, so that it would be seen by the second syntax definition.
 
-
-Systems with strong phase separation instead are effectively using
-different namespaces for each phase.
-
-
-Implementing a first class module system
------------------------------------------
-
-This is the same as implementing a Pythonic interface over hash tables
-or association lists.
-
-Working around phase separation
---------------------------------------------------------------
-
-I have always hated being forced to put my helper functions in an
-auxiliary module, because I often use auxiliary functions which
-are intended to be used only once inside a given macro, thus
-it makes sense to put those auxiliary functions *in the same
-module* as the macro the are used in.
-In principle you could solve the problem by definining all the
-functions *inside* the macro, but I hate this, both for dogmatic
-reasons (it is a Pythonista dogma that *flat is better than nested*)
-and for pragmatic reasons, i.e. I want to be able to debug my
-helper functions and this is impossible if they are hidden inside
-the macro. They must be available at the top-level. Moreover, you
-never know, and a functionality which was intended for use in a specific
-macro my turn useful for another macro after all, and it is much
-more convenient if the functionality is already encapsulated in
-a nice exportable top level function.
-
-I am not the only to believe that it should be possible to define
-helper functions in the same module as the macro and actually
-many Scheme implementations provide a way to do so via a
-``define-for-syntax`` form which allows to define function
-at *expand time*, so that they are available for usage in macros.
-
-If your Scheme does not provide ``define-for-syntax``, which is not
-part of the R6RS specification, you can still work around phase
-separation with some clever hack. For instance, you could
-use the following macro:
-
-$$lang:literal-replace
+In any case, if you want to write portable code, you must follow
+the PLT/Larceny route, to put your auxiliary macros in a separated
+module and to import them at expand time.
 |#
             
 (import (rnrs) (sweet-macros) (for (aps list-utils) expand run)

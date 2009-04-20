@@ -1,9 +1,5 @@
-#|
-The R6RS module system
+#|The R6RS module system
 =========================================================
-
-Preamble
----------------------------------------------------------
 
 For nearly 30 years Scheme lived without a standard module system.
 The consequences of this omission were the proliferation of dozens
@@ -47,7 +43,7 @@ the ``lib.pyc`` file becomes outdated: the Python interpreter is
 smart enough to recognize the issue and to seamlessly recompile ``lib.pyc``.
 
 In Scheme the compilation process is very much *implementation-dependent*.
-Here I will focus on the Ikarus mechanism, which is the most Pythonic one.
+Here I will focus on the Ikarus mechanism, which is Pythonic enough.
 Ikarus has two modes of operation; by default it just compiles
 everything from scratch, without using any intermediate file.
 This is possible since the Ikarus compiler is very fast. However,
@@ -73,6 +69,18 @@ always be much faster of Python, in practice this is not guaranteed: a
 lot of Python programs are actually calling underlying C libraries, so
 that Python can be pretty fast in some cases (for instance in
 numeric computations using numpy).
+
+All I said for Ikarus, can be said from Ypsilon, with minor differences.
+Ypsilon compiles to intermediate code, like Python.
+Precompiled files are automatically generated
+without the need to specify any flag, as in Python; however they
+are stored in a so called auto-compile-cache directory, which by
+default is situated in ``$HOME/.ypsilon``. Rhe location can
+be changed by setting the environment variable ``YPSILON_ACC``
+or by passing the ``--acc=dir`` argument to the Ypsilon interpreter.
+It is possible to disable the cache and to clear the cache; if you
+are curious about the details you should look at Ypsilon manual
+(``man ypsilon``).
 
 Modules are not first class objects
 -------------------------------------------------------------
@@ -277,6 +285,6 @@ architecture of the target processor.
 
 .. image:: compiler-crosscompiler.jpg
 
-.. _cross compilation: http://chicken.wiki.br/cross-compilation
+.. cross compilation: http://chicken.wiki.br/cross-compilation
 .. _cross compilation: http://en.wikipedia.org/wiki/Cross_compilation
 |#

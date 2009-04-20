@@ -41,7 +41,7 @@ Part III - Functional Aspects
 
  Ep18_ Streams
 
-Part IV - Advanced Macrology
+Part IV - The Module System
 
 .. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
 .. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941

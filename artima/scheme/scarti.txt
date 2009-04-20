@@ -583,3 +583,40 @@ Suppose you wanted to define the macros
     #'(def-syntax kw
         (let ((a (alist (name value) ...)))
              <more code here> ...)))
+
+Using list-comprehension
+------------------------------------------------------------
+
+For instance, once I needed to write the permutation of a set
+of symbols in order to write a complex macro, and I did spend
+a lot of time trying to implement them in time of ``map``
+and ``filter``, whereas it was trivial to solve the problem
+with list comprehensions.
+The algorithm is very clear; an empty list has no permutations::
+
+ > (perm '())
+ ()
+
+A list of lenght 1 has only one possible permutation::
+
+ > (perm '(a))
+ ((a))
+
+The permutations of list of length n are the sum of the
+permutations of its sublists of lenght n-1::
+
+ > (perm '(a b));; the sublists are '(b) and '(a)
+ ((a b) (b a))
+ > (perm '(a b c));; the sublists are '(b c), '(a c) and '(a b)
+ ((a b c) (a c b) (b a c) (b c a) (c a b) (c b a))
+
+Here is the implementation using list comprehension::
+ ;; compute the permutations of a list of distinct elements
+ (define (perm lst)
+   (cond
+    ((null? lst) '()); empty list
+    ((null? (cdr lst)) (list lst)); single element list
+    (else; multi-element list 
+     (list-of (cons el subls)
+       (el in lst)
+       (subls in (perm (list-of e (e in lst) (not (eq? e el)))))))))
