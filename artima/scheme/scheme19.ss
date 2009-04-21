@@ -171,7 +171,7 @@ interprets the script and its dependencies on the fly. The command
 
 compiles the script and its dependencies, and stores the compiled file
 in the *collects* directory, which on my system is in
-``$HOME/.plt-scheme/4.1.2/collects``. To each script corresponds a
+``$HOME/.plt-scheme/4.1.2/collects``. Each library has its own
 directory of compiled files.
 
 Compiling is not the same than executing
