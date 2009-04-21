@@ -1,18 +1,24 @@
 #|The R6RS module system
 =========================================================
+.. _Chicken: http://www.call-with-current-continuation.org/
 
 For nearly 30 years Scheme lived without a standard module system.
 The consequences of this omission were the proliferation of dozens
 of incompatible module systems and neverending debates.
 The situation changed with the R6RS report: nowadays Scheme *has*
-an official module system, finally. 
+an official module system, finally.
+
 Unfortunately the official module system is *not* used
 by all Scheme implementations, and it is quite possible that some implementation
-will *never* support it. There is no doubt that the module system has political
-issues: those are unfortunate, but there is nothing we can do about them.
-On the other hand, the R6RS module system has also a few technical issues
-(I am being diplomatic here).
-I can do something about those, by
+will never support it. For instance `Chicken`_, a major implementation,
+just released version 4, which includes a brand new module system
+*not compatible* with the R6RS system.
+You should be aware that the module system (and actually
+the whole of the R6RS standard) is controversial, and there are good
+reasons why it is so.
+
+I cannot do anything about the political
+issues, but I can do something about the technical issues, by
 explaining the subtle points and by documenting the most common pitfalls.
 It will take me six full episodes to
 explain the module system and its trickiness, especially for macro
@@ -31,7 +37,7 @@ The major difference between Python modules and Scheme modules is that
 Python modules are first class runtime objects which can be passed and
 returned from functions, as well as modified and introspected freely;
 Scheme modules, instead, are compile time entities which cannot be
-created at runtime, nor passed to functions or returned from functions;
+imported at runtime, nor passed to functions or returned from functions;
 moreover they cannot be modified and cannot be introspected.
 
 Python modules are so flexible because they are basically
@@ -40,15 +46,13 @@ module system in Scheme, by making use of hash-tables, the equivalent
 of dictionaries. However, the standard module system does not
 follow this route, because Scheme modules may contain macros which are
 not first class objects, therefore modules cannot be first class objects
-themselves.
-
-Notice that one may argue that having macros which are not first
-class objects is the root of all evil, and some argue for alternative routes
-with macro-like constructs which are however first class objects, but
-I do not want to open this particular can of worms here.
+themselves [some may argue that having macros which are not first
+class objects is the root of all evil, and look for alternative routes
+with macro-like constructs which are however first class objects; however,
+I do not want to open this particular can of worms here].
 
 Since Scheme modules are not first class objects it is impossible to add
-names dinamically to a module, or to replace a binding with another, as
+names dynamically to a module, or to replace a binding with another, as
 in Python. It is also impossible to get the list of names
 exported by a module: the only way is to look at the export list
 in the source code. It is also impossible to export all the names
@@ -60,7 +64,7 @@ solved.  For instance, my ``sweet-macros`` library provides
 introspection features, so that you can ask at runtime, for instance
 from the REPL, what are the patterns and the literals accepted by a
 macro, its source code and its associated transformer, even if the
-macro is a purely compile time entity. Therefore, it would be
+macro is a purely compile time entity. It would be
 perfectly possible to give an introspection API to every imported
 module. For instance, every module could automagically define a
 variable - defined both at runtime and compile time - containing the
@@ -73,7 +77,7 @@ like the ones we use every day in the enterprise world, which export
 thounsands and thousands of names in hundreds and hundreds of modules.
 Let's hope for something better in the future.
 
-Finally, let me point out a thing that should be obvious:
+I also want to point out a thing that should be obvious:
 if you have a Scheme library ``lib.sls`` which
 defines a variable ``x``, and you import it with a prefix ``lib.``,
 you can access the variable with the Python-like syntax
@@ -85,8 +89,7 @@ and that involves a function call.
 In other words, Python must perform an hash table lookup everytime you
 use the syntax ``lib.x``, whereas Scheme does not need to do so.
 
-I have imported the names in ``lib`` with a prefix,
-to stay closer to the Python style, but usually (and unfortunately) in
+I should also points out that usually (and unfortunately) in
 the Scheme world people do not use prefixes; by default all
 exported names are imported, just as it is the case for Python
 when the (discouraged) style ``from lib import *`` is used.
@@ -94,10 +97,10 @@ when the (discouraged) style ``from lib import *`` is used.
 Compiling Scheme modules vs compiling Python modules
 --------------------------------------------------------------
 
-Let me continue my comparison between Python modules and Scheme modules,
-by comparing the import mechanism in the two languages. I will begin
-from Python, by giving a simplified description which is however not
-far for the truth.
+Let me continue my comparison between Python modules and Scheme
+modules, by comparing the compilation/execution mechanism in the two
+languages. I will begin from Python, by giving a simplified
+description which is however not far for the truth.
 
 When you run a script ``script.py`` depending on some library
 ``lib.py``, the Python interpreter searches fo a bytecode-compiled
@@ -110,8 +113,8 @@ generated *after* the source file; if you modify the source file, the
 enough to recognize the issue and to seamlessly recompile ``lib.pyc``.
 
 In Scheme the compilation process is very much *implementation-dependent*.
-Here I will just discuss the Ikarus and Ypsilon mechanisms, which are
-Pythonic enough.
+Here I will give some example of how things work in three representative
+R6RS-conforming implementations, Ikarus, Ypsilon and PLT Scheme/mzscheme.
 
 Ikarus has two modes of operation; by default it just compiles
 everything from scratch, without using any intermediate file.
@@ -145,12 +148,31 @@ Ypsilon compiles to bytecode, like Python.
 Precompiled files are automatically generated
 without the need to specify any flag, as in Python; however they
 are stored in a so called auto-compile-cache directory, which by
-default is situated in ``$HOME/.ypsilon``. Rhe location can
+default is situated in ``$HOME/.ypsilon``. The location can
 be changed by setting the environment variable ``YPSILON_ACC``
 or by passing the ``--acc=dir`` argument to the Ypsilon interpreter.
 It is possible to disable the cache and to clear the cache; if you
 are curious about the details you should look at the Ypsilon manual
 (``man ypsilon``).
+
+PLT Scheme/mzscheme works in a slightly different way. The command
+
+::
+
+ $ plt-r6rs script.ss
+
+interprets the script and its dependencies on the fly. The command
+
+
+::
+
+ $ plt-r6rs --compile script.ss
+
+
+compiles the script and its dependencies, and stores the compiled file
+in the *collects* directory, which on my system is in
+``$HOME/.plt-scheme/4.1.2/collects``. To each script corresponds a
+directory of compiled files.
 
 Compiling is not the same than executing
 -----------------------------------------------------------------
@@ -181,7 +203,7 @@ The error will be flagged at runtime, only when you import the module::
      x = 1/0
  ZeroDivisionError: integer division or modulo by zero 
 
-PLT Scheme uses a very similar model. Consider for instance the library
+R6RS Scheme uses a similar model. Consider for instance the library
  
 ::
 
@@ -218,6 +240,8 @@ implementations are free to not import unused modules. To my knowledge,
 Ikarus is the only implementation making using of this freedom.
 If you run
 
+::
+
  $ ikarus --r6rs-script script.ss
 
 no error is raised. Ikarus is just *visiting* the
@@ -247,6 +271,21 @@ Another difference between Ikarus and PLT is that in PLT both the
 script and the library are compiled, whereas in Ikarus only the library
 is compiled. In the next episodes we will see many other examples of differences
 between R6RS-conforming implementations. 
+
+----
+
+All the *Adventures* have my name at the top and I take full
+responsibility for the opinions and the mistakes. But for
+the parts which are correct, I deserves little credit, since
+most of the time I am just reporting advice which I have received
+from the Scheme community, mostly from comp.lang.scheme and
+ikarus-users, as well from private emails. This is true for all of
+my *Adventures*, but especially
+for the six episodes about the module system you are about to read.
+I was very ignorant about the module system when I started this
+project, and this work would not have been possible without the
+help of Abdulaziz Ghuloum, Derick Eddington, Will Clinger, Eli
+Barzilay, Matthew Flatt and many others. Thank you guys, you rock!
 |#
 
 ; I like Ikarus's only-when-needed semantics because it seems better for

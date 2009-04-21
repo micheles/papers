@@ -13,7 +13,13 @@ will be entirely devoted to the most
 sophisticated aspects of macros.  I will show typical patterns
 of macro programming,  examples of advanced macros, as well as
 the issue of (breaking) hygiene.
-Part IV will not begin immediately, though, since I have to finish
+
+[UPDATE: after some thinking, I have changed my mind. Part IV
+will describe the R6RS module system and I will come back to macros
+in part V. The reason is I want to write portable macros and in
+order to do so a discussion of the module system is essential.]
+
+Part IV will not begin immediately, since I have to finish
 various Python-related papers first, so there will be a little pause. The
 pause should give you enough time to digest part III. 
 
