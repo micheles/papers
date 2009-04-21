@@ -156,6 +156,8 @@ are automatically expanded inside the syntax template, without
 resorting to the quasisyntax notation (i.e. there is no need for
 ``#``` ``#,`` ``#,@``).
 
+.. image:: hieroglyphics.jpg
+
 Matching generic syntax lists
 --------------------------------------------------------------
 

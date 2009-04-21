@@ -2,13 +2,17 @@
 ================================================
 
 .. _R6RS document: http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-13.html#node_idx_1142
+.. _discussed in the previously article: http://www.artima.com/weblogs/viewpost.jsp?thread=251476
+.. _expansion process: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-13.html#node_chap_10
+
 
 Why there is so little checking at compile-time?
 ------------------------------------------------------------------------
 
 I asked myself why Scheme compilers (but also the Python compiler) are
 so stupid that they cannot recognize obvious errors like the zero
-division error just discussed. I could not find an answer so I asked
+division error `discussed in the previously article`_.
+I could not find an answer so I asked
 on the Ikarus mailing list. It turns out the compilers are not stupid
 at all: they can recognize the zero division error, but they cannot
 signal it since it is forbidden by the Scheme specifications. For
@@ -201,7 +205,7 @@ the R6RS document. The standard has the generic concept of
 *macro expansion time* which is valid even for interpreted
 implementation when there is no compilation time.
 
-Phase separation
+Phase specification
 --------------------------------------------------------------
 
 Let me go back to the example of the ``assert-distinct`` macro.

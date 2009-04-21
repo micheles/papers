@@ -80,6 +80,8 @@ to a macro. Here is the code:
 
 $$DEF-RECORD-TYPE
 
+.. image:: vinyl-record.png
+
 An example will make everything clear. Suppose we want to define a
 ``Book`` record type; we can do so by writing
 
