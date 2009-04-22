@@ -1410,4 +1410,4 @@ unexpected behavior, please let me know and I will fix it or document it.
     http://www-106.ibm.com/developerworks/library/l-pymeta.html
 .. _metaclasses: http://www-106.ibm.com/developerworks/library/l-pymeta2.html
 
-.. include:: decorators.rst
+#.. include:: decorators.rst

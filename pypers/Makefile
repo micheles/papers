@@ -1,78 +1,75 @@
-default:
-	make allchapters
-preface.html: preface.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets preface.txt preface.html
-first.html: first.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets first.txt first.html
-functions.html: functions.txt	
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets functions.txt functions.html
-objects.html: objects.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets objects.txt objects.html
-classes.html: classes.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets classes.txt classes.html
-descr.html: descr.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets descr.txt descr.html
-MI.html: MI.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets MI.txt MI.html
-meta.html: meta.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets meta.txt meta.html
-secret.html: secret.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets secret.txt secret.html
-magic.html: magic.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets magic.txt magic.html
-prog.html: prog.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets prog.txt prog.html
-app1.html: app1.txt
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets app1.txt app1.html
+# Makefile for Sphinx documentation
+#
 
-html: 
-	python2 /home/micheles/packages/docutils/tools/html.py \
-	--footnote-references=brackets all.txt all.html
+# You can set these variables from the command line.
+SPHINXOPTS    =
+SPHINXBUILD   = sphinx-build
+PAPER         =
 
-ps: preface.html first.html functions.html objects.html classes.html \
-	descr.html MI.html meta.html magic.html secret.html prog.html app1.html
-	htmldoc preface.html first.html functions.html objects.html \
-	classes.html descr.html MI.html meta.html magic.html secret.html \
-        prog.html app1.html -f OOPP.ps
+# Internal variables.
+PAPEROPT_a4     = -D latex_paper_size=a4
+PAPEROPT_letter = -D latex_paper_size=letter
+ALLSPHINXOPTS   = -d .build/doctrees $(PAPEROPT_$(PAPER)) $(SPHINXOPTS) .
 
-pdf: *.html
-	htmldoc preface.html first.html functions.html objects.html \
-	classes.html descr.html MI.html meta.html magic.html secret.html \
-	prog.html app1.html -f OOPP.pdf
+.PHONY: help clean html web pickle htmlhelp latex changes linkcheck
 
-allchapters: preface.html first.html functions.html objects.html classes.html \
-	descr.html MI.html meta.html magic.html secret.html prog.html app1.html
-	make ps; make pdf; gv OOPP.ps&
+help:
+	@echo "Please use \`make <target>' where <target> is one of"
+	@echo "  html      to make standalone HTML files"
+	@echo "  pickle    to make pickle files"
+	@echo "  json      to make JSON files"
+	@echo "  htmlhelp  to make HTML files and a HTML help project"
+	@echo "  latex     to make LaTeX files, you can set PAPER=a4 or PAPER=letter"
+	@echo "  changes   to make an overview over all changed/added/deprecated items"
+	@echo "  linkcheck to check all external links for integrity"
 
-dist: preface.txt first.txt functions.txt objects.txt classes.txt descr.txt \
-	meta.txt magic.txt secret.txt prog.txt app1.txt README.txt \
-        EXECUTEME.py test.py
-	zip dist preface.txt first.txt functions.txt objects.txt classes.txt \
-	descr.txt meta.txt magic.txt secret.txt prog.txt app1.txt README.txt \
-	EXECUTEME.py test.py
+clean:
+	-rm -rf .build/*
 
-all.txt: preface.txt first.txt functions.txt objects.txt classes.txt descr.txt\
-	meta.txt magic.txt secret.txt prog.txt app1.txt
-	/home/micheles/md/scripts/cat.py preface.txt first.txt functions.txt\
-	objects.txt classes.txt descr.txt MI.txt meta.txt magic.txt secret.txt\
-	prog.txt app1.txt > all.txt
+html:
+	mkdir -p .build/html .build/doctrees
+	$(SPHINXBUILD) -b html $(ALLSPHINXOPTS) .build/html
+	@echo
+	@echo "Build finished. The HTML pages are in .build/html."
 
-all: all.txt
-	/home/micheles/md/scripts/rst.py all.txt
-	htmldoc all.html -f OOPP.ps
-	gv OOPP.ps	 
+pickle:
+	mkdir -p .build/pickle .build/doctrees
+	$(SPHINXBUILD) -b pickle $(ALLSPHINXOPTS) .build/pickle
+	@echo
+	@echo "Build finished; now you can process the pickle files."
 
-all.tex: all.txt
-	/home/micheles/md/scripts/rst.py -tbx all
+web: pickle
+
+json:
+	mkdir -p .build/json .build/doctrees
+	$(SPHINXBUILD) -b json $(ALLSPHINXOPTS) .build/json
+	@echo
+	@echo "Build finished; now you can process the JSON files."
+
+htmlhelp:
+	mkdir -p .build/htmlhelp .build/doctrees
+	$(SPHINXBUILD) -b htmlhelp $(ALLSPHINXOPTS) .build/htmlhelp
+	@echo
+	@echo "Build finished; now you can run HTML Help Workshop with the" \
+	      ".hhp project file in .build/htmlhelp."
+
+latex:
+	mkdir -p .build/latex .build/doctrees
+	$(SPHINXBUILD) -b latex $(ALLSPHINXOPTS) .build/latex
+	@echo
+	@echo "Build finished; the LaTeX files are in .build/latex."
+	@echo "Run \`make all-pdf' or \`make all-ps' in that directory to" \
+	      "run these through (pdf)latex."
+
+changes:
+	mkdir -p .build/changes .build/doctrees
+	$(SPHINXBUILD) -b changes $(ALLSPHINXOPTS) .build/changes
+	@echo
+	@echo "The overview file is in .build/changes."
+
+linkcheck:
+	mkdir -p .build/linkcheck .build/doctrees
+	$(SPHINXBUILD) -b linkcheck $(ALLSPHINXOPTS) .build/linkcheck
+	@echo
+	@echo "Link check complete; look for any errors in the above output " \
+	      "or in .build/linkcheck/output.txt."

@@ -1,0 +1,92 @@
+Dear Carol,
+
+since you are going to be my editor for a possible new Python book,
+I would like to present myself. Here is my bio from Artima.com:
+
+  Michele Simionato started his career as a Theoretical Physicist,
+  working in Italy, France and the U.S. He turned to programming in
+  2003; since then he has been working professionally as a Python
+  developer and now he lives in Milan, Italy. Michele is well known in
+  the Python community for his posts in the newsgroup(s), his articles
+  and his Open Source libraries and recipes. His interests include
+  object oriented programming, functional programming, and in general
+  programming metodologies that enable us to manage the complexity of
+  modern software developement.
+
+You can find more about my view on technical writing on my first post
+on Artima: http://www.artima.com/weblogs/viewpost.jsp?thread=235871
+
+Currently, I am writing a book about Scheme, by posting one chapter per week
+on my blog. You can find the first 18 chapters here:
+
+http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf
+
+This book is not intended for sale, since I do not think there is a
+large enough mass of readers for Scheme books, but you can have a look
+to it to ascertain if you like my style (warning: the book is not
+very practically-minded on purpose).
+
+A Python book would be different, since there is certainly a large
+community of people using Python professionally every day - I am one
+of them - and such people would be interested in more concrete
+applications. 
+
+There are already a lot of Python books for beginners, but not many
+for intermediate programmers. On the other hand, there is demand for
+this kind of books, since nowadays Python frameworks are becoming more
+and more sophisticated and users wanting to understand how their
+framework of choice works have to know Python pretty well.
+
+In particular, there are plenty of new Python features which as used
+in famous frameworks like Django, Pylons, SQLAlchemy, which are
+however not well known to the average programmer. I refer in
+particular to metaprogramming techniques such as decorators,
+descriptors, metaclasses and such things than only six or seven years
+ago were regarded as esoteric whereas nowadays are common place.
+
+Still, the world of the published books has not kept the pace with the 
+development in the Python world, so a book on those subjects would be 
+of service to the community, I think.
+
+I plan to write the book in two parts: the first part would be more
+technical, explaining the various techniques by means of hands on examples;
+the second part would be at  higher level, discussing things like
+architectural choices, best practices, when using a feature is
+justified and when not, etc. I think the average programmer (and
+that includes the clever ones, especially the *too* clever ones ;)
+needs some guidances on those aspects.
+
+The provisional title for the book is "Object Oriented Python",
+since the main focus would be to discuss in detail the Python
+object model and its applications.
+The size would be of around 300 pages. I think I would
+need six months to finish it, more or less.
+
+I am writing the introduction chapter, to make clear what I have
+in mind and to give a more concrete book proposal, but I would like
+to make clear a few things from the beginning (I have already
+said them to the previous editor, but let me repeat them anyway):
+
+1. I want to have the right to publish extracts of the book on my blog or
+   in other public forums, both before and after publication.
+2. Moreover, possibly after a grace period (say one year) I want to have
+   the right to redistribute the entire content of the book for free. 
+3. I want to put the source code for the book in a public repository,
+   so that everybody can try it, possibly even before publication.
+4. I want to write the book in a non-proprietary format (i.e. not the
+   Word format).
+
+I know that many publishers allow this kind of freedom.  Some
+publishers even leave full freedom to the authors to put a free copy
+of the book on their site, in plain text format, both before and 
+after print. This is not a strict requirement for me, but it
+would be a nice thing to have. 
+
+The main advantage of having a public draft is that I would basically
+get help for free from advanced readers; moreover people would know
+about the book, so that we would get advertising for free.
+
+Those are my thoughts; please let me know what you think.
+Best regards,
+
+                  Michele Simionato
