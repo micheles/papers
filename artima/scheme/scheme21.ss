@@ -107,6 +107,35 @@ accepts both implementations with phase separation and without
 phase separation. The previous program is *conforming* R6RS code, but
 behaves *differently* in R6RS-compliant implementations!
 
+A precise specification of the library system
+   remains elusive, partly because different
+   implementors still have different ideas about how
+   the library system should work....
+
+   The different opinions are supported by two
+   different reference implementations of R6RS
+   libraries: one by Van Tonder and one by Ghuloum and
+   Dybvig.  In addition, PLT Scheme implements a
+   library system...
+
+   Despite the differences in the reference
+   implementations, it appears that many programs will
+   run the same in both variants of the library system.
+   The overlap appears to be large enough to support
+   practical portability between the variants.
+
+   Under the assumption that the overlap is useful, and
+   given the lack of consensus and relative lack of
+   experience with the two prominent variants of draft
+   R6RS libraries, the R6RS specification of libraries
+   should be designed to admit both of the reference
+   implementations.  As a design process, this
+   implementation-driven approach leaves something to
+   be desired, but it seems to be the surest way forward.
+
+.. rationale: http://www.r6rs.org/formal-comments/comment-92.txt
+
+
 but using the semantics without phase separation results in
 non-portable code. Here a bold decision was required to ensure
 portability: to declare the PLT semantics as the only acceptable one,

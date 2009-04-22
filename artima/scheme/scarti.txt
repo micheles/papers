@@ -620,3 +620,19 @@ Here is the implementation using list comprehension::
      (list-of (cons el subls)
        (el in lst)
        (subls in (perm (list-of e (e in lst) (not (eq? e el)))))))))
+
+Single name per phase
+---------------------------------------------
+
+Section 7.1, page 23:
+
+  An identifier can be imported with the same local name
+  from two or more libraries or for two levels from the same
+  library only if the binding exported by each library is
+  the same (i.e., the binding is defined in one library, and
+  it arrives through the imports only by exporting and re-
+  exporting). Otherwise, no identifier can be imported mul-
+  tiple times, defined multiple times, or both defined and
+  imported. No identifiers are visible within a library except
+  for those explicitly imported into the library or defined
+  within the library.

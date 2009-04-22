@@ -2,7 +2,7 @@
 ;;; Version: 0.8
 ;;; Author: Michele Simionato
 ;;; Email: michele.simionato@gmail.com
-;;; Date: 19-Apr-2009
+;;; Date: 22-Apr-2009
 ;;; Licence: BSD
 (export syntax-match def-syntax syntax-expand sub)
 (import (rnrs))

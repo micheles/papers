@@ -1,10 +1,10 @@
 import os, sys, shutil
 from scheme2rst import SNIPPET
 
-code = file('sweet-macros/main.sls').read()
+ikarus_code = file('sweet-macros/main.sls').read()
 
 # GUARDED-SYNTAX-CASE, SYNTAX-MATCH, DEF-SYNTAX, SYNTAX-EXPAND
-snippets = [s.groups() for s in SNIPPET.finditer(code)]
+snippets = [s.groups() for s in SNIPPET.finditer(ikarus_code)]
 snippet = dict(snippets)
 
 helper1 = '''#!r6rs
@@ -44,12 +44,18 @@ main = '''#!r6rs
 )
 '''
 
+def write_on(fname, code):
+    file(fname, 'w').write(code)
+    os.system('zip sweet-macros %s' % fname)
+    
 def makefiles(name, snippet):
-    file(name + '/helper1.mzscheme.sls', 'w').write(helper1 % snippet)
-    file(name + '/helper2.mzscheme.sls', 'w').write(helper2 % snippet)
-    file(name + '/helper3.mzscheme.sls', 'w').write(helper3 % snippet)
-    file(name + '/main.mzscheme.sls', 'w').write(main % snippet)
-    #os.system('zip -r %s %s' % (name, name))
+    write_on(name + '/main.sls', ikarus_code)
+    write_on('sweet-macros.larceny.sls', main)
+    for impl in  ('larceny', 'mzscheme'):
+        write_on(name + '/helper1.%s.sls' % impl, helper1 % snippet)
+        write_on(name + '/helper2.%s.sls' % impl, helper2 % snippet)
+        write_on(name + '/helper3.%s.sls' % impl, helper3 % snippet)
+        write_on(name + '/main.%s.sls' % impl, main % snippet)
     
 if __name__ == '__main__':
     #plt_home = os.path.expanduser('~/.plt-scheme')
