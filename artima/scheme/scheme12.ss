@@ -52,7 +52,7 @@ pretty confident that they will never enter in the language.
 
 The second effect (dismissing macros) is less serious: lots of
 people understimate macros as mere syntactic sugar, by forgetting that
-all Turing complete language differ solely on syntactic sugar.
+all Turing complete languages differ solely on syntactic sugar.
 Moreover, thinking too much about the syntactic sugar aspect make them
 blind to others and more important aspects of macros: in particular,
 the fact that macros are actually *compilers*.
