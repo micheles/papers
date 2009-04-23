@@ -19,45 +19,50 @@ in compiler semantics exhibit phase separation, i.e. some code
 is executed at compile (expand) time and some code is executed
 at runtime. Things, however, are more complicated than that.
 
-Discussion
--------------------------------------------------
 
-Personally, I find the interpreter semantics the most intuitive and
-easier to understand. In such semantics everything happens at runtime,
-and there is no phase separation at all; it is true that the code may
-still be compiled before being executed, as it happens in Ikarus, but
-this is an implementation detail: from the point of view of the
-programmer the feeling is the same as using an interpreter.
-The interpreter semantics is also the most powerful semantics at all:
-for instance, it is possible to redefine identifiers and it is
-possible to import modules at runtime, things which are both impossible
-in compiler semantics.
+Phase specification
+--------------------------------------------------------------
 
-After all, if you look at it with honesty, the compiler semantics is
-nothing else that a *performance hack*: by separing compilation time
-from runtime you can perform some computation only once (at compilation time)
-and gain performance. This is not strange at all: compilers *are*
-performance hacks. It is just more efficient to convert a a program into
-machine code with a compiler than to interpret one expression at the time.
-Since in practice there are lots of situations where performance is
-important and one does need a compiler, it makes a lot of sense to
-have a compiler semantics. The compiler
-semantics is also designed to make separate compilation and cross compilation
-possible. Therefore the compiler semantics
-has many practical advantages and
-I am willing cope with it, even if it is not as
-straightforward as interpreter semantics.
+Let me go back to the example of the ``assert-distinct`` macro.
+I have put the ``distinct?`` helper function in the ``(aps list-utils)``
+module, so that you can import it.  This is enough to solve the
+problem of compile time vs runtime separation for Ikarus, but it is not
+enough for PLT Scheme or Larceny, which require *phase specification*.
+In other words, in Ikarus (but also Ypsilon, IronScheme and Mosh)
+the following script
 
-Moreover, there are (non-portable) tricks to define helper functions
-at expand time without need to move them into a separate module, therefore
-it is not so difficult to work around the restrictions of the compiler
-semantics.
+$$assert-distinct:
 
-The thing I really dislike is full phase separation. But a full discussion
-of the issues releated to phase separation will require a whole episode.
-See you next week!
+is correct, but in PLT Scheme and Larceny it raises an error::
 
-.. _expansion process: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-13.html#node_chap_10
+ $ plt-r6rs assert-distinct.ss 
+ assert-distinct.ss:5:3: compile: unbound variable in module
+ (transformer environment) in: distinct?
+
+.. image:: salvador-dali-clock.jpg
+
+The problem is that PLT Scheme requires *phase specification*: by default
+names defined in external modules are imported *only* at runtime, *not*
+at compile time. In some sense this is absurd since
+names defined in an external pre-compiled modules
+are of course known at compile time
+(this is why Ikarus has no trouble to import them at compile time);
+nevertheless PLT Scheme (and Larceny) forces you to specify at
+which phase the functions must be imported.  Notice that personally I
+do not like the PLT and Larceny semantics since it makes things more
+complicated, and that I prefer the Ikarus semantics:
+nevertheless, if you want to write
+portable code, you must use the PLT/Larceny semantics, which is the
+one blessed by the R6RS document.
+
+If you want to import a few auxiliary functions
+at expansion time (the time when macros are processed; often
+incorrectly used as synonymous for compilation time) you must
+use the ``(for expand)`` form:
+
+``(import (for (only (aps list-utils) distinct?) expand))``
+
+With this import form, the script is portable in all R6RS implementations.
 
 Strong vs week phase separation
 -----------------------------------------------------------
@@ -290,7 +295,7 @@ is that a long as the compiler reads macro definitions, it expands
 the compile-time namespace of recognized names which are available
 to successive syntax definitions.
 
-In such systems the script ``identifier-syntax.ss`` is
+In such systems the script ``indexer-syntax.ss`` is
 perfectly valid: the first syntax
 definition would add a binding for ``identifier-syntax`` to the macro
 namespace, so that it would be seen by the second syntax definition.
