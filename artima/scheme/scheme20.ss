@@ -5,9 +5,16 @@ One of the trickiest things about Scheme, coming from Python, is its
 distinction between *interpreter semantics* and *compiler semantics*.
 
 In general the same program in the same implementation can be run both
-with interpreter semantics (when typed at the REPL) and with compiler
+with interpreter semantics (typically when typed at the REPL) and with compiler
 semantics (when used as a library), but the way the program behaves is
 different, depending on the semantics used.
+
+To make things worse, the interpreter semantics is unspecified by the
+R6RS report, whereas the compiler semantics is loosely specified,
+so that there are at least three different and incompatible semantics:
+the Ikarus/Ypsilon/IronScheme/MoshScheme one
+(two-phases semantics), the Larceny one (multi-phase
+semantics) and the PLT one (multi-phase + multiple instantiation semantics).
 
 .. _R6RS document: http://www.r6rs.org/final/html/r6rs-lib/r6rs-lib-Z-H-13.html#node_idx_1142
 .. _discussed in the previous article: http://www.artima.com/weblogs/viewpost.jsp?thread=251476
@@ -35,13 +42,22 @@ substantial difference between typing commands at the REPL and writing
 a script (there a few minor differences actually, but they are not
 relevant for what I am discussing now).
 
+.. image:: Interpreter_Symbol.jpg
+
 Things are quite different in Scheme. The interpreter semantics is
 *not specified* by the R6RS standard and it is completely
 implementation-dependent. It is also compatible with the standard to
 not provide interpreter semantics at all, and to not provide a REPL:
 for instance PLT Scheme does not provide a REPL for R6RS programs.  On
-the other hand, the compiler semantics is specified by the R6RS
+the other hand, the compiler semantics i.e. the `expansion process`_
+of Scheme source code is specified by the R6RS
 standard and is used in scripts and libraries.
+
+The standard has the generic concept of
+*macro expansion time* which is valid even for interpreted
+implementation when there is no compilation time.
+
+.. _9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
 
 The two semantics are quite different. When a
 program is read in interpreter semantics, everything happens at
@@ -52,27 +68,24 @@ immediately. Each new definition augments the namespace of known
 names at runtime, both for first class objects and macros. Macros
 are also expanded at runtime.
 
-When a program is read in compiler semantics instead, all the definitions
-and the expressions are read, the macros are expanded and the program compiled,
-*before* execution. Whereas an interpreter looks at a program one expression
-at the time, a compiler looks at it as a whole: in particular, the order
-of evaluation of expressions in a compiled program is unspecified,
-unless you specify it by using a ``begin`` form.
-
-Incidentally, in my opinion having
-an unspecified evaluation order is an clear case of premature
-optimization and a serious mistake, but unfortunately this is the
-way it is. The rationale is that in some specific circumstances
-some compiler could take advantage of the  unspecified evaluation order
-to optimize the computation of some expression and run a few percent
-faster but this is certainly *not* worth the complication.
+When a program is read in compiler semantics instead, all the
+definitions and the expressions are read, the macros are expanded and
+the program compiled, *before* execution. Whereas an interpreter looks
+at a program one expression at the time, a compiler looks at it as a
+whole: in particular, the order of evaluation of expressions in a
+compiled program is unspecified, unless you specify it by using a
+``begin`` form. [Incidentally, in my opinion having an unspecified
+evaluation order is an clear case of premature optimization and a
+serious mistake, but unfortunately this is the way it is. The
+rationale is that in some specific circumstances some compiler could
+take advantage of the unspecified evaluation order to optimize the
+computation of some expression and run a few percent faster but this
+is certainly *not* worth the complication.]
 
 Anyway, since the interpreter semantics is not specified by the R6RS
 and thus very much implementation-dependent, I will focus on the
 compiler semantics of Scheme programs. Such semantics is quite
 tricky, especially when macros enters in the game.
-
-.. _9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
 
 Macros and helper functions
 ---------------------------------------------------------------------
@@ -126,11 +139,6 @@ as we `discussed in the previous article`_ .
 available at expand time a function defined at runtime is to
 define the function in a different module and to import it at
 expand time*
-
-The `expansion process`_ of Scheme source code is specified in
-the R6RS document. The standard has the generic concept of
-*macro expansion time* which is valid even for interpreted
-implementation when there is no compilation time.
 
 Why there is so little checking at compile-time?
 ------------------------------------------------------------------------
@@ -230,7 +238,9 @@ at expand time without need to move them into a separate module, therefore
 it is not so difficult to work around the restrictions of the compiler
 semantics.
 
-The thing I really dislike is full phase separation. But a full discussion
+The thing I really dislike is the multiple-phase semantics and
+multiple instantiation.
+But a full discussion
 of the issues releated to phase separation will require a whole episode.
 See you next week!
 

@@ -274,6 +274,8 @@ between R6RS-conforming implementations.
 
 ----
 
+*Acknowledgments*
+
 All the *Adventures* have my name at the top and I take full
 responsibility for the opinions and the mistakes. But for
 the parts which are correct, I deserves little credit, since
@@ -288,6 +290,8 @@ help of Abdulaziz Ghuloum, Derick Eddington, Will Clinger, Eli
 Barzilay, Matthew Flatt and many others. Thank you guys, you rock!
 |#
 
+
+; Derick Eddington:
 ; I like Ikarus's only-when-needed semantics because it seems better for
 ; supporting libraries which grow to have a ton of dependencies because
 ; they liberally use a thing from here and a thing from there (as they

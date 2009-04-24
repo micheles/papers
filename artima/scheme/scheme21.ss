@@ -17,7 +17,10 @@ interesting.
 We saw in the last episode that Scheme programs executed
 in compiler semantics exhibit phase separation, i.e. some code
 is executed at compile (expand) time and some code is executed
-at runtime. Things, however, are more complicated than that.
+at runtime. For instance,
+
+
+Things, however, are more complicated than that.
 
 
 Phase specification
@@ -108,11 +111,11 @@ In PLT Scheme and Larceny instead the program will not run, as you
 would expect.
 
 You may think the R6RS document to be schizophrenic, since it
-accepts both implementations with phase separation and without
-phase separation. The previous program is *conforming* R6RS code, but
+accepts both implementations with phase specification and without
+phase specification. The previous program is *conforming* R6RS code, but
 behaves *differently* in R6RS-compliant implementations!
 
-A precise specification of the library system
+   A precise specification of the library system
    remains elusive, partly because different
    implementors still have different ideas about how
    the library system should work....
@@ -140,15 +143,14 @@ A precise specification of the library system
 
 .. rationale: http://www.r6rs.org/formal-comments/comment-92.txt
 
-
-but using the semantics without phase separation results in
+but using the semantics without phase specification results in
 non-portable code. Here a bold decision was required to ensure
 portability: to declare the PLT semantics as the only acceptable one,
-or to declare the Dibvig-Gouloum semantics as the only acceptable one. 
+or to declare the Dybvig-Ghuloum semantics as the only acceptable one. 
 
 De facto, the R6RS document is the result
-of a compromise between the partisans of phase separation
-and absence of phase separation.
+of a compromise between the partisans of phase specification
+and absence of phase specification.
 
 
 There is still the question if strong phase separation is a good thing,

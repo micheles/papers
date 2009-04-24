@@ -7,5 +7,6 @@
 (def-syntax (record-syntax field-name ...)
   (with-syntax (((i ...) (range (length #'(field-name ...)))))
     #'(syntax-match (field-name ...)
-        (sub (ctx v field-name) #'(vector-ref v i)) ...)))
+        (sub (ctx v field-name)
+             #'(vector-ref v i)) ...)))
 )
