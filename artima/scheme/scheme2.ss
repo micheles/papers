@@ -64,7 +64,7 @@ write *wrappers* for C/C++ libraries. Moreover, there already hundreds
 of interesting libraries available. They are called *eggs*, just as
 in Python, and they work more a less in the same way. However, it
 must be noticed that Chicken had eggs years before Python and more
-rigths to use the name ;-)
+rights to use the name ;-)
 
 Guile_ is the Scheme version sponsored by
 the Free Software Foundation and it is used as scription language for

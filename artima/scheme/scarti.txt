@@ -621,18 +621,57 @@ Here is the implementation using list comprehension::
        (el in lst)
        (subls in (perm (list-of e (e in lst) (not (eq? e el)))))))))
 
-Single name per phase
----------------------------------------------
 
-Section 7.1, page 23:
+module-system
+-----------------------
 
-  An identifier can be imported with the same local name
-  from two or more libraries or for two levels from the same
-  library only if the binding exported by each library is
-  the same (i.e., the binding is defined in one library, and
-  it arrives through the imports only by exporting and re-
-  exporting). Otherwise, no identifier can be imported mul-
-  tiple times, defined multiple times, or both defined and
-  imported. No identifiers are visible within a library except
-  for those explicitly imported into the library or defined
-  within the library.
+The Scheme module system is complex both for technical reasons
+(because of the complications caused by macros and because
+of the want of separate compilation) and for political reasons.
+You can discovered about the political reasons in the archives
+of the R6RS editors mailing list. Consider for instance
+this
+
+
+
+Implementation with phase separation make it possible
+to write programs that work the same when typed in the REPL and
+when compiled, at the price of making the REPL less convenient
+to use: for instance they could force the programmer to use
+``define-for-syntax`` even at the REPL: this is how PLT Scheme
+works, however its REPL is not consistent with R6RS mode (strictly
+speaking there is not such a thing as a R6RS-conforming REPL).
+
+
+There are people in the Scheme community thinking that strong phase
+separation is a mistake, and that weak phase separation is the right thing
+to do. On the other side people (especially from the PLT community where
+all this originated) sing the virtues of strong phase separation and say
+all good things about it. I personally I have not seen a compelling
+use case for strong phase separation yet.
+On the other hand, I am well known for preferring simplicity over
+(unneeded) power. 
+
+
+--------------------------- order of evaluation -----------------
+
+ Whereas an interpreter looks
+at a program one expression at the time, a compiler looks at it as a
+whole: in particular, the order of evaluation of expressions in a
+compiled program is unspecified, unless you specify it by using a
+``begin`` form.
+
+Incidentally, in my opinion having an unspecified
+evaluation order is an clear case of premature optimization and yet another
+wart of Scheme, but unfortunately this is the way it is. The
+rationale is that in some specific circumstances some compiler could
+take advantage of the unspecified evaluation order to optimize the
+computation of some expression and run a few percent faster but this
+is certainly *not* worth the complication.
+
+----------
+
+Consequently,
+there at least three different module systems underlying the
+name "R6RS module system", each with its peculiar advantages and
+issues.

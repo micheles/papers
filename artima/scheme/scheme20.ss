@@ -232,8 +232,8 @@ I am using ``define-macro`` here which is the built-in macro mechanism
 for Guile: as you see the function ``double`` is immediately available
 to the macro, even if it is defined inside the same block as the macro,
 which is not the case for any of the existing R6RS implementations.
-Notice however that Guile also supports high level macros (via psyntax)
-using compiler semantics.
+Notice however that Guile also supports high level macros (via an external
+library) using compiler semantics.
 
 Discussion
 -------------------------------------------------
