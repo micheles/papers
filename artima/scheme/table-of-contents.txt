@@ -44,6 +44,7 @@ Part III - Functional Aspects
 Part IV - The Module System
 
  Ep19_ Using modules
+
  Ep20_ Evaluation strategy of Scheme programs
 
 .. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
@@ -64,3 +65,5 @@ Part IV - The Module System
 .. _Ep16: http://www.artima.com/weblogs/viewpost.jsp?thread=249685
 .. _Ep17: http://www.artima.com/weblogs/viewpost.jsp?thread=251156
 .. _Ep18: http://www.artima.com/weblogs/viewpost.jsp?thread=251159
+.. _Ep19: http://www.artima.com/weblogs/viewpost.jsp?thread=251476
+.. _Ep20: http://www.artima.com/weblogs/viewpost.jsp?thread=255303

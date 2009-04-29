@@ -1,8 +1,8 @@
 (library (sweet-macros)
-;;; Version: 0.8
+;;; Version: 0.8.1
 ;;; Author: Michele Simionato
 ;;; Email: michele.simionato@gmail.com
-;;; Date: 22-Apr-2009
+;;; Date: 23-Apr-2009
 ;;; Licence: BSD
 (export syntax-match def-syntax syntax-expand sub)
 (import (rnrs))

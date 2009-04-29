@@ -10,27 +10,26 @@ macro expansions) and some other parts are executed at runtime
 However, things are more complicated than that.  There are actually
 *three* different concepts of phase separation for R6RS-conforming
 implementations. I will call the three concepts *weak*, *strong* and
-*extra-strong* phase separation respectively (I am making up the names
-myself) and they differ in how modules are imported (*instantiated* is
-the more correct term).
+*extra-strong* phase separation respectively.  The difference is in
+how modules are imported - *instantiated* is the more correct term -
+and in how names enter in the namespace.
 
-Ikarus, Ypsilon, IronScheme e MoshScheme i.e. the implementation bases
-on the psyntax_ module system have a weak form of phase
-separation (also called the Dybvig-Ghuloum model): there is a
+Ikarus, Ypsilon, IronScheme and MoshScheme have a weak form of phase
+separation (also called the implicit phasing model): there is a
 distinction between expand-time and runtime, but it is not possible to
-instantiate modules at runtime only or at expand time only: a module
-is instantiated once for all phases.
+import names in the runtime phase only or in the expand time phase
+only: names are imported simultaneously for all phases.
 
-Larceny has a stronger form of phase separation: it can instantiate a
-module in a specific phase on not in the other, depending on the import
+Larceny has a stronger form of phase separation: it can import names
+in a specific phase on not in the other, depending on the import
 syntax used.  However, if you instantiate a module in more than one
 phase - for instance both at run-time and at expand-time - only one
 instance of the module is created.
 
-PLT Scheme has an extra-strong form of phase separation
-in which phases are completely separated: if you instantiate a module both
-at run-time and at expand-time, there are two *different and
-independent instances* of the module.
+PLT Scheme has an extra-strong form of phase separation in which
+phases are completely separated: if you instantiate a module both at
+run-time and at expand-time, there are two *different and independent
+instances* of the module.
 
 In this episode I will show the simplest consequences
 of phase separation. In the next episodes I will show less obvious
@@ -100,7 +99,7 @@ expressions like
 to be compilable, because it is useful to have functions that can
 raise predictable errors, especially when writing test cases.
 
-Now, a module is not really different from a giant thunk; using a
+Now, a module is not really different from a giant thunk; importing a
 module calls the thunk (this is essentially what *module instantiation* is)
 and possibly raises errors at runtime, but the module per se must be
 compilable even if contains errors which are detectable at compile
@@ -141,12 +140,12 @@ Strong phase separation
 .. _psyntax: http://ikarus-scheme.org/r6rs-libraries/index.html
 .. _20: http://www.artima.com/weblogs/viewpost.jsp?thread=255303
 
-TO explain the practical difference between strong and weak phase
+To explain the practical difference between strong and weak phase
 separation let me go back to the example of the ``assert-distinct`` macro of
 episode 20_.  I have put the helper function (``distinct?``) in the
 ``(aps list-utils)`` module, so that you can import it.  This is
 enough for Ikarus, but it is not enough for PLT Scheme or Larceny.  In other
-words, in Ikarus (but also Ypsilon, IronScheme, MoshScheme and all the
+words, in Ikarus (but also IronScheme, MoshScheme and all the
 systems using the psyntax_ module system) the following script
 
 $$assert-distinct:
@@ -178,29 +177,33 @@ but its meaning is different: in the psyntax_ based implementations the
 name ``distinct?`` is imported both at runtime and at expand-time,
 whereas in PLT and Larceny it is imported only at expand time.
 
-For instance this program in systems based on psyntax_
+In systems based on psyntax_ and in Ypsilon -
+which is not based on psyntax but still has implicit phasing and can
+be considered in the same class of implementations - this program
 
 .. code-block:: scheme
 
  (import (rnrs) (for (only (aps list-utils) distinct?) expand))
  (display distinct?)
 
-runs, whereas in PLT Scheme and Larceny it will not even compile. In
-psyntax_ implementations it is *impossible* to import the name
-``distinct?`` at expand time and not at runtime, thus implementation
-with strong phase separation are strictly *more powerful*
-than implementations with weak phase separation (more powerful does not
-mean better, of course).             
+runs, but in PLT Scheme and Larceny it will not even compile.
 
-Implementations with weak phase separation are easier to use, since
-you do not need to specify the import phase. Unfortunately, not using
-the phase specification syntax results in non-portable code, *de
-facto* if you care about portability you must understand strong phase
-separation even if your implementation does not use it :-(
+In implementations with implicit phasing it is *impossible* to import
+the name ``distinct?`` at expand time and not at runtime, thus
+implementation with strong phase separation are somewhat more powerful
+than implementations with weak phase separation.
+
+More powerful does not mean better. For instance, implementations with
+weak phase separation are easier to use, since you do not need to
+specify the import phase.
+
+Unfortunately, not using the phase specification syntax results in
+non-portable code, therefore *de facto* if you care about portability
+you must understand strong phase separation even if your
+implementation does not use it :-(
 
 The situation for people coming from implementations with strong
-phase separation is even worse, since portable programs cannot rely on it.
-For instance the program
+phase separation is no better. For instance the program
 
 .. code-block:: scheme
 
@@ -209,7 +212,7 @@ For instance the program
 
 will run on all implementations, but you cannot rely on the fact
 that the named ``distinct?`` will be imported only at run-time
-and not at expand-time too.
+and not at expand-time.
 
 .. image:: salvador-dali-clock.jpg
 
@@ -245,14 +248,11 @@ this extract from R6RS editors mailing list (from the answer to
    implementations.  As a design process, this
    implementation-driven approach leaves something to
    be desired, but it seems to be the surest way forward.
-
    
 Basically, the R6RS standard is the result of a compromise between the
-partisans of strong phase separation - people
-wanting to control in which phases modules are instantiated -
-and the partisan of weak phase separation
-- people wanting to instantiate modules both at
-runtime and expand time, always.
+partisans of strong phase separation - people wanting to control in
+which phases names are imported - and the partisan of weak phase
+separation - people wanting to import names at all phases, always.
 
 A compromise was reached to make unhappy both parties.
 

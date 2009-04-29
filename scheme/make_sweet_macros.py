@@ -27,7 +27,7 @@ helper2 = '''#!r6rs
 '''
 
 helper3 = '''#!r6rs
-(library (sweet-macros)
+(library (sweet-macros helper3)
 (export syntax-match def-syntax)
 (import (rnrs) (for (sweet-macros helper2) run expand))
 
@@ -50,15 +50,15 @@ def write_on(fname, code):
     
 def makefiles(name, snippet):
     write_on(name + '/main.sls', ikarus_code)
-    write_on('sweet-macros.larceny.sls', main)
-    for impl in  ('larceny', 'mzscheme'):
-        write_on(name + '/helper1.%s.sls' % impl, helper1 % snippet)
-        write_on(name + '/helper2.%s.sls' % impl, helper2 % snippet)
-        write_on(name + '/helper3.%s.sls' % impl, helper3 % snippet)
-        write_on(name + '/main.%s.sls' % impl, main % snippet)
+    write_on(name + '/main.mzscheme.sls', main % snippet)
+    write_on('sweet-macros.larceny.sls', main % snippet)
+    write_on(name + '/helper1.sls', helper1 % snippet)
+    write_on(name + '/helper2.sls', helper2 % snippet)
+    write_on(name + '/helper3.sls', helper3 % snippet)
     
 if __name__ == '__main__':
     #plt_home = os.path.expanduser('~/.plt-scheme')
     #collects = os.path.join(plt_home, max(os.listdir(plt_home)), 'collects')
     makefiles('sweet-macros', snippet)
-  
+    os.system('scp sweet-macros.zip '
+              'micheles@merlin.phyast.pitt.edu:public_html/scheme')

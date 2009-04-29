@@ -5,6 +5,50 @@ This episode goes down in dept through the Dark Secrets and Black Magic
 of Scheme implementations with strong phase separation and their
 undetermined tower of metalevels.
 
+
+Strong vs weak phase separation
+---------------------------------------------------
+
+The power of strong phase separation with phase specification is that
+the language used at at compile time (the language seen by a piece of
+code is the sum of the imported names) can be completely different
+from the language used at runtime. In particular you could decide to
+use in macros a subset of the full R6RS language.
+
+Suppose for instance you are a teacher, and you want to force your
+students to write their macros using only a functional subset of Scheme.
+You could then import at compile time all R6RS procedures except the
+nonfunctional ones (like ``set!``) while importing at runtime
+the whole of R6RS. You could even perform the opposite, and remove ``set!``
+from the runtime, but allowing it at compile time.
+
+
+Clearly for the programmer weak phase separation is easier, since he
+does not need to specify the phase in which he wants to import names.
+On the other hand strong phase separation makes everything more
+complicated: it is somewhat akin to the introduction of multiple
+namespace, because the same name can be imported in a given
+phase (level) and not in another, and that can lead to confusion. In
+particular PLT Scheme in non R6RS-compliant mode can use different
+bindings for the same name at different phases.
+
+Luckily, the R6RS documents states that in the same module *the same
+name cannot be used in different phases with different bindings*.
+This is explained in section 7.1, page 23.
+For instance, if the identifier ``x`` is bound to the
+value ``v`` at the compilation time and ``x`` is defined even
+at runtime, ``x`` must be bound to ``v`` even at runtime. However, it
+is possible to have ``x`` bound at runtime and not at compile time, or
+viceversa. This is clearly a compromise between the phase separation camp
+and the no phase separation camp.
+
+It reminds me of an old joke: why the British take tea at 5PM? Because
+half of them want it at 4PM, and the other half at 6PM, so that nobody
+is happy :-(
+
+For instance, PLT multiple instantiation semantics has the
+advantage of being consistent with separate compilation.
+
 The Dark Tower
 ---------------------------------------------------------------------
 
@@ -76,7 +120,7 @@ More on metalevels
 ---------------------------------------------------------------------
 
 We have already encountered two metalevels: the runtime (metalevel 0)
-and compile time (metalevel 1). Actually the forms ``(for (lib) run)``
+and expand time (metalevel 1). Actually the forms ``(for (lib) run)``
 and ``(for (lib) expand)`` are just shortcuts for ``(for (lib) (meta
 0))`` and ``(for (lib) (meta 1))``, respectively. However, the full
 tower of metalevels is arbitrarily high (!) and extends in two directions,
@@ -151,7 +195,7 @@ macro my turn useful for another macro after all, and it is much
 more convenient if the functionality is already encapsulated in
 a nice exportable top level function.
 
-I am not the only to believe that it should be possible to define
+I am not the only one to believe that it should be possible to define
 helper functions in the same module as the macro and actually
 many Scheme implementations provide a way to do so via a
 ``define-for-syntax`` form which allows to define function
@@ -163,66 +207,4 @@ separation with some clever hack. For instance, you could
 use the following macro:
 
 $$lang:LITERAL-REPLACE
-
-
-Strong vs weak phase separation
----------------------------------------------------
-
-The power of strong phase separation with phase specification is that
-the language used at at compile time (the language seen by a piece of
-code is the sum of the imported names) can be completely different
-from the language used at runtime. In particular you could decide to
-use in macros a subset of the full R6RS language.
-
-Suppose for instance you are a teacher, and you want to force your
-students to write their macros using only a functional subset of Scheme.
-You could then import at compile time all R6RS procedures except the
-nonfunctional ones (like ``set!``) while importing at runtime
-the whole of R6RS. You could even perform the opposite, and remove ``set!``
-from the runtime, but allowing it at compile time.
-
-Implementations with phase specification are strictly *more powerful*
-than implementations without phase specification, since they give the
-developer more control. In implementations without phase separation
-when you import a name in your module, the name is imported in all
-phases, and there is nothing you can do about it.
-
-Clearly for the programmer weak phase separation is easier, since he
-does not need to specify the phase in which he wants to import names.
-On the other hand strong phase separation makes everything more
-complicated: it is somewhat akin to the introduction of multiple
-namespace, because the same name can be imported in a given
-phase (level) and not in another, and that can lead to confusion. In
-particular PLT Scheme in non R6RS-compliant mode can use different
-bindings for the same name at different phases.
-
-Luckily, the R6RS documents states that in the same module *the same
-name cannot be used in different phases with different bindings*.
-This is explained in section 7.1, page 23:
-
-  An identifier can be imported with the same local name
-  from two or more libraries or for two levels from the same
-  library only if the binding exported by each library is
-  the same (i.e., the binding is defined in one library, and
-  it arrives through the imports only by exporting and re-
-  exporting). Otherwise, no identifier can be imported mul-
-  tiple times, defined multiple times, or both defined and
-  imported. No identifiers are visible within a library except
-  for those explicitly imported into the library or defined
-  within the library.
-
-
-For instance, if the identifier ``x`` is bound to the
-value ``v`` at the compilation time and ``x`` is defined even
-at runtime, ``x`` must be bound to ``v`` even at runtime. However, it
-is possible to have ``x`` bound at runtime and not at compile time, or
-viceversa. This is clearly a compromise between the phase separation camp
-and the no phase separation camp.
-
-It reminds me of an old joke: why the British take tea at 5PM? Because
-half of them want it at 4PM, and the other half at 6PM, so that nobody
-is happy :-(
-
-For instance, PLT multiple instantiation semantics has the
-advantage of being consistent with separate compilation.
 |#
