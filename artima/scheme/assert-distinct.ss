@@ -2,6 +2,6 @@
 
 (def-syntax (assert-distinct arg ...)
   #'(#f)
-  (distinct? free-identifier=? #'(arg ...))
+  (distinct? bound-identifier=? #'(arg ...))
   (syntax-violation 'assert-distinct "Duplicate name" #'(arg ...)))
 

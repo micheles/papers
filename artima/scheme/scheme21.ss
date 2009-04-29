@@ -15,13 +15,13 @@ how modules are imported - *instantiated* is the more correct term -
 and in how names enter in the namespace.
 
 Ikarus, Ypsilon, IronScheme and MoshScheme have a weak form of phase
-separation (also called the implicit phasing model): there is a
+separation (also called *implicit phasing*): there is a
 distinction between expand-time and runtime, but it is not possible to
 import names in the runtime phase only or in the expand time phase
 only: names are imported simultaneously for all phases.
 
 Larceny has a stronger form of phase separation: it can import names
-in a specific phase on not in the other, depending on the import
+in a specific phase on not in another, depending on the import
 syntax used.  However, if you instantiate a module in more than one
 phase - for instance both at run-time and at expand-time - only one
 instance of the module is created.
@@ -55,27 +55,27 @@ implementor of IronScheme wrote:
 
 .. epigraph::
 
- In IronScheme, if I can detect there is an issue at compile
+ *In IronScheme, if I can detect there is an issue at compile
  time, I simply defer the computation to the runtime, or could even
  just convert it into a closure that will return an error. This is only
  one of the things that make Scheme quite hard to implement on a statically
  typed runtime such as the CLR, as it forces me to box values at method
- boundries and plenty type checking at runtime.
+ boundries and plenty type checking at runtime.*
 
 whereas Abdul Aziz Ghuloum wrote:
 
 .. epigraph::
 
- Actually, Ikarus does some type checking, and it does
+ *Actually, Ikarus does some type checking, and it does
  detect the division by 0.  It however cannot do anything
  about it in this case since Scheme requires that the
  exception be raised when the division operation is
- performed at run time.
+ performed at run time.*
 
 Aziz went further and explained that Ikarus is able to evaluate
 expressions like
 
-.. code-block
+.. code-block:: scheme
 
    (define x 5)
    (define y (+ x 1))
@@ -83,10 +83,9 @@ expressions like
 
 both in top level definitions in and internal definitions; however, it
 does so in the optimization phase, i.e. *after* the expansion phase,
-i.e. too late to make the definitions available to macros.
-
-Nevertheless, I think that reporting a syntax warning would be a reasonable
-idea.
+i.e. too late to make the definitions available to macros. It could
+however report at least a syntax warning (take it as a feature request,
+Aziz! ;-)
 
 Aziz also brought up an argument in favor of the current
 specification. First of all, it is pretty clear that we want
@@ -189,15 +188,14 @@ be considered in the same class of implementations - this program
 runs, but in PLT Scheme and Larceny it will not even compile.
 
 In implementations with implicit phasing it is *impossible* to import
-the name ``distinct?`` at expand time and not at runtime, thus
-implementation with strong phase separation are somewhat more powerful
-than implementations with weak phase separation.
-
-More powerful does not mean better. For instance, implementations with
+the name ``distinct?`` at expand time and not at runtime.
+In a sense, implementation with strong phase separation are more powerful
+than implementations with weak phase separation, but more powerful does not
+mean necessarily better. In particular implementations with
 weak phase separation are easier to use, since you do not need to
 specify the import phase.
 
-Unfortunately, not using the phase specification syntax results in
+I should notice tha not using the phase specification syntax results in
 non-portable code, therefore *de facto* if you care about portability
 you must understand strong phase separation even if your
 implementation does not use it :-(
@@ -216,6 +214,15 @@ and not at expand-time.
 
 .. image:: salvador-dali-clock.jpg
 
+Moreover, the R6RS forbids the same name to be used with different
+bindings in different phases.  For instance, if you import the name
+'x' at phase X, the compiler will reserve the name 'x' for all
+phases: it cannot be reused in other phases, unless it has the same
+binding as the first 'x'.  In other words, the namespaces in the
+different phases are separated but not completely independend.
+I believe PLT Scheme in non-R6RS has fully independent namespaces,
+not in R6RS-conforming mode.
+
 A note about politics
 -----------------------------------------------------------
 
@@ -223,36 +230,36 @@ The reason why such inconsistencies exist can be inferred from
 this extract from R6RS editors mailing list (from the answer to
 `formal comment 92`_):
 
-   A precise specification of the library system
+   *A precise specification of the library system
    remains elusive, partly because different
    implementors still have different ideas about how
-   the library system should work....
+   the library system should work....*
 
-   The different opinions are supported by two
+   *The different opinions are supported by two
    different reference implementations of R6RS
    libraries: one by Van Tonder and one by Ghuloum and
    Dybvig.  In addition, PLT Scheme implements a
-   library system...
+   library system...*
 
-   Despite the differences in the reference
+   *Despite the differences in the reference
    implementations, it appears that many programs will
    run the same in both variants of the library system.
    The overlap appears to be large enough to support
-   practical portability between the variants.
+   practical portability between the variants.*
 
-   Under the assumption that the overlap is useful, and
+   *Under the assumption that the overlap is useful, and
    given the lack of consensus and relative lack of
    experience with the two prominent variants of draft
    R6RS libraries, the R6RS specification of libraries
    should be designed to admit both of the reference
    implementations.  As a design process, this
    implementation-driven approach leaves something to
-   be desired, but it seems to be the surest way forward.
-   
+   be desired, but it seems to be the surest way forward.*
+
 Basically, the R6RS standard is the result of a compromise between the
-partisans of strong phase separation - people wanting to control in
-which phases names are imported - and the partisan of weak phase
-separation - people wanting to import names at all phases, always.
+partisans of explicit phasing - people wanting to control in
+which phases names are imported - and the partisan of implicit
+phasing - people wanting to import names at all phases, always.
 
 A compromise was reached to make unhappy both parties.
 
@@ -285,4 +292,9 @@ the message only once if the module were used).
 
 In other words, authors of portable libraries cannot rely on multiple
 instantiation, nor on single instantiation.
+
+The final outcome for the R6RS module system is certainly unhappy, but I guess
+it was the best that the R6RS editors could obtain, given the
+pre-existing situation. Another point in favor of languages designed by
+(benevolent) dictators!
 |#
