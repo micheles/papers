@@ -79,11 +79,10 @@ actually, but they are not relevant for what I am discussing now.
 Things are quite different in Scheme. The interpreter semantics is
 *not specified* by the R6RS standard and it is completely
 implementation-dependent. It is also compatible with the standard to
-not provide interpreter semantics at all, i.e. to not provide a REPL:
-for instance PLT Scheme does not provide a REPL for R6RS programs
-(it does provide a REPL for non R6RS programs which is actually quite
+not provide interpreter semantics at all.
+In particular, PLT Scheme provides a REPL which is actually quite
 exceptional since it uses compiler semantics and not interpreter
-semantics!).
+semantics.
 
 The compiler semantics i.e. the `expansion process`_
 of Scheme source code is (loosely) specified by the R6RS
