@@ -1,4 +1,4 @@
-#|The meaning of phase separation
+#|The different meanings of phase separation
 ===================================================================
 
 We saw in the latest episode that Scheme programs
@@ -216,8 +216,6 @@ will run on all implementations, but you cannot rely on the fact
 that the named ``distinct?`` will be imported only at run-time
 and not at expand-time.
 
-.. image:: salvador-dali-clock.jpg
-
 The point however is moot since the R6RS forbids the same name to be
 used with different bindings in different phases (see section 7.1,
 page 23).  In particular, if you import the name ``distinct?`` at
@@ -229,6 +227,8 @@ but *not completely independend*, which in my opinion undermines the
 concept of strong phase separation.  I believe PLT Scheme in non-R6RS
 mode has fully independent namespaces for different phases, but this
 again is not portable.
+
+.. image:: salvador-dali-clock.jpg
 
 A note about politics
 -----------------------------------------------------------
