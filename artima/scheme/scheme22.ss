@@ -8,21 +8,36 @@ undetermined tower of metalevels.
 The Dark Tower
 ---------------------------------------------------------------------
 
-As I said in the previous episode, even if I do not like explicit
+As I explained in the previous episode, even if you do not like explicit
 phasing you must to understand it in order to write portable programs.
 In order to truly understand explicit phasing, you must
-reason in terms of a (Dark) Tower of import/export levels, or
-meta-levels_. Since the publication of the Aristotle's Metaphysics,
+reason in terms of a (Dark) Tower of import levels, or
+meta-levels_. Metalevels are just phases;
+we have already encountered two metalevels: the
+runtime phase (metalevel 0) and expand time phase (metalevel 1).
+
+Actually the
+forms ``(for (lib) run)`` and ``(for (lib) expand)`` are just
+shortcuts for ``(for (lib) (meta 0))`` and ``(for (lib) (meta 1))``,
+respectively. However, the full tower of metalevels is arbitrarily
+high (!) and extends in two directions, both for positive and for
+negative integers.
+
+Since the publication of the Aristotle's Metaphysics,
 the word *meta* has been associated to arcane and difficult matters.
 The concept of meta-level is no exception to the rule ;)
 
 .. figure:: DarkTower.jpg
 
-   Aziz phasing dark tower of metalevels
+   Aziz facing the dark tower of metalevels
 
 You can find a full description of the tower of metalevels in the R6RS
-document, in a rather dense paragraph in section 7. Here instead of
-repeating the report, I will try to show a concrete example of a macro
+document, in a rather dense paragraph in section 7. There is also
+a celebrated paper by Matthew Flatt, `You want it when`_ which
+predates the R6RS by many years and describes the module system
+used by PLT Scheme.
+
+Here I will try to show a concrete example of a macro
 where it is essential to understand the meta-level concept.
 
 My example macro is a compile time ``name -> value`` mapping, with some
@@ -30,9 +45,10 @@ introspection feature:
 
 $$experimental/ct-mapping:
 
-This is a kind of second order macro, since it expands
-to a macro transformer; its usage is obvious in implementations with
-implicit phasing:
+This is a kind of second order macro, since it is a macro which
+expands to a macro transformer; its usage is obvious in
+                              ; implementations with implicit
+phasing:
 
 $$use-ct-mapping:
 
@@ -51,6 +67,7 @@ However, in PLT Scheme, the above will fail with a very cryptic error message::
 
 I was baffled by this error, so I asked for help in the PLT mailing
 list, and I got a very enlightning answer from Matthew Flatt.
+
 The tricky point here is that there is nothing wrong with
 the client script, and there is no way to fix the problem by editing
 it: the problem is in the library code! However, the problem is hidden
@@ -72,26 +89,31 @@ at metalevel -1! Why it is so? and what the hell is metalevel -1?
 Metalevels
 ---------------------------------------------------------------------
 
-We have already encountered two metalevels/phases: the
-runtime (metalevel 0) and expand time (metalevel 1). Actually the
-forms ``(for (lib) run)`` and ``(for (lib) expand)`` are just
-shortcuts for ``(for (lib) (meta 0))`` and ``(for (lib) (meta 1))``,
-respectively. However, the full tower of metalevels is arbitrarily
-high (!) and extends in two directions, both for positive and for
-negative integers.
-
-The concept of metalevel is strictly bound to macros: the right hand
-side of a macro can only refer to names which are one metalevel up,
-i.e. typically at metalevel 1 (expand time).  On the other hand,
-inside a template one goes back one metalevel, and usually a template
-expands at metalevel 0 (runtime).
+The concept of metalevel is only relevant in macro programming.  When
+you define a macro, the right hand side of the definition can only
+refer to names which are one metalevel up, i.e. typically at metalevel
+1 (expand time).  On the other hand, inside a template one goes back
+one metalevel, and therefore usually a template expands at metalevel
+0 (runtime).
 
 However, in the case of ``ct-mapping`` macro, the
 template is itself a ``syntax-match`` form, and therefore the
-templates of this innner ``syntax-match`` expand one level down, at
+templates of this inner ``syntax-match`` expand one level down, at
 metalevel -1.  This is why the macro needs to import the ``(rnrs)``
 bindings at metalevel -1 and why the error message says that ``quote``
 is unknown.
+
+(def-syntax ct-mapping                           ;; metalevel 0
+  (let ()                                        ;; metalevel 1
+    <code here ...>                              ;; metalevel 1
+  (syntax-match ()
+   (sub (ct-mapping (name value) ...)            ;; metalevel 0
+        #'(syntax-match (<names> name ...)       ;; metalevel 0
+            (sub (ctx <names>)                   ;; metalevel -1
+                 #''(name ...))                  ;; metalevel -1
+            (sub (ctx name)                      ;; metalevel -1
+                 #'value)                        ;; metalevel -1
+            ...))))
 
 Actually ``quote`` is the only needed binding, so it would be enough
 import it with the syntax ``(for (only (rnrs) quote) (meta -1))``. If
@@ -102,7 +124,7 @@ we ignored the introspection feature, i.e. we commented out the line
 there would be no need to import ``quote`` at metalevel -1, and the macro
 would work without us even suspecting the existence of negative metalevels.
 
-It is clear that the metalevel tower is theoretically unbound in the
+The metalevel tower is theoretically unbound in the
 negative direction, since you can nest macro transformers at any level
 of depth, and each level decreases the metalevel by one unity; on the
 other hand, the tower is theoretically unbound even in the positive direction,
@@ -113,6 +135,16 @@ so on. Macro definitions *increase* the metalevel; macro templates
 about the metalevel tower, if you don't want to risk your head ;)
 
 .. image:: exploding-head.jpg
+
+Here is an example of metalevel 2:
+
+(def-syntax (m1)
+  (let-syntax()
+    (def-syntax (m2)
+      (begin (display "Metalevel 2")
+             #'42)))
+  (m2))
+
 
 Things are even trickier: if we keep the line
 ``(sub (ctx <names>) #''(name ...))`` in the original macro, but we
@@ -131,8 +163,8 @@ weak phase separation to strong phase separation.
 .. _meta-levels: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-10.html#node_sec_7.2
 
 
-Here is the skeleton of an Ikarus program, with comments showing the
-marking run time and expand time:
+Here is the skeleton of a Scheme program in implementations with explicit
+phasing, with comments marking the different meta-levels.
 
 .. code-block:: scheme
 
@@ -140,11 +172,11 @@ marking run time and expand time:
  (import (rnrs) (sweet-macros)) ;; expand time/run time
  (export x y z)                 ;; expand time
  (define x some-expr)           ;; run time
- (define-syntax y               ;; expand time
+ (def-syntax y                  ;; expand time
    (let ()                      ;; expand time
      code-here ...              ;; expand time
-     (syntax-match ()           ;; expand time
-       (sub (y)                 ;; expand time
+     (syntax-match ()          
+       (sub (y)
         (let ()                 ;; expand time
           code-here ...         ;; expand time
          #'(hello)))            ;; run time
@@ -264,37 +296,3 @@ advantage of being consistent with separate compilation.
          (alist2 a (b (* 2 a)))
          '((a 1) (b 2))))
  )
-
-
-A note about identitifier macros
---------------------------------------------------------------
-
-I have always hated being forced to put my helper functions in an
-auxiliary module, because I often use auxiliary functions which
-are intended to be used only once inside a given macro, thus
-it makes sense to put those auxiliary functions *in the same
-module* as the macro the are used in.
-In principle you could solve the problem by definining all the
-functions *inside* the macro, but I hate this, both for dogmatic
-reasons (it is a Pythonista dogma that *flat is better than nested*)
-and for pragmatic reasons, i.e. I want to be able to debug my
-helper functions and this is impossible if they are hidden inside
-the macro. They must be available at the top-level. Moreover, you
-never know, and a functionality which was intended for use in a specific
-macro my turn useful for another macro after all, and it is much
-more convenient if the functionality is already encapsulated in
-a nice exportable top level function.
-
-I am not the only one to believe that it should be possible to define
-helper functions in the same module as the macro and actually
-many Scheme implementations provide a way to do so via a
-``define-for-syntax`` form which allows to define function
-at *expand time*, so that they are available for usage in macros.
-
-If your Scheme does not provide ``define-for-syntax``, which is not
-part of the R6RS specification, you can still work around phase
-separation with some clever hack. For instance, you could
-use the following macro:
-
-$$lang:LITERAL-REPLACE
-|#

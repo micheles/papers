@@ -685,3 +685,36 @@ code expects those names to be bound at the point of macro definition
 (typically globally).  For example, if a non-hygienic macro calls the
 list procedure, and at the point of call the code has bound the name
 "list" to something else, the macro is screwed.
+
+
+A note about identitifier macros
+--------------------------------------------------------------
+
+I have always hated being forced to put my helper functions in an
+auxiliary module, because I often use auxiliary functions which
+are intended to be used only once inside a given macro, thus
+it makes sense to put those auxiliary functions *in the same
+module* as the macro the are used in.
+In principle you could solve the problem by definining all the
+functions *inside* the macro, but I hate this, both for dogmatic
+reasons (it is a Pythonista dogma that *flat is better than nested*)
+and for pragmatic reasons, i.e. I want to be able to debug my
+helper functions and this is impossible if they are hidden inside
+the macro. They must be available at the top-level. Moreover, you
+never know, and a functionality which was intended for use in a specific
+macro my turn useful for another macro after all, and it is much
+more convenient if the functionality is already encapsulated in
+a nice exportable top level function.
+
+I am not the only one to believe that it should be possible to define
+helper functions in the same module as the macro and actually
+many Scheme implementations provide a way to do so via a
+``define-for-syntax`` form which allows to define function
+at *expand time*, so that they are available for usage in macros.
+
+If your Scheme does not provide ``define-for-syntax``, which is not
+part of the R6RS specification, you can still work around phase
+separation with some clever hack. For instance, you could
+use the following macro:
+
+$$lang:LITERAL-REPLACE
