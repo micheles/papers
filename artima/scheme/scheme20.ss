@@ -203,8 +203,8 @@ However, an incremental compiler is not identical to an interpreter,
 since internally it uses phase separation to compile blocks
 of code; for instance in Ikarus if you put together the
 previous definition in a single block you get an error,
-since the function ``double`` is known at expand-time
-but not at runtime:
+since the function ``double`` is known at run-time
+but not at expand-time:
 
 .. code-block:: scheme
 
