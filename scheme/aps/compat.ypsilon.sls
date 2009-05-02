@@ -1,5 +1,5 @@
 (library (aps compat)
-(export printf format gensym pretty-print)))
+(export printf format gensym pretty-print)
 (import (rnrs) (core))
 
 (define (printf format-string . args)

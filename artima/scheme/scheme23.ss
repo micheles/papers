@@ -1,4 +1,5 @@
-#|Side effects in modules
+#|
+Side effects in modules
 ===============================================================
 
 In functional programs there are no side effects; in real life programs
@@ -7,7 +8,7 @@ The way the module system copes with side effects is quite tricky and
 implementation-dependent. The goal of this episode is to shed some
 light on the subject.
 
-Side effects at the REPL
+Side effects and interpreter semantics
 ------------------------------------------------------
 
 Let me start with a simple example. Consider a module exporting a variable
@@ -15,19 +16,17 @@ Let me start with a simple example. Consider a module exporting a variable
 
 $$experimental/mod1:
 
-(for convenience I am storing all the code of this episode code into a
-package called ``experimental``).
-This kind of side effect is ruled out by the R6RS specification, since
-exported variables must be immutable. This is the reason why both Ikarus
-and Ypsilon reject the code with errors like 
+This kind of side effect is ruled out by the R6RS specification (section 7.2):
+*exported variables must be immutable*. This is the reason why Ikarus, Ypsilon
+and Larceny reject the code with errors like 
 ``attempt to export mutated variable`` or 
 ``attempt to modify immutable variable``.
 On the other hand PLT Scheme compiles the code without raising any
 warning, therefore even this simple case is tricky and exposes
-a non-portability of the module system :-(
+a bug in the PLT implementation of the module system :-(
 
 Consider now a module exporting a function with side effects affecting a
-non-exported variable:
+non-exported (i.e. private) variable:
 
 $$experimental/mod2:
 
@@ -52,7 +51,7 @@ Everything works as you would expect.
 As always, things are trickier in scripts, when compiler semantics and
 phase separation enters in the game.
 
-Side effects and phase separation
+Side effects and compiler semantics
 ------------------------------------------------------
 
 Consider the following script:
@@ -60,7 +59,7 @@ Consider the following script:
 $$experimental/use-mod2:
 
 Here we import the module ``mod2`` twice, both at run-time and at expand time.
-In Scheme implementations with full phase separation there are two fully
+In Scheme implementations with multiple instantiation there are two fully
 separated instances of the module, and running the script returns
 what you would expect::
 
@@ -70,7 +69,7 @@ what you would expect::
 
 The fact that ``x`` was incremented at compile-time has no effect
 at all at run-time, since the run-time variable ``x`` belongs to a completely
-different instance of the module. In system with weak phase separation
+different instance of the module. In system with single instantiation
 instead, there is only a *single instance of the module for all phases*,
 so that incrementing ``x`` at expand-time has effect at runtime::
 
@@ -78,11 +77,13 @@ so that incrementing ``x`` at expand-time has effect at runtime::
  At expand-time x=1
  At run-time x=2
 
-You would get the same with Ypsilon.
+You would get the same with Ypsilon and Larceny (Larceny has explicit
+phasing but single instantiation and if you import a module in more
+than one phase the variables are shared amongsts the phases).
 
 This only works because the script is executed immediately
 after compilation *in the same process*. However, having compile-time
-effects affecting run-time values is *utterly wrong*, since it breaks
+effects affecting run-time values is *wrong*, since it breaks
 separate compilation. If we turn the script into a library and we
 compile it separately, it is clear than the run-time value of ``x``
 cannot be affected by the compile-time value of ``x``
@@ -152,78 +153,61 @@ get just the runtime message::
  $ ikarus --r6rs-script use-mod3.ss 
  At run-time x=1
 
-Both in Ikarus and in Ypsilon, the same invocation of the script
+In Ikarus, Ypsilon and Larceny, the same invocation of this script
 returns different results, depending if the libraries have been
-precompiled or not. This is ugly and error prone. The full phase
-separation mechanism of PLT Scheme has been designed to avoid this
-problem: in PLT (and Larceny) one consistently gets always the same
-result. That is good.
+precompiled or not. This is ugly and error prone. The multiple
+instantiation mechanism of PLT Scheme has been designed to avoid this
+problem: in PLT one consistently gets always the same
+result.
 
-However, I think that both the PLT/Larceny people and the Ikarus/Ypsilon
-people are wrong. The PLT/Larceny people are wrong since full phase
-separation causes more problems than it solves: it is not the
-right solution to this problem. On the other hand, the Ikarus/Ypsilon
-people are wrong because they lack separate instantiation
-of modules. However, it would be trivial to get separate instantiation
-of modules for Ikarus and Ypsilon: it is enough to spawn
+On could get the same in non-PLT implementations by spawning
 two separate processes, run one after the other: the
 first to compile the script and its libraries, and the second to
 execute it. That would make sure that incrementing
-``x`` in the expansion phase could not influence the value of ``x``
-at runtime: in this way they could get repeatable results.
+``x`` in the expansion phase would not influence the value of ``x``
+at runtime.
 
-In other words, in my own opinionated view the implementations
-with partial phase separation are much closer to the right path than
-implementation with full phase separation.
+My wishlist
+---------------------------------------------------
 
- --------------------------------------------------------------------------
-|                          | single instantiation | multiple instantiation |
- --------------------------------------------------------------------------
-| partial phase separation |      not so bad      | good                   |
-| full phase separation    |    bad (Larceny)     | bad  (PLT)             |
- --------------------------------------------------------------------------
+I have discussed a large spectrum of solutions to the module system
+problem, but I did not find any that satisfies me completely.
+I have a personal wishlist of features.
 
+- interpreter semantics and the REPL
 
+  I think that the behavior of REPL should
+  not be too different from the behavior of scripts; in particular,
+  I like that in PLT functions defined in the REPL
+  are not available in macros. This may be inconvenient, but
+  I think it is pedagogically
+  useful, since it forces beginners to think about phase separation
+  early on and to have a consistent model of what will happen once
+  they compile the script. I started programming in Scheme
+  with implementations where the REPL behavior was different
+  from the compiled behavior and it was very difficult for me
+  to understand why my "correct" scripts did not compile.
+
+- phase separation and multiple instantiation
+
+  I agree with the PLT people that expand-time variables and run-time
+  variables should live in different instances, however I disagree
+  that we need a tower of metalevels. Two phases are more than enough.
+  We can just perform the compilation in a different process
+  than the evaluation process. In this way the
+  variables can be imported in all phases, with
+  implicit phasing semantics, but modifying a variable at expand time
+  cannot influence its runtime counterpart.
+
+- missing features from the standard
+
+  I think the standard lacks many important features. I have
+  already noticed that I would welcome the ability to export all names from a
+  library ``(export *)`` and the ability to introspect the names exported
+  by library. In addition,
+  I would welcome a mechanism to write helper functions for macros *in the
+  same file* the macros are defined, if one wants to. One way to implement this
+  feature is to standardize the ability of writing multiple libraries in
+  the same file, which is already provided by some implementations.
+  Another way is to introduce at ``define-at-all-phases`` form.
 |#
-
-(import (rnrs) (sweet-macros) (for (aps lang) expand) (aps compat))
-         
-;;DEF-BOOK
-(def-syntax (def-book name title author)
-  (: with-syntax
-     name-title (identifier-append #'name "-title")
-     name-author (identifier-append #'name "-author")
-     #'(begin
-         (define name (vector title author))
-         (define name-title (vector-ref name 0))
-         (define name-author (vector-ref name 1)))))
-
-;;END
-(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
-
-
- ;;TEST-DEF-BOOK
- (test "def-book"
-       (let ()
-         (def-book bible "The Bible" "God")
-         (list bible-title bible-author))
-       (list "The Bible" "God"))
- ;;END
-
-             
-;;ALIST2
-(def-syntax (alist2 arg ...)
-  (: with-syntax ((name value) ...) (normalize #'(arg ...))
-     (if (for-all identifier? #'(name ...))
-         #'(let* ((name value) ...)
-             (list (list 'name name) ...))
-         (syntax-violation 'alist "Found non identifier" #'(name ...)
-                           (remp identifier? #'(name ...))))))
-;;END
-
-(run
- (let ((a 1))
-   (test "mixed"
-         (alist2 a (b (* 2 a)))
-         '((a 1) (b 2))))
- )

@@ -718,3 +718,35 @@ separation with some clever hack. For instance, you could
 use the following macro:
 
 $$lang:LITERAL-REPLACE
+
+In the words of Abdul Aziz Ghuloum, the implementer of Ikarus:
+
+  In definitions context (e.g., top-level program, library top-level,
+  internal definitions), the compiler processes the body forms one by
+  one looking for definitions.  If it encounters a define-syntax, the
+  right-hand-side is expanded and evaluated and made available for
+  expanding subsequent forms from that point on.  If it encounters a
+  macro use, it expands the macro, splices it in place of the input form
+  and resumes with the resulting body forms.  If it encounters a
+  variable definition, it does NOT expand the right-hand-side
+  expression, instead, it queues it until all definitions (variables and
+  macros) are found.  At that point, the body expressions and
+  right-hand-side expressions of variable definitions (that were queued)
+  are expanded.
+  At any rate, macro definitions *are* expanded and evaluated to
+  obtain the transformer procedure *before* expansion of the rest of
+  the definitions resumes.  This is true for all R6RS implementations.
+
+For instance, PLT multiple instantiation semantics has the
+advantage of being consistent with separate compilation.
+
+
+..
+
+ ----------------------------------------------------------------------------
+ |                          | single instantiation | multiple instantiation |
+ --------------------------------------------------------------------------
+ | partial phase separation |      not so bad      | good                   |
+ | full phase separation    |    bad (Larceny)     | bad  (PLT)             |
+ -------------------------------------------------------------------------
+
