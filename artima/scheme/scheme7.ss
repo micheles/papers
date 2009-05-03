@@ -86,7 +86,7 @@ if two objects are the same objects at the pointer level, but it does
 not check the content. Actually, Python works the same. It is only by
 accident than ``"pippo" is "pippo"`` returns
 True on my machine, since the CPython implementation
-traits differently "short" strings from "long" strings::
+manages differently "short" strings from "long" strings::
 
  >>> "a"*10 is "a"*10 # a short string
  True
