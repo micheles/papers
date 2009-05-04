@@ -1,17 +1,31 @@
-#|The Dark Tower of Meta-levels
+#|The Tower of Meta-levels
 =============================================
 
 .. _You want it when: http://www.cs.utah.edu/plt/publications/macromod.pdf
 .. _R6RS document: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-10.html#node_sec_7.2
 
-Even if your implementation does not use
-explicit phasing you must understand it in order to write portable
-programs.  In order to truly understand explicit
-phasing, you must reason in terms of a (Dark) Tower of import levels,
-or *meta-levels*.
+I said in the previous episode that even if your implementation does
+not use explicit phasing you must understand it in order to write
+portable programs.  Truly understandanding explicit phasing is nontrivial,
+since you must reason in terms of a (Dark) Tower of import levels, or
+*meta-levels*.
 
-Meta-levels are just another names for phases and
-we have already encountered two meta-levels: the
+Since the publication of the Aristotle's Metaphysics,
+the word *meta* has been associated to arcane and difficult matters.
+The concept of meta-level is no exception to the rule.
+You can find a full description of the tower of meta-levels in the
+`R6RS document`_, in a rather dense paragraph in section 7 that will make
+your head hurt.
+
+There is also a
+celebrated paper by Matthew Flatt, *Composable and Compilable
+Macros* (a.k.a. `You want it when`_) which predates the R6RS by many
+years and is more approachable. Its intent is to motivate
+the module system used by PLT Scheme from which the tower
+of meta-levels originated.
+
+Meta-levels are just another names for phases.
+We have already encountered two meta-levels: the
 run-time phase (meta-level 0) and expand time phase (meta-level 1).
 However, the full tower of meta-levels is arbitrarily
 high and extends in two directions, both for positive and for
@@ -19,21 +33,7 @@ negative integers (!)
 
 .. figure:: DarkTower.jpg
 
-   Aziz facing the tower of meta-levels
-
-Since the publication of the Aristotle's Metaphysics,
-the word *meta* has been associated to arcane and difficult matters.
-The concept of tower of meta-levels is no exception to the rule.
-You can find a full description of the tower in the
-`R6RS document`_, in a rather dense paragraph in section 7 that will make
-your head hurt.
-
-There is also a
-celebrated paper by Matthew Flatt, *Composable and Compilable
-Macros* (a.k.a. `You want it when`_) which predates the R6RS by many
-years, it is much more approachable and motivates
-the module system used by PLT Scheme from which the tower
-of meta-levels originated.
+   Aziz faces the Dark Tower of Meta-levels
 
 In general implementations with explicit phasing allow you to
 import a module at a generic meta-level ``N`` with the syntax
@@ -42,7 +42,7 @@ The forms ``(for (lib) run)`` and ``(for (lib) expand)`` are just
 shortcuts for ``(for (lib) (meta 0))`` and ``(for (lib) (meta 1))``,
 respectively.
 
-Here instead of discussing much theory I will
+Instead of discussing much theory, in this episode I will
 show two concrete examples of macros that requires
 importing variables at a nontrivial meta-level *N*,
 with *N<0* or *N>1*.
@@ -55,26 +55,30 @@ An easy-looking macro with a deep portability issue
 ------------------------------------------------------
 
 My first example is a compile time ``name -> value`` mapping, with some
-introspection feature:
+introspection:
 
 $$experimental/static-map:
 
 This is a kind of second order macro, since it
 expands to a macro transformer; its usage is obvious in
-implementations with implicit phasing:
+implementations with implicit phasing::
+
+ $ cat use-static-map.ss
 
 $$use-static-map:
 
 ``color`` is a macro which replaces a symbolic name
-in the set ``red``, ``green``, ``yellow`` with a single
+in the set ``red``, ``green``, ``yellow`` with its
 character representation (``#\R``, ``#\G``, ``#\Y``)
-at expand-time.
+at expand-time (notice that in Scheme characters
+are different from strings, i.e. the character
+``\#R`` is different from the string of length 1 ``"R"``).
 
 If you run this script in Ikarus or Ypsilon
 you will get the following unsurprising result::
 
  $ ikarus --r6rs-script use-static-map.ikarus.ss 
- Available colors: (red green blue)(R G Y)
+ Available colors: (red green yellow)(R G Y)
 
 However, in PLT and Larceny, the above will fail. The PLT error message
 is particularly cryptic::
@@ -86,11 +90,11 @@ is particularly cryptic::
 
 I was baffled by this error, so I asked for help in the PLT mailing
 list, and I discovered that there is nothing wrong with the client
-script, and there is no way to fix the problem by editing it: the
+script and that there is no way to fix the problem by editing it: the
 problem is in the library code!
 
 The problem is hidden, since you can compile the library without issues and
-you see it only when you use the client code. Also, the fix is pure
+you see it only when you use it. Also, the fix is pure
 dark magic: you need to rewrite the import
 code in ``(experimental static-map)`` by replacing
 
@@ -151,7 +155,7 @@ Things are even trickier: if we keep the line
 do not use it in client code, the original macro will apparently work,
 and will break at the first attempt of using the introspection
 feature, with an error message pointing to the problem in client code,
-but not in library code!
+but not in library code :-(
 
 Meta-levels greater than one
 ------------------------------------------------------------
@@ -165,7 +169,9 @@ right hand side will requires bindings defined at an higher level, and
 so on.  In general nested macro definitions *increase* the meta-level;
 nested macro templates *decrease* the meta-level.
 
-Here is an example of a macro which requires importing names at meta-level 2:
+Here is an example of a macro which requires importing names at meta-level 2::
+
+ $ cat meta2.ss
 
 $$meta2:
 
@@ -186,9 +192,6 @@ You will get the same in Larceny and in sufficiently recent versions
 of PLT Scheme (> 4.1.3). Currently Ypsilon raises an exception but this is
 probably just a bug.
 
-I suggest you not to think much
-about the meta-level tower, if you don't want to risk your head ;)
-
 Discussion
 ------------------------------------------
 
@@ -197,12 +200,13 @@ meta-levels, i.e. the run-time (when the code is executed) and the compile
 time (when the code is compiled). On the other hand, conceptually there is
 an arbitrary number of positive meta-levels ("before compile time") and
 negative meta-levels ("after run-time") which have to be taken in
-account to compile/execute a program correctly.
+account to compile/execute a program correctly: everytime the compiler
+look at a nested macro, it has to consider the innermost level first,
+and the outermost level last.
 
 The power (and the complication) of phase specification is that the
 language used at a given phase can be different from the language used
 in the other phases.
-
 Suppose for instance you are a teacher, and you want to force your
 students to write their macros using only a functional subset of Scheme.
 You could then import at compile time all R6RS procedures except the
@@ -210,47 +214,25 @@ nonfunctional ones (like ``set!``) while importing at run-time
 the whole of R6RS. You could even perform the opposite, and remove ``set!``
 from the run-time, but allowing it at compile time.
 
-This is *wanted* behavior. According to Matthew Flatt:
-
-.. epigraph::
-
- *In PLT Scheme, the motivation for phase-specific bindings is not so
- much that we may want different names in different phases, but that we
- want to be specific about which code is running at which times. Without
- an enforced separation, we found that it was far too easy to
- accidentally have the run-time code depend on some initialization in
- compile-time code (e.g. loading a module, initializing some state), and
- that possibility made our builds and libraries fragile. (This problem
- is described more in the "Composable and Compilable Macros" paper.) So,
- we moved to a system that would tell us when we got it wrong, in much
- the same way that the compiler complains when a module contains a free
- variable.*
-
-However I am not convinced by this argument. Whereas it is true that one should
-be very careful when mixing compile-time and run-time, especially in
-presence of side effects, I believe one can solve the issue by using
-separate compilation, and that the benefits of the tower of meta-levels are not
-compensated by the complications it induces.
-
-First of all I dislike the tower because it is somewhat akin to
-the introduction of multiple name-space, because the same name can be
-imported in a given phase (level) and not in another, and that in my
-opinion goes against the spirit of Scheme, which is a Lisp-1
-language.
-Moreover, the programmer has to keep manually track of the
-meta-level her code is running and the same concept of the meta-level tower
-is difficult to follow since there are only two physical meta-levels.
+However, personally I do not feel a need to distinguish the languages
+at different phases and I like Scheme to be a Lisp-1 language with a
+single namespace for all variables.  I am also not happy with having
+to keep manually track of the meta-levels, which is difficult and
+error prone when writing higher order macros. Moreover, in PLT and
+Larceny writing a macro which expands to a nested macro with N levels
+is difficult, since one has to write by hand all the required meta imports.
 
 .. figure:: tower_of_babel.jpg
 
-   Aziz destroys the tower of meta-levels
+   Aziz destroys the Tower of Meta-levels
 
 All this trouble is missing in Ikarus, in Ypsilon and in the
 implementations based on psyntax. In such
-systems where importing a module
-imports its public variables for *all* meta-levels.
+systems importing a module imports its public variables for *all* meta-levels.
 In other words all meta-levels share the same language: the
-tower of meta-levels is effectively destroyed. The model
+tower of meta-levels is effectively destroyed (one could
+argue that the tower is still there, implicitly, but the point is that
+the programmer does not need to think about it explicitly). The model
 of implicit phasing was proposed by Kent Dybvig and
 Abdul Aziz Ghuloum, who wrote his Ph. D. thesis on the subject
 (*put here a link*).

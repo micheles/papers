@@ -750,3 +750,25 @@ advantage of being consistent with separate compilation.
  | full phase separation    |    bad (Larceny)     | bad  (PLT)             |
  -------------------------------------------------------------------------
 
+
+This is *wanted* behavior. According to Matthew Flatt:
+
+.. epigraph::
+
+ *In PLT Scheme, the motivation for phase-specific bindings is not so
+ much that we may want different names in different phases, but that we
+ want to be specific about which code is running at which times. Without
+ an enforced separation, we found that it was far too easy to
+ accidentally have the run-time code depend on some initialization in
+ compile-time code (e.g. loading a module, initializing some state), and
+ that possibility made our builds and libraries fragile. (This problem
+ is described more in the "Composable and Compilable Macros" paper.) So,
+ we moved to a system that would tell us when we got it wrong, in much
+ the same way that the compiler complains when a module contains a free
+ variable.*
+
+However I am not convinced by this argument. Whereas it is true that one should
+be very careful when mixing compile-time and run-time, especially in
+presence of side effects, I believe one can solve the issue by using
+separate compilation, and that the benefits of the tower of meta-levels are not
+compensated by the complications it induces.
