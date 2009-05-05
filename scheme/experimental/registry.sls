@@ -12,4 +12,6 @@
   (printf "registering ~a\n" id)
   (set! _registry (append _registry (list id)))
   _registry)
+
+(display "registry instantiated\n")
 )
