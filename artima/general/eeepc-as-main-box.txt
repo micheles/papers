@@ -1,0 +1,44 @@
+.. _my wife's EeePC: http://www.artima.com/weblogs/viewpost.jsp?thread=246386
+.. _my old Compaq: http://www.artima.com/weblogs/viewpost.jsp?thread=247186
+.. _Italian PyCon: http://www.pycon.it/
+
+So far I have been using `my wife's EeePC`_  as my main platform for
+four or five days. I have installed on it a lot of software I use for
+writing my articles, including
+
+- emacs
+- latex
+- python2.5
+- python2.6
+- python3.0
+- numpy & matplotlib
+- sphinx
+- sqlite
+- postgresql
+- PLT scheme
+- Chicken scheme
+- Ikarus Scheme
+- Larceny Scheme
+- Ypsilon Scheme
+
+and many any other things. I have compiled from source most stuff,
+without any issue.
+
+Right now I am preparing my talk for the `Italian PyCon`_, when I 
+want to demonstrate, running live from the EeePC, matplotlib and
+sphinx.
+
+What can I say? The EeePC is not fast as the MacBook, but perfectly
+usable anyway, and everything works. I did try to use `my old Compaq`_
+laptop first, but I could not use Ikarus on it, because its Athlon process
+was too old and had no support for the SSE3 instructions required by
+Ikarus.  The EeePC instead works just fine and it actually much faster
+than the old laptop (FWIW, compiling Larceny took less than half the
+time) which costed something like 1500 Euros. 
+
+Now I am thinking if it makes sense for me to buy another "serious"
+laptop and to spend something like 800 Euros or if I can just buy
+another netbook for 300 Euros and be done with it.
+
+The netbooks have really revolutioned the market and they are certainly
+not good only for surfing the Internet.
