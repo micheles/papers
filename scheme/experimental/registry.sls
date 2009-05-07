@@ -1,7 +1,7 @@
 #!r6rs
 (library (experimental registry)
 (export registry register)
-(import (rnrs) (aps compat))
+(import (rnrs))
 
 (define _registry '())
 
@@ -9,7 +9,7 @@
   _registry)
 
 (define (register id)
-  (printf "registering ~a\n" id)
+  (display "registering ") (display id) (newline)
   (set! _registry (append _registry (list id)))
   _registry)
 
