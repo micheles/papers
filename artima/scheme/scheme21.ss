@@ -187,8 +187,7 @@ you must use phase specification even if your
 implementation does not use it :-(
                                   
 For instance in systems based on psyntax_ and in Ypsilon -
-which is not based on psyntax but still has implicit phasing and can
-be considered in the same class of implementations - this program
+which is not based on psyntax - this program
 
 .. code-block:: scheme
 
