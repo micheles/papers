@@ -2,7 +2,7 @@
 Notice: create_db and drop_db are not transactional.
 """
 
-import os, sys, re, subprocess
+import os, sys, re, subprocess, tempfile
 from sqlplain.uri import URI
 from sqlplain import connect, do
 from sqlplain.connection import Transaction
@@ -29,6 +29,8 @@ def getoutput(commandlist, stdin=None, save_on=None):
     elif isinstance(save_on, str): # assume it is a filename
         save_on = file(save_on, 'w')
     po = subprocess.Popen(commandlist, stdin=stdin, stdout=save_on)
+    if chatty:
+        print 'Running %s' % ' '.join(map(repr, commandlist))
     out, err = po.communicate()
     if po.returncode or err:
         if err:
@@ -146,15 +148,30 @@ def copy_table(conn, src, dest, force=False):
     """
     Copy src into dest by using SELECT INTO; dest must be a valid tablename.
     If force is True and dest is an already existing table, dest is
-    destroyed and recreated.
+    destroyed and recreated, and a primary key is added.
     """
     query = "SELECT * INTO %s FROM %s" % (dest, src)
-    if force and exists_table(conn, dest):
+    recreate = force and exists_table(conn, dest)
+    if recreate:
         drop_table(conn, dest)
     n = conn.execute(query)
-    kfields = ', '.join(get_kfields(conn, src))
-    conn.execute('ALTER TABLE %s ADD PRIMARY KEY (%s)' % (dest, kfields))
+    if recreate:
+        kfields = ', '.join(get_kfields(conn, src))
+        conn.execute('ALTER TABLE %s ADD PRIMARY KEY (%s)' % (dest, kfields))
     return n
+
+def remote_copy_table(remote_db, local_db, src, dest, mode='b', truncate=False):
+    """
+    Return the temporary file used.
+    """
+    fd, tempname = tempfile.mkstemp()
+    try:
+        dump_file(remote_db.uri, src, tempname, mode)
+        if truncate:
+            truncate_table(local_db, dest)
+        print load_file(local_db.uri, dest, tempname, mode)
+    finally:
+        return tempname
 
 def truncate_table(conn, tname):
     if conn.dbtype == 'sqlite': # TRUNCATE is not supported right now
