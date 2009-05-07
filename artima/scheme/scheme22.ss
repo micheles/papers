@@ -190,7 +190,9 @@ of ``(m2)`` i.e. again the string
 
 You will get the same in Larceny and in sufficiently recent versions
 of PLT Scheme (> 4.1.3). Currently Ypsilon raises an exception but this is
-probably just a bug.
+just a bug (`already fixed in the trunk`_).
+
+.. _already fixed in the trunk: http://code.google.com/p/ypsilon/issues/detail?id=98
 
 Discussion
 ------------------------------------------
