@@ -47,6 +47,10 @@ Part IV - The Module System
 
  Ep20_ Evaluation strategy of Scheme programs
 
+ Ep21_ The different meanings of phase separation
+ 
+ Ep22_ The Dark Tower of Meta-levels
+
 .. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
 .. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941
 .. _Ep3: http://www.artima.com/weblogs/viewpost.jsp?thread=239466
@@ -67,3 +71,5 @@ Part IV - The Module System
 .. _Ep18: http://www.artima.com/weblogs/viewpost.jsp?thread=251159
 .. _Ep19: http://www.artima.com/weblogs/viewpost.jsp?thread=251476
 .. _Ep20: http://www.artima.com/weblogs/viewpost.jsp?thread=255303
+.. _Ep21: http://www.artima.com/weblogs/viewpost.jsp?thread=255612
+.. _Ep22: http://www.artima.com/weblogs/viewpost.jsp?thread=256848

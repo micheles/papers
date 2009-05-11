@@ -1,11 +1,11 @@
-#|The Tower of Meta-levels
+#|The Dark Tower of Meta-levels
 =============================================
 
 .. _You want it when: http://www.cs.utah.edu/plt/publications/macromod.pdf
 .. _R6RS document: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-10.html#node_sec_7.2
 
-I said in the previous episode that even if your implementation does
-not use explicit phasing you must understand it in order to write
+I said in the previous episode that even if your implementation of choice does
+not use explicit phasing, you must understand it in order to write
 portable programs.  Truly understandanding explicit phasing is nontrivial,
 since you must reason in terms of a (Dark) Tower of import levels, or
 *meta-levels*.
@@ -21,10 +21,10 @@ There is also a
 celebrated paper by Matthew Flatt, *Composable and Compilable
 Macros* (a.k.a. `You want it when`_) which predates the R6RS by many
 years and is more approachable. Its intent is to motivate
-the module system used by PLT Scheme from which the tower
-of meta-levels originated.
+the module system used by PLT Scheme, which made popular
+the concept of tower of meta-levels.
 
-Meta-levels are just another names for phases.
+Meta-levels are just another name for phases.
 We have already encountered two meta-levels: the
 run-time phase (meta-level 0) and expand time phase (meta-level 1).
 However, the full tower of meta-levels is arbitrarily
@@ -35,15 +35,15 @@ negative integers (!)
 
    Aziz faces the Dark Tower of Meta-levels
 
-In general implementations with explicit phasing allow you to
+Scheme implementations with explicit phasing allow you to
 import a module at a generic meta-level ``N`` with the syntax
-``(for (lib) (meta N))``.
-The forms ``(for (lib) run)`` and ``(for (lib) expand)`` are just
-shortcuts for ``(for (lib) (meta 0))`` and ``(for (lib) (meta 1))``,
-respectively.
+``(import (for (lib) (meta N)))``, where N is an integer.
+The forms ``(import (for (lib) run))`` and ``(import (for (lib) expand))`` are just
+shortcuts for ``(import (for (lib) (meta 0)))`` and
+``(import (for (lib) (meta 1)))``, respectively.
 
 Instead of discussing much theory, in this episode I will
-show two concrete examples of macros that requires
+show two concrete examples of macros which require
 importing variables at a nontrivial meta-level *N*,
 with *N<0* or *N>1*.
 
@@ -74,7 +74,7 @@ at expand-time (notice that in Scheme characters
 are different from strings, i.e. the character
 ``\#R`` is different from the string of length 1 ``"R"``).
 
-If you run this script in Ikarus or Ypsilon
+If you run this script in Ikarus or Ypsilon or Mosh
 you will get the following unsurprising result::
 
  $ ikarus --r6rs-script use-static-map.ikarus.ss 
@@ -142,8 +142,8 @@ is unknown. The comments below should make clear how meta-levels mix:
               ...))))
 
 Actually ``quote`` is the only needed binding, so it would be enough
-import it with the syntax ``(for (only (rnrs) quote) (meta -1))``. If
-we ignored the introspection feature, i.e. we commented out the line
+to import it with the syntax ``(import (for (only (rnrs) quote) (meta -1)))``.
+If we ignored the introspection feature, i.e. we commented out the line
 
 ``(sub (ctx <names>) #''(name ...))``
 
@@ -211,7 +211,7 @@ language used at a given phase can be different from the language used
 in the other phases.
 Suppose for instance you are a teacher, and you want to force your
 students to write their macros using only a functional subset of Scheme.
-You could then import at compile time all R6RS procedures except the
+You can do so by importing at compile time all R6RS procedures except the
 nonfunctional ones (like ``set!``) while importing at run-time
 the whole of R6RS. You could even perform the opposite, and remove ``set!``
 from the run-time, but allowing it at compile time.
@@ -228,7 +228,7 @@ is difficult, since one has to write by hand all the required meta imports.
 
    Aziz destroys the Tower of Meta-levels
 
-All this trouble is missing in Ikarus, in Ypsilon and in the
+All this trouble is missing in Ypsilon and in the
 implementations based on psyntax. In such
 systems importing a module imports its public variables for *all* meta-levels.
 In other words all meta-levels share the same language: the
@@ -236,6 +236,7 @@ tower of meta-levels is effectively destroyed (one could
 argue that the tower is still there, implicitly, but the point is that
 the programmer does not need to think about it explicitly). The model
 of implicit phasing was proposed by Kent Dybvig and
-Abdul Aziz Ghuloum, who wrote his Ph. D. thesis on the subject
-(*put here a link*).
+Abdul Aziz Ghuloum, who wrote his `Ph. D. thesis`_ on the subject.
+
+.. _Ph. D. thesis: http://portal.acm.org/citation.cfm?id=1291151.1291197&coll=GUIDE&dl=GUIDE&CFID=34012650&CFTOKEN=38507862
 |#
