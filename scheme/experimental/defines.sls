@@ -5,7 +5,10 @@
 
 (define-syntax visit-defines
   (lambda (x) "visited"))
+
 (define+ a 1)
 (define+ b 2)
+
+(display "defines instantiated\n")
 )
 
