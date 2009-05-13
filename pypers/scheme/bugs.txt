@@ -1,0 +1,21 @@
+Ypsilon (1)
+----------------------
+
+Bug with literal identifiers at the REPL
+
+Larceny (1)
+----------------------
+
+Bug in (... (... ))
+
+Ypsilon (4)
+------------
+
+Bugs in syntax-case #53, #54, #96, #98 (problems with ellipsis and with the
+macro expansion).
+
+PLT (3)
+--------------------------
+
+Bug in mutating exported identifier, and bug in metalevels (both in R6RS mode).
+The fix on the metalevels caused another bug in the ellipsis in SVN.

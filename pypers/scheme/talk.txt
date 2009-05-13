@@ -1,0 +1,348 @@
+The R6RS module system
+===============================================
+
+:Talk given at: EuroLisp Symposium 2009
+:By: Michele Simionato
+:date: 2009-05-28
+
+.. include:: <s5defs.txt>
+.. footer:: EuroLisp 2009
+
+Introduction
+------------------------------------------------
+
+This is as a talk for macro writers who want to write
+portable R6RS code. It assumes:
+
+.. class:: incremental
+
+ - knowledge of (R5RS) Scheme
+ - some knowledge of syntax-case macros
+ - not much knowledge of R6RS Scheme
+ - no knowledge of the R6RS module system
+
+Ok, now about me
+----------------------------
+
+.. class:: incremental
+
+- I am a hobbyist Scheme programmer
+- my background is in Python
+- I started programming in Scheme 5+ years ago
+- author of "The Adventures of a Pythonista in Schemeland"
+- I love/hate Scheme
+
+What I have done in Scheme
+--------------------------------------
+
+.. class:: incremental
+
+- written sweet-macros as a sugar over syntax-case
+- written various support libraries for the Adventures
+- fought a lot with portability issues
+- experimented with cutting edge features (found bugs!)
+- made a lot of noise in various mailing lists
+- got *impressive* support from Scheme implementors
+- my experience relevant for new R6RS programmers
+
+R6RS modules in absence of macros
+----------------------------------
+
+- everything is (nearly) trivial
+
+::
+
+ $ cat mylib.ss
+ #!r6rs
+ (library (my-lib)
+ (export a b)
+ (import (rnrs))
+ (define a 42)
+ (define b 0)
+ (display "my-lib instantiated!\n")
+ )
+
+ $ cat example.sls
+ (import (rnrs) (my-lib))
+ (display (+ a b))
+ (newline)
+
+Easy features (I)
+--------------------------------------
+
+.. class:: incremental
+
+- import with a prefix::
+
+   (import (my-lib (prefix my-lib:)))
+   (display my-lib:a)
+
+- import only a specific sets of names::
+
+   (import (only (my-lib) a))
+   (display a)
+
+Easy features (II)
+----------------------------------------
+
+.. class:: incremental
+
+- rename a set of identifiers::
+
+   (import (rename (my-lib) (a ml:a)))
+   (display ml:a)
+
+- exclude a set of identifiers::
+
+   (import (exclude (my-lib) a))
+   (display b)
+
+Easy features (III)
+----------------------------------------
+
+- support for importing a specific version
+
+Missing features
+----------------------------------------
+
+.. class:: incremental
+
+- ``(export *)`` not available
+- no introspection API 
+
+Compatibility caveats
+------------------------------------------
+
+.. class:: incremental
+
+- the  module search path is implementation dependent
+- do not forget the #!r6rs line in PLT
+- each module needs a directory in PLT Scheme
+- instantiation semantics is implementation-dependent
+  (for instance non-used libraries are not instantiated
+  in Ikarus)
+
+R6RS modules with simple macros
+-------------------------------------
+
+- no problem here::
+
+ $ cat mylib.ss
+
+ #!r6rs
+ (library (my-lib)
+ (export double)
+ (import (rnrs))
+ (define-syntax double
+   (syntax-rules ()
+    ((_ x) (list x x))))
+ )
+
+Macro usage
+-------------------------
+
+ $ cat example.sls
+ (import (rnrs) (my-lib))
+ (display (double 1));  prints (1 1)
+
+Where is all the fuss?
+-------------------------------------------------
+
+.. class:: incremental
+
+- the problem is when you have macros depending on helper
+  variables/functions/macros
+- then you must understand *phase separation*
+- there are *three* different concepts of phase separation
+- all the possibilities are accepted by the R6RS
+- but they are incompatible!
+
+Explaining phase separation
+------------------------------------------------
+
+Here is the problem::
+
+ > (let ((a 42))
+     (let-syntax ((m (lambda (x) a)))
+       (m)))
+ error: identifer a out of context
+
+Why the identifier is not available to the macro?
+
+Expand-time vs run-time
+-------------------------------
+
+.. class:: incremental
+
+ - because it is defined too late!
+
+::
+
+ (let ((a 42))                      ; run-time
+   (let-syntax ((m (lambda (x) a))) ; expand-time
+     (m)))                          ; expand-time
+
+- regular definitions (both define and let) are performed
+  at runtime, whereas macro definitions (define-syntax
+  and let-syntax) are performed at expand-time.
+
+The solution
+--------------------------------------
+
+- put the helper object (value, function, macro)
+  in a different module and import it at expand time
+
+::
+
+ > (import (for (my-lib) expand))
+ > (let-syntax ((m (lambda (x) a))) (m))
+   42
+
+Beware! the REPL may betray you
+-------------------------------------------
+  
+.. class:: incremental
+
+- Ikarus, Ypsilon and others
+
+::
+
+  $ ikarus
+  > (define a 42)
+  > (let-syntax ((m (lambda (x) a))) (m))
+    42
+
+PLT REPL is smarter
+---------------------------
+
+ $ mzscheme
+ > (define a 42)
+ > (let-syntax ((m (lambda (x) a))) (m))
+ reference to undefined identifier: a
+  
+.. class:: incremental
+
+- Notice: define-for-syntax is missing
+
+Weak phase separation vs strong phase separation
+-----------------------------------------------------
+
+This script
+
+::
+
+  (import (for (my-lib) expand))
+  (display (let-syntax ((m (lambda (x) a))) (m)))
+  (display a)
+  
+.. class:: incremental
+
+- compiles and runs fine on system based on psyntax
+- does not even compile on PLT Scheme and Larceny!
+
+The R6RS document is schizophrenic
+-------------------------------------------------------
+  
+.. class:: incremental
+
+- R6RS implementations are required to support the syntax
+ (import (for (my-lib) expand)) *formally*
+
+- they are not required to honor it!
+
+- it does not say weak phase separation is bad
+- it does not say strong phase separation is bad
+- it does not say anything about instantiation semantics
+
+You get the worse of two worlds
+--------------------------------------------
+
+Writers of portable code
+
+.. class:: incremental
+
+- cannot rely on the power of explicit phasing
+- cannot rely on the simplicity implicit phasing
+- cannot rely on single instantiation nor on multiple instantiation
+- apparently it was politically impossible to do better
+
+The tower of metalevels
+-----------------------------------------------------
+
+System with strong phase separation have a tower of metalevels
+
+  (define-syntax m1       ;; level 1
+   (lambda (x1)           ;; level 1
+      (define-syntax m2   ;; level 2
+         (lambda (x2) a)) ;; level 2
+      (+ (m2) b)))        ;; level 1
+
+  (display                ;; level 0
+    (m1)                  ;; level 1
+  )                       ;; level 0
+
+Negative levels
+-------------------------------------------
+
+- there is an arbitrary number of positive metalevels,
+  depending of how level of nesting you have
+  in macro definitions
+
+- there is also an arbitrary number of negative
+  metalevels!!
+
+A second order macro
+-------------------------
+
+(define-syntax very-static-table
+  (syntax-rules ()
+    ((_ (name value) ...) 
+      (syntax-rules (<names> name ...)
+        ((_ <names>) '(name ...))
+        ((_ name) value) ...))))
+
+ (define-syntax color
+  (very-static-table (red 0) (green 1) (blue 2)))
+
+ (display (color <names>)) ;=> (red green blue)
+ (display (color red)) ;=> 0
+
+Phase levels
+---------------------------------------
+
+(define-syntax very-static-table       ;; level 1
+  (syntax-rules ()                     ;; level 1
+    ((_ (name value) ...)              ;; level 0
+      (syntax-rules (<names> name ...) ;; level 0
+        ((_ <names>)                   ;; level 0
+          '                            ;; level -1
+          (name ...))                  ;; level 0
+        ((_ name)                      ;; level 0
+          value)                       ;; level -1
+          ...))))
+
+(import (for (only (rnrs) quote) expand))
+
+Multiple instantiation
+----------------------------------------------------
+                         
+.. class:: incremental
+
+- PLT Scheme has a special kind of extra strong phase separation
+- not only you can instantiate a module in one or more phases
+- each instance is totally independent
+
+ $ cat two-phases.ss
+ (import (my-lib) expand run)
+
+Example in Larceny
+-------------------
+
+
+References
+------------------------------
+
+- http://wsgi.org/wsgi
+- http://www.python.org/dev/peps/pep-0333
+- http://pythonpaste.org/do-it-yourself-framework.html
+- http://pylonshq.com/
