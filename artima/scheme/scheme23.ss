@@ -6,16 +6,16 @@
 .. _SRFI-19: http://srfi.schemers.org/srfi-19/srfi-19.html
 
 I have discussed many times the concept of *time* in Scheme: there
-is a run-time, an expand-time, and a whole set of times
-associated to the metalevels. Moreover, when you take in consideration
+is a run-time, an expand-time, and in general a whole set of times
+associated to the metalevels. When you take in consideration
 use separate compilation there is yet another set of times: the times when your
 libraries are separately compiled.
 
 .. image:: time.jpg
 
 Things are even trickier if the separately compiled libraries
-are defining macros used in client code, since yet another concept of
-time enters in the game, the concept of *visit time.
+define macros used in client code, since then another concept of
+time enters in the game, the *visit time*.
 
 Suppose we have a low level library ``L``,
 compiled yesterday, defining a macro we want to use in another
@@ -25,7 +25,7 @@ to expand code using it during its compilation. Therefore, the compiler
 must look at the low level library and re-evaluate the macro
 definition today (this process is called *visiting*). The
 visit time is different from the time of the
-compilation of ``L`` and it happens just before the compilation of ``M``.
+compilation of ``L`` as it happens just before the compilation of ``M``.
 The example below should make things clear.
 
 Consider a simple low level library ``L``, definining a macro ``m``
@@ -77,9 +77,8 @@ visited, i.e. its macro definitions can be re-evaluated - and at run-time
 - a library may be instantiated. Different things happens in different
 implementations.
 
-The example of the previous paragraph if very useful if you want to
+The example of the previous paragraph if very useful to
 have an idea of what it portable behaviour and what is not.
-
 Let me first consider what happens in Ikarus.
 
 If I want to compile ``L`` and ``M`` in Ikarus, I need to introduce
@@ -88,7 +87,7 @@ a library from the command line:
 
 $$experimental/H:
 
-Here is what we get::
+Here is what I get::
 
  $ ikarus --compile-dependencies H.ss
  visiting L
@@ -259,7 +258,7 @@ since they are single instantiation implementations with eager import.
 The situation in PLT Scheme is subtle, and you can find a detailed explaination
 of what it is happening `in this other thread`_. Otherwise, you will have to
 wait for the next (and last!) episode of this series, where I will explain
-the reason why PLT is instantiating (and visiting) modules so much.
+the reason why PLT is instantiating (and visiting) modules so many times.
 
 .. _in this other thread: http://groups.google.com/group/ikarus-users/browse_frm/thread/b07ef7266988bd1a?hl=en#
 |#
