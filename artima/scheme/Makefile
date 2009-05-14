@@ -156,4 +156,7 @@ fourth-cycle: fourth-cycle.txt
 	$(RST) scheme22.ss; $(POST) scheme22.rst 256848
 
 23: scheme23.ss
-	$(RST) scheme23.ss; $(POST) scheme23.rst
+	$(RST) scheme23.ss; $(POST) scheme23.rst 257998
+
+24: scheme24.ss
+	$(RST) scheme24.ss; $(POST) scheme24.rst

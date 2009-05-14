@@ -1,213 +1,266 @@
-#|
-Side effects in modules
-===============================================================
+#|Separate compilation
+==================================
 
-In functional programs there are no side effects; in real life programs
-however there are side effects, and we must be able to cope with them.
-The way the module system copes with side effects is quite tricky and
-implementation-dependent. The goal of this episode is to shed some
-light on the subject.
+.. _19: http://www.artima.com/weblogs/viewpost.jsp?thread=251476
+.. _You want it when?: http://www.cs.utah.edu/plt/publications/macromod.pdf
+.. _SRFI-19: http://srfi.schemers.org/srfi-19/srfi-19.html
 
-Side effects and interpreter semantics
-------------------------------------------------------
+I have discussed many times the concept of *time* in Scheme: there
+is a run-time, an expand-time, and a whole set of times
+associated to the metalevels. Moreover, when you take in consideration
+use separate compilation there is yet another set of times: the times when your
+libraries are separately compiled.
 
-Let me start with a simple example. Consider a module exporting a variable
-(``x``) and a function with side effects affecting that variable (``incr-x``)):
+.. image:: time.jpg
 
-$$experimental/mod1:
+Things are even trickier if the separately compiled libraries
+are defining macros used in client code, since yet another concept of
+time enters in the game, the concept of *visit time.
 
-This kind of side effect is ruled out by the R6RS specification (section 7.2):
-*exported variables must be immutable*. This is the reason why Ikarus, Ypsilon
-and Larceny reject the code with errors like 
-``attempt to export mutated variable`` or 
-``attempt to modify immutable variable``.
-On the other hand PLT Scheme compiles the code without raising any
-warning, therefore even this simple case is tricky and exposes
-a bug in the PLT implementation of the module system :-(
+Suppose we have a low level library ``L``,
+compiled yesterday, defining a macro we want to use in another
+middle level library ``M``, to be compiled today. The middle level
+library needs to know about the macro definition, because it has
+to expand code using it during its compilation. Therefore, the compiler
+must look at the low level library and re-evaluate the macro
+definition today (this process is called *visiting*). The
+visit time is different from the time of the
+compilation of ``L`` and it happens just before the compilation of ``M``.
+The example below should make things clear.
 
-Consider now a module exporting a function with side effects affecting a
-non-exported (i.e. private) variable:
+Consider a simple low level library ``L``, definining a macro ``m``
+and an integer variable ``a``:
 
-$$experimental/mod2:
+$$experimental/L:
 
-This is a valid library which compiles correctly. The accessor ``get-x``
-gives access to the internal variable ``x``. We may import it
-at the REPL and experiment with it:
+You may compile it with PLT Scheme::
+
+ $ plt-r6rs --compile L.sls 
+  [Compiling /usr/home/micheles/gcode/scheme/experimental/L.sls]
+ visiting L
+
+Since the right hand side of a macro definition is evaluated at
+compile time the message ``visiting L`` is printed during compilation,
+as expected.
+
+Here is a simple middle level library using the macro ``m``:
+
+$$experimental/M:
+
+I have used the ``(when #f (m))`` trick to make absolutely clear that
+the macro is expanded even if it is in code which will never be
+used at runtime. Still, the compiler needs to visit ``L`` in order
+to compile ``M``. This is actually what happens::
+
+ $ plt-r6rs --compile M.sls 
+  [Compiling /usr/home/micheles/gcode/scheme/experimental/M.sls]
+ visiting L
+
+If you comment the line with the macro call the compiler in principle
+does not need to visit ``L`` anymore; some implementations may take
+advantage of this fact (Ypsilon and Ikarus do). However, PLT Scheme will
+continue to visit ``L`` in any case.
+
+Import semantics and portability gotchas
+-----------------------------------------------
+
+It is time to ask ourselves the crucial question:
+what does it mean to *import* a library?
+
+For a Pythonista, things are simple: importing a library means
+executing it at runtime.  For a Schemer, things are complicated:
+importing a library implies that some operation are performed at
+compile time - such as looking at the exported identifiers and at the
+dependencies of the library - but there is also a lot of unspecified
+behaviour which may happen both a compile-time - a library may be
+visited, i.e. its macro definitions can be re-evaluated - and at run-time
+- a library may be instantiated. Different things happens in different
+implementations.
+
+The example of the previous paragraph if very useful if you want to
+have an idea of what it portable behaviour and what is not.
+
+Let me first consider what happens in Ikarus.
+
+If I want to compile ``L`` and ``M`` in Ikarus, I need to introduce
+a helper script ``H.ss``, since Ikarus has no direct way to compile
+a library from the command line:
+
+$$experimental/H:
+
+Here is what we get::
+
+ $ ikarus --compile-dependencies H.ss
+ visiting L
+ Serializing "/home/micheles/gcode/scheme/experimental/M.sls.ikarus-fasl" ...
+ Serializing "/home/micheles/gcode/scheme/experimental/L.sls.ikarus-fasl" ...
+
+Ikarus is lazier than PLT and you can check that if you comment the
+line invoking the macro in ``M.sls`` and you recompile the dependencies,
+then the library ``M`` is not visited. The same for Ypsilon. You may
+also check that if you introduce a dummy macro in ``M``, depending on
+the variable ``a`` defined in ``L`` (for instance if you add a line
+``(def-syntax dummy (lambda (x) a))``) then the library ``L``
+needs to be instantiated just to compile ``M``.
+
+Ypsilon does not have a switch to compile a library without
+executing it - even if this is possible by invoking the low level
+compiler API - so we must execute ``H.ss`` to compile its dependencies::
+
+ $ ypsilon --r6rs H.ss
+ L instantiated
+ visiting L
+ M instantiated
+ 42
+
+There are several things to notice here, since the output of Ypsilon is
+quite different from the output of Ikarus
+
+::
+
+ $ ikarus --r6rs-script H.ss
+ L instantiated
+ 42
+
+and the output of PLT::
+
+ $ plt-r6rs H.ss
+ visiting L
+ visiting L
+ L instantiated
+ M instantiated
+ 42
+
+The first thing to notice is that in Ikarus and in PLT we relied on the
+fact that the libraries were precompiled, so in order to perform a fair
+comparison we must run Ypsilon again (this second time the libraries
+L and M will be precompiled)::
+
+ $ ypsilon --r6rs H.ss
+ L instantiated
+ M instantiated
+ 42
+
+You my notice that this time the library ``L`` is not visited: it was visited
+the first time, in order to compile ``M``, but there is no need
+to do so now. During compilation of ``M`` macros has been expanded and
+the bytecode of ``M`` contains the expanded version of the library; moreover
+the helper script ``H`` does not use any macro so it does not really need
+to visit ``L`` or ``M`` to be compiled. The same happens for Ikarus.
+PLT instead visits ``L`` twice
+to compile ``H.ss``. In PLT all dependencies (both direct and indirect)
+are always visited when compiling. If we compile
+the script once and for all
+
+::
+
+ $ plt-r6rs --compile H.ss
+  [Compiling /usr/home/micheles/gcode/scheme/experimental/H.ss]
+  [Compiling /home/micheles/.plt-scheme/4.1.5.5/collects/experimental/M.sls]
+ visiting L
+ visiting L
+
+obviously the ``visiting L`` message will not be printed::
+
+ $ plt-r6rs H.ss
+ L instantiated
+ M instantiated
+ 42
+
+Having performed the right number of compilations now
+the output of PLT and Ypsilon are the same; nevertheless, the output of
+Ikarus is different, since Ikarus does not instantiate the middle level
+library ``M``. The reason is the implicit phasing semantics of Ikarus
+(but other implementations based on psyntax would behave the same): the
+helper script ``H.ss`` is printing the variable ``a`` which really
+comes from the library ``L``. Ikarus is clever enough to recognize this
+fact and lazy enough to avoid instantiating the ``M`` library without
+need.
+
+This is both good and bad: it is good if ``M`` is
+really unneeded; it is bad if ``M`` has some side effect,
+since the side effect will misteriously disappear: in this example
+the side effect is just printing the message ``M instantiated``, in
+more sophisticated examples the side effect could be writing a log
+on a database, or initializing some variable, or registering an object,
+or something else. For instance,
+suppose you want to collect a bunch of functions into
+a global registry acting as a dictionary of functions.
+You may do so as follows:
 
 .. code-block:: scheme
 
- > (import (experimental mod2))
- > (get-x)
- 0
- > (incr-x)
- 1
- > (incr-x)
- 2
- > (get-x)
- 2
+ (library (my-library)
+ (export)
+ (import (registry))
 
-Everything works as you would expect.
+ (define (f1 ...)  ...)
+ (registry-set! 'f1 f1)
 
-As always, things are trickier in scripts, when compiler semantics and
-phase separation enters in the game.
+ (define (f2 ...) ...)
+ (registry-set! 'f2 f2)
 
-Side effects and compiler semantics
-------------------------------------------------------
+ ...
+ )
 
-Consider the following script:
+The library here does not export anything, since it relies on side effects
+to populate the global registry of functions; the idea is to access the
+functions later, with a call of kind ``(registry-ref <func-name>)``.
+This design as it is is not portable to systems based on psyntax, because
+such systems will not instantiate the library (the library does not export
+any variable, nothing of the library can be used in client code!).
+This can easily be fixed, by introducing an initialization function
+to be exported and called explicitly from client code, which is a
+good idea in any case.
 
-$$experimental/use-mod2:
+Analogously, a library based on side effects at visit time,
+i.e. in the right hand side of macro definitions, is not portable,
+since systems based on psyntax will not visit a library with
+macros which are not used. This is relevant if you want to use the
+technique described in the `You want it when?`_ paper: in order
+to make sure that the technique work on systems based on psyntax, you 
+must make sure that the library exports at least one macro which
+is used in client code. Curious readers will find the gory
+details `in this thread`_ on the PLT mailing list.
 
-Here we import the module ``mod2`` twice, both at run-time and at expand time.
-In Scheme implementations with multiple instantiation there are two fully
-separated instances of the module, and running the script returns
-what you would expect::
+.. _in this thread: http://groups.google.com/group/plt-scheme/browse_frm/thread/c124fa9c48dc5b6a?hl=en#
 
- $ plt-r6rs use-mod2.ss 
- At expand-time x=1
- At run-time x=1
+Generally speaking, you cannot
+rely on the number of times a library will be instantiated,
+even within the *same* implementation!
+Abdulaziz Ghuloum gave a nice example in the Ikarus and PLT lists. You
+have the following libraries:
 
-The fact that ``x`` was incremented at compile-time has no effect
-at all at run-time, since the run-time variable ``x`` belongs to a completely
-different instance of the module. In system with single instantiation
-instead, there is only a *single instance of the module for all phases*,
-so that incrementing ``x`` at expand-time has effect at runtime::
+.. code-block:: scheme
 
- $ ikarus --r6rs-script use-mod2.ss
- At expand-time x=1
- At run-time x=2
+ (library (T0) (export) (import (rnrs)) (display "T0\n"))
+ (library (T1) (export) (import (for (T0) run expand)))
+ (library (T2) (export) (import (for (T1) run expand)))
+ (library (T3) (export) (import (for (T2) run expand)))
 
-You would get the same with Ypsilon and Larceny (Larceny has explicit
-phasing but single instantiation and if you import a module in more
-than one phase the variables are shared amongsts the phases).
+and the following script:
 
-This only works because the script is executed immediately
-after compilation *in the same process*. However, having compile-time
-effects affecting run-time values is *wrong*, since it breaks
-separate compilation. If we turn the script into a library and we
-compile it separately, it is clear than the run-time value of ``x``
-cannot be affected by the compile-time value of ``x``
-(maybe the code was compiled 10 years ago!) and it
-must use a separate instance of the imported module.
+.. code-block:: scheme
 
-Side effects and separate compilation
--------------------------------------------------------------
+ #!r6rs
+ (import (T3))
 
-Let me explain in detail how separate compilation works in Ikarus,
-Ypsilon and PLT Scheme. Suppose we turn the previous script into a library
+Running the script (without precompilation) results in printing T0::
 
-$$experimental/use-mod3:
+ 0 times for Ikarus and Mosh
+ 1 time for Larceny and Ypsilon
+ 10 times for plt-r6rs
+ 13 times for mzscheme
+ 22 times for DrScheme
 
-and let us invoke this library though a script ``use-mod3.ss``:
+T0 is not printed in psyntax-based implementations, since it does not export
+any identifier that can be used. T0 is printed once in Larceny and Ypsilon
+since they are single instantiation implementations with eager import.
+The situation in PLT Scheme is subtle, and you can find a detailed explaination
+of what it is happening `in this other thread`_. Otherwise, you will have to
+wait for the next (and last!) episode of this series, where I will explain
+the reason why PLT is instantiating (and visiting) modules so much.
 
-$$experimental/use-mod3:
-
-If we use PLT Scheme, nothings changes::
-
- $ plt-r6rs use-mod3.ss
- At expand-time x=1
- At run-time x=1
-
-This is expected: turning a script into a library did not make
-anything magic happens. On the other hand, things are very
-different if we run the same code under Ypsilon.
-The first time the script is run it prints three lines::
-
- $ ypsilon --r6rs use-mod3.ss 
- At expand-time x=1
- At expand-time x=2
- At run-time x=3
-
-However, if we run the script again it prints just one line::
-
- $ ypsilon --r6rs use-mod3.ss 
- At run-time x=1
-
-The reason is that the first time Ypsilon compiles the libraries, using
-the same module instance, so that there is a single ``x`` variable which
-is incremented twice at expand time - the first time when ``mod2``
-is imported and the second time when ``mod3`` is imported - and
-once at run-time. The second time there is nothing
-to recompile, so only the runtime ``x`` variable is incremented, and
-there is no reference to the compile time instance.
-
-The situation for Ikarus is subtler. Apparently we get the same
-as before, when ``mod3`` was just a script::
-
- $ ikarus --r6rs-script use-mod3.ss 
- At expand-time x=1
- At run-time x=2
-
-However, this only happens because Ikarus is compiling all the libraries
-at the same time. If we use separate compilation we get::
-
- $ ikarus --compile-dependencies use-mod3.ss 
- At expand-time x=1
- Serializing "/home/micheles/gcode/scheme/experimental/mod3.sls.ikarus-fasl" ...
- Serializing "/home/micheles/gcode/scheme/experimental/mod2.sls.ikarus-fasl" ...
-
-As you see, ``mod2`` the message ``At expand-time x=1`` is printed when
-``mod2`` is compiled. If we run the script ``use-mod3.ss`` now, we
-get just the runtime message::
-
- $ ikarus --r6rs-script use-mod3.ss 
- At run-time x=1
-
-In Ikarus, Ypsilon and Larceny, the same invocation of this script
-returns different results, depending if the libraries have been
-precompiled or not. This is ugly and error prone. The multiple
-instantiation mechanism of PLT Scheme has been designed to avoid this
-problem: in PLT one consistently gets always the same
-result.
-
-On could get the same in non-PLT implementations by spawning
-two separate processes, run one after the other: the
-first to compile the script and its libraries, and the second to
-execute it. That would make sure that incrementing
-``x`` in the expansion phase would not influence the value of ``x``
-at runtime.
-
-My wishlist
----------------------------------------------------
-
-I have discussed a large spectrum of solutions to the module system
-problem, but I did not find any that satisfies me completely.
-I have a personal wishlist of features.
-
-- interpreter semantics and the REPL
-
-  I think that the behavior of REPL should
-  not be too different from the behavior of scripts; in particular,
-  I like that in PLT functions defined in the REPL
-  are not available in macros. This may be inconvenient, but
-  I think it is pedagogically
-  useful, since it forces beginners to think about phase separation
-  early on and to have a consistent model of what will happen once
-  they compile the script. I started programming in Scheme
-  with implementations where the REPL behavior was different
-  from the compiled behavior and it was very difficult for me
-  to understand why my "correct" scripts did not compile.
-
-- phase separation and multiple instantiation
-
-  I agree with the PLT people that expand-time variables and run-time
-  variables should live in different instances, however I disagree
-  that we need a tower of metalevels. Two phases are more than enough.
-  We can just perform the compilation in a different process
-  than the evaluation process. In this way the
-  variables can be imported in all phases, with
-  implicit phasing semantics, but modifying a variable at expand time
-  cannot influence its runtime counterpart.
-
-- missing features from the standard
-
-  I think the standard lacks many important features. I have
-  already noticed that I would welcome the ability to export all names from a
-  library ``(export *)`` and the ability to introspect the names exported
-  by library. In addition,
-  I would welcome a mechanism to write helper functions for macros *in the
-  same file* the macros are defined, if one wants to. One way to implement this
-  feature is to standardize the ability of writing multiple libraries in
-  the same file, which is already provided by some implementations.
-  Another way is to introduce at ``define-at-all-phases`` form.
+.. _in this other thread: http://groups.google.com/group/ikarus-users/browse_frm/thread/b07ef7266988bd1a?hl=en#
 |#
+
