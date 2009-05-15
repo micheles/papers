@@ -5,30 +5,28 @@
 .. _You want it when?: http://www.cs.utah.edu/plt/publications/macromod.pdf
 .. _SRFI-19: http://srfi.schemers.org/srfi-19/srfi-19.html
 
-I have discussed many times the concept of *time* in Scheme: there
-is a run-time, an expand-time, and in general a whole set of times
-associated to the metalevels. When you take in consideration
-use separate compilation there is yet another set of times: the times when your
-libraries are separately compiled.
+I have discussed many times the concept of *time* in Scheme
+(pun intended): there is a run-time, an expand-time, more in general a
+discrete set of times associated to the meta-levels. When you use
+separate compilation there is yet another set of times to take in
+consideration: the times when the libraries are separately compiled.
+Things are even trickier if the separately compiled libraries define
+macros used in client code, since in that case yet another concept of
+time enters in the game, the *visit time*.
 
 .. image:: time.jpg
 
-Things are even trickier if the separately compiled libraries
-define macros used in client code, since then another concept of
-time enters in the game, the *visit time*.
+Suppose we have a low level library ``L``, compiled yesterday,
+defining a macro we want to use in another middle level library ``M``,
+to be compiled today. The middle level library needs to know about the
+macro definition at the time of its compilation, because it has to
+expand code. Therefore, the compiler must look at the low level
+library and re-evaluate the macro definition today (this process is
+called *visiting*). The visit time is different from the time of the
+compilation of ``L`` as it happens just before the compilation of
+``M``.  The example below should make things clear.
 
-Suppose we have a low level library ``L``,
-compiled yesterday, defining a macro we want to use in another
-middle level library ``M``, to be compiled today. The middle level
-library needs to know about the macro definition, because it has
-to expand code using it during its compilation. Therefore, the compiler
-must look at the low level library and re-evaluate the macro
-definition today (this process is called *visiting*). The
-visit time is different from the time of the
-compilation of ``L`` as it happens just before the compilation of ``M``.
-The example below should make things clear.
-
-Consider a simple low level library ``L``, definining a macro ``m``
+Consider the following low level library ``L``, defining a macro ``m``
 and an integer variable ``a``:
 
 $$experimental/L:
@@ -49,7 +47,7 @@ $$experimental/M:
 
 I have used the ``(when #f (m))`` trick to make absolutely clear that
 the macro is expanded even if it is in code which will never be
-used at runtime. Still, the compiler needs to visit ``L`` in order
+used at run-time. Still, the compiler needs to visit ``L`` in order
 to compile ``M``. This is actually what happens::
 
  $ plt-r6rs --compile M.sls 
@@ -61,26 +59,27 @@ does not need to visit ``L`` anymore; some implementations may take
 advantage of this fact (Ypsilon and Ikarus do). However, PLT Scheme will
 continue to visit ``L`` in any case.
 
-Import semantics and portability gotchas
+The mysterious import semantics
 -----------------------------------------------
 
 It is time to ask ourselves the crucial question:
 what does it mean to *import* a library?
 
 For a Pythonista, things are simple: importing a library means
-executing it at runtime.  For a Schemer, things are complicated:
+executing it at run-time.  For a Schemer, things are complicated:
 importing a library implies that some operation are performed at
 compile time - such as looking at the exported identifiers and at the
 dependencies of the library - but there is also a lot of unspecified
-behaviour which may happen both a compile-time - a library may be
-visited, i.e. its macro definitions can be re-evaluated - and at run-time
-- a library may be instantiated. Different things happens in different
-implementations.
+behavior which may happen both a compile-time and at run-time.
+In particular at compile time a library may be only visited,
+i.e. its macro definitions can be re-evaluated - or can be
+only instantiated or both. Different things happens in different
+situations and in the same situation different implementations
+can perform different operations.
 
 The example of the previous paragraph if very useful to
-have an idea of what it portable behaviour and what is not.
+have an idea of what is portable behavior and what is not.
 Let me first consider what happens in Ikarus.
-
 If I want to compile ``L`` and ``M`` in Ikarus, I need to introduce
 a helper script ``H.ss``, since Ikarus has no direct way to compile
 a library from the command line:
@@ -94,9 +93,9 @@ Here is what I get::
  Serializing "/home/micheles/gcode/scheme/experimental/M.sls.ikarus-fasl" ...
  Serializing "/home/micheles/gcode/scheme/experimental/L.sls.ikarus-fasl" ...
 
-Ikarus is lazier than PLT and you can check that if you comment the
+Ikarus is lazier than PLT: for instance, if you comment the
 line invoking the macro in ``M.sls`` and you recompile the dependencies,
-then the library ``M`` is not visited. The same for Ypsilon. You may
+then the library ``M`` is not visited. You may
 also check that if you introduce a dummy macro in ``M``, depending on
 the variable ``a`` defined in ``L`` (for instance if you add a line
 ``(def-syntax dummy (lambda (x) a))``) then the library ``L``
@@ -143,7 +142,7 @@ L and M will be precompiled)::
 You my notice that this time the library ``L`` is not visited: it was visited
 the first time, in order to compile ``M``, but there is no need
 to do so now. During compilation of ``M`` macros has been expanded and
-the bytecode of ``M`` contains the expanded version of the library; moreover
+the byte-code of ``M`` contains the expanded version of the library; moreover
 the helper script ``H`` does not use any macro so it does not really need
 to visit ``L`` or ``M`` to be compiled. The same happens for Ikarus.
 PLT instead visits ``L`` twice
@@ -166,25 +165,35 @@ obviously the ``visiting L`` message will not be printed::
  M instantiated
  42
 
+Portability gotchas
+---------------------------------------------------------
+
 Having performed the right number of compilations now
 the output of PLT and Ypsilon are the same; nevertheless, the output of
 Ikarus is different, since Ikarus does not instantiate the middle level
 library ``M``. The reason is the implicit phasing semantics of Ikarus
-(but other implementations based on psyntax would behave the same): the
+(other implementations based on psyntax would exhibit the same behavior): the
 helper script ``H.ss`` is printing the variable ``a`` which really
 comes from the library ``L``. Ikarus is clever enough to recognize this
 fact and lazy enough to avoid instantiating the ``M`` library without
-need.
+need. On the other hand, Ypsilon performs eager instantiation and it
+instantiates (once) all the libraries it imports
+(both directly and indirectly), even at compile time and even in situations
+when the instantiation would not be needed for compilation of the client
+library.
 
-This is both good and bad: it is good if ``M`` is
-really unneeded; it is bad if ``M`` has some side effect,
-since the side effect will misteriously disappear: in this example
-the side effect is just printing the message ``M instantiated``, in
-more sophisticated examples the side effect could be writing a log
-on a database, or initializing some variable, or registering an object,
-or something else. For instance,
-suppose you want to collect a bunch of functions into
-a global registry acting as a dictionary of functions.
+The implementations based on psyntax are the smartest out there, but
+begin smart is not the same as being good.
+It is good to avoid instantiating a library if the instantiation is
+really unneeded; it is bad if the library has some side effect, since
+the side effect will mysteriously disappear. In our example the side
+effect is just printing the message ``M instantiated``, in more
+sophisticated examples the side effect could be writing a log on a
+database, or initializing some variable, or registering an object, or
+something else.
+
+For instance, suppose you want to collect a bunch of
+functions into a global registry acting as a dictionary of functions.
 You may do so as follows:
 
 .. code-block:: scheme
@@ -193,12 +202,8 @@ You may do so as follows:
  (export)
  (import (registry))
 
- (define (f1 ...)  ...)
- (registry-set! 'f1 f1)
-
- (define (f2 ...) ...)
- (registry-set! 'f2 f2)
-
+ (registry-set! 'f1 (lambda (x) 'something1))
+ (registry-set! 'f2 (lambda (x) 'something2))
  ...
  )
 
@@ -255,11 +260,11 @@ Running the script (without precompilation) results in printing T0::
 T0 is not printed in psyntax-based implementations, since it does not export
 any identifier that can be used. T0 is printed once in Larceny and Ypsilon
 since they are single instantiation implementations with eager import.
-The situation in PLT Scheme is subtle, and you can find a detailed explaination
+The situation in PLT Scheme is subtle, and you can find a detailed explanation
 of what it is happening `in this other thread`_. Otherwise, you will have to
 wait for the next (and last!) episode of this series, where I will explain
 the reason why PLT is instantiating (and visiting) modules so many times.
 
-.. _in this other thread: http://groups.google.com/group/ikarus-users/browse_frm/thread/b07ef7266988bd1a?hl=en#
+.. _in this other thread: http://groups.google.com/group/ikarus-users/msg/7df9b8800141610c?hl=en
 |#
 

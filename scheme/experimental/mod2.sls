@@ -11,4 +11,6 @@
   (define (incr-x)
     (set! x (+ 1 x))
     x)
+
+  (display "Instantiated mod2\n")
 )
