@@ -1,18 +1,18 @@
-#|Separate compilation
-==================================
+#|Separate compilation and import semantics
+=============================================================
 
 .. _19: http://www.artima.com/weblogs/viewpost.jsp?thread=251476
 .. _You want it when?: http://www.cs.utah.edu/plt/publications/macromod.pdf
 .. _SRFI-19: http://srfi.schemers.org/srfi-19/srfi-19.html
 
-I have discussed many times the concept of *time* in Scheme
-(pun intended): there is a run-time, an expand-time, more in general a
-discrete set of times associated to the meta-levels. When you use
-separate compilation there is yet another set of times to take in
+Scheme is all about times:
+there is a run-time, an expand-time, and in general a
+discrete set of times associated to the meta-levels. When
+using separate compilation there is another set of times to take in
 consideration: the times when the libraries are separately compiled.
-Things are even trickier if the separately compiled libraries define
-macros used in client code, since in that case yet another concept of
-time enters in the game, the *visit time*.
+If the separately compiled libraries define
+macros which used in client code, there is yet another sets of times
+to take in consideration, the *visit times*.
 
 .. image:: time.jpg
 
@@ -40,21 +40,18 @@ You may compile it with PLT Scheme::
 Since the right hand side of a macro definition is evaluated at
 compile time the message ``visiting L`` is printed during compilation,
 as expected.
-
-Here is a simple middle level library using the macro ``m``:
+Consider now the following simple middle level library using the macro ``m``:
 
 $$experimental/M:
 
-I have used the ``(when #f (m))`` trick to make absolutely clear that
-the macro is expanded even if it is in code which will never be
-used at run-time. Still, the compiler needs to visit ``L`` in order
+In this example the compiler needs to visit ``L`` in order
 to compile ``M``. This is actually what happens::
 
  $ plt-r6rs --compile M.sls 
   [Compiling /usr/home/micheles/gcode/scheme/experimental/M.sls]
  visiting L
 
-If you comment the line with the macro call the compiler in principle
+If you comment out the line with the macro call, the compiler in principle
 does not need to visit ``L`` anymore; some implementations may take
 advantage of this fact (Ypsilon and Ikarus do). However, PLT Scheme will
 continue to visit ``L`` in any case.
@@ -73,7 +70,7 @@ dependencies of the library - but there is also a lot of unspecified
 behavior which may happen both a compile-time and at run-time.
 In particular at compile time a library may be only visited,
 i.e. its macro definitions can be re-evaluated - or can be
-only instantiated or both. Different things happens in different
+only instantiated, or both. Different things happens in different
 situations and in the same situation different implementations
 can perform different operations.
 

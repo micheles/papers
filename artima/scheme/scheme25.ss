@@ -9,51 +9,60 @@ to incorporate helpers in macros.
 Should everybody be designing her own programming language?
 ------------------------------------------------------------------
 
-Macros are the main reason why I first became interested in Scheme. At
-the time - more or less six years ago - there was a bunch of lispers
+Macros are the reason why I first became interested in Scheme, five or
+six years ago. At the time - as at any time - there was a bunch of
 trolling in comp.lang.python, and arguing for the addition of macros
-to Python.  Of course most Pythonista opposed the idea, but at the
-time I had no idea of the advantages/disadvantages of macros; I felt
-quite ignorant and powerless to argue. I never liked to feel ignorant,
-so I decided to learn macros, especially Scheme macros, since they are
-the state of the art.
+to Python.  Of course most Pythonistas opposed the idea, but
+I had no idea of the advantages/disadvantages off the proposal; I felt
+quite ignorant and powerless to argue. Since I never liked to feel ignorant,
+I decided to learn macros, especially Scheme macros, because they are
+the state of the art for the topics.
 
 Nowadays I can say that the addition of macros to Python would be
 a bad idea knowing what I am talking about. Actually, I have already
 stated in episode 12_ an even stronger opinion, i.e. that macros
-are more bad than good for any enterprise-oriented language (but notice
-that I am *not* implying that every enterprise should adopt
-only enterprise-oriented languages).
+are not a good fit for enterprise-oriented language. Of course,
+I am *not* implying that every enterprise should adopt
+only enterprise-oriented languages; it is a matter of fact
+that various cutting edge enterprises are taking advantage of
+non-conventional and/or research-oriented languages, but
+I see them as exceptions to the general rule.
 
-My opinion against macro in (most) enterprise programming
-does mean that macros are worthless, and indeed
+My opinion against macros in (most) enterprise programming
+does not mean that macros are worthless, and indeed
 I think they are extremely useful and important in another domain,
 i.e. in the domain of design and research about programming
-languages. As a matter of fact, *Scheme macros enable every programmer
-to write her own programming language*. I think this is a valuable and nice
-to have thing. Everybody who has got opinion
-about language design, or about how an object should should work, or
+languages. The major interest of Scheme macros for me is that they
+*enable every programmer to write her own programming language*.
+I think this is a valuable thing. Everybody who has got opinions
+about language design, or about how an object system should should work, or
 questions like "what would a language look like if it had feature X?",
 can solve his doubts by implementing the feature with macros.
 
-Perhaps not everybody should design its own programming language,
-and certainly not everybody should *distribute* its own personal
-language, however I think lots of people will get a benefit trying
-to think about how to design a language and making some experiment.
-The easier thing is to start from a Domain Specific Language (DSL),
-which does not need to be a full grown programming language; for
-instance in the Python world it seems that everybody is implementing templating
-languages to generate web pages. In my opinion, this a good thing *per se*,
-the probably is that everybody is distributing its own language so that
-there a bit of anarchy, but this is not such a serious problem after all.
+Notice that I recognize that perhaps not everybody should design its
+own programming language, and certainly not everybody should
+*distribute* its own personal language. Nevertheless, I think
+everybody can have opinions about language design and some experiment
+with macrology can help to put to test such opinions and to learn
+many things.
 
-Even for what concerns full grown programming languages we see nowadays
-an explosion of new languages coming out, especially for the Java and
-the CLR platforms, since it is relatively easy to implement a new
-language on those platforms. However, it still takes a lot of work.
+The easiest approach is to start from a Domain Specific
+Language (DSL), which does not need to be a fully grown programming
+language.
+
+As a matter of fact, it seems that in the Python world
+everybody is implementing his own templating language to generate web
+pages. In my opinion, this a good thing *per se*, the problem is that
+everybody is distributing his own language so that there is a bit of
+anarchy, but this is not such a serious problem after all.
+
+Even for what concerns fully grown programming languages we see nowadays
+an explosion of new languages, especially for the Java and
+the .NET platforms, since it is relatively easy to implement a new
+language there. However, it still takes a substantial amount of work.
 
 On the other hand, writing a custom language embedded in Scheme by
-means of macros is by far much easier and Scheme makes an ideal platform
+means of macros is much easier. I see Scheme as an excellent platform
 for implementing languages and experimenting with new ideas.
 
 There is a `quote of Ian Bicking`_ about Web frameworks which struck me:
@@ -67,21 +76,17 @@ ll be able to understand it better if you've written something like it
 on your own.*
 
 You can the replace the words "web framework" with "programming
-language" here and the quote still makes sense. You should read my
-*Adventures* in this spirit: the goal of this series is to give
-the technical competence to write your own language by means of
-macros. Even if you are not going to design your own language,
-macros will help you to understand how languages work.
+language" and the quote still makes sense. You should read my
+*Adventures* in this spirit: the ambition of this series is to give to
+my readers the technical competence to write their own Scheme-embedded
+languages by means of macros. Even if you are not going to design your
+own language, macros will help you to understand how languages work.
 
-I personally am interested only in the
-technical competence, *I do not want to write a new language*.
-There are already lots of languages
-out there, and writing a real language is a lot of grunt work, because
-it means writing debugging tools, good error messages, wondering about
+Personally I am interested in the technical competence, *I do not want
+to write a new language*.  There are already lots of languages out
+there, and writing a real language is a lot of grunt work, because it
+means writing debugging tools, good error messages, wondering about
 portability, interacting with an user community, et cetera et cetera.
-Not everybody is good language designer and a good BDFL, for sure;
-however everybody can have opinions about language design and some
-experiment with macrology can help to put to test such opinions.
 
 .. _quote of Ian Bicking: http://pythonpaste.org/webob/do-it-yourself.html
 .. _12: http://www.artima.com/weblogs/viewpost.jsp?thread=240836
@@ -89,21 +94,24 @@ experiment with macrology can help to put to test such opinions.
 Recursive macros with accumulators
 ----------------------------------------------------------
 
-The goal of learning macros well enough to implement a programming language
-is an ambitious one; it is not something we can attain in an episode of the
-Adventures, nor in six. However, one episode is enough to explain at least
-one useful techniques which is commonly used in Scheme macrology and which
-is good to know in order to reach our final goal, in time.
-The technique we will discuss in this episode is the accumulator trick,
-which is analogous to the accumulator trick we first discussed in episode
-6_ when talking about tail call optimization. In Scheme it is common
-to introduce an auxiliary variable to store a value which is passed
-in a loop: the same trick can be used in macros, at compile time instead
-that at run time.
+The goal of learning macros well enough to implement a programming
+language is an ambitious one; it is not something I can attain in one
+episode of the Adventures, nor in six. However, one episode is enough
+to explain at least one useful technique which is commonly used in
+Scheme macrology and which is good to know in order to reach our final
+goal, in time.
 
-In order to give an example of usage of the accumulator trick, let me
-define a conditional macro ``cond-`` which works like ``cond``, but
-with less parenthesis:
+The technique I will discuss in this episode is writing recursive
+macros with accumulators. In Scheme it is common to introduce an
+auxiliary variable to store a value which is passed in a loop - we
+discussed it in episode 6_ when talking about tail call optimization:
+the same trick can be used in macros, at expand-time instead that at
+run-time.
+
+.. image:: scarab.png
+
+In order to give an example I will define a macro *cond minus*
+(``cond-``) which works like ``cond``, but with less parenthesis:
 
 .. code-block:: scheme
 
@@ -113,7 +121,7 @@ with less parenthesis:
         ...
     else return-default)
 
-We want the code above to expand to:
+I want the code above to expand to:
 
 .. code-block:: scheme
 
@@ -125,11 +133,11 @@ We want the code above to expand to:
 
 
 Here is the solution, which makes use of an accumulator and of an auxiliary
-macro:
+macro ``cond-aux``:
 
 $$COND-
 
-The code should be clear. The auxiliary (private) macro ``cond-aux``
+The code above should be clear. The auxiliary macro ``cond-aux``
 is recursive: it works by collecting the arguments ``x1, x2, ..., xn``
 in the accumulator ``(acc ...)``. If the number of arguments is even,
 at some point we end up having collected all the arguments in the
@@ -159,13 +167,9 @@ A trick to avoid auxiliary macros
 
 I have nothing against auxiliary macros, however sometimes you may
 want to keep all the code in a single macro. This is useful if you are
-debugging a macro since an auxiliary macro is usually not exported and
-you may not have access to it without changing the source code of the
-module defining it and without recompiling it; on the other hand, you
-have full access to an exported macro including the features of the
-would be auxiliary macro. The trick is to introduce a literal to
-defined the helper macro inside the main macro. Here is how it would
-work in our example:
+debugging a macro since an auxiliary macro is usually not
+exported. The trick is to introduce a literal to defined the helper
+macro inside the main macro. Here is how it would work in this example:
 
 $$COND2
 
@@ -174,8 +178,9 @@ instead:
 
 $$COND3
 
-This kind of tricks are quite common in Scheme macros; the best reference
-you can find detailing these technique and others is the `Syntax-Rules Primer
+These tricks are quite common in Scheme macros: we may even call them
+design patterns. In my opinion the best reference
+detailing these technique and others is the `Syntax-Rules Primer
 for the Merely Eccentric`_, by Joe Marshall. The title is a play on the essay
 `An Advanced Syntax-Rules Primer for the Mildly Insane`_ by
 Al Petrofsky. 

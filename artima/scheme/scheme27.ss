@@ -144,7 +144,7 @@ Here is an example using ``quasisyntax`` and ``unsyntax-splicing``::
 
 As you see, it easy to write hieroglyphs if you use ``quasisyntax`` 
 and ``unsyntax-splicing``. You can avoid that by means of the ``with-syntax``
-form introduced in episode XX::
+form::
 
  > (syntax-match #'(a 1 2 3) ()
      (sub (name . args) (: with-syntax (a ...) #'args #'(name a ...))))

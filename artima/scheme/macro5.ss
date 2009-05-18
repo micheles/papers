@@ -14,17 +14,7 @@ The R6RS standard provides a few convenient utilities to work with
 macros. One of such utilities is the ``with-syntax`` form, which
 allows to introduce auxiliary pattern variables into a skeleton
 (a better name would have been ``let-pattern-vars``).
-Let me make an example. Consider the "colon" macro defined as follows:
-
-$$lang:COLON
-
-The colon macro expects as argument another macro, the
-``let-form``, which can be any binding macro such that
-``(let-form ((patt value) ...) expr)`` is a valid syntax. For instance
-``(let ((name value) ...) expr)`` can be rewritten as ``(: let name value
-... expr)``, by removing four parenthesis. The latest version of the
-``aps`` package provides a colon form in the ``(aps lang)`` module.
-
+Let me make an example.
 ``with-syntax`` is often used in conjunction with the ``generate-temporaries``
 function, which returns a list of temporary identifiers.
 

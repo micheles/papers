@@ -1,12 +1,115 @@
-#|
+#|Macros taking macros as arguments
+============================================================
+
+Our journey though the macro programmer toolkit continues.
+In this episode I will give a couple of examples of second order
+macros taking other macros as argument. Moreover I will bring
+an argument in favor of good old parenthesis.
+
+Two second order macros to reduce parenthesis
+-------------------------------------------------------------
+
+In the last episode I have defined a recursive ``cond-`` macro taking
+less parenthesis than a regular ``cond``, using an accumulator.  Here
+I will generalize that approach, by abstracting the accumulator
+functionality into a second order macro, called ``collecting-pairs``,
+which takes as input another macro and a sequence of arguments, and
+calls the input macro with the arguments grouped in pairs. 
+That make possible to call with less parenthesis any macro of
+the form ``(macro expr ... (a b) ...)``, by calling it as
+``(collecting-pairs (macro expr ...) a b ...)``.
+
+Here is the code implementing ``collecting-pairs``:
+
+$$COLLECTING-PAIRS
+
+``collecting-pairs`` can be used with many syntactic expressions like
+``cond``, ``case``, ``syntax-rules``, et cetera. Here is an example
+with the case_ expression::
+
+ > (collecting-pairs (case 1)
+       (1) 'one
+       (2) 'two
+       (3) 'three
+       else 'unknown))
+ one
+
+.. _case: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_384
+
+Consider the "colon" macro defined as follows:
+
+$$lang:COLON
+
+The colon macro expects as argument another macro, the
+``let-form``, which can be any binding macro such that
+``(let-form ((patt value) ...) expr)`` is a valid syntax. For instance
+``(let ((name value) ...) expr)`` can be rewritten as ``(: let name value
+... expr)``, by removing four parenthesis. The latest version of the
+``aps`` package provides a colon form in the ``(aps lang)`` module.
+
+The case for parenthesis
+-------------------------------------------------------------
+
+Parens-haters may want to use ``collecting-pairs`` and the colon macro
+to avoid parenthesis. They may even go further, and rant that the
+basic Scheme syntax should require less parenthesis, since for
+most programmers it is easier to write code with less parenthesis.
+However, that would be against the Scheme philosophy:
+the Scheme philosophy favors automatic code generation
+over manual writing.
+
+When writing macros, it is much easier
+to use a conditional with more parenthesis like ``cond`` than a
+conditional with less parenthesis like ``cond-``. The parenthesis
+allows you to group expressions in group that can be repeated via
+the ellipsis symbol; in practice, you can writing things like
+``(cond (cnd? do-this ...) ...)`` which cannot be written
+with ``cond-``.
+
+On the other hand, different languages adopt different philosophies;
+for instance Paul Graham's Arc_ uses less parenthesis. This is
+possible since it does not provide a macro system based on
+pattern matching (which is a big *minus* in my opinion). Is it possible
+to have both? A syntax with few parenthesis for writing code manually
+and a syntax with many parenthesis for writing macros. The answer is yes:
+the price to pay is to double the constructs of the language and to
+use a Python-like approach.
+
+..  _Arc: http://www.paulgraham.com/arcll1.html
+
+A two-level syntax
+---------------------------------
+
+Python is a good example of language with a two-level syntax: a
+simple syntax, limited but able to cover the most common case, and a
+fully fledged syntax, giving all the power which is needed, which
+however should be used only rarely. The best designed programming
+language I know is Python. While not perfect, Python takes full
+advantage of the two-level syntax idea. For instance
+
+====================    =================================
+Simplified syntax       Full syntax          
+====================    =================================
+obj.attr                getattr(obj, 'attr')
+x + y                   x.__add__(y)
+c = C()                 c = C.__new__(C); c.__init__()
+====================    =================================
+
+In the case of the conditional syntax, in principle we could have
+a fully parenthesised ``__cond__`` syntax for usage in macros and
+``cond`` syntax with less parens for manual usage. That, in theory:
+in practice Scheme only provides the low level syntax, leaving to
+the final user the freedom (and the burden) of implementing his
+own preferred high level syntax.
+
 Can a language be both easy and powerful?
 -----------------------------------------------------------------------
 
 When it comes to designing programming languages, easy of use and
 power seems to go in opposite directions. There are plenty of examples
-where something went wrong, i.e. simple languages which however are
+where something went wrong, i.e. simple languages which are
 good only for teaching and not for professional use, and
-professional languages which are however too tricky to use
+professional languages which are too tricky to use
 for the casual programmer. We have also examples of languages which
 are both weak in power *and* difficult to use (insert your chosen
 language here).
@@ -94,161 +197,6 @@ language in existence can beat Scheme in this respect.
 .. _syntax conveniences: http://clojure.org/special_forms
 .. _concurrency: http://clojure.org/concurrent_programming
 .. _bikeshed effect: http://en.wikipedia.org/wiki/Bikeshed
-
-Second order macros
--------------------------------------------------------------
-
-There is not upper limit to the level of sophistication you can reach
-with macros: in particular it is possible to define higher order
-macros, i.e. macros taking other macros as arguments or macros
-expanding to other macros. Higher order macros allows an extremely
-elegant programming style; on the other hand, they are exposed to the
-risk of making the code incomprehensible and very hard to debug.
-In this episode we will give a couple of examples of second order
-macros taking other macros as argument.
-
-Our first example is a generalization of the accumulator trick we
-used last week to define the ``cond-`` macro. We will define a
-``collecting-pairs`` macro, which as input another macro and a
-sequence of arguments, and calls the input macro with the arguments
-grouped in pairs.
-Here is the code:
-
-$$COLLECTING-PAIRS
-
-``collecting-pairs`` can be used with many syntactic expressions like
-``cond``, ``case``, ``syntax-rules``, et cetera. Here is an example
-with the case_ expression::
-
- > (collecting-pairs (case 1)
-       (1) 'one
-       (2) 'two
-       (3) 'three
-       else 'unknown))
- one
-
-macros generating macros
-----------------------------------------------------
-
-In this paragraph I will give an example of a second order macro
-expanding to a regular (first order) macro. Here it is:
-
-$$DEF-VECTOR-TYPE
-
-``def-vector-type`` is a macro which defines a macro which is used to
-manage classes of vectors; for instance
-
-$$BOOK
-
-defines a ``Book`` macro which is able to manage two-dimensional vectors
-with fields ``title`` and ``author``. The expansion of ``Book`` is the
-following:
-
-.. code-block:: scheme
-
- (def-syntax Book
-  (syntax-match (new ref set! title author)
-   (sub (ctx <name>) #''Book)
-   (sub (ctx <fields>) #'(list 'title 'author))
-   (sub (ctx from-list ls) #'(list->vector ls))
-   (sub (ctx new arg ...) #'(vector arg ...))
-   (sub (ctx v ref title) #'(vector-ref v 0))
-   (sub (ctx v ref author) #'(vector-ref v 1))
-   (sub (ctx v set! title x) #'(vector-set! v 0 x))
-   (sub (ctx v set! author x) #'(vector-set! v 1 x))))
-
-From this expansion it is clear how ``Book`` works. For instance,
-
-.. code-block:: scheme
-
- > (define b (Book new "Title" "Author"))
-
-defines a vector of two strings:
-
-.. code-block:: scheme
-
- > b
- #("Title" "Author")
-
-``(Book b ref title)`` retrieves the ``title`` field whereas
-``(Book b ref author)`` retrieves the ``author`` field:
-
-.. code-block:: scheme
-
- > (Book b ref title)
- "Title"
- > (Book b ref author)
- "Author"
-
-``(Book b set! title new-title)`` and ``(Book b set! author new-author)``
-allows to change the ``title`` and ``author`` fields.
-It is also possible to convert a list into a ``Book`` vector:
-
- > (Book from-list '("t" "a"))
- #("t" "a")
-
-Finally, the ``Book`` macro provides introspection features:
-
-.. code-block:: scheme
-
- > (Book <name>)
- Book
- > (book <fields>)
- (title author)
-
-The secret of the ellipsis
------------------------------------------------------------------
-
-.. _case: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_384
-..  _Arc: http://www.paulgraham.com/arcll1.html
-
-A two-level syntax
--------------------------------------------------------------
-
-Parens-haters may want to use ``collecting-pairs`` and the colon macro
-to avoid parenthesis. They may even go further, and rant that the
-basic Scheme syntax should require less parenthesis, since for
-most programmers it is easier to write code with less parenthesis.
-However, the Scheme philosophy favors automatic code generation
-over manual writing. For instance, when writing macros, it is much easier
-to use a conditional with more parenthesis like ``cond`` than a
-conditional with less parenthesis like ``cond-``. The parenthesis
-allows you to group expressions in group that can be repeated via
-the ellipsis symbol; in practice, you can writing things like
-``(cond (cnd? do-this ...) ...)`` which cannot be written
-with ``cond-``.
-
-On the other hand, different languages adopt different philosophies;
-for instance Paul Graham's Arc_ uses less parenthesis. This is
-possible since it does not provide a macro system based on
-pattern matching (which is a big *minus* in my opinion). Is it possible
-to have both? A syntax with few parenthesis for writing code manually
-and a syntax with many parenthesis for writing macros. The answer is yes:
-the price to pay is to double the constructs of the language and to
-use a Python-like approach.
-
-Python is a perfect example of language with a two-level syntax: a
-simple syntax, limited but able to cover the most common case, and a
-fully fledged syntax, giving all the power which is needed, which
-however should be used only rarely. The best designed programming
-language I know is Python. While not perfect, Python takes full
-advantage of the two-level syntax idea. For instance
-
-====================    =================================
-Simplified syntax       Full syntax          
-====================    =================================
-obj.attr                getattr(obj, 'attr')
-x + y                   x.__add__(y)
-c = C()                 c = C.__new__(C); c.__init__()
-====================    =================================
-
-In the case of the conditional syntax, in principle we could have
-a fully parenthesised ``__cond__`` syntax for usage in macros and
-``cond`` syntax with less parens for manual usage. That, in theory:
-in practice Scheme only provides the low level syntax, leaving to
-the final user the freedom (and the burden) of implementing his
-own preferred high level syntax.
-
 |#
 
 (import (rnrs) (sweet-macros) (for (aps lang) run expand)

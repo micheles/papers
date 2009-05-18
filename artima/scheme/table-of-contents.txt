@@ -1,6 +1,6 @@
-The *Adventures of a Pythonista in Schemeland* has grown to become a rather long
-series. I think a table of contents is needed, in order to index all the
-episodes. Here it is.
+The *Adventures of a Pythonista in Schemeland* have grown to become a
+rather big series. I think a table of contents is needed to index all
+the episodes. Here it is.
 
 Part I - Introduction
  Ep1_ A bit of history
@@ -51,6 +51,10 @@ Part IV - The Module System
  
  Ep22_ The Dark Tower of Meta-levels
 
+ Ep23_ Separate compilation and import semantics
+
+ Ep24_ Mutating variables across modules
+
 .. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
 .. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941
 .. _Ep3: http://www.artima.com/weblogs/viewpost.jsp?thread=239466
@@ -73,3 +77,5 @@ Part IV - The Module System
 .. _Ep20: http://www.artima.com/weblogs/viewpost.jsp?thread=255303
 .. _Ep21: http://www.artima.com/weblogs/viewpost.jsp?thread=255612
 .. _Ep22: http://www.artima.com/weblogs/viewpost.jsp?thread=256848
+.. _Ep23: http://www.artima.com/weblogs/viewpost.jsp?thread=257998
+.. _Ep23: http://www.artima.com/weblogs/viewpost.jsp?thread=258103

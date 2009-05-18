@@ -772,3 +772,236 @@ be very careful when mixing compile-time and run-time, especially in
 presence of side effects, I believe one can solve the issue by using
 separate compilation, and that the benefits of the tower of meta-levels are not
 compensated by the complications it induces.
+
+
+My wishlist for a Scheme implementation
+---------------------------------------------------
+
+I have a personal wishlist of features.
+
+- interpreter semantics and the REPL
+
+  I think that the behavior of REPL should
+  not be too different from the behavior of scripts; in particular,
+  I like that in PLT functions defined in the REPL
+  are not available in macros. This may be inconvenient, but
+  I think it is pedagogically
+  useful, since it forces beginners to think about phase separation
+  early on and to have a consistent model of what will happen once
+  they compile the script. I started programming in Scheme
+  with implementations where the REPL behavior was different
+  from the compiled behavior and it was very difficult for me
+  to understand why my "correct" scripts did not compile.
+
+- phase separation and multiple instantiation
+
+  I agree with the PLT people that expand-time variables and run-time
+  variables should live in different instances, however I disagree
+  that we need a tower of meta-levels. Two phases are more than enough.
+  We can just perform the compilation in a different process
+  than the evaluation process. In this way the variables can be
+  imported in all phases, but modifying a variable at expand time
+  cannot influence its runtime counterpart.
+
+- missing features from the standard
+
+  I think the standard lacks many important features. I have
+  already noticed that I would welcome the ability to export all names from a
+  library ``(export *)`` and the ability to introspect the names exported
+  by library. In addition,
+  I would welcome a mechanism to write helper functions for macros *in the
+  same file* the macros are defined, if one wants to. One way to implement this
+  feature is to standardize the ability of writing multiple libraries in
+  the same file, which is already provided by some implementations.
+  Another way is to introduce at ``define-at-all-phases`` form.
+
+
+I have not even explained why one would like to
+transfer information from the compile-time to the run-time, even
+if you imagine the reason: for instance one could implement an
+object system at compile-time based on static classes, but one
+would like to introspect such an object system at run-time, and to
+get information about the names of the classes, their ancestors,
+the names of the methods, etc.
+
+
+
+
+For instance, I have not discussed at all other kind of side effects
+except mutation.
+
+I have argued that cross-phase side effects are bad, because they
+cannot survive separate compilation, but I have not discussed that it
+is indeed possible to transfer side-effects from compile-time to
+run-time, surviving separated compilation: doing so however require
+some more advanced macrology, which I have not yet explained.
+
+There are a few subtle differences between systems with implicit phasing
+and system with explicit phasing which I have not mentioned here,
+particularly in presence of helper macros.
+
+There are many things which I have just
+mentioned, by referring to newsgroup discussions for further analysis.
+A serious scholar of the module system should check them out.
+
+There is also a set of personal observations about the module system I
+would like to make at some point: I have looked at all the different
+implementations of the R6RS module system, but I did not find any that
+satisfied me completely, and I have some ideas about how the "right"
+module system should work.
+
+The most important thing I have not discussed is the big issue of how
+libraries are mapped to the file-system, which is not stardardized.
+There is some work going on (a proposed SRFI by Derick Eddington) but
+at the time of this writing it is too premature to discuss it.
+For this reason I am not discussing the support for importing
+a specific release of a library, nor the issue of putting multiple libraries
+in the same file.
+
+
+
+The secret of the ellipsis
+-----------------------------------------------------------------
+
+
+
+macros generating macros
+----------------------------------------------------
+
+
+There is not upper limit to the level of sophistication you can reach
+with macros: in particular it is possible to define higher order
+macros, i.e. macros taking other macros as arguments or macros
+expanding to other macros. Higher order macros allows an extremely
+elegant programming style; on the other hand, they are exposed to the
+risk of making the code incomprehensible and very hard to debug.
+
+In this paragraph I will give an example of a second order macro
+expanding to a regular (first order) macro. Here it is:
+
+$$DEF-VECTOR-TYPE
+
+``def-vector-type`` is a macro which defines a macro which is used to
+manage classes of vectors; for instance
+
+$$BOOK
+
+defines a ``Book`` macro which is able to manage two-dimensional vectors
+with fields ``title`` and ``author``. The expansion of ``Book`` is the
+following:
+
+.. code-block:: scheme
+
+ (def-syntax Book
+  (syntax-match (new ref set! title author)
+   (sub (ctx <name>) #''Book)
+   (sub (ctx <fields>) #'(list 'title 'author))
+   (sub (ctx from-list ls) #'(list->vector ls))
+   (sub (ctx new arg ...) #'(vector arg ...))
+   (sub (ctx v ref title) #'(vector-ref v 0))
+   (sub (ctx v ref author) #'(vector-ref v 1))
+   (sub (ctx v set! title x) #'(vector-set! v 0 x))
+   (sub (ctx v set! author x) #'(vector-set! v 1 x))))
+
+From this expansion it is clear how ``Book`` works. For instance,
+
+.. code-block:: scheme
+
+ > (define b (Book new "Title" "Author"))
+
+defines a vector of two strings:
+
+.. code-block:: scheme
+
+ > b
+ #("Title" "Author")
+
+``(Book b ref title)`` retrieves the ``title`` field whereas
+``(Book b ref author)`` retrieves the ``author`` field:
+
+.. code-block:: scheme
+
+ > (Book b ref title)
+ "Title"
+ > (Book b ref author)
+ "Author"
+
+``(Book b set! title new-title)`` and ``(Book b set! author new-author)``
+allows to change the ``title`` and ``author`` fields.
+It is also possible to convert a list into a ``Book`` vector:
+
+ > (Book from-list '("t" "a"))
+ #("t" "a")
+
+Finally, the ``Book`` macro provides introspection features:
+
+.. code-block:: scheme
+
+ > (Book <name>)
+ Book
+ > (book <fields>)
+ (title author)
+
+Multiple instantiation of modules
+-------------------------------------------------
+
+If you are porting a library definining macros amongst different R6RS
+Scheme implementations, you must be aware of a subtle difference between
+PLT Scheme and the rest of the world. PLT Scheme has a "feature" called
+multiple instantiation of modules which is not found in other implementations.
+I quote the word "feature" because the PLT people think this is a good thing
+to have, whereas other implementors do not necessarely think so.
+An example will explain the multiple instantiation concept.
+Consider the following module:
+
+Side effects are not visible outside!
+
+
+In
+PLT I wrote the example in
+a directory called eli-example with a main.ss script like
+the following:
+
+#!r6rs
+(library (eli-example M1)
+   (export m1)
+   (import (rnrs))
+   (define-syntax m1
+     (let ([c 0])
+       (lambda (stx)
+         (set! c (+ c 1))
+         (syntax-case stx ()
+           [(_) (with-syntax ([c c]) #'c)]))))) 
+
+#!r6rs
+(library (eli-example M2)
+   (export m2)
+   (import (rnrs) (for (eli-example M1) expand))
+   (define-syntax m2
+     (lambda (stx)
+       (syntax-case stx ()
+         [(_) (let ([c (m1)])
+                (with-syntax ([c c]) #'c))])))) 
+
+#!r6rs
+(library (eli-example)
+(export m1 m2)
+(import (rnrs) (eli-example M1) (eli-example M2))
+(display (m1))
+(display (m2))
+)
+
+Here the module M1 is imported, the value of c is set to 1,
+and m1 is exported again, with (m1) equal to 1. The fact that
+internally M2 imports M1 another time has no effect at all. In Ikarus/
+Larceny instead modules are like shared singletons:
+if module M2 increments the counter, the effect is visible from the
+outside. So, in principle PLT system is better, I will concede that.
+On the other hand, Ikarus system is simpler, and once users are warned
+of the dangers of stateful macros, I think people can live with them.
+BTW, I would you write a compile time register in PLT, i.e. a global
+storage of names working across modules? 
+
+.. _thread: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/509c781e720d28a0/201944b0ac50c594?#201944b0ac50c594
+
+

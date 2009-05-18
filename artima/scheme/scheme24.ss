@@ -1,34 +1,25 @@
-#|
-Cross-phase side effects
+#|Mutating variables across modules
 ===============================================================
 
-.. _previous episode:
-
-In the `previous episode`_ we saw that PLT Scheme performs much more
-instantiation and visiting of modules than other implementations. The
-reason for such behavior is that the PLT people want to avoid cross-phase
-side effects which can be quite surprising, especially in presence of
-separate compilation. 
-For sake of simplicity I will focus only on side effects related to
-the mutation of a variable, i.e. ``set!``-style side effects.
-
-Experimenting with side effects
-------------------------------------------------------
-
-Let me start first with a simple example of side effects which are excluded by
-the R6RS standard. Consider a module exporting a variable
-(``x``) and a function with side effects affecting that variable (``incr-x``)):
+There are situations where it is handy to mutate a global variable or
+a data structure across modules, for instance to keep a registry of
+objects, or a counter. However, direct mutation of exported variables
+is forbidden by the R6RS standard. Consider for instance a module
+exporting a variable ``x`` and a function ``incr-x`` with side
+effects affecting that variable:
 
 $$experimental/mod1:
 
-This kind of side effect is ruled out by the R6RS specification (section 7.2):
-*exported variables must be immutable*. This is the reason why Ikarus, Ypsilon
-and Larceny reject the code with errors like 
-``attempt to export mutated variable`` or 
-``attempt to modify immutable variable``.
-The current SVN version PLT Scheme also raises an error, but the official version
-(4.1.5 at the time of this writing) is still buggy (I submitted the bug report
-and it was immediately fixed). 
+This kind of side effect is ruled out by the R6RS
+specification (section 7.2): *exported variables must be
+immutable*. This is the reason why Ikarus, Ypsilon and Larceny reject
+the code with errors like ``attempt to export mutated variable`` or
+``attempt to modify immutable variable``.  The current SVN version PLT
+Scheme also raises an error, but the official version
+(4.1.5 at the time of this writing) is buggy (I submitted the bug report). 
+
+Mutating internal variables
+---------------------------------------------------
 
 Consider now a module exporting a function with side effects affecting a
 non-exported (i.e. private) variable:
@@ -53,25 +44,31 @@ at the REPL and we may experiment with it:
  > (get-x)
  2
 
-Everything works as one would expect.
+Everything works as one would expect.  However, things are trickier
+when phase separation enters in the game.
 
-As always, things are trickier when compiler semantics and
-phase separation enters in the game.
-
-Side effects and the compile-time/run-time confusion
+Mutating variables across phases
 --------------------------------------------------------
 
-Consider the following script::
+A Scheme implementation exhibits a *cross-phase side effect* if
+mutating a variable at expand time affects the value of the same
+variable at run-time. All R6RS implementations - except PLT Scheme
+which uses different instances for different phases - may have
+cross-phase side effects. On the other hand, in all R6RS
+implementations cross-phase side effects can be avoided by using
+separated compilation.
+
+In order to give a concrete example, consider the following script::
 
 $ cat use-mod2.ss
 
 $$experimental/use-mod2:
 
 Here we formally import the module ``mod2`` twice, both at run-time
-and at expand time.  In Scheme implementations with multiple
-instantiation (in practice, the only case is PLT Scheme) there are two
+and at expand time.  In PLT Scheme (which is the only implementation
+with explicit phasing *and* multiple instantiation) there are two
 fully separated instances of the module, and running the script
-returns what you would expect::
+returns the following::
 
  $ plt-r6rs use-mod2.ss
  Instantiated mod2
@@ -81,10 +78,9 @@ returns what you would expect::
 
 The fact that ``x`` was incremented at compile-time has no effect
 at all at run-time, since the run-time variable ``x`` belongs to a completely
-different instance of the module. In system with single instantiation
+different instance of the module. In systems with single instantiation
 instead, there is only a *single instance of the module for all phases*,
-so that incrementing ``x`` at expand-time has effect at runtime (I call
-this behavior a *cross-phase* side effect)::
+so that incrementing ``x`` at expand-time has effect at run-time::
 
  $ ikarus --r6rs-script use-mod2.ss
  Instantiated mod2
@@ -93,17 +89,18 @@ this behavior a *cross-phase* side effect)::
 
 You would get the same with Ypsilon and Larceny (Larceny has explicit
 phasing but single instantiation and if you import a module in more
-than one phase the variables are shared amongsts the phases).
+than one phase the variables are shared amongst the phases, so that
+cross-phase side effects may happen).
 
-This only works because the script is executed immediately
-after compilation *in the same process*. However, having compile-time
-effects affecting run-time values is *wrong*, since it breaks
+The phase crossing only happens because the script is executed immediately
+after compilation *in the same process*. Having compile-time
+effects affecting run-time values is *evil*, since it breaks
 separate compilation. If we turn the script into a library and we
 compile it separately, it is clear than the run-time value of ``x``
 cannot be affected by the compile-time value of ``x``
 (maybe the code was compiled 10 years ago!).
 
-Side effects and separate compilation
+Cross-phase side effects and separate compilation
 -------------------------------------------------------------
 
 Let me explain in detail how separate compilation works in Ikarus,
@@ -130,8 +127,9 @@ This is expected: turning a script into a library did not make
 anything magic happens (actually mod2 is being instantiated once more
 during the compilation of mod3, but that should not be surprising).
 On the other hand, things are very
-different if we run the same code under Ypsilon or Ikarus.
-The first time the script is run it prints three lines::
+different if we run the same code under different implementations.
+
+For instance in Ypsilon the first time the script is run it prints three lines::
 
  $ ypsilon --r6rs use-mod3.ss
  Instantiated mod2
@@ -145,22 +143,21 @@ However, if we run the script again it prints just two lines::
  Instantiated mod2
  At run-time x=1
 
-The reason is that the first time Ypsilon compiles the libraries, using
-the same module instance, so that there is a single ``x`` variable which
-is incremented twice at expand time - the first time when ``mod2``
-is imported and the second time when ``mod3`` is imported - and
-once at run-time. The second time there is nothing
-to recompile, so only the runtime ``x`` variable is incremented, and
-there is no reference to the compile time instance.
+The reason is that the first time Ypsilon compiles the libraries,
+using the same module instance, so that there is a single ``x``
+variable which is incremented twice at expand time and once at
+run-time. The second time there is nothing to recompile, so only the
+run-time ``x`` variable is incremented, and there is no reference to
+the compile time instance.
 
 The situation for Ikarus is slightly different. If we use the
-``--r6rs-script`` flage we get the same output as before, when
+``--r6rs-script`` flag we get the same output as before, when
 ``mod3`` was just a script::
 
  $ ikarus --r6rs-script use-mod3.ss
  Instantiated mod2
  At expand-time x=1
- At run-time x=2
+ At run-time x=211
 
 However, this only happens because Ikarus is compiling all the libraries
 at the same time (whole compilation). If we use separate compilation we get::
@@ -173,7 +170,7 @@ at the same time (whole compilation). If we use separate compilation we get::
 
 As you see, ``mod2`` the message ``At expand-time x=1`` is printed when
 ``mod2`` is compiled. If we run the script ``use-mod3.ss`` now, we
-get just the runtime message::
+get just the run-time message::
 
  $ ikarus --r6rs-script use-mod3.ss
  Instantiated mod2
@@ -187,52 +184,34 @@ designed to avoid this problem: in PLT one consistently gets always
 the same result, which is the result you would get with separation
 compilation.
 
-I must notice that one could get the same behavior in non-PLT
-implementations by spawning two separate processes, run one after the
+I must notice that you could get the same behavior in non-PLT
+implementations by spawning two separate processes, one after the
 other: the first to compile the script and its libraries, and the
 second to execute it. That would make sure that incrementing ``x`` in
-the expansion phase would not influence the value of ``x`` at runtime.
+the compilation phase would not influence the value of ``x`` at run-time.
 
-My wishlist
+Conclusion
 ---------------------------------------------------
 
-I have discussed a large spectrum of different implementations of the
-R6RS module system, but I must notice that did not find any that
-satisfies me completely.  I have a personal wishlist of features.
+This is the last episode of part IV. You should have an idea of how
+the R6RS module system works, and you should be able to grasp the reasons
+behind the differences between implementations.
 
-- interpreter semantics and the REPL
+In particular, it should
+be clear that side effects are tricky, that you cannot rely on the
+compilation/visiting/instantiation procedure being the same in
+different implementations, that phase separation means different
+things in different Scheme systems.
 
-  I think that the behavior of REPL should
-  not be too different from the behavior of scripts; in particular,
-  I like that in PLT functions defined in the REPL
-  are not available in macros. This may be inconvenient, but
-  I think it is pedagogically
-  useful, since it forces beginners to think about phase separation
-  early on and to have a consistent model of what will happen once
-  they compile the script. I started programming in Scheme
-  with implementations where the REPL behavior was different
-  from the compiled behavior and it was very difficult for me
-  to understand why my "correct" scripts did not compile.
+Still, I have left out many relevant things. I realized that
+in order to say everything
+there is to say about the subject, I should have at least doubled the
+number of episodes.
 
-- phase separation and multiple instantiation
+I did not want to get lost in excessive detail.
+Instead, I have decided to continue my series with another block of
+episodes about macros, and to fill the remaining gaps about the
+module systems in future Adventures.
 
-  I agree with the PLT people that expand-time variables and run-time
-  variables should live in different instances, however I disagree
-  that we need a tower of meta-levels. Two phases are more than enough.
-  We can just perform the compilation in a different process
-  than the evaluation process. In this way the variables can be
-  imported in all phases, but modifying a variable at expand time
-  cannot influence its runtime counterpart.
-
-- missing features from the standard
-
-  I think the standard lacks many important features. I have
-  already noticed that I would welcome the ability to export all names from a
-  library ``(export *)`` and the ability to introspect the names exported
-  by library. In addition,
-  I would welcome a mechanism to write helper functions for macros *in the
-  same file* the macros are defined, if one wants to. One way to implement this
-  feature is to standardize the ability of writing multiple libraries in
-  the same file, which is already provided by some implementations.
-  Another way is to introduce at ``define-at-all-phases`` form.
+So, as always, stay tuned and keep reading!
 |#
