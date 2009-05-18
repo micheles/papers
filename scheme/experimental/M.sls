@@ -2,6 +2,6 @@
 (library (experimental M)
 (export a)
 (import (rnrs) (experimental L))
-(when #f (m)); this line is never executed at runtime
-(display "M instantiated\n")
+(m); this line is expanded at compile-time
+(display "M instantiated\n"); at run-time
 )

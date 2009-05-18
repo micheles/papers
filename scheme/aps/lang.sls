@@ -21,8 +21,7 @@
     (sub (: let-form e)
          #'e)
     (sub (: let-form e1 e2)
-         (syntax-violation ': "Odd number of arguments"
-          (syntax->datum #'(let-form e1 e2))))
+         (syntax-violation ': "Odd number of arguments" #'let-form))
     (sub (: let-form patt value rest ... expr)
          #'(let-form ((patt value)) (: let-form rest ... expr))
          (identifier? #'let-form)
