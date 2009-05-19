@@ -173,8 +173,8 @@ class LazyConnection(object):
             argnames, templ = get_args_templ(templ, self.driver.placeholder)
             if len(argnames) != len(args): # especially useful for mssql
                 raise TypeError(
-                    "Expected %d arguments (%s), got %d %s" %
-                    (len(argnames), ', '.join(argnames), len(args), args))
+         "TypeError when executing %s\nExpected %d arguments (%s), got %d %s" %
+         (templ, len(argnames), ', '.join(argnames), len(args), args))
         descr, res = self._raw_execute(templ, args)
         cursor = self._storage.curs # needed to make the reset work
         if self.chatty:

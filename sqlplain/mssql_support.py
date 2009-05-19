@@ -9,6 +9,8 @@ ISOLATION_LEVELS = (
 
 placeholder = '%s'
 
+CODEMAP = {}
+
 class Connection(object):
 
     def __init__(self, cnx, isolation_level=None):

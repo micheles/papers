@@ -3,7 +3,7 @@ Notice: create_db and drop_db are not transactional.
 """
 
 import os, sys, re, subprocess, tempfile
-from sqlplain.uri import URI
+from sqlplain.uri import URI, CODEMAP
 from sqlplain import connect, do
 from sqlplain.connection import Transaction
 from sqlplain.namedtuple import namedtuple
@@ -187,7 +187,8 @@ def insert_rows(conn, tname, rows):
         row = it.next()
     except StopIteration: # nothing to insert
         return n
-    templ = 'INSERT INTO %s VALUES (%s)' % (tname, ', '.join('?'*len(row)))
+    dummies = [':%s' % (i + 1) for i in range(len(row))]
+    templ = 'INSERT INTO %s VALUES (%s)' % (tname, ', '.join(dummies))
     n = conn.execute(templ, row)
     for row in it:
         n += conn.execute(templ, row)
@@ -225,7 +226,24 @@ def exists_table(conn, tname, schema=None):
 def get_descr(conn, tname):
     "Return the DB API 2 description as a list of rows"
     return conn.execute('SELECT * FROM %s WHERE 1=0;' % tname).descr
-    
+
+def inspect_columns(conn, tname, tuples=False):
+    """
+    Return a list of strings "fieldname fieldtype(size)" or of tuples
+    (fieldname, fieldtype, size).
+    """
+    codemap = CODEMAP[conn.dbtype]
+    ls = []
+    for x in get_descr(conn, tname):
+        fname, ftype, fsize = x.name, codemap[x.type_code], x.internal_size 
+        if tuples:
+            ls.append((fname, ftype, fsize))
+        else:
+            ls.append('%s %s%s' %
+                      (fname, ftype, '(%s)' % fsize
+                       if ftype=='VARCHAR' and fsize>0 else ''))
+    return ls
+
 def get_fields(conn, tname):
     """
     Return the names of the columns of a table (must be ASCII).
@@ -260,7 +278,7 @@ def create_schema(db, schema, force=False, schema_dir=None):
     """
     Create the specified schema. If the schema exists already
     an error is raised, unless force is True: in that case the schema
-    is dropped and recreated.
+    is dropped and recreated. We are left in the created schema.
     """
     if force and exists_schema(db, schema):        
         drop_schema(db, schema)

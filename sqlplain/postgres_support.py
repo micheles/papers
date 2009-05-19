@@ -8,6 +8,13 @@ placeholder = '%s'
 # READ_COMMITTED = READ_UNCOMMITTED = 1
 # REPEATABLE_READ = SERIALIZABLE = 2
 
+CODEMAP = {
+    1082: 'DATE',
+    23: 'INTEGER',
+    701: 'FLOAT',
+    1043: 'VARCHAR'
+    }
+
 def connect(params, isolation_level=None, **kw):
     user, pwd, host, port, db = params
     port = port or 5432

@@ -7,6 +7,7 @@ import os
 from sqlplain.configurator import configurator
 
 SUPPORTED_DBTYPES = 'mssql', 'postgres', 'sqlite'
+CODEMAP = {} # will be filled with the codemaps for the various drivers
 
 def imp(mod):
     return __import__(mod, globals(), locals(), [''])
@@ -86,6 +87,7 @@ class URI(object):
         from sqlplain import util
         dbtype = self.dbtype
         driver = imp('sqlplain.%s_support' % dbtype)
+        CODEMAP[dbtype] = driver.CODEMAP
         driver_util = imp('sqlplain.%s_util' % dbtype)
         # dynamically populate the 'util' module with the driver-specific func
         for name, value in vars(driver_util).iteritems():
