@@ -48,7 +48,7 @@ A hobbyist Scheme programmer
 
 - I use Python at work
 - I started programming in Scheme 5+ years ago
-- I am writing "The Adventures of a Pythonista in Schemeland" on Artima
+- I am writing "The Adventures of a Pythonista in Schemeland" on Artima.com
 - the blog posts will become a book
 - I think my experience is relevant for new 
   R6RS programmers
@@ -56,7 +56,7 @@ A hobbyist Scheme programmer
 What I have done in Scheme
 --------------------------------------
 
-- written a module called sweet-macros as sugar over syntax-case
+- written a module called *sweet-macros* as sugar over syntax-case
 
 .. class:: incremental
 
@@ -70,21 +70,15 @@ Disclaimer
 ------------------------------------------------
 
 This is as a talk for **macro** writers who want to write
-portable R6RS code. It assumes:
+portable R6RS code. It assumes knowledge of (R5RS) Scheme
+and macros.
 
-.. class:: incremental
-
- - knowledge of (R5RS) Scheme
- - knowledge of Scheme macros
- - no knowledge of R6RS Scheme
- - no knowledge of the R6RS module system
-
-Part I: no macros or simple macros
+Part I: the easy part
 ----------------------------------------------------
 
 .. code-block:: scheme
 
- $ cat my-lib.sls
+ $ cat my-lib.sls # in most R6RS implementations
  #!r6rs
  (library (my-lib)
  (export a b)
@@ -93,7 +87,23 @@ Part I: no macros or simple macros
  (define b 0)
  (display "my-lib instantiated!\n")
  )
+ ;; import it as (import (my-lib))
+ ;; be careful with the names!
 
+Nothing is simple
+------------------------------------------------
+
+*how to map libraries to the file system is not specified!*
+
+.. class:: incremental
+
+- in PLT ``(import (my-lib))`` does not look at ``my-lib.sls``;
+- it looks at ``my-lib/main.sls`` instead;
+- some implementations understand the ``main.sls`` convention, others not
+- there is not even an SRFI on the topic (but there will be)
+- open issues: multiple libraries in a single file and how to manage
+  multiple versions of the same library
+ 
 Import syntax (I)
 --------------------------------------
 
@@ -121,7 +131,7 @@ Import syntax (I)
 Import syntax (II)
 ----------------------------------------
 
-There are other easy features
+Other easy features
 
 .. class:: incremental
 
@@ -142,14 +152,10 @@ There are other easy features
 Limitations
 ----------------------------------------
 
-- how to map libraries to the file system is not specified
+support for implementation-specific files (.IMPL.sls convention)
+is in its infancy
 
 .. class:: incremental
-
-- support for implementation-specific files (.IMPL.sls convention)
-  is in its infancy
-
-- support for importing a specific version is in fieri
 
 - ``(export *)`` not available
 
@@ -201,7 +207,7 @@ Macro usage
 I will show an issue with a second order syntax-rules macro
 later on
 
-Why all the fuss?
+Where is the problem?
 -------------------------------------------------
 
 - the most common problem is when you have macro transformers
@@ -217,7 +223,7 @@ Why all the fuss?
 
 .. class:: incremental
 
-- Why the identifier is not available to the macro?
+- the identifier is not available to the macro!?
 
 Because of phase separation
 -------------------------------
@@ -270,7 +276,7 @@ Old Scheme behavior
 ----------------------------------------------------
 
 Phase separation is a "new" thing; for 
-instance Guile 1.8 has not phase separation:
+instance Guile 1.8 has no phase separation:
 
 .. code-block:: scheme
 
@@ -305,7 +311,7 @@ So everthing is settled, right?
 
 Not really, there are a few R6RS surprises ...
 
-.. image:: joker_13.jpg
+.. image:: joker.jpg
    :width: 300
 
 The R6RS specification is loose
@@ -482,7 +488,9 @@ while porting my ``sweet-macros`` library:
 - PLT (3)
 - Larceny (1)
 
-*All fixed within hours!*
+.. class:: incremental
+
+ *All fixed within hours!*
 
 Other difficulties I encountered
 ------------------------------------------
@@ -492,57 +500,33 @@ Other difficulties I encountered
 - I am generating the helper modules required by PLT/Larceny
   from the Ikarus/Ypsilon module
 
-While writing the APS libraries I have found many non-portable
+While writing the APS libraries I have found various non-portable
 behaviours:
+
+.. class:: incremental
+
+- the number of times a library is instantiated is
+  totally implementation-dependent
+
+More non-portable behavior
+----------------------------------------------------
+
+- the number of times a library is visited is also
+  totally implementation-dependent
 
 .. class:: incremental
 
 - in implementations based on psyntax and in Ypsilon a module
   is visited only if one of its macros is used
 
-More non-portable behavior
-----------------------------------------------------
-
-.. class:: incremental
-
 - in implementations others than PLT, side-effects
   can leak through phases
 
-- the number of times a library is instantiated is
-  totally implementation-dependent
-
-- it also depends if you are using separate compilation
-  or not.
-
-An example:
-
-.. code-block:: scheme
-
- $ cat two-phases.ss
- (import (for (my-lib) expand run))
-
-Different runs
---------------------------------------------
-
-::
-
- $ plt-r6rs two-phases.ss
- my-lib instantiated!
- my-lib instantiated!
-
- $ larceny -r6rs -program two-phases.ss
- my-lib instantiated!
-
- $ ypsilon --r6rs two-phases.ss
- my-lib instantiated!
-
- $ ikarus --r6rs-script two-phases.ss
+- all the details in my Adventures
 
 
 References
 ------------------------------
-
-You can find all the details in my Adventures
 
 - http://www.artima.com
 - http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf
