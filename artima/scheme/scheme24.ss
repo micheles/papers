@@ -2,8 +2,8 @@
 ===============================================================
 
 There are situations where it is handy to mutate a global variable or
-a data structure across modules, for instance to keep a registry of
-objects, or a counter. However, direct mutation of exported variables
+a data structure across modules, for instance to keep a counter or a
+registry of objects. However, direct mutation of exported variables
 is forbidden by the R6RS standard. Consider for instance a module
 exporting a variable ``x`` and a function ``incr-x`` with side
 effects affecting that variable:
@@ -22,7 +22,7 @@ Mutating internal variables
 ---------------------------------------------------
 
 Consider now a module exporting a function with side effects affecting a
-non-exported (i.e. private) variable:
+non-exported variable:
 
 $$experimental/mod2:
 
@@ -77,7 +77,7 @@ returns the following::
  At run-time x=1
 
 The fact that ``x`` was incremented at compile-time has no effect
-at all at run-time, since the run-time variable ``x`` belongs to a completely
+at run-time, since the run-time variable ``x`` belongs to a completely
 different instance of the module. In systems with single instantiation
 instead, there is only a *single instance of the module for all phases*,
 so that incrementing ``x`` at expand-time has effect at run-time::
@@ -92,11 +92,11 @@ phasing but single instantiation and if you import a module in more
 than one phase the variables are shared amongst the phases, so that
 cross-phase side effects may happen).
 
-The phase crossing only happens because the script is executed immediately
-after compilation *in the same process*. Having compile-time
-effects affecting run-time values is *evil*, since it breaks
-separate compilation. If we turn the script into a library and we
-compile it separately, it is clear than the run-time value of ``x``
+The phase crossing effect only happens because the script is executed
+immediately after compilation *in the same process*. Having
+compile-time effects affecting run-time values is *evil*, since it
+breaks separate compilation. If we turn the script into a library and
+we compile it separately, it is clear than the run-time value of ``x``
 cannot be affected by the compile-time value of ``x``
 (maybe the code was compiled 10 years ago!).
 
@@ -114,7 +114,7 @@ and let us invoke this library though a script ``use-mod3.ss``:
 
 $$experimental/use-mod3:
 
-If we use PLT Scheme, the value of ``x`` is the same::
+If we use PLT Scheme, the value of ``x`` is the same as before::
 
  $ plt-r6rs use-mod3.ss
  Instantiated mod2
@@ -157,7 +157,7 @@ The situation for Ikarus is slightly different. If we use the
  $ ikarus --r6rs-script use-mod3.ss
  Instantiated mod2
  At expand-time x=1
- At run-time x=211
+ At run-time x=2
 
 However, this only happens because Ikarus is compiling all the libraries
 at the same time (whole compilation). If we use separate compilation we get::
@@ -168,7 +168,7 @@ at the same time (whole compilation). If we use separate compilation we get::
  Serializing "/home/micheles/gcode/scheme/experimental/mod3.sls.ikarus-fasl" ...
  Serializing "/home/micheles/gcode/scheme/experimental/mod2.sls.ikarus-fasl" ...
 
-As you see, ``mod2`` the message ``At expand-time x=1`` is printed when
+As you see, the message ``At expand-time x=1`` is printed when
 ``mod2`` is compiled. If we run the script ``use-mod3.ss`` now, we
 get just the run-time message::
 
@@ -181,7 +181,7 @@ returns different results for the variable ``x``, depending if the
 libraries have been precompiled or not. This is ugly and error
 prone. The multiple instantiation mechanism of PLT Scheme has been
 designed to avoid this problem: in PLT one consistently gets always
-the same result, which is the result you would get with separation
+the same result, which is the result one would get with separation
 compilation.
 
 I must notice that you could get the same behavior in non-PLT
@@ -195,7 +195,7 @@ Conclusion
 
 This is the last episode of part IV. You should have an idea of how
 the R6RS module system works, and you should be able to grasp the reasons
-behind the differences between implementations.
+behind the different implementation choices.
 
 In particular, it should
 be clear that side effects are tricky, that you cannot rely on the
@@ -203,8 +203,7 @@ compilation/visiting/instantiation procedure being the same in
 different implementations, that phase separation means different
 things in different Scheme systems.
 
-Still, I have left out many relevant things. I realized that
-in order to say everything
+Still, I have left out many relevant things. In order to say everything
 there is to say about the subject, I should have at least doubled the
 number of episodes.
 

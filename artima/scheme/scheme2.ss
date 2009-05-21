@@ -1,5 +1,4 @@
-#|
-About scheme implementations
+#|About Scheme implementations
 =======================================================================
 
 Scheme is a language with many implementations and with few
