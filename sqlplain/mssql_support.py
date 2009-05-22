@@ -9,7 +9,13 @@ ISOLATION_LEVELS = (
 
 placeholder = '%s'
 
-CODEMAP = {}
+## notice that retrieving the internal size does not work with pymssql
+CODEMAP = {
+    1: 'VARCHAR',
+    2: 'INTEGER',
+    3: 'FLOAT',
+    4: 'DATETIME',
+}
 
 class Connection(object):
 
