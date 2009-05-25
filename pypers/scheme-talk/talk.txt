@@ -100,9 +100,9 @@ Nothing is simple
 - in PLT ``(import (my-lib))`` does not look at ``my-lib.sls``;
 - it looks at ``my-lib/main.sls`` instead;
 - some implementations understand the ``main.sls`` convention, others not
-- there is not even an SRFI on the topic (but there will be)
+- there is not even an SRFI on the topic (yet)
 - open issues: multiple libraries in a single file and how to manage
-  multiple versions of the same library
+  multiple versions
  
 Import syntax (I)
 --------------------------------------
@@ -146,7 +146,7 @@ Other easy features
 
   .. code-block:: scheme
 
-   (import (rnrs) (exclude (my-lib) a))
+   (import (rnrs) (except (my-lib) a))
    (display b) ;=> 0
 
 Limitations
@@ -253,7 +253,7 @@ and run-time
 
 .. image:: salvador-dali-clock.jpg 
 
-Beware! the REPL may betray you
+Beware of the REPL!
 -------------------------------------------
 
 .. code-block:: scheme
@@ -272,10 +272,10 @@ but
   > (let-syntax ((m (lambda (x) a))) (m))
     42
 
-Old Scheme behavior
+No phase separation
 ----------------------------------------------------
 
-Phase separation is a "new" thing; for 
+Phase separation is not ubiquitous; for 
 instance Guile 1.8 has no phase separation:
 
 .. code-block:: scheme
@@ -330,8 +330,7 @@ An example:
 - R6RS implementations are required to support 
   ``(import (for (my-lib) expand))`` *syntactically*
 - they are not required to honor it!
-- this code does not compile on PLT Scheme and Larceny
-- but it compiles and runs fine on all other systems!
+- this code runs fine on all systems except PLT Scheme and Larceny
 
 Lack of phase specification
 ---------------------------------------------
@@ -355,6 +354,8 @@ Fasten your seatbelts now ...
 
 The Dark Tower of meta-levels
 -----------------------------------------------------
+
+-
 
 .. image:: DarkTower.jpg
 
@@ -443,7 +444,7 @@ Ikarus, Mosh, IronScheme ...
 ---------------------------------------------------
 
 Such implementations do not need to worry about
-the Dark Tower. I think they will have a great future.
+the Dark Tower. I think they will have a great future!
 
 .. image:: tower_of_babel.jpg
 
