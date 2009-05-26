@@ -66,13 +66,6 @@ What I have done in Scheme
 - made a lot of noise in various mailing lists
 - got *impressive* support from Scheme implementors :-)
 
-Disclaimer
-------------------------------------------------
-
-This is as a talk for **macro** writers who want to write
-portable R6RS code. It assumes knowledge of (R5RS) Scheme
-and macros.
-
 Part I: the easy part
 ----------------------------------------------------
 
@@ -81,16 +74,16 @@ Part I: the easy part
  $ cat my-lib.sls # in most R6RS implementations
  #!r6rs
  (library (my-lib)
- (export a b)
- (import (rnrs)); standard R6RS bindings
- (define a 42)
- (define b 0)
- (display "my-lib instantiated!\n")
+  (export a b)
+  (import (rnrs)); standard R6RS bindings
+  (define a 42)
+  (define b 0)
+  (display "my-lib instantiated!\n")
  )
  ;; import it as (import (my-lib))
  ;; be careful with the names!
 
-Nothing is simple
+Nothing is easy
 ------------------------------------------------
 
 *how to map libraries to the file system is not specified!*
@@ -104,7 +97,7 @@ Nothing is simple
 - open issues: multiple libraries in a single file and how to manage
   multiple versions
  
-Import syntax (I)
+Import syntax (prefix, only)
 --------------------------------------
 
 .. code-block:: scheme
@@ -118,7 +111,7 @@ Import syntax (I)
 
   .. code-block:: scheme
 
-   (import (rnrs) (my-lib (prefix my-lib:)))
+   (import (rnrs) (prefix (my-lib) my-lib:))
    (display my-lib:a) ;=> 42
 
 - import only a specific sets of names:
@@ -128,7 +121,7 @@ Import syntax (I)
    (import (rnrs) (only (my-lib) a))
    (display a) ;=> 42
 
-Import syntax (II)
+Import syntax (rename, except)
 ----------------------------------------
 
 Other easy features
@@ -186,17 +179,17 @@ A simple example:
 
  #!r6rs
  (library (my-lib)
- (export double)
- (import (rnrs))
- (define-syntax double
-   (syntax-rules ()
-    ((_ x) (list x x))))
+  (export double)
+  (import (rnrs))
+  (define-syntax double
+    (syntax-rules ()
+     ((_ x) (list x x))))
  )
 
 Macro usage
 -------------------------
 
-99.99% of times there are no problems with syntax-rules macros:
+99.9% of times there are no problems with syntax-rules macros:
 
 .. code-block:: scheme
 
@@ -355,12 +348,13 @@ Fasten your seatbelts now ...
 The Dark Tower of meta-levels
 -----------------------------------------------------
 
--
-
 .. image:: DarkTower.jpg
 
 Meta-levels in macros
 -------------------------------------------
+
+- the right hand side of macro definition refers to names which are
+  one phase (meta-level) up
 
 .. code-block:: scheme
 
@@ -371,15 +365,9 @@ Meta-levels in macros
           fender                      ; meta-level 1
           #'template))))              ; meta-level 0
 
-.. class:: incremental
-
-- the right hand side of macro definition refers to names which are
-  one meta-level up
-
 - inside a template one goes back one meta-level
 
-- there is an arbitrary number of positive meta-levels,
-  depending on the level of nesting
+- there is an arbitrary number of positive meta-levels
 
 An example at meta-level 2
 -----------------------------------------------------
@@ -400,8 +388,7 @@ An example at meta-level 2
 Levels/Phases are ordered
 ---------------------------------------
 
-- innermost levels are compiled first
-- outermost templates are evaluated later
+- in a nested macro innermost levels are compiled first
 
 .. image:: list-comprehension.jpg 
 
@@ -423,7 +410,7 @@ A subtle second order macro
  (display (color <names>)) ;=> (red green blue)
  (display (color red)) ;=> 0
 
-Phase levels
+Negative meta-levels
 ---------------------------------------
 
 .. code-block:: scheme
@@ -448,10 +435,11 @@ the Dark Tower. I think they will have a great future!
 
 .. image:: tower_of_babel.jpg
 
-You get the worse of two worlds
+
+R6RS: an unhappy compromise
 --------------------------------------------
 
-Writers of portable code
+You get the worse of two worlds: writers of portable code
 
 .. class:: incremental
 
@@ -460,14 +448,14 @@ Writers of portable code
 - cannot rely on a clearly defined import semantics
 - apparently it was politically impossible to do better
 
-Part III
+Part III: my experience
 -------------------------
 
 Porting macro-rich R6RS libraries can be a rather heavy task ...
 
 .. image:: mule.jpg
 
-Beware of negative metalevels
+Issues negative metalevels
 -------------------------------
 
 .. code-block:: scheme
@@ -478,7 +466,7 @@ Beware of negative metalevels
 .. image:: sweet-macros.png
    :width: 695
 
-Beware of bugs
+Bugs
 ---------------------------------------------------
 
 I have found many bugs in different R6RS implementations
@@ -525,7 +513,6 @@ More non-portable behavior
 
 - all the details in my Adventures
 
-
 References
 ------------------------------
 
@@ -536,3 +523,16 @@ References
 and of course in the R6RS document
 
 - http://www.r6rs.org/final/html/r6rs/r6rs.html
+
+
+Acknowledgments
+-----------------------------------
+
+This work would not have been possible without the help of 
+
+- Abdulaziz Ghuloum, Derick Eddington (*Ikarus*)
+- Matthew Flatt, Eli Barzilay (*PLT*)
+- Will Clinger, André van Tolder (*Larceny*)
+- Yoshikatsu Fujita (*Ypsilon*)
+
+and many others. Thank you!
