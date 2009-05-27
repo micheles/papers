@@ -86,18 +86,20 @@ Part I: the easy part
 Nothing is easy
 ------------------------------------------------
 
-*how to map libraries to the file system is not specified!*
+*how to map libraries to the file system is unspecified!*
 
 .. class:: incremental
 
-- in PLT ``(import (my-lib))`` does not look at ``my-lib.sls``;
-- it looks at ``my-lib/main.sls`` instead;
+- ``(import (package subpackage ... lib))`` looks for
+  ``package/subpackage .../lib.sls``
+- in PLT ``(import (my-lib))`` looks for ``my-lib/main.sls``, not for
+  ``my-lib.sls``
 - some implementations understand the ``main.sls`` convention, others not
 - there is not even an SRFI on the topic (yet)
 - open issues: multiple libraries in a single file and how to manage
-  multiple versions
+  multiple versions of a library
  
-Import syntax (prefix, only)
+Import syntax
 --------------------------------------
 
 .. code-block:: scheme
@@ -124,8 +126,6 @@ Import syntax (prefix, only)
 Import syntax (rename, except)
 ----------------------------------------
 
-Other easy features
-
 .. class:: incremental
 
 - renaming a set of identifiers:
@@ -145,20 +145,38 @@ Other easy features
 Limitations
 ----------------------------------------
 
-support for implementation-specific files (.IMPL.sls convention)
-is in its infancy
-
-.. class:: incremental
-
 - ``(export *)`` not available
 
   + you must list explicitly all the exported identifiers
   + at least, it makes writing IDEs easier
 
+.. class:: incremental
+
 - no introspection API 
 
   + no (exported-vars my-lib)
   + no (exported-macros my-lib)
+
+- support for implementation-specific files (.IMPL.sls convention)
+  in its infancy
+
+Compatibility files for aps
+----------------------------------------
+
+.. code-block:: scheme
+
+ $ cat compat.mzscheme.sls
+ #!r6rs
+ (library (aps compat)
+ (export printf format pretty-print)
+ (import (rnrs) (only (scheme) printf format pretty-print)))
+
+ $ cat compat.ypsilon.sls
+ (library (aps compat)
+ (export printf format pretty-print)
+ (import (rnrs) (core))
+ (define (printf format-string . args)
+   (display (apply format format-string args))))
 
 Let's start with macros now
 ----------------------------------
@@ -175,16 +193,13 @@ A simple example:
 
 .. code-block:: scheme
 
- $ cat my-lib.ss
-
  #!r6rs
- (library (my-lib)
-  (export double)
-  (import (rnrs))
-  (define-syntax double
+ (library (show)
+  (export show)
+  (import (rnrs) (only (aps compat) printf))
+  (define-syntax show
     (syntax-rules ()
-     ((_ x) (list x x))))
- )
+     ((_ x) (printf "~a=~a\n" 'x x)))))
 
 Macro usage
 -------------------------
@@ -193,9 +208,10 @@ Macro usage
 
 .. code-block:: scheme
 
- $ cat example.sls
- (import (rnrs) (my-lib))
- (display (double 1));  prints (1 1)
+ > (import (show))
+ > (define a 1) 
+ > (show a)
+ a=1
 
 I will show an issue with a second order syntax-rules macro
 later on
@@ -269,7 +285,7 @@ No phase separation
 ----------------------------------------------------
 
 Phase separation is not ubiquitous; for 
-instance Guile 1.8 has no phase separation:
+instance Guile 1.8 (or Emacs Lisp) have no phase separation:
 
 .. code-block:: scheme
 
@@ -323,7 +339,7 @@ An example:
 - R6RS implementations are required to support 
   ``(import (for (my-lib) expand))`` *syntactically*
 - they are not required to honor it!
-- this code runs fine on all systems except PLT Scheme and Larceny
+- this code runs fine on all systems except PLT Scheme and Larceny!
 
 Lack of phase specification
 ---------------------------------------------
@@ -353,10 +369,13 @@ The Dark Tower of meta-levels
 Meta-levels in macros
 -------------------------------------------
 
-- the right hand side of macro definition refers to names which are
-  one phase (meta-level) up
+the right hand side of macro definition refers to names which are
+one phase (meta-level) up
 
-.. code-block:: scheme
+.. class:: incremental
+
+-
+ .. code-block:: scheme
 
   (define-syntax macro                ; meta-level 0
      (lambda (x)                      ; meta-level 1
@@ -366,8 +385,6 @@ Meta-levels in macros
           #'template))))              ; meta-level 0
 
 - inside a template one goes back one meta-level
-
-- there is an arbitrary number of positive meta-levels
 
 An example at meta-level 2
 -----------------------------------------------------
@@ -392,7 +409,7 @@ Levels/Phases are ordered
 
 .. image:: list-comprehension.jpg 
 
-A subtle second order macro
+A subtle nested macro
 ---------------------------------------------
 
 .. code-block:: scheme
