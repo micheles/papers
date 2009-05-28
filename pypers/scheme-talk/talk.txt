@@ -21,7 +21,7 @@ Part II
 Explicit phasing and the tower of meta-levels
 
 .. image:: exploding-head.jpg
-   :width: 400
+   :width: 360
 
 Part III
 --------------------------
@@ -126,14 +126,16 @@ Import syntax
 Import syntax (rename, except)
 ----------------------------------------
 
+other easy features
+
 .. class:: incremental
 
 - renaming a set of identifiers:
 
   .. code-block:: scheme
 
-   (import (rnrs) (rename (my-lib) (a ml:a)))
-   (display ml:a) ;=> 42
+   (import (rnrs) (rename (my-lib) (a ml-a)))
+   (display ml-a) ;=> 42
 
 - excluding a set of identifiers:
 
@@ -148,19 +150,20 @@ Limitations
 - ``(export *)`` not available
 
   + you must list explicitly all the exported identifiers
-  + at least, it makes writing IDEs easier
+  + the rationale is making static recognition of exported 
+    identifiers easier
 
 .. class:: incremental
 
 - no introspection API 
 
-  + no (exported-vars my-lib)
-  + no (exported-macros my-lib)
+  + no (get-exported-ids '(my-lib))
+  + no (get-path-name '(my-lib))
 
 - support for implementation-specific files (.IMPL.sls convention)
   in its infancy
 
-Compatibility files for aps
+Example: compatibility files
 ----------------------------------------
 
 .. code-block:: scheme
@@ -227,7 +230,7 @@ Where is the problem?
    > (let ()
        (define a 42)
        (define-syntax m (lambda (x) a))
-       (m))
+       m)
    error: identifier a out of context
 
 .. class:: incremental
@@ -242,7 +245,7 @@ Because of phase separation
   (let ()
    (define a 42)                    ; run-time
    (define-syntax m (lambda (x) a)) ; macro-def-time
-   (m))
+   m)
 
 .. class:: incremental
 
@@ -269,7 +272,7 @@ Beware of the REPL!
 
  $ mzscheme # or larceny
  > (define a 42)
- > (let-syntax ((m (lambda (x) a))) (m))
+ > (let-syntax ((m (lambda (x) a))) m)
  reference to undefined identifier: a
   
 but
@@ -278,7 +281,7 @@ but
 
   $ ikarus # or ypsilon
   > (define a 42)
-  > (let-syntax ((m (lambda (x) a))) (m))
+  > (let-syntax ((m (lambda (x) a))) m)
     42
 
 No phase separation
@@ -307,7 +310,7 @@ in a different module and import it at expand time
 .. code-block:: scheme
 
  > (import (for (my-lib) expand))
- > (let-syntax ((m (lambda (x) a))) (m))
+ > (let-syntax ((m (lambda (x) a))) m)
    42
 
 .. class:: incremental
@@ -318,7 +321,7 @@ in a different module and import it at expand time
 So everthing is settled, right?
 -------------------------------------
 
-Not really, there are a few R6RS surprises ...
+Not really, since there are a few R6RS surprises ...
 
 .. image:: joker.jpg
    :width: 300
@@ -331,7 +334,7 @@ An example:
 .. code-block:: scheme
 
   (import (for (only (my-lib) a) expand))
-  (display (let-syntax ((m (lambda (x) a))) (m)))
+  (display (let-syntax ((m (lambda (x) a))) m))
   (display a)
   
 .. class:: incremental
@@ -369,8 +372,8 @@ The Dark Tower of meta-levels
 Meta-levels in macros
 -------------------------------------------
 
-the right hand side of macro definition refers to names which are
-one phase (meta-level) up
+we saw that the right hand side of macro definition refers to names
+which are one phase (meta-level) up
 
 .. class:: incremental
 
@@ -397,19 +400,19 @@ An example at meta-level 2
    (lambda (x1)           ;; level 1
       (define-syntax m2   ;; level 1
          (lambda (x2) a)) ;; level 2
-      (+ (m2) b)))        ;; level 1
+      (+ m2 b)))          ;; level 1
   (display                ;; level 0
-    (m1)                  ;; level 1
+    m1                    ;; level 1
   )                       ;; level 0
 
-Levels/Phases are ordered
+Positive meta-levels
 ---------------------------------------
 
 - in a nested macro innermost levels are compiled first
 
 .. image:: list-comprehension.jpg 
 
-A subtle nested macro
+The Dark Side of the Tower
 ---------------------------------------------
 
 .. code-block:: scheme
@@ -444,6 +447,17 @@ Negative meta-levels
 
 Needs ``(import (for (only (rnrs) quote) (meta -1)))``
 
+I had to fight with meta-levels
+----------------------------------
+
+.. code-block:: scheme
+
+ (import (rnrs) (for (rnrs) (meta -1))
+ (for (sweet-macros helper1) (meta -1) (meta 0) (meta 1)))
+
+.. image:: sweet-macros.png
+   :width: 695
+
 Ikarus, Mosh, IronScheme ...
 ---------------------------------------------------
 
@@ -463,7 +477,7 @@ You get the worse of two worlds: writers of portable code
 - cannot rely on the simplicity of implicit phasing
 - cannot rely on the full power of explicit phasing
 - cannot rely on a clearly defined import semantics
-- apparently it was politically impossible to do better
+- apparently it was politically impossible to do better :-/
 
 Part III: my experience
 -------------------------
@@ -471,17 +485,6 @@ Part III: my experience
 Porting macro-rich R6RS libraries can be a rather heavy task ...
 
 .. image:: mule.jpg
-
-Issues negative metalevels
--------------------------------
-
-.. code-block:: scheme
-
- (import (rnrs) (for (rnrs) (meta -1))
- (for (sweet-macros helper1) (meta -1) (meta 0) (meta 1)))
-
-.. image:: sweet-macros.png
-   :width: 695
 
 Bugs
 ---------------------------------------------------
@@ -498,7 +501,7 @@ while porting my ``sweet-macros`` library:
 
  *All fixed within hours!*
 
-Other difficulties I encountered
+Other difficulties
 ------------------------------------------
 
 - I had to wait for the .IMPL.sls convention to be implemented
@@ -506,10 +509,10 @@ Other difficulties I encountered
 - I am generating the helper modules required by PLT/Larceny
   from the Ikarus/Ypsilon module
 
-While writing the APS libraries I have found various non-portable
-behaviours:
-
 .. class:: incremental
+
+- while writing the APS libraries I have found various non-portable
+  behaviors
 
 - the number of times a library is instantiated is
   totally implementation-dependent
@@ -518,15 +521,15 @@ More non-portable behavior
 ----------------------------------------------------
 
 - the number of times a library is visited is also
-  totally implementation-dependent
-
-.. class:: incremental
+  implementation-dependent
 
 - in implementations based on psyntax and in Ypsilon a module
   is visited only if one of its macros is used
 
 - in implementations others than PLT, side-effects
   can leak through phases
+
+.. class:: incremental
 
 - all the details in my Adventures
 
