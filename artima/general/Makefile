@@ -9,3 +9,6 @@ eeepc-ubuntu:
 
 eeepc-main:
 	python2.5 ../post.py eeepc-as-main-box.txt 257325
+
+caring:
+	python2.5 ../post.py caring.txt 259296 
