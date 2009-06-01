@@ -5,29 +5,32 @@ mind and as a mean of self-expression, but I do not care much about
 a *specific* programming language.  
 
 I began to program professionally with Python, and I like
-the language, but now I am writing a book on Scheme, and tomorrow I will
+the language, but now I am writing a book about Scheme, and tomorrow I will
 probably be looking at a language with static typing and type
 inference.  I do have any kind of fidelity to a specific language.
 To me languages are tools which I use for my job and for my personal
-entertainement, but I do not feel any particular obligation to keep
+entertainment, but I do not feel any particular obligation to keep
 using the same language forever.
 I think my position about programming languages is quite
 common amongst programmers and that I am in the majority.
-However, *who cares about majority?* 
+
+However, *who cares about the majority?* 
 
 The majority counts nothing when it comes to
 programming languages. Programming languages are designed and libraries
 are written by a very small *minority*.
-This is actually the norm: science and arts are produced 
-and evolve in consequence of the work of a small aristocracy. 
+This is actually the norm: all science and arts are produced 
+and evolve in consequence of the work of a small minority.
 The majority matters when it comes to the question of 
 the *success* of language; one may argue that one language is
-more successfull than another due to a set of specific boundary
+more successful than another due to a set of specific boundary
 conditions: in that time and place, in that historic/economic situation,
-a language may have more or less success for all sort of sort of
+a language may have more or less success for all sort of
 technical and non-technical reasons.
 
-However, here I am not concerned
+When a language becomes successful the majority become relevant mostly
+in a negative sense, as a force resisting change, since backward
+compatibility concerns becomes essential. However, here I am not concerned
 with the question of success: I am concerned with the *creative*
 aspects of a language, and the creative parts are always done
 by a small minority. It is that minority which matters.
@@ -64,7 +67,7 @@ documenting obscure features of at least one language,
 which have become the standard reference on the topic.
 On top of that I have being very active on newsgroups and
 mailing lists, I have a blog about programming and I am
-a partecipant and even an organizer of language conferences.
+a participant and even an organizer of language conferences.
  
 Still, I am not sold to any particular language, and I do not
 suffer/enjoy particularly if the language I am using right now is
@@ -75,7 +78,7 @@ However, I do realize that there is a sizable portion of people
 in the active community which care *a lot* for their chosen language and
 I take them very seriously.
 
-The Common Lisp community is a special case, since the language is the
+The Lisp community is a special case, since the language is the
 second oldest language in the world and it has such a long and
 glorious history - for instance at the conference we had multiple
 references to the legendary Lisp machines the people of my generation
@@ -113,7 +116,7 @@ money: people do not feel they have lost much during the last twenty
 years. Most Schemers know that they will never conquer the world and
 they are content with that.
 
-On the other hand many lispers think that they have lost the mindshare
+On the other hand many lispers think that they have lost the mind-share
 they had in the past and they suffer for that: I remember particularly
 Scott McKay, who cited Ruby on Rails multiple times and made pretty
 clear that he was disturbed by the fact that Ruby was having much more
@@ -127,7 +130,6 @@ am saying, since those are mostly subjective impressions
 I have got from a single conference. Certainly at the conference
 there were people happy with Common Lisp as it is (for instance
 `Pascal Costanza`_ did not look sad at all!).
-
 I may well be completely wrong about how the Common Lisp community feels,
 but it does not matter: what matters is the external *perception* of
 the community, nor the community in itself. So my perceptions from the
@@ -138,9 +140,9 @@ away from the language because of that perception.
 
 People - and I mean people that care - chose a language
 not only because of its features, but also because of its community.
-There are people taking pride in being part of a large "successfull"
+There are people taking pride in being part of a large "successful"
 community (they will not choose Common Lisp) and others taking pride 
-in being part of a small "oppressed" community (they may choose
+in being part of a small "oppressed" community (they might choose
 Common Lisp). 
 
 I do not feel particularly either way. I am an organizer of the `Italian
@@ -151,7 +153,7 @@ list, which has less than 10 active posters. I am not particularly
 proud of being part of a large community or of a small community, but
 many people care about these things.
 
-I care about the philosophy of a language, which isthe
+I care about the philosophy of a language, which is the
 philosophy of its community: and when I had to choose between Ruby or
 Python I chose Python because of (the perception I had) of its
 community; similarly, when I had to choose between Common Lisp and
@@ -163,14 +165,14 @@ and no clear vision about the future, there is no point in changing
 the language.
 
 I have a lot of respect for the lisp community and for what they
-have accomplished in the latest 50 years: I want to absorbe 
-what they have to teach us youngesters so
+have accomplished in the latest 50 years: I want to absorb 
+what they have to teach us youngsters so
 that their experience is not lost. It is important for that knowledge
 to be passed into new communities and new languages, since
 I *perceive* the Common Lisp community to be at a dead end.
-Of course Common Lisp will continue forever, just as Fortran will
-continue forever and Cobol will continue forever, but the language has
-stopped to innovate decades ago (note to the reader: At this point you
+Of course Common Lisp will continue forever, just as FORTRAN will
+continue forever and COBOL will continue forever, but the language has
+stopped to innovate decades ago (note to the reader: at this point you
 should read Paul Graham's essay about why `Microsoft is dead`_).
 
 I am more optimistic about Scheme: it will
@@ -186,7 +188,7 @@ more going on, especially in the newest R6RS implementations.
 
 I could just be ignorant; nevertheless, my impression after the
 conference if that I have been wise in choosing the Scheme camp. No
-offence to anybody is intended of course, and actually I am very happy
+offense to anybody is intended of course, and actually I am very happy
 they invited me, since it was a very nice conference and an extremely
 interesting experience.  I have also seen a couple of cool projects
 that Pythonistas should copy, and perhaps I will have to write another
