@@ -1,4 +1,4 @@
-#|Relation with standard macros
+#|Hygienic macros
 ==============================================================
 
 In episode 9_ I akwnoledged the fact that Scheme provides at least three
@@ -28,15 +28,15 @@ for missing the ``sub`` literal)
 is that ``syntax-rules`` automatically adds the syntax-quote ``#'``
 operator to you templates. That means that you cannot use
 quasisyntax tricks and that ``syntax-rules`` is strictly less
-powerful than ``syntax-match``: in particular you cannot
-break hygiene with it. Moreover, ``syntax-rules`` macros
+powerful than ``syntax-match``. Moreover, ``syntax-rules`` macros
 do not have guarded patterns; the most direct consequence is that
 providing good error messages for wrong syntaxes is more difficult.
 
 ``syntax-match`` vs ``syntax-case``
 -----------------------------------------------------------------
 
-``syntax-case`` can also be defined in terms of ``syntax-match`` as follows::
+``syntax-case`` can also be defined in terms of ``syntax-match`` as
+follows::
 
  (def-syntax syntax-case
    (syntax-match ()
@@ -63,28 +63,22 @@ Why do I say so?
 ``syntax-match`` versus ``define-macro``
 ---------------------------------------------------------------
 
-Nowadays macros based on ``define-macro`` are much less used than in past,
-in part because of the hygiene issue, and in part because macro systems based
-on pattern matching are much more powerful and easy to use. The R6RS
-specification made ``syntax-case`` enters in the standard and this is
-the preferred macro system for most implementation.  For instance
-Chicken Scheme, which traditionally used ``define-macro`` a lot, is
-going to remove it from the core, using ``syntax-case`` instead: this
-is the reason why the next major Chicken version, Chicken 4.0, will be
-called "hygienic Chicken".
+Nowadays macros based on ``define-macro`` are much less used than in
+past because macro systems based on pattern matching are much more
+powerful, easier and safer to use. The R6RS specification made
+``syntax-case`` enter in the standard and this is the preferred macro
+system for most implementation.
 
 Nowadays, there is a good chance that your Scheme implementation does
-not provide ``define-macro`` out of the box, therefore you need to implement
-it in term of ``syntax-case`` (or ``syntax-match``). Here is an example
-of such an implementation:
+not provide ``define-macro`` out of the box, therefore you need to
+implement it in term of ``syntax-case`` (or ``syntax-match``). Here is
+an example of such an implementation:
 
 $$DEFINE-MACRO
 
 The code should be clear: the arguments of the macro are converted into
 a regular list which is then transformed with the expander, and converted
-back into a syntax object in the context of the macro. The problem with
-``define-macro`` (and the reason it is becoming less and less used in
-the Scheme world) is the hygiene problem.
+back into a syntax object in the context of the macro. 
 
 .. _9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
 .. _On Lisp: http://www.paulgraham.com/onlisp.html
@@ -102,10 +96,22 @@ effects. As Paul Graham puts it,
 *errors caused by variable capture are rare, but what they lack
 in frequency they make up in viciousness*.
 
+The hygiene problem is the main reason why `define-macro``
+is becoming less and less used in the Scheme world. PLT
+Scheme has being deprecating it for many years and nowadays
+even Chicken Scheme, which
+traditionally used ``define-macro`` a lot, has removed it from
+the core, by using hygienic macros instead: this is the reason why the
+current Chicken (Chicken 4.0) is called "hygienic
+Chicken".
+
 You can find good discussions of the hygiene problem in Common Lisp
 in many places; I am familiar with Paul Graham's book `On Lisp`_ which
 I definitively recommend: the chapter on variable chapter is the best
-reference I know.
+reference I know. Another extremely good reference is the chapter
+about ``syntax-case`` - by Kent Dybvig - in the book `Beautiful Code`_.
+Here I will give just a short example exhibiting the problem, with
+the readers unfamiliar with it.
 
 .. image:: hygienic-paper-small.jpg
 
@@ -130,20 +136,32 @@ the macro is not safe under variable capture and indeed code such as
  11
 
 prints twice the number 1 and not the number 42. On the other hand,
-everything works fine if the ``for`` macro is defined using ``def-syntax``.
-There is no doubt that ``def-syntax`` is nicer/simpler to writer
-than ``define-macro`` *and* much less error prone.
+everything works fine if the ``for`` macro is defined using
+``def-syntax``.  There is no doubt that ``def-syntax`` is
+nicer/simpler to writer than ``define-macro`` *and* much less error
+prone.
 
-Hygiene is regarded as a great virtue in the Scheme
-community, less so in the Common Lisp community. 
+The other problem with non-hygienic macros is that introduced identifiers
+will have the scope of expanded code, not the scope of the original macro:
+that means that if the outer scope redefines the meaning of an
+identifier used internally, the macro will work in an unexpected way.
+Consider for instance the following expression:
+
+> (let ((unless 'unless))
+    (dirty-for i 1 3 (print i)))
+
+There is an error here because shadowing ``unless`` affects the
+``dirty-for`` macro.  This is pretty tricky to debug: in practice, it
+means that the macro user is forced to know all the identifiers
+that are used internally by the macro.
 
 Breaking hygiene
 -------------------------------------------------
 
 If you only use hygienic macros, the hygiene probleme does not exist.
-However, there is the opposite problem: you neede a way of breaking hygiene on
-purpose.  Consider for instance the following apparently trivial
-macro:
+However, there is the opposite problem: you need a way of breaking
+hygiene on purpose.  Consider for instance the following apparently
+trivial macro:
 
 .. code-block:: scheme
 
@@ -179,7 +197,7 @@ introduced identifiers with some specific mechanism (it
 could be based on marking the names, or on explicit renaming).
 
 Once you get used to the idea that the expansion is not
-literal, and that all the names internally defined by a macro
+literal, and that all the identifiers internally used by a macro
 are opaque unless they are explicitly marked as visible, you will
 see the advantages of hygiene.
 
@@ -187,8 +205,7 @@ For instance, if you are writing a library which can be imported
 in an unknown environment, in absence of hygiene you could introduce
 name clashes impossible to foresee in advance, and that could be solved
 only by the final user, which however will likely be ignorant of how
-your library works. Therefore hygiene is a very good think, since it
-frees your from wondering about name clashes.
+your library works.
 
 To be fair, I should
 remark that in Common Lisp there
@@ -201,12 +218,13 @@ new names in a macro is called *breaking hygiene*.
 Scheme provides a builtin mechanism to break hygiene, via the
 ``datum->syntax`` utility which converts
 literal objects (*datums*) into syntax objects. 
-I have first cited ``datum->syntax`` in episode 21 and you have seen
-it at work in the definition of ``define-macro`` from ``syntax-match``:
-here it is used to convert a list describing source code into a syntax
-object which is then expanded. 
 
-The typical use case for ``datum->syntax`` is to turn symbols
+I have already shown ``datum->syntax``
+at work in the definition of ``define-macro`` from ``syntax-match``,
+where it was used to convert a list describing source code into a syntax
+object. 
+
+A typical use case for ``datum->syntax`` is to turn symbols
 into proper identifiers which can be introduced in macros and made
 visible to expanded code, thus breaking hygiene. Here is how
 you can "fix" the macro ``define-a``:
@@ -223,6 +241,20 @@ the identifier ``a`` is really introduced as follows:
  > (define-a 1)
  > a
  1
+
+A more realistic example is to build identifiers from strings and
+symbols. For that purpose I have added an ``identifier-append``
+utility in my ``(aps lang)`` library, defined as follow:
+
+$$lang:IDENTIFIER-APPEND
+
+Here is a simple ``def-book`` macro using ``identifier-append``:
+
+$$DEF-BOOK
+
+to be used as in the following test:
+
+$$TEST-DEF-BOOK
 |#
 
 (import (rnrs) (sweet-macros) (aps lang) (aps list-utils) (aps compat)
@@ -232,10 +264,10 @@ the identifier ``a`` is really introduced as follows:
 (def-syntax define-macro
   (syntax-match ()
      (sub (define-macro (name . params) body1 body2 ...)
-         #'(define-macro name (lambda params body1 body2 ...)))
+       #'(define-macro name (lambda params body1 body2 ...)))
      (sub (define-macro name expander)
-         #'(def-syntax (name . args)
-             (datum->syntax #'name (apply expander (syntax->datum #'args)))))
+       #'(def-syntax (name . args)
+          (datum->syntax #'name (apply expander (syntax->datum #'args)))))
      ))
 ;END
 
@@ -248,6 +280,28 @@ the identifier ``a`` is really introduced as follows:
 (define-macro (define-a* x)
   `(define a ,x))
 ;END
+
+;;DEF-BOOK
+(def-syntax (def-book name title author)
+  (: with-syntax
+     name-title (identifier-append #'name "-title")
+     name-author (identifier-append #'name "-author")
+     #'(begin
+         (define inner-name (vector title author))
+         (define name-title (vector-ref inner-name 0))
+         (define name-author (vector-ref inner-name 1)))))
+
+;;END
+
+;(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
+
+ ;;TEST-DEF-BOOK
+ (test "def-book"
+       (let ()
+         (def-book bible "The Bible" "God")
+         (list bible-title bible-author))
+       (list "The Bible" "God"))
+ ;;END
 
 (def-syntax (let-3 name list-3 body body* ...)
   #`(let+ ((x y z) list-3)

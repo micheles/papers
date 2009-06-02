@@ -29,7 +29,7 @@ I would not consider Python and Common Lisp as
 truly functional languages: they are just imperative languages with
 some support for functional programming (I mean constructs such as ``map``,
 ``filter``, ``reduce``, list comprehension, generators, et cetera).
-However, there is large gap between an
+However, there is a large gap between an
 imperative language with some support for functional programming and a
 true functional language.
 
@@ -46,7 +46,7 @@ you avoid rebinding and you restrict yourself to functional data
 structures, and it allows many typical idioms of functional programming
 which have no counterpart in imperative programming. We already saw a common
 trick in `episode #5`_, i.e. the accumulator trick, which is a
-way to avoid mutation in loops by using recursion. In this episodes and
+way to avoid mutation in loops by using recursion. In this episode and
 the next ones we will show many others.
 
 .. figure:: diamond.jpg
@@ -71,7 +71,7 @@ Actually, it is still possible to mutate pairs, but only by
 extending the rnrs environment, i.e. by importing the 
 ``(rnrs mutable-pairs)`` extension, which is part of the standard library
 but not of the core language. This is a clear indication of the fact
-that the functional paradigm is somewhat recommended paradigm in Scheme,
+that the functional paradigm is somewhat a recommended paradigm in Scheme,
 even if it is not enforced (in strongly functional languages, such as SML
 and Haskell, lists are immutable and there is no other option).
 
@@ -79,7 +79,7 @@ I should notice that the requirement of importing ``(rnrs
 mutable-pairs)`` is only valid for scripts and libraries: the behavior
 of the REPL is unspecified in the R6RS document (actually the R6RS
 forbids a REPL but every R6RS implementation provides a REPL with some
-different semantics) and implementations are free to import or to not
+different semantics) and implementations are free to import or not to
 import ``mutable-pairs`` in the REPL. The REPL of Ikarus imports
 ``mutable-pairs`` by default, so you have at your disposal
 ``set-car!`` and ``set-cdr!``, but this is an implementation specific
@@ -114,7 +114,7 @@ immutable data structures becomes easier
 to understand and to debug. For instance, consider a routine taking
 a list in input and suppose that the content of the list is not
 what you would expect. If the list is mutable you potentially have to
-wonder about you whole code base, since everything could have mutated
+wonder about your whole code base, since everything could have mutated
 the list before reaching the routine you are interested in.
 If the list if immutable, you are sure that the bug must be
 in the procedure which created the list, and in no
@@ -164,7 +164,7 @@ The trick is to use recursion::
  > (list-set 2 '(a b c d) 'X)
  (a b X d)
 
-Notice that ``list-set`` is nicer that its imperative counterpart::
+Notice that ``list-set`` is nicer than its imperative counterpart::
 
  (define (list-set! n lst value) 
    (set-car! (list-tail lst n) value) lst)
@@ -188,7 +188,7 @@ out of the box (
 ``list-set!`` is not in the standard since it is of very little
 utility: if you want to be able to modify the n-th element of a
 sequence, you are much better off by using a vector and not a list).
-However, it does provide primitive to remove elements for a list
+However, it does provide primitives to remove elements for a list
 functionally::
 
  > (remp even? '(3 1 4 1 5 9 2 6 5)); complementary of filter
@@ -205,7 +205,7 @@ functionally::
 
 (you can find other `list utilities`_ in R6RS standard library).
 
-One would expect functional update to be much slower that imperative
+One would expect functional update to be much slower than imperative
 update, because of the need of creating potentially long lists to
 modify just a single element.  However, this is not necessarily
 true. It all depends on how smart your compiler is. A smart compiler
@@ -215,7 +215,7 @@ imperative code. The advantage is that mutation is managed by the
 compiler, not by the programmer, who can think purely in terms of
 immutable data structures.
 
-It is true that compiler for functional languages are still slower
+It is true that compilers for functional languages are still slower
 than C compilers in average, but they are not so bad. In most
 situations the slowdown is acceptable and in particular situations
 compilers for functional languages can be faster than a C compiler.

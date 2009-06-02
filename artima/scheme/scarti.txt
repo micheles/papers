@@ -767,11 +767,12 @@ This is *wanted* behavior. According to Matthew Flatt:
  the same way that the compiler complains when a module contains a free
  variable.*
 
-However I am not convinced by this argument. Whereas it is true that one should
-be very careful when mixing compile-time and run-time, especially in
-presence of side effects, I believe one can solve the issue by using
-separate compilation, and that the benefits of the tower of meta-levels are not
-compensated by the complications it induces.
+However I am not convinced by this argument. Whereas it is true that
+one should be very careful when mixing compile-time and run-time,
+especially in presence of side effects, I believe one can solve the
+issue by using separate compilation, and that the benefits of the
+tower of meta-levels are not compensated by the complications it
+induces.
 
 
 My wishlist for a Scheme implementation
@@ -805,15 +806,15 @@ I have a personal wishlist of features.
 
 - missing features from the standard
 
-  I think the standard lacks many important features. I have
-  already noticed that I would welcome the ability to export all names from a
-  library ``(export *)`` and the ability to introspect the names exported
-  by library. In addition,
-  I would welcome a mechanism to write helper functions for macros *in the
-  same file* the macros are defined, if one wants to. One way to implement this
-  feature is to standardize the ability of writing multiple libraries in
-  the same file, which is already provided by some implementations.
-  Another way is to introduce at ``define-at-all-phases`` form.
+  I think the standard lacks many important features. I have already
+  noticed that I would welcome the ability to export all names from a
+  library ``(export *)`` and the ability to introspect the names
+  exported by library. In addition, I would welcome a mechanism to
+  write helper functions for macros *in the same file* the macros are
+  defined, if one wants to. One way to implement this feature is to
+  standardize the ability of writing multiple libraries in the same
+  file, which is already provided by some implementations.  Another
+  way is to introduce at ``define-at-all-phases`` form.
 
 
 I have not even explained why one would like to

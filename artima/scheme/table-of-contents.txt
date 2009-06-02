@@ -78,4 +78,4 @@ Part IV - The Module System
 .. _Ep21: http://www.artima.com/weblogs/viewpost.jsp?thread=255612
 .. _Ep22: http://www.artima.com/weblogs/viewpost.jsp?thread=256848
 .. _Ep23: http://www.artima.com/weblogs/viewpost.jsp?thread=257998
-.. _Ep23: http://www.artima.com/weblogs/viewpost.jsp?thread=258103
+.. _Ep24: http://www.artima.com/weblogs/viewpost.jsp?thread=258103

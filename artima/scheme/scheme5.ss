@@ -11,8 +11,8 @@ times the same instructions and measuring the total time spent? We
 will see in a moment that there is an easy solution to this question
 (use recursion). On the other hand, there is a second more serious
 question: since there is no fully portable way to write a library in
-Scheme, how can we write a benchmark library?  There is no real answer
-to this question, so we will restrict ourselves to R6RS-compliant
+Scheme, how can we write a benchmark library?  There is no real answer,
+so we will restrict ourselves to R6RS-compliant
 Scheme implementations where there is a standard concept of library.
 
 There are no ``for`` loops in Scheme
@@ -20,10 +20,10 @@ There are no ``for`` loops in Scheme
 
 The ``for`` loop is missing in Scheme as a primitive construct since
 it is useless in a language that guarantees tail call optimization.
-If you studied the concept of *tail call* at the college you know what
+If you studied the concept of *tail call* at college you know what
 I am talking about; on the other hand, if you forgot it, or if you did
-study Physics like myself, it is worth spenting a couple of words on
-the subject. The ones who wants to know more, may consult
+study Physics like me, it is worth spending a couple of words on
+the subject. The ones who want to know more, may consult
 this `Wikipedia article`_.
 
 .. image:: Ouroboros.png
@@ -38,7 +38,7 @@ the Python loop::
   for i in range(1,4):
      print i,
 
-can be converted as a recursive function ``print_up_to_3``::
+can be converted to a recursive function ``print_up_to_3``::
 
  def print_up_to_3(i):
     if i == 4: return
@@ -50,7 +50,7 @@ can be converted as a recursive function ``print_up_to_3``::
 Here the last instruction of the function (the tail) is a call to
 itself, hence the name *tail call*.
 
-The tail call optimization is an optimization guaranteed by the
+Tail call optimization is guaranteed by the
 Scheme language. Scheme compilers/interpreters are able
 to recognize recursive functions in tail call form and to convert
 them internally in ``for`` loops. As a consequence, the programmer
@@ -83,13 +83,13 @@ Let me point out two things before closing this paragraph:
 
      > (let ((a 1) (b 2)) (+ a b)) ; => 3
 
-   The scope of ``a`` and ``b`` is limited to the current block;
-   if ``a`` and ``b`` are defined outside the ``let`` block, internally
+   The scope of ``a`` and ``b`` is limited to the current S-expression/form;
+   if ``a`` and ``b`` are defined outside the ``let`` form, internally
    ``a`` and ``b`` *shadow* the outer names.
 
 2) there is actually a ``do`` loop in the language, but it is cumbersome
    to use and redundant because the *named let* allows you to perform
-   anything ``do`` does. I see it as an useless construct in a language
+   everything ``do`` does. I see it as a useless construct in a language
    that would like to be minimalist but it is not.
 
 .. _Wikipedia article: http://en.wikipedia.org/wiki/Tail_call_optimization
@@ -97,11 +97,11 @@ Let me point out two things before closing this paragraph:
 There is no portable module system
 ---------------------------------------------------------------------
 
-As I have anticipated before, libraries are the weak point of Scheme.
+As I have anticipated, libraries are the weak point of Scheme.
 There are few libraries available and it is also difficult to
-write portable libraries. The reason is that historically Scheme
+write portable ones. The reason is that historically Scheme
 never had any standard module system until very recently, with
-the R6RS document: that means that nearly all current implementations
+the R6RS document: that means nearly all current implementations
 provide different and incompatible module systems.
 
 In order to understand the reason for this serious lack, you must
@@ -110,16 +110,16 @@ understand the philosophy behind Scheme, i.e. the so called
 For thirty years the Scheme community has not been able to converge on 
 a well done single module system. It is only in 2007 that a standard module
 system has been blessed by the Scheme committee: but even that
-was done was a lot of opposition and there are implementors who
-said they will *never* support R6R5.
+was done with a lot of opposition and there are implementors who
+said they will *never* support R6RS.
 
-As a consequence of history and mentality, even as pof now, if you
+As a consequence of history and mentality, if you
 want to write a library for implementation X, you need to do a lot of
 boring and uninspiring work to port the library to implementations Y,
 Z, W, ...  (there are *dozens* of different implementations).
 Moreover, a few implementations do not have a module system at all, so
 you may be forced to solve name clashes issue *by hand*, changing the
-names of the functions exported by our library, if they shadow names
+names of the functions exported by your library, if they shadow names
 coming from third party libraries (!)
 
 Personally, I picked up Scheme 5 years ago, but never used it
@@ -243,7 +243,7 @@ with the following R6RS-compliant script (written in Ikarus Scheme)::
 
 I will notice two things:
 
-1. Python manage to compute the factorial of 995, but then it faces
+1. Python manages to compute the factorial of 995, but then it faces
    the stack wall and it raises a
    ``RuntimeError: maximum recursion depth exceeded`` whereas Scheme
    has no issues whatsoever;
@@ -260,16 +260,16 @@ long integers is more efficient than the Python one, but they
 say nothing on the relative performances of the two languages.
 It is more interesting to see what happens for small numbers.
 For instance, in order to compute the factorial of 7 for 10 millions
-of times, Python takes 30.5 seconds, whereas Ikarus taks
+of times, Python takes 30.5 seconds, whereas Ikarus takes
 3.08 seconds and thus it is nearly *ten times* faster than Python.
 This is not surprising at all, since function calls in Python
 are especially slow whereas they are optimized in Scheme. Moreover
 Ikarus is a native code compiler.
 
-That means that Ikarus' REPL_ works by compiling expressions to native code,
+It means Ikarus' REPL_ works by compiling expressions to native code,
 whereas Python's REPL compiles to bytecode. The technology is called
 incremental compilation and it is commonly used in Lisp languages
-from decades, even it may look futuristic for C/C++ programmers.
+from decades, even if it may look futuristic for C/C++ programmers.
 The factorial example is not very practical (on purpose), but it
 is significant, in the sense that it is legitimate to expect
 good performances from Scheme compilers. The fastest

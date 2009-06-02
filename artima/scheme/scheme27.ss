@@ -54,10 +54,10 @@ syntax object with the ``syntax->datum`` primitive::
  > (equal? (syntax->datum syntax-expr) '(display "hello"))
  #t
 
-Different syntax-objects can be equivalent: for instance
-the improper list of syntax objects ``(cons #'display (cons #'"hello" #'()))``
-is equivalent to the syntax object ``#'(display "hello")`` in
-the sense that both corresponds to the same datum::
+Different syntax-objects can be equivalent: for instance the improper
+list of syntax objects ``(cons #'display (cons #'"hello" #'()))`` is
+equivalent to the syntax object ``#'(display "hello")`` in the sense
+that both corresponds to the same datum::
 
  > (equal? (syntax->datum (cons #'display (cons #'"hello" #'())))
            (syntax->datum #'(display "hello")))
@@ -109,7 +109,7 @@ by using an identifier::
  #<syntax (display "hello")
 
 (the meaning of the lexical context in ``datum->syntax`` is tricky and
-I will go back to that in future episodes).
+I will go back to that in the next episode).
 
 What ``syntax-match`` really is
 --------------------------------------------------------------

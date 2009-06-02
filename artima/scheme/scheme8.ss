@@ -5,7 +5,7 @@ Quoting and quasi-quoting
 In this episode I will
 explain the meaning of the "code is data" concept. To this aim I
 discuss the quoting operation which allows to convert a code fragment
-into a list of symbols and primitive values - i.e. converts code into
+into a list of symbols and primitive values - i.e. it converts code into
 data. Then, I discuss the issue of evaluating data as code.
 
 Quoting
@@ -13,10 +13,10 @@ Quoting
 
 A distinguishing feature of the Lisp family of languages is the existence
 of a quoting operator denoted with a quote ``'`` or with ``(quote )``,
-the first form being syntacting sugar for the second.
+the first form being syntactic sugar for the second.
 The quoting operator works as follows:
 
-1. on primitive values such as numbers, literal strings, symbols etc, it
+1. on primitive values such as numbers, literal strings, symbols, etc, it
    works as an identity operator:
 
 ::
@@ -62,7 +62,7 @@ a dynamic library, then you can import it at runtime;
 you also have the mechanism of pre-processor macros at your disposal
 for working at compile time. The point is that there is no language where
 code generation is as convenient as in Scheme/Lisp where it is buil-in,
-thanks to*s*-expressions or, you wish, thanks to parenthesis.
+thanks to *s*-expressions or, you wish, thanks to parenthesis.
 
 Quasi-quoting
 -------------------------------------------------
@@ -92,12 +92,12 @@ our case we are unquoting the user name, ``,user``.  The function
 containing the string ``"hello"`` together with the username.
 
 There is another operator like ``unquote``, called
-``unquote-splice`` or comma-at and written ``,@``, which works as follows::
+``unquote-splicing`` or comma-at and written ``,@``, which works as follows::
 
  > (let ((ls '(a b c))) `(func ,@ls))
  (func a b c)
 
-In practice ``,@ls`` "unpack" the list ``ls`` into its components: without
+In practice ``,@ls`` "unpacks" the list ``ls`` into its components: without
 the splice operator we would get::
 
  > (let ((ls '(a b c))) `(func ,ls))
@@ -108,7 +108,7 @@ since Scheme/Lisp code is nothing else than a list, it is easy
 to build code by interpolating a list template.
 For instance, suppose we want to evaluate a Scheme expression
 in a given context, where the contexts is given as a list of
-binding, i.e. a list names/values::
+bindings, i.e. a list names/values::
 
  (eval-with-context '((a 1)(b 2) (c 3))
    '(* a  (+ b c)))
@@ -124,7 +124,7 @@ known by the interpreter; in our case we declared that ``eval`` understands
 all the procedures and macros of the most recent RnRS standard (i.e.
 the R6RS standard). The environment specification has the same syntax
 of an ``import``, since in practice it is the same concept: it is
-possible to specify user-define modules as the ``eval`` environment.
+possible to specify user-defined modules as the ``eval`` environment.
 This is especially useful if you have security concerns, since you
 can run untrusted code in a stricter and safer subset of R6RS Scheme.
 
@@ -142,7 +142,7 @@ Programs writing programs
  :class: right
 
 Once you realize that code is nothing else than data, it becomes easy
-to write programs taking in input source code and generating in output
+to write programs taking as input source code and generating as output
 source code, i.e. it is easy to write a compiler.
 For instance, suppose we want to convert the following code fragment
 
@@ -200,7 +200,7 @@ recursion) and structures more general than ``begin``: but I leave
 that as an useful exercise. In a future episode I will talk of
 *code-walkers* and I will discuss how to convert generic source code.
 In general, one can convert s-expression based source code by using
-an external compiler, as we did here, or by using the buil-in mechanism
+an external compiler, as we did here, or by using the built-in mechanism
 provided by Scheme macros. Scheme macros are particularly powerful,
 since they feature extremely advanced pattern matching capabilities:
 the example I have just given, based on the primitive list operations

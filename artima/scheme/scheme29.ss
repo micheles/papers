@@ -1,5 +1,5 @@
 #|
-Generating temporary identifiers
+Records from macros
 =========================================================================
 
 In this episode I show how to introduce auxiliary identifiers in a
@@ -13,10 +13,10 @@ record types and I discuss the hygienic feature of Scheme macros.
 The R6RS standard provides a few convenient utilities to work with
 macros. One of such utilities is the ``with-syntax`` form, which
 allows to introduce auxiliary pattern variables into a skeleton
-(a better name would have been ``let-pattern-vars``).
-Let me make an example.
-``with-syntax`` is often used in conjunction with the ``generate-temporaries``
-function, which returns a list of temporary identifiers.
+(a better name would have been ``let-pattern-vars``).  Let me make an
+example.  ``with-syntax`` is often used in conjunction with the
+``generate-temporaries`` function, which returns a list of temporary
+identifiers.
 
 Here is an example where the temporary variable is used
 as argument in the lambda function: a ``fold`` macro
@@ -137,32 +137,27 @@ methods, so that you may regard them as immutable records (actually
 they are not, since you can change them by using ``vector-set!``,
 but that would be a dirty trick ;)
 
-Notice that a record system like the one presented here features record types
-which are not first class objects - since they are macros; in this respect
-it is more similar to the type system of languages like SML, where types
-are not objects, and very different from a type system like the Python one,
-where classes are objects. Of course in Scheme you can also implement a
-Python-like object system, where it is possible to create dynamic record types
-at runtime and not only at compile time. You can implement it yourself, or
-wait for a future episode ;)
-
-Hygiene
----------------------------------------------------------------------
+Notice that a record system like the one presented here features
+record types which are not first class objects - since they are
+macros; in this respect it
+is more similar to the type system of languages like SML, where types
+are not objects, and very different from a type system like the Python
+one, where classes are objects. Of course in Scheme you can also
+implement a Python-like object system, where it is possible to create
+dynamic record types at runtime and not only at compile time. You can
+implement it yourself, or wait for a future episode ;)
 
 .. hygiene in R6RS: http://docs.plt-scheme.org/r6rs-lib-std/r6rs-lib-Z-H-13.html#node_sec_12.1
 
 There is a subtle point about the ``def-record-type`` macro defined in
-the previous paragraph. Such a macro introduces a lots
-of auxiliary functions, such as ``record-new``, ``record?``, and an accessor
-function with a temporary name for every record field.
-One may expect those names
-to litter the namespace: i.e., after expansion, you would expect the names
-``record-new``, ``record?`` and the temporary names to be defined in
-the namespaces.
-Actually this is not the case: Scheme macros are *hygienic*,
-and auxiliary names introduced in the macro *are not visible outside*.
-
-.. image:: hygienic-paper-small.jpg 
+the previous paragraph. Such a macro introduces a lots of auxiliary
+functions, such as ``record-new``, ``record?``, and an accessor
+function with a temporary name for every record field.  One may expect
+those names to litter the namespace: i.e., after expansion, you would
+expect the names ``record-new``, ``record?`` and the temporary names
+to be defined in the namespaces.  Actually this is not the case:
+Scheme macros are *hygienic*, and auxiliary names introduced in the
+macro *are not visible outside*.
 
 This is a major difference with respect to Common Lisp macros.
 The only names which enter in the namespace are the ones we put in;
@@ -183,14 +178,6 @@ macro, I should notice that I have been able to use the name ``record?``
 only because is an internal name: if the macroexpansion were literal,
 I would have incurred in a name clash, since ``record?`` is a builtin
 name.
-
-In general, if you are writing a library which can be imported
-in an unknown environment, in absence of hygiene you could introduce
-name clashes impossible to foresee in advance, and that could be solved
-only by the final user, which however will likely be ignorant of how
-your library works. Therefore hygiene is a very good think, since it
-frees your from wondering about name clashes.
-
 |#
 
 (import (rnrs) (sweet-macros) (for (aps lang) run expand)

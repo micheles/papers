@@ -287,7 +287,8 @@ for the six episodes about the module system you are about to read.
 I was very ignorant about the module system when I started this
 project, and this work would not have been possible without the
 help of Abdulaziz Ghuloum, Derick Eddington, Will Clinger, Eli
-Barzilay, Matthew Flatt and many others. Thank you guys, you rock!
+Barzilay, Matthew Flatt, André van Tolder and many others.
+Thank you guys, you rock!
 |#
 
 

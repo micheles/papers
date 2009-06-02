@@ -15,8 +15,8 @@ a C-like ``for`` loop and I said that it was suffering from the
 problem of multiple evaluation. Here I explain what the
 problem is and how to cure it. In order to understand the issue,
 you must always remember that macros *expand* code at compile time,
-but they not *evaluate* it: that means that pattern variables do *not*
-correspond to evalued expression, as ordinary variables, but they
+but they not *evaluate* it: this means that pattern variables do *not*
+correspond to evaluated expression, as ordinary variables, but they
 correspond to expressions to be evaluated later, at runtime.
 
 As a consequence, it is easy to write macros
@@ -37,7 +37,7 @@ with a computation::
    (printf "computing the value of end\n")
   3)
 
-Then our naive macro suffers for the multiple evaluation problem::
+Then our naive macro suffers from the multiple evaluation problem::
 
  > (for i 0 (get-end) 'do-nothing)
  computing the value of end
@@ -103,7 +103,7 @@ $$repeat-benchmark:
 I took the number ``n`` from the command line arguments
 in order to fool the compiler: if I hard coded ``(+ 1 1)``, the compiler
 would replace it with 2 at compilation time, therefore not performing
-the computation! (in the original version of this episode I made that
+the computation! (In the original version of this episode I made that
 mistake, thanks to Aziz Ghuloum for pointing it out).
 The output of the script is the following::
 
@@ -152,7 +152,7 @@ from the macros we have defined until now. The reason why the ``test``
 macro is different is that it expands into a ``lambda``-expression
 and therefore the arguments
 of the macro are evaluated only when the ``lambda`` function is called
-and not a definition time. In other words, we are using a pattern of
+and not at definition time. In other words, we are using a pattern of
 *delayed evaluation* here. This is important, since we want to distinguish
 the definition of a test from its execution. For instance, let me
 define a trivial test::

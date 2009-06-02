@@ -44,7 +44,7 @@ The problem is that it is very easy to abuse the mechanism. Generally
 speaking, the adaptibility of the Scheme language is a double-edged
 sword.  There is no doubts that it increases the programmer
 expressivity, but it can also make programs more difficult to
-read. The language allows you to invent your own idioms that
+read. The language allow you to invent your own idioms that
 nobody else uses, but perhaps this is not such a good idea if you care
 about other people reading your code. For this reason macros in the
 Python community have always been viewed with suspicion: I am also
@@ -74,7 +74,7 @@ to that episode, whereas it is argued that it is impossible to
 implement an equivalent functionality in Python.
 
 So, you should not underestimate the power of macros; on the other
-hand, you should also not underestimate the complication of macros.
+hand, you should also not underestimate the complexity of macros.
 Recently I have started a `thread on comp.lang.scheme`_ with 180+ messages
 about the issues I have encountered when porting my ``sweet-macros``
 library between different Scheme implementations, and the thread ended
@@ -97,11 +97,11 @@ each collection a little bit different from the other.
 
 For instance,
 when I started learning Scheme I wrote a lot of utilities;
-later one, I find out that I could find the same utilites, under
+later on, I discovered that I could find the same utilites, under
 different names and slightly different signatures, in various Scheme
-frameworks.  This never happened to me in Python to the same extend,
+frameworks.  This never happened to me in Python to the same extent,
 since the standard library is already coding in an uniform way most of
-the useful idioms, so that everybody use the library and there is
+the useful idioms, so that everybody uses the library and there is
 less need to reinvent the wheel.
 
 On the other hand, I am not a macro aficionado like Paul Graham, who says:
@@ -169,13 +169,13 @@ There are good use cases for macros, but there also plenty of workarounds
 for the average application programmer.
 
 For instance, a case where one could argue for macros, is when there
-are performance issue, since macros are able to lift computations from
-the runtime to the compile time, and they can be used for code
+are performance issues, since macros are able to lift computations from
+runtime to compile time, and they can be used for code
 optimization. However, even without macros, there is plenty of room
 for optimization in the scripting language world, which typically
 involve interfacing with C/C++.
 
-There also various standard techniques for *code generation* in C, 
+There are also various standard techniques for *code generation* in C, 
 whereas C++ has the infamous *templates*: while those are solutions
 very much inferior to Scheme macros, they also have the enormous
 advantage of working with an enterprise-familiar technology, and you 
@@ -183,7 +183,7 @@ certainly cannot say that for Scheme.
 
 The other good use for macros is to implement compile time checks:
 compile time checks are a good thing, but in practice people have
-learned to live without by relying on a good unit test coverage, which
+learned to live without them by relying on a good unit test coverage, which
 is needed anyway.
 
 On the other hand, one should not underestimate the downsides of

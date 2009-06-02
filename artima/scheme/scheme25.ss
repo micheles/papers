@@ -1,38 +1,103 @@
-#|Recursive macros
+#|Macros, again
 =====================================================================
 
-After a short introduction about the relevance of macros for
-programming language design, I show a few common patterns of Scheme
-macrology: recursive macros, accumulators, and the usage of literals
-to incorporate helpers in macros.
+This is episode #25, the beginning of another block
+of six posts constituting part V of my Adventures.
+Part I was an introduction to the language; part II was
+an introduction to macros; part III was an introduction to functional
+programming and part IV an introduction to the module system.
+We are done with the introductions now, and we are ready to face
+more beefy matters. In particular part V main is concerned with
+expert-level macrology.
 
-Should everybody be designing her own programming language?
+In the following six episodes I will
+discuss various techniques and patterns which are commonly
+used by Scheme macro writers, such as recursive macros, higher order
+macros, and more. I will go more in detail
+about how macros work, explaining what a syntax object is, what
+a (non-)hygienic macro is and how you can to compare lexical
+identifiers in macros.
+
+I will also discuss the relation
+between my own ``sweet-macros`` and traditional macros (``syntax-rules``,
+``syntax-case`` and ``define-macro``) so that you should be able to
+program with any Scheme macrology out there. 
+
+Finally I will give some nontrivial example of macro, such as a
+macro implementing runtime pattern matching for lists, by filling the
+gap left in episode 15_ .
+
+.. _homoiconicity: http://en.wikipedia.org/wiki/Homoiconicity
+.. _15: http://www.artima.com/weblogs/viewpost.jsp?thread=249681
+.. _MetaPython: http://metapython.org/
+.. _Logix: http://www.livelogix.net
+.. _Dylan: http://en.wikipedia.org/wiki/Dylan_programming_language
+
+Macros pros and contras
 ------------------------------------------------------------------
 
 Macros are the reason why I first became interested in Scheme, five or
 six years ago. At the time - as at any time - there was a bunch of
-trolling in comp.lang.python, and arguing for the addition of macros
-to Python.  Of course most Pythonistas opposed the idea, but
-I had no idea of the advantages/disadvantages off the proposal; I felt
-quite ignorant and powerless to argue. Since I never liked to feel ignorant,
-I decided to learn macros, especially Scheme macros, because they are
-the state of the art for the topics.
+people trolling in comp.lang.python, arguing for the addition of macros
+to the language.  Of course most Pythonistas opposed the proposal.
+
+However, at the time I had no idea of the advantages/disadvantages of
+the proposal and I felt quite ignorant and powerless to argue. Since I
+never liked to feel ignorant, I decided to learn macros, especially
+Scheme macros, because they are the state of the art for what concerns
+the subject.
 
 Nowadays I can say that the addition of macros to Python would be
-a bad idea knowing what I am talking about. Actually, I have already
-stated in episode 12_ an even stronger opinion, i.e. that macros
-are not a good fit for enterprise-oriented language. Of course,
-I am *not* implying that every enterprise should adopt
-only enterprise-oriented languages; it is a matter of fact
-that various cutting edge enterprises are taking advantage of
-non-conventional and/or research-oriented languages, but
-I see them as exceptions to the general rule.
+a bad idea knowing what I am talking about. I have two main objections,
+one technical (and less important) and one political (the more important).
 
-My opinion against macros in (most) enterprise programming
-does not mean that macros are worthless, and indeed
+The technical reason is that I do not believe in macros in languages
+without S-expressions. There are plenty of examples of macros for
+languages without S-expression - for instance Dylan_ in the Lisp
+world, or Logix_ and MetaPython_ in the Python world, but none of
+them ever convinced me. Scheme macros are much better because of
+the homoiconicity_ of the language ("homoiconicity" is just a big word for
+the *code is data* concept).
+
+I have already stated in episode 12_ my political objection, i.e. my
+belief that macros are not a good fit for enterprise-oriented
+languages. Of course, I am *not* implying that every enterprise should
+adopt only enterprise-oriented languages; it is a matter of fact that
+various cutting edge enterprises are taking advantage of
+non-conventional and/or research-oriented languages, but I see them as
+exceptions to the general rule.
+
+In my day to day work (I use Python exclusively there)
+I had occasion to write both small declarative
+languages and small command-oriented languages, but they were so simple
+that I did not feel the need for Scheme macros. Actually, judging
+from my past experience, I think extremely unlikely that I will
+ever need something as sophisticated as Scheme macros in my
+daily work. This is why my opinion is against macros in (most)
+enterprise programming.
+
+Having said that, I do not think that macros are worthless, and actually
 I think they are extremely useful and important in another domain,
 i.e. in the domain of design and research about programming
-languages. The major interest of Scheme macros for me is that they
+languages.
+
+Of course Scheme is not the only language where you can experiment
+with language design, it is just the best language for this kind of
+tasks.
+
+A few months ago I have described
+some experiment I did with the Python meta object protocol, in
+order to change how the object system work, and replace
+multiple inheritance with traits_. I am interested with this
+kind of experiments, even if I will never use them in
+production code, and I use Scheme in preference for such purposes.
+
+.. _traits:
+
+Writing your own programming language
+----------------------------------------
+
+The major interest of Scheme macros for me lies in the fact that they
 *enable every programmer to write her own programming language*.
 I think this is a valuable thing. Everybody who has got opinions
 about language design, or about how an object system should should work, or
@@ -44,7 +109,7 @@ own programming language, and certainly not everybody should
 *distribute* its own personal language. Nevertheless, I think
 everybody can have opinions about language design and some experiment
 with macrology can help to put to test such opinions and to learn
-many things.
+something.
 
 The easiest approach is to start from a Domain Specific
 Language (DSL), which does not need to be a fully grown programming

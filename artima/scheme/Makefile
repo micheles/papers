@@ -143,6 +143,9 @@ table-of-contents: table-of-contents.txt
 fourth-cycle: fourth-cycle.txt
 	$(POST) fourth-cycle.txt 253071
 
+eurolisp2: eurolisp2.txt
+	$(POST) eurolisp2.txt 259100
+
 19: scheme19.ss
 	$(RST) scheme19.ss; $(POST) scheme19.rst 251476
 
@@ -160,3 +163,7 @@ fourth-cycle: fourth-cycle.txt
 
 24: scheme24.ss
 	$(RST) scheme24.ss; $(POST) scheme24.rst 258103
+
+25: scheme25.ss
+	$(RST) scheme25.ss; $(POST) scheme25.rst 258580
+

@@ -287,29 +287,6 @@ and thus offer full autocompletion.
 ;;END
 
 ;(assert-distinct a b a)
-
-;;DEF-BOOK
-(def-syntax (def-book name title author)
-  (: with-syntax
-     name-title (identifier-append #'name "-title")
-     name-author (identifier-append #'name "-author")
-     #'(begin
-         (define name (vector title author))
-         (define name-title (vector-ref name 0))
-         (define name-author (vector-ref name 1)))))
-
-;;END
-(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
-
-
- ;;TEST-DEF-BOOK
- (test "def-book"
-       (let ()
-         (def-book bible "The Bible" "God")
-         (list bible-title bible-author))
-       (list "The Bible" "God"))
- ;;END
-
              
 ;;ALIST2
  (def-syntax (alist2 arg ...)

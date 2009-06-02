@@ -31,13 +31,13 @@ very good interoperability with C, others well integrated in Java or
 in .NET, others with a particularly good documentation, others with especially
 useful libraries, but there is no single implementation with all the
 features which is definitively superior to the others. You may use
-more than an implementation at the time, but you need to careful in
+more than an implementation at the time, but you need to be careful in
 the choice of the libraries you are going to use, if you are
 interested in portability.
 
 I cannot say I have tried all Scheme implementations (there are dozens
 and dozens of them) so take my obvervations *cum grano salis*.  I did
-try `PLT Scheme`_, Bigloo_, Chicken_, Guile_, Ikarus_ e Larceny_ which
+try `PLT Scheme`_, Bigloo_, Chicken_, Guile_, Ikarus_ and Larceny_ which
 are Open Source, multiplatform and free. Other major implementations
 are `Chez Scheme`_ (the interpreter, called Petit Scheme is free, the
 compiler is not) e and `MIT Scheme`_ (available with GPL licence)
@@ -59,7 +59,7 @@ is the R5RS-compatible implementation
 I like most since it has a very practical attitude: it
 is written by people working in the industry and not in the academy.
 Chicken is a compiler from Scheme to C and it is extremely easy to
-write *wrappers* for C/C++ libraries. Moreover, there already hundreds
+write *wrappers* for C/C++ libraries. Moreover, there are already hundreds
 of interesting libraries available. They are called *eggs*, just as
 in Python, and they work more a less in the same way. However, it
 must be noticed that Chicken had eggs years before Python and more
@@ -187,7 +187,7 @@ which is invaluable in Scheme programming. I make heavy usage of all
 these features.
 
 By the way, I see now that I have used the term REPL
-(Read-Eval-Print-Loop) which may be is unknown to a few readers; REPL
+(Read-Eval-Print-Loop) which may be unknown to a few readers; REPL
 is just the Lisp name for what is called the interactive interpreter
 or console in the Python world, the one with the ``>>>`` prompt. 
 In Scheme the REPL is very
@@ -228,7 +228,7 @@ concerns introspection and debugging capabilities. Tracebacks and
 error messages are not very informative. Sometimes, you cannot even
 get the number of the line where the error occurred; the reason is
 that Scheme code can be macro-generated and the notion of line number
-may become foggy. On the other hand, I must say than in the five
+may become foggy. On the other hand, I must say that in the five
 years I have being using Scheme (admittedly for toying and not for
 large projects) I have seen steady improvement in this area.
 
@@ -248,7 +248,7 @@ management::
 
 .. image:: plt-green.jpg
 
-As you see, there is no much information: in particular the
+As you see, there is not much information: in particular the
 information about the name of the function where the error
 occurred (``inv``) is lost and the line number/char number
 refers to the ``read-eval-print-loop`` code. You may contrast
@@ -268,7 +268,7 @@ that with the Python traceback::
 
 I should mention however that PLT is meant to be run inside its own
 IDE, DrScheme_. DrScheme highlights the line with the error and
-include a debugger. However such functionalities are not that common
+includes a debugger. However such functionalities are not that common
 in the Scheme world and in my own experience it is much more difficult
 to debug a Scheme program than a Python program.
 

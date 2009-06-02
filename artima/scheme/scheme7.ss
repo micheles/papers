@@ -15,8 +15,8 @@ languages (with the exception of Ruby): the *symbol*.
 .. image:: symbols.jpg
    :height: 250
 
-From the grammar point of view, a symbols is just a quoted identifier,
-i.e. a sequences of characters corresponding to a valid identifier
+From the grammar point of view, a symbol is just a quoted identifier,
+i.e. a sequence of characters corresponding to a valid identifier
 preceded by a quote. For instance, ``'a``, ``'b1`` e ``'c_`` are
 symbols.  On the set of symbols there is an equality operator ``eq?``
 which is able to determine if two symbols are the same or not::
@@ -28,7 +28,7 @@ which is able to determine if two symbols are the same or not::
  #t
 
 ``#f`` e ``#t`` are the Boolean values False and True respectively, 
-how you may have imagined. The equality operator is extremely
+as you may have imagined. The equality operator is extremely
 efficient on symbols, since the compiler associates to every
 symbol an integer number (this operation is called *hashing*) and stores
 it in an interal registry
@@ -59,7 +59,7 @@ functions hash_ e intern_, which says: *normally, the names used in
 Python programs are automatically interned, and the dictionaries used
 to hold module, class or instance attributes have interned keys*.
 BTW, if you want to know exactly how string comparison works in Python
-I suggest you to look at `this post`:
+I suggest you to look at `this post`_:
 
 .. _hash: http://docs.python.org/lib/built-in-funcs.html#l2h-36
 .. _intern: http://docs.python.org/lib/non-essential-built-in-funcs.html#l2h-90
@@ -67,7 +67,7 @@ I suggest you to look at `this post`:
 Scheme has much more valid identifiers than Python or C, where
 the valid characters are restricted to ``a-zA-Z-0-9_`` (I am ignoring
 the possibility of having Unicode characters in identifiers, which is
-possible both in R6RS Scheme and Python 3.0). By conventions, symbols
+possible both in R6RS Scheme and Python 3.0). By convention, symbols
 ending by ``?`` are associated to boolean values or to boolean-valued
 functions, whereas symbols ending by ``!`` are associated to functions
 or macros with side effects.
@@ -82,7 +82,7 @@ sometimes::
  #f
 
 The reason is that ``eq?`` (corrisponding to ``is`` in Python) checks
-if two objects are the same objects at the pointer level, but it does
+if two objects are the same object at the pointer level, but it does
 not check the content. Actually, Python works the same. It is only by
 accident than ``"pippo" is "pippo"`` returns
 True on my machine, since the CPython implementation
@@ -110,7 +110,7 @@ and for integer numbers ``=``::
  #t
 
 To be entirely accurate, in addition to ``eq`` and ``equal``, Scheme
-also provides a third equality operator ``eqv``. ``eqv`` looks to me
+also provides a third equality operator ``eqv?``. ``eqv?`` looks to me
 like an useless complication of the language, so I will not discuss
 it. If you are interested, you can read what the R6RS document `says
 about it`_.
@@ -215,7 +215,7 @@ functions with different behavior according to the number of arguments.
 ``for-all`` is an R6RS higher order function: ``(for-all pred
 lst)`` applies the predicate ``pred`` to the elements of list ``lst``,
 until a false value is found - in that case it returns ``#f`` -
-otherwise is returns ``#t``. Here the assertion checks at
+otherwise it returns ``#t``. Here the assertion checks at
 runtime that all the passed arguments ``n0``, ``n`` and ``s`` are
 numbers, with ``s`` non-zero.
 
@@ -253,7 +253,7 @@ I suggest you try the following exercises:
 
 I will show the solutions in the next episode. If you are lazy and you
 want an already written list library, I suggest you to give a look at the
-SRFI-1_, libraries, which is very rich and available practically in all
+SRFI-1_ library, which is very rich and available practically in all
 Scheme implementations. Many of the SRFI-1_ features are built-in in
 the R6RS standard, but many other are still available only in the SRFI-1_ .
 
