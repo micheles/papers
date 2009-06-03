@@ -117,13 +117,16 @@ anyway, you can work in such a way to be prepared to the inevitable change.
 The trick is in being able to find out the mistakes in the original design
 before it is too late to change it, and this is not easy, especially
 in large projects with multiple programmers. I have no pearls of wisdom
-to offer, except the famous quote by Brian Kernighan:
+to offer, except the famous quote by Brian Kernighan, about keeping
+the code (but I would say it applies to the design too) simple:
 
 *Debugging is twice as hard as writing the code in the first
 place. Therefore, if you write the code as cleverly as possible, you
 are, by definition, not smart enough to debug it.*
 
 (Scott did not quote Kernighan, but he was basically saying the same thing).
+Notice that this quote applies as well to refactoring
+(``s/debugging/refactoring/g``).
 
 The future of Common Lisp: the revolutionary side
 -------------------------------------------------------
