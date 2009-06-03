@@ -1,0 +1,217 @@
+The EuroLisp Symposium inspired me a lot of observations, so that 
+a second post on the conference is in order.
+
+The organization
+-----------------------------------------
+
+The first bunch of observations is about the organization of the
+conference. This aspect is interesting to me as an organizer of the
+PyConTre_ conference. For a very reasonable free - 100 Euros for early
+subscribers, compared to the 90 Euros of PyConTre - we got two full
+days of conference in a really nice room, an excellent lunch and a
+spectacular dinner - the conference dinner was *not* included at
+PyConTre.  In addition to that we got two tickets for breakfast and
+this is the first conference I ever attended offering me the
+breakfast: kudos for the idea! We also got a nice T-shirt and bag, and
+even printed proceedings with the papers presented at the
+conference. All in all, we could not have asked for more.
+
+I would be curious to know how much of the funding
+came from the sponsors and how much came from the University.
+At the Python conference we could keep the admission ticket low
+because we had a lot of sponsors, both Italian and international
+(amongst the international sponsors Qt, Google, Riverbank, the Python
+Software Foundation and others); at the Lisp Symposium there were
+less sponsors but also much less participants (say ~40 against
+~400 at PyConTre) so I am sure the conference was much less
+expensive.
+
+I actually prefer smaller conferences with a single track, so 
+that I can attend all the talks; the problem with the Python
+conference with three parallel tracks is that I was forced to
+miss a lot of very interested talks.
+Also, at PyConTre I was not completely free because I had to 
+serve as a talk manager, being an organizer, whereas at the
+Symposium I was just a speaker.
+
+PyConTre had a couple of things more than the Symposium: a
+translation service and a video service. The translation
+service does not make sense in the context of the Symposium,
+where the official language is English, but the video service
+would be useful. In particular, I cannot give an URL to the
+video of any of the talks, so if you could not attend, that
+talk is lost and there is no memory of it. The organizers
+actually collected the slides, but it is not the same
+thing as a video.
+Another advantage of PyConTre were the dates: the event
+happened during the weekend and not during working days
+so that it was much easier to attend for people working
+in the enterprise.
+
+There was only one minor glitch in the organization, i.e.  getting the
+wireless connection to work was hard. The problem was mainly
+bureaucratic, since because the University connection was crypted, we
+needed certificates and some nontrivial settings of the wireless.
+After spending some time with the help of the local organizers to
+configure my wireless to use the digital certificate, I still could
+not connect since my system did not support Enterprise level
+authentication, but only Home WPA connection. It would have been
+simpler to use another provider instead of the University network, or
+simply not to offer the service, since at the end only few people could
+use it.  At PyConTre we just
+used the Hotel Internet connection, which was expensive and slow, but did
+not give so much trouble, since we simply got a card with a login and password.
+
+.. _PyConTre: http://www.pycon.it
+.. _Dylan: http://en.wikipedia.org/wiki/Dylan_programming_language
+.. _Lisp Machines: http://en.wikipedia.org/wiki/Lisp_machine
+
+The past of Common Lisp
+-----------------------------------------
+
+The first day opened with Scott McKay talk about what he learned in
+the last 25 years or so, working with Lisp and Dylan. Scott started
+his career at Symbolics, the creators of the legendary `Lisp Machines`_,
+was involved with the creation of the Dylan_ programming language
+(a.k.a. Lisp without parenthesis) and he is now working at `ITA
+Software`_ (they produce software for buying and reserving Airline
+tickets), spending his time on a ORM layer between Common Lisp and
+traditional databases. The first half of his talk was about the
+mistakes they did in the early days, which were the usual ones
+(excessive cleverness, building on shaky foundations, underestimating
+the difficulties of problems which turned out to be intractable).
+It is interesting to notice how such mistakes are performed now
+and again, and it seem that no matter how many times people are
+warned against them, they still persist in repeating them.
+
+Consider for instance the Python community, which has always had
+a strong bias *against* cleverness, and a very pragmatic no non-sense
+attitude. Still, we see all the usual mistakes of overcomplexity to be performed in
+the major Python projects, like Zope, or SQLAlchemy,
+or most Web frameworks. There must be something that brings clever
+people to abuse their cleverness. Fortunately, the Python core is
+mostly free from such abuses, since the core developers have
+learned their lesson, but lots of Pythonistas out there are still wanting.
+
+I remember a specific advice from Scott: don't use caches;
+if your application is slow, no amount of cache will ever speed it up.
+He repeated that at least four or five times and I remember that because
+at my own company I have seen my collegues fighting with caches for months,
+wasting an enormous amount of time and effort for nothing, since at
+the end they were forced to turn off the cache. I wish they had attended
+Scott's seminar before even considering using software caches.
+
+The other catch phrase from Scott's talk was *any bozo can write code*.
+He told us the story of how David Moon uttered this sentence to him in a
+public conference and how it realized at the end that Moon was right
+and that defending a poor specification with code is a lost cause.
+The story was interesting, but unfortunaly it is impossible to write
+a good specification without having written any code, so while it is
+true that a good specification is more important than code, it does not save
+us from the necessity to write code.
+
+The future of Common Lisp: the revolutionary side
+-------------------------------------------------------
+
+The second half of the talk was about the future of Common Lisp, about what
+we should do now, having learned from our mistakes. This part was less convincing,
+since Scott basically advocated repeating one of his own past mistakes, i.e.
+dropping Common Lisp and starting again from scratch with a new language,
+which would basically be Dylan with parenthesis, good support for concurrency
+and with the ability to run on the Java and .NET platforms. When he was pointed out that
+Clojure_ is already doing what he wants, he said "Well, I don't like
+the square brackets" :-(
+
+Frankly, that was quite disappointing. He went on explaining than in his opinion
+the name resolution mechanism in Clojure is too complex and a few technical aspects
+which did not convince him, so that he sees Clojure as a valid candidate for the
+future Common Lisp but not yet as the Real Thing. The impression I got is that he
+would only accept as new Common Lisp a language designed by himself, but then
+nobody else would use it, as nobody ever used Dylan.
+
+Also, the hypothetical new language he was describing (Uncommon Lisp) was looking
+very much like Scheme (single namespace, with a module system instead of a package
+system, with simple core, easy to understand and to explain to newbies, more
+consistent): when he was asked why he was not considering Scheme he said "Yes,
+Scheme would be fine but I do not like the community". Honestly, I do not have
+big confidence about the future of Common Lisp if this is the attitude.
+
+The other provocative speaker after Scott McKay was `Mark Tarver`_. He is the
+author of a new language called Qi_ which to me looks more similar to ML
+than to Common Lisp.
+The relevance to Common Lisp is that Qi is implemented in Common Lisp and that
+Mark Tarver has a strong Common Lisp background. Apparently the position of
+Tarver is that Lisp is dead as a specific phenotype (i.e. Common Lisp) but it
+continues to live and it has a great future as a genotype. In his words Lisp
+should not be seen as a specific language, but as a set
+of genetic characteristics which have virally infected all modern dynamic
+languages. His main
+interested was to port Qi to all such Lisp-like languages, by writing code
+generators (Qi->Python, Qi->Ruby, etc). I don't know what more to say, since
+I have not checked Qi, but my gut feeling is against code generation, since
+debugging code automatically generated is always a big PITA. The main point
+of Tarver however, that the Common Lisp should look at the newer languages
+and find some way to inter-operate with them, is a sensible one.
+
+.. _Qi: http://www.lambdassociates.org/qilisp.htm
+
+The future of Common Lisp: the evolutionary side
+--------------------------------------------------------
+
+Both McKay and Tarver basically said that it is time to move on from
+Common Lisp and that we should start writing a new language - from
+scratch, as McKay advocated, or on top of Common Lisp, as Tarver advocated.
+
+Their position was very much isolated: everybody else was more
+conservative, very much against restarting from a new language (actually I do
+not see how restarting from a new language is different than killing Common
+Lisp) and favoring incremental refactoring and improvement of the
+current language and specification. The most extreme position was the
+one of Pascal Costanza: his proposal for improving Common Lisp was to
+start a Web site (called CDR_) collecting documents and specifications
+to fill the gaps left in the Standard. I say that Pascal's position is
+extreme because in his view the CDR project should just collect the
+specifications but
+
+1. the specs do not need to be accompanied by a concrete implementation;
+2. there is no formal process to grant any particular status to a proposal,
+   i.e. there are no "approved" or "recommended" or "rejected" proposals;
+3. any proposal just lies there and some specific Common Lisp implementation
+   *might* decide to implement it or might not.
+
+In short, *one sends his proposal to the CDR site and nothing happens*.
+That does not strike me as a very effective way to improve Common Lisp,
+not as a the best road for a bright future. Pascal said that the CDR process
+was inspired by the SRFI process of the Scheme community, but I see
+it as different since:
+
+1. the SRFIs are accompanied by portable implementations, so you may
+   directly use them as libraries, even if your chosen implementation
+   does not come with the SRFI you want;
+2. the idea is that the Scheme committee should look at the existing SRFI
+   and extracts ideas from them to insert them in the standard of the
+   language;
+3. that did not work at all in practice, since the R6RS editors disregarded
+   existing good SRFIs to reinvent things from scratch in an inferior way :-(
+
+In short, the Scheme community is not the right place to look when it
+comes to mechanisms to improve the standard, and in any case the CDR
+mechanism looks even worse than the SRFI mechanism.
+
+There were people with sensible positions, like
+Nikodemus Siivola, which basically just proposed to focus the efforts on
+writing more portable libraries: this is what the Alexandria_ project is
+about. This is a start, but it looks very much insufficient to me.
+
+All things considered, I came out from the conference with a pessimistic
+impression about the future of Common Lisp. I hope I am wrong. In this
+moment my advice to a young programmer wanting to start with
+a Lisp-like language would be "forget about Common Lisp, look at
+Clojure if you feel enterprise-oriented or at Scheme if you
+feel research-oriented".
+
+.. _CDR: http://cdr.eurolisp.org/
+.. _Alexandria: http://common-lisp.net/project/alexandria/
+.. _Clojure: http://clojure.org/
+.. _ITA Software: http://www.itasoftware.com/
+.. _Mark Tarver: http://www.lambdassociates.org/
