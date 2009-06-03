@@ -10,7 +10,7 @@ PyConTre_ conference. For a very reasonable free - 100 Euros for early
 subscribers, compared to the 90 Euros of PyConTre - we got two full
 days of conference in a really nice room, an excellent lunch and a
 spectacular dinner - the conference dinner was *not* included at
-PyConTre.  In addition to that we got two tickets for breakfast and
+PyConTre.  In addition we got two tickets for breakfast and
 this is the first conference I ever attended offering me the
 breakfast: kudos for the idea! We also got a nice T-shirt and bag, and
 even printed proceedings with the papers presented at the
@@ -84,14 +84,14 @@ It is interesting to notice how such mistakes are performed now
 and again, and it seem that no matter how many times people are
 warned against them, they still persist in repeating them.
 
-Consider for instance the Python community, which has always had
-a strong bias *against* cleverness, and a very pragmatic no non-sense
-attitude. Still, we see all the usual mistakes of overcomplexity to be performed in
-the major Python projects, like Zope, or SQLAlchemy,
-or most Web frameworks. There must be something that brings clever
-people to abuse their cleverness. Fortunately, the Python core is
-mostly free from such abuses, since the core developers have
-learned their lesson, but lots of Pythonistas out there are still wanting.
+Consider for instance the Python community, which has always had a
+strong bias *against* cleverness, and a very pragmatic no non-sense
+attitude. Still, we see all the usual mistakes of overcomplexity to be
+performed in the major Python projects, like Zope, or SQLAlchemy, or
+most Web frameworks. There must be something that brings clever people
+to abuse their cleverness. Fortunately, the Python core is mostly free
+from such abuses, since the core developers have learned their lesson,
+but lots of Pythonistas out there are still wanting.
 
 I remember a specific advice from Scott: don't use caches;
 if your application is slow, no amount of cache will ever speed it up.
@@ -103,38 +103,56 @@ Scott's seminar before even considering using software caches.
 
 The other catch phrase from Scott's talk was *any bozo can write code*.
 He told us the story of how David Moon uttered this sentence to him in a
-public conference and how it realized at the end that Moon was right
-and that defending a poor specification with code is a lost cause.
-The story was interesting, but unfortunaly it is impossible to write
-a good specification without having written any code, so while it is
-true that a good specification is more important than code, it does not save
-us from the necessity to write code.
+public conference and how it realized at the end that Moon was right.
+The point was that a good specification is more important than code,
+and that defending a poor specification with working code is a lost cause.
+The story was interesting, but unfortunaly there are no shortcuts; I
+do not believe any programmer can write a good specification without having 
+written any code first. Good specs always emerge at the end: this is
+unfortunate, but there is no other way.
+
+Of course, some general rules
+apply and if you assume that your initial specification will be wrong
+anyway, you can work in such a way to be prepared to the inevitable change.
+The trick is in being able to find out the mistakes in the original design
+before it is too late to change it, and this is not easy, especially
+in large projects with multiple programmers. I have no pearls of wisdom
+to offer, except the famous quote by Brian Kernighan:
+
+*Debugging is twice as hard as writing the code in the first
+place. Therefore, if you write the code as cleverly as possible, you
+are, by definition, not smart enough to debug it.*
+
+(Scott did not quote Kernighan, but he was basically saying the same thing).
 
 The future of Common Lisp: the revolutionary side
 -------------------------------------------------------
 
-The second half of the talk was about the future of Common Lisp, about what
-we should do now, having learned from our mistakes. This part was less convincing,
-since Scott basically advocated repeating one of his own past mistakes, i.e.
-dropping Common Lisp and starting again from scratch with a new language,
-which would basically be Dylan with parenthesis, good support for concurrency
-and with the ability to run on the Java and .NET platforms. When he was pointed out that
-Clojure_ is already doing what he wants, he said "Well, I don't like
-the square brackets" :-(
+The second half of the talk was about the future of Common Lisp, about
+what we should do now, having learned from our mistakes. This part was
+less convincing, since Scott basically advocated repeating one of his
+own past mistakes, i.e.  dropping Common Lisp and starting again from
+scratch with a new language, which would basically be Dylan with
+parenthesis, good support for concurrency and with the ability to run
+on the Java and .NET platforms. When he was pointed out that Clojure_
+is already doing what he wants, he said "Well, I don't like the square
+brackets" :-(
 
-Frankly, that was quite disappointing. He went on explaining than in his opinion
-the name resolution mechanism in Clojure is too complex and a few technical aspects
-which did not convince him, so that he sees Clojure as a valid candidate for the
-future Common Lisp but not yet as the Real Thing. The impression I got is that he
-would only accept as new Common Lisp a language designed by himself, but then
+Frankly, that was quite disappointing. He went on explaining than in
+his opinion the name resolution mechanism in Clojure is too complex
+and a few technical aspects which did not convince him, so that he
+sees Clojure as a valid candidate for the future Common Lisp but not
+yet as the Real Thing. The impression I got is that he would only
+accept as new Common Lisp a language designed by himself, but then
 nobody else would use it, as nobody ever used Dylan.
 
-Also, the hypothetical new language he was describing (Uncommon Lisp) was looking
-very much like Scheme (single namespace, with a module system instead of a package
-system, with simple core, easy to understand and to explain to newbies, more
-consistent): when he was asked why he was not considering Scheme he said "Yes,
-Scheme would be fine but I do not like the community". Honestly, I do not have
-big confidence about the future of Common Lisp if this is the attitude.
+Also, the hypothetical new language he was describing (Uncommon Lisp)
+was looking very much like Scheme (single namespace, with a module
+system instead of a package system, with simple core, easy to
+understand and to explain to newbies, more consistent): when he was
+asked why he was not considering Scheme he said "Yes, Scheme would be
+fine but I do not like the community". Honestly, I do not have big
+confidence about the future of Common Lisp if this is the attitude.
 
 The other provocative speaker after Scott McKay was `Mark Tarver`_. He is the
 author of a new language called Qi_ which to me looks more similar to ML
