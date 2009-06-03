@@ -12,3 +12,6 @@ eeepc-main:
 
 caring:
 	python2.5 ../post.py caring.txt 259296 
+
+eurolisp2:
+	python2.5 ../post.py eurolisp2.txt 259505

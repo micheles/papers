@@ -95,7 +95,6 @@ in the past but did not feel bound to it have already fled to other
 languages. As a consequence, now the community is somewhat
 self-selected and the percentage of people really caring about the
 language is much higher than in other communities.
-
 I did know about the Common Lisp community from comp.lang.lisp,
 which I read sometimes (rarely actually) but I did not really
 believe the newsgroup to be representative of the community.
