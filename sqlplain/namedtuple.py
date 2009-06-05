@@ -77,7 +77,8 @@ def namedtuple(typename, field_names, verbose=False):
                 raise ValueError('Got unexpected field names: %%r' %% kwds.keys())
             return result \n\n''' % locals()
     for i, name in enumerate(field_names):
-        template += '        %s = property(itemgetter(%d))\n' % (name, i)
+        template += "setattr(%s, '%s', property(itemgetter(%d)))\n" % (
+            typename, name, i)
     if verbose:
         print template
 

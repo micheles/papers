@@ -2,6 +2,9 @@ import sys, string
 from sqlplain import util, do
 from sqlplain.namedtuple import namedtuple
 
+def make_and_clause(kfields):
+    return ' AND '.join('%s=:%s' % (f, f) for f in kfields)
+  
 # kfields and dfields must be tuples, not strings
 def tabletuple(name, kfields, dfields):
     """
@@ -47,7 +50,7 @@ def select(ttuple):
     """
     name = ttuple.__name__
     csfields = ','.join(ttuple._fields)
-    clause = ' AND '.join('%s=?' % field for field in ttuple._kfields)
+    clause = make_and_clause(ttuple._kfields)
     templ = 'SELECT %s FROM %s WHERE %s' % (csfields, name, clause)
     def select_row(conn, row=None, **kw):
         row = row or {}
@@ -66,7 +69,7 @@ def select(ttuple):
 def delete(ttuple):
     "Returns a procedure inserting a row or a dictionary into a table"
     name = ttuple.__name__
-    clause = ' AND '.join('%s=?' % field for field in ttuple._kfields)
+    clause = make_and_clause(ttuple._kfields)
     templ = 'DELETE FROM %s WHERE %s' % (name, clause)
     def delete_row(conn, row=None, **kw):
         row = row or {}
@@ -80,7 +83,7 @@ def delete(ttuple):
 def update(ttuple):
     "Returns a procedure updating a row"
     name = ttuple.__name__
-    where = ' AND '.join('%s=?' % field for field in ttuple._kfields)
+    where =
     templ = string.Template('UPDATE %s SET $set WHERE %s' % (name, where))
     def update_row(conn, row=None, **kw):
         if row is None:

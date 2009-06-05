@@ -85,9 +85,10 @@ def get_sizeK_mssql(conn, table):
 def get_tables_mssql(conn, schema=None):
     if schema:
         return [r.TABLE_NAME for r in conn.execute('sp_tables') 
-                if r.TABLE_OWNER==schema]
+                if r.TABLE_OWNER==schema and r.TABLE_TYPE == 'TABLE']
     else:
-        return [r.TABLE_NAME for r in conn.execute('sp_tables')]
+        return [r.TABLE_NAME for r in conn.execute('sp_tables')
+                if r.TABLE_TYPE == 'TABLE']
  
 def exists_table_mssql(conn, tname):
     return conn.execute('SELECT count(*) FROM sysobjects WHERE name=?',

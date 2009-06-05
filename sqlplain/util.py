@@ -144,6 +144,26 @@ def drop_table(conn, tname, force=False):
         return # do not raise an error
     return conn.execute('DROP TABLE %s' % tname)
 
+def _make_clause(dic, sep):
+    '''
+    An utility function to generate an SQL clause from a dictionary:
+    >>> make_clause(dict(a=1, b=2), ' AND ')
+    ('a=:a AND b=:b', (1, 2))
+    '''
+    clauses = [] 
+    vals = []
+    for n, v in dic.iteritems():
+        clauses.append('%s=:%s' % (n, n))
+        vals.append(v)
+    return sep.join(clauses), tuple(vals)
+
+def update_table(conn, tname, kdict, vdict):
+    "A low-level utility to update a table"
+    where, kvals = _make_clause(kdict, ' AND ')
+    set_, vvals = _make_clause(vdict, ', ')
+    templ = 'UPDATE %s SET %s WHERE %s' % (tname, set_, where)
+    return conn.execute(templ, vvals + kvals)
+
 def copy_table(conn, src, dest, force=False):
     """
     Copy src into dest by using SELECT INTO; dest must be a valid tablename.
