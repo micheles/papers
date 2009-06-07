@@ -148,7 +148,7 @@ does not print anything. In a functional language the same code
 must have the same effect, it cannot depend from the inner state
 of the stream. Actually, this is what happens::
 
- > (define chars (stream "a" "b" "c"))
+ > (define chars (stream #\a #\b #\c))
  > (stream-for-each display chars)
  abc> (stream-for-each display chars)
  abc> 
@@ -174,10 +174,10 @@ whereas in Scheme we can express it as a stream::
 
  > (define even (stream-of i (i in (stream-from 0)) (zero? (modulo i 2))))
 
-However the Scheme stream stream is immutable, whereas the Python genexp is not.
+However the Scheme stream is immutable, whereas the Python genexp is not.
 It is possible to loop over a stream with ``stream-for-each``,
 ``stream-map`` and ``stream-fold``; such higher order functions work as
-they counterpats for lists, but they. return streams. There is also a
+they counterparts for lists, but they return streams. There is also a
 ``stream-let`` syntax, which is stream version
 of named let, useful when applying the accumulator pattern to streams,
 and a function ``stream->list`` with does the obvious.
@@ -186,7 +186,7 @@ I am not explaining all the fine details, since the documentations of
 the SRFI is pretty good and exhaustive. As I anticipated, there is
 also a solution of the eight queen problem using streams that you may
 look at.  The difference between the stream solution and the list
-comprehension solution is that the first one is lazy, i.e. one get one
+comprehension solution is that the first one is lazy, i.e. you get one
 solution at the time, on demand, whereas the second one is eager: it
 computes all the solutions in a single bunch, and returns them
 together.
@@ -250,7 +250,7 @@ mean to be a true functional language, versus being an imperative
 language with a few functional-looking constructs.
 
 With this episode this cycle of our *Adventures* ends, but a new one
-will begin shortly: the subject will be macros, again. Stay tuned!
+will begin shortly. Stay tuned!
 |#
 (import (rnrs) (streams) (aps compat) (aps list-utils))
 
