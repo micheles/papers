@@ -83,7 +83,7 @@ order hygienic macro like the following one:
         ((v z) #'(vector-ref _v 2)))))
 
 so you would use the syntax ``(v x), (v y), (v z)`` instead of ``v.x, v.y, v.z``
-(more parenthesis the better ;) Notice that the auxiliary variabile ``_v``
+(more parentheses the better ;) Notice that the auxiliary variabile ``_v``
 is introduced hygienically so that it cannot be accessed directly; still,
 you can get the value of the vector with the syntax ``(v)``.
 
@@ -133,7 +133,7 @@ Macros with helper functions
 ``define-macro``-style macros often use helper functions as building blocks.
 ``syntax-rules`` is unable to do that, but ``def-syntax``, being based on 
 ``syntax-case`` has no trouble at all.  For instance, suppose you want
-to define a version of ``let`` with fewer parenthesis (as done in Arc),
+to define a version of ``let`` with fewer parentheses (as done in Arc),
 such that
 
 .. code-block:: scheme
@@ -625,33 +625,6 @@ Here is the implementation using list comprehension::
 module-system
 -----------------------
 
-The Scheme module system is complex both for technical reasons
-(because of the complications caused by macros and because
-of the want of separate compilation) and for political reasons.
-You can discovered about the political reasons in the archives
-of the R6RS editors mailing list. Consider for instance
-this
-
-
-
-Implementation with phase separation make it possible
-to write programs that work the same when typed in the REPL and
-when compiled, at the price of making the REPL less convenient
-to use: for instance they could force the programmer to use
-``define-for-syntax`` even at the REPL: this is how PLT Scheme
-works, however its REPL is not consistent with R6RS mode (strictly
-speaking there is not such a thing as a R6RS-conforming REPL).
-
-
-There are people in the Scheme community thinking that strong phase
-separation is a mistake, and that weak phase separation is the right thing
-to do. On the other side people (especially from the PLT community where
-all this originated) sing the virtues of strong phase separation and say
-all good things about it. I personally I have not seen a compelling
-use case for strong phase separation yet.
-On the other hand, I am well known for preferring simplicity over
-(unneeded) power. 
-
 
 --------------------------- order of evaluation -----------------
 
@@ -1006,3 +979,41 @@ storage of names working across modules?
 .. _thread: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/509c781e720d28a0/201944b0ac50c594?#201944b0ac50c594
 
 
+
+This is episode #25, the beginning of another block
+of six posts constituting part V of my Adventures.
+Part I was an introduction to the language; part II was
+an introduction to macros; part III was an introduction to functional
+programming and part IV an introduction to the module system.
+We are done with the introductions now, and we are ready to face
+more beefy matters. In particular part V main is concerned with
+expert-level macrology.
+
+In the following six episodes I will
+discuss various techniques and patterns which are commonly
+used by Scheme macro writers, such as recursive macros, higher order
+macros, and more. I will go more in detail
+about how macros work, explaining what a syntax object is, what
+a (non-)hygienic macro is and how you can to compare lexical
+identifiers in macros.
+
+I will also discuss the relation
+between my own ``sweet-macros`` and traditional macros (``syntax-rules``,
+``syntax-case`` and ``define-macro``) so that you should be able to
+program with any Scheme macrology out there. 
+
+Finally I will give some nontrivial example of macro, such as a
+macro implementing runtime pattern matching for lists, by filling the
+gap left in episode 15_ .
+
+power and simplicity
+---------------------
+
+When it comes to designing programming languages, easy of use and
+power seems to go in opposite directions. There are plenty of examples
+where something went wrong, i.e. simple languages which are
+good only for teaching and not for professional use, and
+professional languages which are too tricky to use
+for the casual programmer. We have also examples of languages which
+are both weak in power *and* difficult to use (insert your chosen
+language here).

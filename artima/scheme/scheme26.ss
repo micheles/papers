@@ -6,39 +6,49 @@ In this episode I will give a couple of examples of second order
 macros taking other macros as argument. Moreover I will bring
 an argument in favor of good old parenthesis.
 
+.. _even Javascript: https://developer.mozilla.org/en/New_in_JavaScript_1.7
+
 Scheme as an unfinished language
 -----------------------------------------------------------------------
 
-Python is an example of a *finished* language. With *finished*, I mean
-that the language has not only a well defined and complete core, but also
-a full toolbox of shortcuts and niceties to take care of common
-cases and to make easier the life of the programmer. In other words
-Python (but I could name Ruby or a few other languages here) is an
-example of a language which is both easy to use and powerful. It
-spoils the programmer, and this is the reason it is so much popular
-nowadays. Of course, others will prefer Ruby, or Scala, or
-something else, but the concept of finished language should be
-clear.
+Most programmers are used to work with a *finished* language.  With
+*finished*, I mean that the language provides not only a basic core of
+functionalities, but also a toolbox of ready-made solutions, with the
+goal of making easier the life of the application programmer.  Here I
+am not considering the quality of the library coming with the
+language (which is extremely important in practice) but really
+language-level features, such as providing syntactic sugar for common
+use cases.
 
-On the other hand, Scheme feels very much like an unfinished language
-from somebody coming from the Python world. While there are many
-practical reasons why Scheme it is the way it is and could not be
-different, I am convinced that Scheme has been left unfinished also
-*on purpose*: the language is incomplete, but it provides a built-in
-mechanism to give the user the ability to finish the language
-according to its preferences. Such a mechanism of course is the
-mechanism of macros and one of the main use of macros is to fill
-the deficiencies left by the standard.
+As a matter of fact, developers of the XXI century takes for granted a
+*lot* of language features that were unusual just a few years
+ago. This is particularly true for developers working with dynamic
+languages, which are used to features like builtin support for regular
+expressions, a standard object system with a Meta Object Protocol, a
+standard Foreign Function Interface, a sockets/networking interface,
+support for concurrency via microthread *and* native threads *and*
+multiprocesses and much more; nowadays `even Javascript`_ has list
+comprehension and generators!. Compared to the expectations of a
+modern developer, Scheme feels very much like an unfinished language.
 
-.. image:: bikeshed.jpg
- :class: right
- :width: 400
+Finished languages spoil the programmer, and this is the
+reason why they are so much popular nowadays. Of course not all
+finished languages are equivalent, ans some are powerful or easy to
+use. Some will prefer Python over Java, others will
+prefer Ruby, or Scala, or something else, but the concept of finished
+language should be clear. Certainly Scheme, at least as specified
+in the R6RS standard - I am not talking about concrete implementations
+here - is missing lots of the features that modern languages
+provide out the box and it does not feel finished.
 
 I think the explanation for the current situation in Scheme is more
 historical and social than technical. On one side, a lot of people in
 the Scheme world want Scheme to stay the way it is, i.e. a language
 for language experimentations and research more than a language for
-enterprise work.  On the other side, the fact that there are so many
+enterprise work (for instance a standard object system would
+effectively kill the ability to experiment with alternative object
+systems and this is not wanted).
+On the other side, the fact that there are so many
 implementations of Scheme makes difficult/impossible to specify too
 much: this the reason why there are no standard debugging tools for
 Scheme, but only implementation-specific ones.
@@ -51,32 +61,46 @@ However, when it comes to simple functionality of common usage, everybody
 has got a different opinion and it is practically impossible to get
 anything approved at all.
 
+.. image:: bikeshed.jpg
+ :class: right
+ :width: 400
+
 To avoid that, the standard does not provide
 directly usable instruments: instead, it provides general instruments
 which are intended as building blocks on that of which everybody can
-write the usable abstractions he/she prefers. Most people nowadays
-prefer to have ready-made solutions, because they have deadlines,
-projects to complete and no time nor interest in writing things
-that should be made by language designers, so that Scheme is little
-used in the enterprise world.
+write the usable abstractions he/she prefers.
 
 The difference between Scheme and its concrete implementations
 --------------------------------------------------------------------
 
-In the previous paragraph I have been a little unfair: while it is
+While for many features there are practical reasons why Scheme it is
+the way it is and could not be different, for many other features
+Scheme has been left unfinished also *on purpose*: the language is
+incomplete, but it provides a built-in mechanism to give the user the
+ability to finish the language according to its preferences. Such a
+mechanism of course is the mechanism of macros. Actually, one of the
+main use of macros is to fill the deficiencies left out by the
+standard.  Most people nowadays prefer to have ready-made solutions,
+because they have deadlines, projects to complete and no time nor
+interest in writing things that should be made by language designers,
+so that Scheme is dismissed in the enterprise world.
+
+Here I have been a little unfair: while it is
 true that Scheme - in the sense of the language specified by the
 R6RS standard - is unfinished, concrete implementations of Scheme
 tends to be much more complete. Consider for instance PLT Scheme,
 or Chicken Scheme, which are two big Scheme implementations: they
 have both decent size libraries and they are perfectly usable
 (and used) for practical tasks you could do with Python or another
-more mainstream language. Another option is to use a Scheme
-implementation running on the Java virtual machine or on the .NET
-platform. Alternatively, you could use a Scheme-like
-language such as Clojure_. Clojure runs on the Java Virtual Machine,
+mainstream language. Another option is to use a Scheme
+implementation running on the Java virtual machine (SISC, Kawa ...)
+or on the .NET platform (IronScheme). Alternatively, you could use a Scheme-like
+language such as Clojure_.
+
+Clojure runs on the Java Virtual Machine,
 it is half lisp and half Scheme, it has a strong functional flavour in
-it, it has interesting things to say about concurrency_. It also
-shares the following caracteristics with Python:
+it, and an interesting support to concurrency_. It also
+shares the following caracteristics with Python/Ruby/Perl/...:
 
 1. it is a one-man language (i.e. it is not a comprimise language made
    by a committee) with a clear philosophy and internal consistency;
@@ -87,48 +111,48 @@ shares the following caracteristics with Python:
 3. it provides special syntax/libraries for common operations (
    `syntax conveniences`_) that would never enter in the Scheme standard.
 
-Such caracteristics make Clojure very appealing to me. The only
-problems is that professionally I have no need to
-interact with the Java platform (and even there I would probably
-choose Jython over Clojure for reason of familiarity) so I have not
+Such caracteristics make Clojure very appealing. However,
+personally I have no need to
+interact with the Java platform  professionally (and even there I would probably
+choose Jython over Clojure for reason of greater familiarity) so I have not
 checked out Clojure and I have no idea about it except what you can
 infer after reading its web site. If amongst my readers
 there is somebody with experience in Clojure, please feel free to add
 a comment to this post.
 
-My point here is that users that do not care at all for the freedom
-to "finish" their language and prefer a BDFL language where
-everything has been already finished and polished for them have
+Users that wants a Scheme-like language but do not care for the
+freedom to "finish" their language and prefer a BDFL language where
+most things have been already finished and polished for them, have
 that option, by choosing Clojure.
 
 I personally am using Scheme since I am interested in macrology and no
 language in existence can beat Scheme in this respect. Also, I am
 using for Scheme for idle speculation and not to get anything done ;-)
-A typical example of idle speculation is
-the following question: would Scheme be a better language if it has
-fewer parenthesis?
 
 .. _Clojure: http://clojure.org/
 .. _syntax conveniences: http://clojure.org/special_forms
 .. _concurrency: http://clojure.org/concurrent_programming
 .. _bikeshed effect: http://en.wikipedia.org/wiki/Bikeshed
+.. _25: http://www.artima.com/weblogs/viewpost.jsp?thread=258580
+.. _case: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_384
 
-
-Two second order macros to reduce parenthesis
+Two second order macros to reduce parentheses
 -------------------------------------------------------------
 
-While finding tricks for reducing parenthesis is pointless,
-it gives me a reason to teach a few other macro programming
+A typical example of idle speculation is
+the following question: can we find a way to reduce the number of
+parentheses required in Scheme? Finding tricks for reducing parentheses
+is pointless, but it gives me a reason to teach a few other macro programming
 techniques: in particular, here I will discuss second order
 macros taking macros as arguments.
 
-In the last episode I defined a recursive ``cond-`` macro taking
-less parenthesis than a regular ``cond``, using an accumulator.  Here
+In episode 25_ I defined a recursive ``cond-`` macro taking
+less parentheses than a regular ``cond``, using an accumulator.  Here
 I will generalize that approach, by abstracting the accumulator
 functionality into a second order macro, called ``collecting-pairs``,
 which takes as input another macro and a sequence of arguments, and
 calls the input macro with the arguments grouped in pairs. 
-That makes it possible to call with less parenthesis any macro of
+That makes it possible to call with less parentheses any macro of
 the form ``(macro expr ... (a b) ...)``, by calling it as
 ``(collecting-pairs (macro expr ...) a b ...)``.
 
@@ -147,9 +171,9 @@ with the case_ expression::
        else 'unknown))
  one
 
-.. _case: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_384
-
-Consider the "colon" macro defined as follows:
+``collecting-pairs`` cannot do anything to reduce parentheses in
+``let``-style forms. To this aim we can introduce a
+different second order macro, such as the following "colon" macro:
 
 $$lang:COLON
 
@@ -157,50 +181,46 @@ The colon macro expects as argument another macro, the
 ``let-form``, which can be any binding macro such that
 ``(let-form ((patt value) ...) expr)`` is a valid syntax. For instance
 ``(let ((name value) ...) expr)`` can be rewritten as ``(: let name value
-... expr)``, by removing four parenthesis. The latest version of the
-``aps`` package provides a colon form in the ``(aps lang)`` module.
+... expr)``, by removing four parentheses. Here is a test:
 
-The case for parenthesis
+$$TEST-COLON
+
+The latest version of the ``aps`` package provides a ``:`` form in the
+``(aps lang)`` module.
+
+The case for parentheses
 -------------------------------------------------------------
 
 Parens-haters may want to use ``collecting-pairs`` and the colon macro
-to avoid parenthesis. They may even go further, and rant that the
-basic Scheme syntax should require less parenthesis, since for
-most programmers it is easier to write code with less parenthesis.
+to avoid parentheses. They may even go further, and rant that the
+basic Scheme syntax should require less parentheses.
 However, that would be against the Scheme philosophy:
-the Scheme philosophy favors automatic code generation
-over manual writing.
+according to the Scheme philosophy a programmer should not write
+code, he should write macros writing code for him. In other words,
+automatic code generation is favored over manual writing.
 
 When writing macros, it is much easier
-to use a conditional with more parenthesis like ``cond`` than a
-conditional with less parenthesis like ``cond-``. The parenthesis
+to use a conditional with more parentheses like ``cond`` than a
+conditional with less parentheses like ``cond-``. The parentheses
 allows you to group expressions in group that can be repeated via
-the ellipsis symbol; in practice, you can writing things like
+the ellipsis symbol; in practice, you can write things like
 ``(cond (cnd? do-this ...) ...)`` which cannot be written
 with ``cond-``.
 
 On the other hand, different languages adopt different philosophies;
-for instance Paul Graham's Arc_ uses less parenthesis. This is
+for instance Paul Graham's Arc_ uses less parentheses. This is
 possible since it does not provide a macro system based on
 pattern matching (which is a big *minus* in my opinion). Is it possible
-to have both? A syntax with few parenthesis for writing code manually
-and a syntax with many parenthesis for writing macros?
+to have both? A syntax with few parentheses for writing code manually
+and a syntax with many parentheses for writing macros?
 
 The answer is yes:
-the price to pay is to double the constructs of the language and to
-use a Python-like approach.
-
-..  _Arc: http://www.paulgraham.com/arcll1.html
-
-A two-level syntax
----------------------------------
-
-Python is a good example of language with a two-level syntax: a
+the price to pay is to double the constructs of the language, by
+using a Python-like approach.
+Python is a language with a two-level syntax: a
 simple syntax, limited but able to cover the most common case, and a
-fully fledged syntax, giving all the power which is needed, which
-however should be used only rarely. The best designed programming
-language I know is Python. While not perfect, Python takes full
-advantage of the two-level syntax idea. For instance
+fully fledged syntax, giving all the power you need, which
+however is used rarely. For instance
 
 ====================    =================================
 Simplified syntax       Full syntax          
@@ -211,20 +231,13 @@ c = C()                 c = C.__new__(C); c.__init__()
 ====================    =================================
 
 In the case of the conditional syntax, in principle we could have
-a fully parenthesised ``__cond__`` syntax for usage in macros and
+a fully parenthesized ``__cond__`` syntax for usage in macros and
 ``cond`` syntax with less parens for manual usage. That, in theory:
 in practice Scheme only provides the low level syntax, leaving to
 the final user the freedom (and the burden) of implementing his
-own preferred high level syntax.
+preferred high level syntax.
 
-When it comes to designing programming languages, easy of use and
-power seems to go in opposite directions. There are plenty of examples
-where something went wrong, i.e. simple languages which are
-good only for teaching and not for professional use, and
-professional languages which are too tricky to use
-for the casual programmer. We have also examples of languages which
-are both weak in power *and* difficult to use (insert your chosen
-language here).
+..  _Arc: http://www.paulgraham.com/arcll1.html
 |#
 
 (import (rnrs) (sweet-macros) (for (aps lang) run expand)
@@ -275,11 +288,10 @@ language here).
     ))
 ;;END
 
-;;TEST-COLON
 (run
- (test "ok"
-       (: let* x 1 y x (+ x y))
-       2)
+ ;;TEST-COLON
+ (test "colon-macro" (: let* x 1 y x (+ x y)) 2)
+ ;;END
 ;  (test "err"
 ;     (catch-error (: let* x 1 y x z (+ x y)))
 ;      "Odd number of arguments")
@@ -290,5 +302,3 @@ language here).
          (Book b ref title))
        "T")
  )
-
-;;END

@@ -1,125 +1,109 @@
-#|Macros, again
+#|Back to macros
 =====================================================================
-
-This is episode #25, the beginning of another block
-of six posts constituting part V of my Adventures.
-Part I was an introduction to the language; part II was
-an introduction to macros; part III was an introduction to functional
-programming and part IV an introduction to the module system.
-We are done with the introductions now, and we are ready to face
-more beefy matters. In particular part V main is concerned with
-expert-level macrology.
-
-In the following six episodes I will
-discuss various techniques and patterns which are commonly
-used by Scheme macro writers, such as recursive macros, higher order
-macros, and more. I will go more in detail
-about how macros work, explaining what a syntax object is, what
-a (non-)hygienic macro is and how you can to compare lexical
-identifiers in macros.
-
-I will also discuss the relation
-between my own ``sweet-macros`` and traditional macros (``syntax-rules``,
-``syntax-case`` and ``define-macro``) so that you should be able to
-program with any Scheme macrology out there. 
-
-Finally I will give some nontrivial example of macro, such as a
-macro implementing runtime pattern matching for lists, by filling the
-gap left in episode 15_ .
 
 .. _homoiconicity: http://en.wikipedia.org/wiki/Homoiconicity
 .. _15: http://www.artima.com/weblogs/viewpost.jsp?thread=249681
 .. _MetaPython: http://metapython.org/
 .. _Logix: http://www.livelogix.net
 .. _Dylan: http://en.wikipedia.org/wiki/Dylan_programming_language
+.. _PLOT: http://users.rcn.com/david-moon/PLOT/
 
-Macros pros and contras
-------------------------------------------------------------------
 
 Macros are the reason why I first became interested in Scheme, five or
 six years ago. At the time - as at any time - there was a bunch of
 people trolling in comp.lang.python, arguing for the addition of macros
 to the language.  Of course most Pythonistas opposed the proposal.
 
-However, at the time I had no idea of the advantages/disadvantages of
-the proposal and I felt quite ignorant and powerless to argue. Since I
-never liked to feel ignorant, I decided to learn macros, especially
+At the time I had no idea of the advantages/disadvantages of
+macros and I felt quite ignorant and powerless to argue. I
+never liked to feel ignorant, so I decided to learn macros, especially
 Scheme macros, because they are the state of the art for what concerns
-the subject.
+the topic.
 
-Nowadays I can say that the addition of macros to Python would be
-a bad idea knowing what I am talking about. I have two main objections,
-one technical (and less important) and one political (the more important).
+Nowadays I have some arguments to back up the position against macros.
+I have two main objections, one technical (less important) and one
+political (more important).
 
-The technical reason is that I do not believe in macros in languages
-without S-expressions. There are plenty of examples of macros for
-languages without S-expression - for instance Dylan_ in the Lisp
-world, or Logix_ and MetaPython_ in the Python world, but none of
+The technical reason is that I do not believe in macros for languages
+without S-expressions. There are plenty of examples of macro systems
+without S-expressions - for instance Dylan_ or PLOT_ in the Lisp
+world and Logix_ and MetaPython_ in the Python world, but none of
 them ever convinced me. Scheme macros are much better because of
 the homoiconicity_ of the language ("homoiconicity" is just a big word for
-the *code is data* concept).
+the *code is data* concept). [Notice that technically Scheme macros work on syntax
+objects and not directly on S-expressions like traditional Lisp
+macros, but this is a subtle point I will discuss when talking about
+hygiene; I can skip it for the moment being.]
 
 I have already stated in episode 12_ my political objection, i.e. my
-belief that macros are not a good fit for enterprise-oriented
-languages. Of course, I am *not* implying that every enterprise should
-adopt only enterprise-oriented languages; it is a matter of fact that
+belief that macros have a high cost in terms of complication of the
+language (look how much complicated the R6RS module system is!). Moreover,
+codes based on macros tends to be too clever, difficult to debug, and
+sometime idiosyncratic; I do not want to maintain code such kind of code
+in a typical enterprise context, with programmers of any kind of competence.
+Sometimes I wish that even Python was a simpler language!
+There is a difference between *simpler* and *dumber*, of course.
+I am *not* implying that every enterprise should
+adopt only enterprise-oriented languages; as a matter of fact
 various cutting edge enterprises are taking advantage of
 non-conventional and/or research-oriented languages, but I see them as
 exceptions to the general rule.
 
-In my day to day work (I use Python exclusively there)
-I had occasion to write both small declarative
-languages and small command-oriented languages, but they were so simple
-that I did not feel the need for Scheme macros. Actually, judging
-from my past experience, I think extremely unlikely that I will
-ever need something as sophisticated as Scheme macros in my
-daily work. This is why my opinion is against macros in (most)
-enterprise programming.
+My opinion is based on the fact that on my daily work (I use Python
+exclusively there) I have never felt the need for macros. For
+instance, I had occasion to write both small declarative languages and
+small command-oriented languages, but they were so simple that I had
+no need for Scheme macros. Actually, judging from my past
+experience, I think extremely unlikely that I will ever need something
+as sophisticated as Scheme macros in my daily work. The one thing
+that I miss in Python which Scheme has is *pattern matching*, not
+macros.
 
 Having said that, I do not think that macros are worthless, and actually
 I think they are extremely useful and important in another domain,
 i.e. in the domain of design and research about programming
-languages.
-
-Of course Scheme is not the only language where you can experiment
+languages. Scheme is certainly not the only language where you can experiment
 with language design, it is just the best language for this kind of
-tasks.
+tasks, at least in my humble opinion.
 
-A few months ago I have described
-some experiment I did with the Python meta object protocol, in
+For instance, a few months ago I have described
+an experiment I did with the Python meta object protocol, in
 order to change how the object system work, and replace
-multiple inheritance with traits_. I am interested with this
+multiple inheritance with traits_. Even if in Python it is possible to
+customize the object system, I do not thing the approach is optimal,
+because changing the semantics without changing the syntax
+does not feel right. In Scheme I could have implemented the same
+with a custom syntax and in a somewhat less magical way.
+I am interested with this
 kind of experiments, even if I will never use them in
 production code, and I use Scheme in preference for such purposes.
 
-.. _traits:
+.. _traits: http://www.artima.com/weblogs/viewpost.jsp?thread=246488
 
 Writing your own programming language
 ----------------------------------------
 
 The major interest of Scheme macros for me lies in the fact that they
 *enable every programmer to write her own programming language*.
-I think this is a valuable thing. Everybody who has got opinions
+I think this is a valuable thing. Anybody who has got opinions
 about language design, or about how an object system should should work, or
 questions like "what would a language look like if it had feature X?",
 can solve his doubts by implementing the feature with macros.
 
 Notice that I recognize that perhaps not everybody should design its
-own programming language, and certainly not everybody should
+own programming language, and that xcertainly not everybody should
 *distribute* its own personal language. Nevertheless, I think
-everybody can have opinions about language design and some experiment
+everybody can have opinions about language design. Experimenting
 with macrology can help to put to test such opinions and to learn
 something.
 
 The easiest approach is to start from a Domain Specific
 Language (DSL), which does not need to be a fully grown programming
-language.
-
-As a matter of fact, it seems that in the Python world
+language. For instance, in the Python world
 everybody is implementing his own templating language to generate web
 pages. In my opinion, this a good thing *per se*, the problem is that
 everybody is distributing his own language so that there is a bit of
-anarchy, but this is not such a serious problem after all.
+anarchy.
 
 Even for what concerns fully grown programming languages we see nowadays
 an explosion of new languages, especially for the Java and
@@ -142,8 +126,8 @@ on your own.*
 
 You can the replace the words "web framework" with "programming
 language" and the quote still makes sense. You should read my
-*Adventures* in this spirit: the ambition of this series is to give to
-my readers the technical competence to write their own Scheme-embedded
+*Adventures* in this spirit: the ambition of the series is to give to
+the readers the technical competence to write small Scheme-embedded
 languages by means of macros. Even if you are not going to design your
 own language, macros will help you to understand how languages work.
 
@@ -176,7 +160,8 @@ run-time.
 .. image:: scarab.png
 
 In order to give an example I will define a macro *cond minus*
-(``cond-``) which works like ``cond``, but with less parenthesis:
+(``cond-``) which works like ``cond``, but with less parenthesis.
+Here is an example:
 
 .. code-block:: scheme
 
@@ -186,7 +171,7 @@ In order to give an example I will define a macro *cond minus*
         ...
     else return-default)
 
-I want the code above to expand to:
+should expand to:
 
 .. code-block:: scheme
 
@@ -197,7 +182,7 @@ I want the code above to expand to:
    (else return-default))
 
 
-Here is the solution, which makes use of an accumulator and of an auxiliary
+Here is a solution, which makes use of an accumulator and of an auxiliary
 macro ``cond-aux``:
 
 $$COND-
@@ -245,8 +230,8 @@ $$COND3
 
 These tricks are quite common in Scheme macros: we may even call them
 design patterns. In my opinion the best reference
-detailing these technique and others is the `Syntax-Rules Primer
-for the Merely Eccentric`_, by Joe Marshall. The title is a play on the essay
+detailing these techniques and others is the `Syntax-Rules Primer
+for the Merely Eccentric`_, by `Joe Marshall`_. The title is a play on the essay
 `An Advanced Syntax-Rules Primer for the Mildly Insane`_ by
 Al Petrofsky. 
 
@@ -258,8 +243,8 @@ Petrofsky's essay, which is intended for foolish Scheme wizards ;)
 
 .. _An Advanced Syntax-Rules Primer for the Mildly Insane: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/86c338837de3a020/eb6cc6e11775b619?#eb6cc6e11775b619
 .. _6: http://www.artima.com/weblogs/viewpost.jsp?thread=240198
-
 .. _Syntax-Rules Primer for the Merely Eccentric: http://www.xs4all.nl/~hipster/lib/scheme/gauche/define-syntax-primer.txt
+.. _Joe Marshall: http://funcall.blogspot.com/
 
 |#
 
