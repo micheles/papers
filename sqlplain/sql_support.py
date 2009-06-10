@@ -8,7 +8,7 @@ class _SymbolReplacer(object):
     a placeholder. Used by get_args_templ.
     """
     STRING_OR_COMMENT = re.compile(r"('[^']*'|--.*\n)")
-    SYMBOL = re.compile(r"(?<!:):(\w+)")
+    SYMBOL = re.compile(r"(?<!:):(\w+)") # a name prefixed by colons
     
     def __init__(self, placeholder):
         self.placeholder = placeholder
@@ -18,22 +18,23 @@ class _SymbolReplacer(object):
     def get_args_templ(self, templ):
         argnames = []
         def repl(mo):
+            "Replace named args with placeholders"
             argname = mo.group(1)
             if argname in argnames:
                 raise NameError('Duplicate argument %r in SQL template'
                                 % argname)
             argnames.append(argname)
-            return self.placeholder or mo.group()
+            return self.placeholder
         out = []
         for i, chunk in enumerate(self.STRING_OR_COMMENT.split(templ)):
-            if i % 2 == 0: # real sql code
+            if i % 2 == 0 and self.placeholder: # real sql code
                 chunk = self.SYMBOL.sub(repl, chunk)
             out.append(chunk)
         return argnames, ''.join(out)
 
 templ_cache = {}
 
-# used in .execute
+# used in .execute and do
 def get_args_templ(templ, repl=None):
     # this is small hack instead of a full featured SQL parser
     """

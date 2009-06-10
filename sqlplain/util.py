@@ -4,6 +4,7 @@ Notice: create_db and drop_db are not transactional.
 
 import os, sys, re, subprocess, tempfile
 from sqlplain.uri import URI, CODEMAP
+from sqlplain.sql_support import get_args_templ
 from sqlplain import connect, do
 from sqlplain.connection import Transaction
 from sqlplain.namedtuple import namedtuple
@@ -157,7 +158,7 @@ def _make_clause(dic, sep):
         vals.append(v)
     return sep.join(clauses), tuple(vals)
 
-def update_table(conn, tname, kdict, vdict):
+def update_table(conn, tname, vdict, **kdict):
     "A low-level utility to update a table"
     where, kvals = _make_clause(kdict, ' AND ')
     set_, vvals = _make_clause(vdict, ', ')
@@ -200,19 +201,19 @@ def truncate_table(conn, tname):
         return conn.execute('TRUNCATE TABLE %s' % tname)
 
 def insert_rows(conn, tname, rows):
-    "Insert an iterable sequence of rows into a table; useful for unit tests"
-    it = iter(rows)
+    """Insert an iterable sequence of rows into a table; 
+    useful for unit tests. Notice that it invokes executemany
+    on the underlying low-level connection"""
+    lst = list(rows)
     n = 0 # number of inserted lines
     try:
-        row = it.next()
-    except StopIteration: # nothing to insert
+        row = lst[0]
+    except IndexError: # nothing to insert
         return n
     dummies = [':%s' % (i + 1) for i in range(len(row))]
     templ = 'INSERT INTO %s VALUES (%s)' % (tname, ', '.join(dummies))
-    n = conn.execute(templ, row)
-    for row in it:
-        n += conn.execute(templ, row)
-    return 
+    argnames, templ = get_args_templ(templ)
+    return conn._conn.executemany(templ, rows)
     
 def load_file(uri, tname, fname, mode, **kwargs):
     "Bulk insert a (binary or csv) file into a table"""

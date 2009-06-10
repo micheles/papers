@@ -17,18 +17,15 @@ def retry(func, conn, *args, **kw):
     A decorator making a function taking a connection as first argument
     to retry in case of errors
     """
-    if conn.retry:
-        try:
-            return func(conn, *args, **kw)
-        except conn.driver.Error, e:            
-            conn.close() # retry with a fresh connection
-            return func(conn, *args, **kw)
-    else:
+    try:
+        return func(conn, *args, **kw)
+    except conn.driver.Error, e:            
+        conn.close() # retry with a fresh connection
         return func(conn, *args, **kw)
 
 Field = namedtuple(
     'Field',
-    'name type_code display_size internal_size precision scale null_ok')
+    'name type_code display_size internal_size precision scale null_ok'.split())
 
 counter = itertools.count(1)
 
@@ -121,7 +118,11 @@ class LazyConnection(object):
     There is however a chatty method for easy of debugging.
     """    
     def __init__(self, uri, isolation_level=None, threadlocal=False,
-                 retry=False):
+                 params='SEQUENCE'):
+        if params not in ('SEQUENCE', 'MAPPING'):
+            raise TypeError("params must be 'SEQUENCE' or 'MAPPING', you "
+                            "passed %s" % params)
+        self.params = params
         self.uri = URI(uri)
         self.name = self.uri['database']
         self.dbtype = self.uri['dbtype']
@@ -135,9 +136,7 @@ class LazyConnection(object):
             self._storage = _ThreadLocalStorage.new(connect, args)
         else:
             self._storage = _Storage.new(connect, args)
-        self.retry = retry
 
-    @retry
     def _raw_execute(self, templ, args):
         """
         Call a dbapi2 cursor; return the rowcount or a list of tuples,
@@ -160,6 +159,7 @@ class LazyConnection(object):
             return descr, cursor.fetchall()
 
     def execute(self, templ, args=(), ntuple=None, scalar=False):
+        "args must be a sequence, not a dictionary"
         if self.dbtype == 'mssql':
             # converts unicode arguments to utf8
             lst = []
@@ -175,6 +175,9 @@ class LazyConnection(object):
                 raise TypeError(
          "TypeError when executing %s\nExpected %d arguments (%s), got %d %s" %
          (templ, len(argnames), ', '.join(argnames), len(args), args))
+            if self.params == 'MAPPING':
+                # replace the passed dictionary with the corresponding tuple
+                args = tuple(args[name] for name in argnames)
         descr, res = self._raw_execute(templ, args)
         cursor = self._storage.curs # needed to make the reset work
         if self.chatty:
@@ -189,7 +192,7 @@ class LazyConnection(object):
                     % (res, templ, args))
             return res[0][0]
         if descr: # the query was a SELECT
-            fields = [Field(*d) for d in descr]
+            fields = [Field(d) for d in descr]
             header = [f.name or noname() for f in fields]
             if ntuple is None:
                 Ntuple = namedtuple('DBTuple', header)
@@ -197,9 +200,9 @@ class LazyConnection(object):
                 Ntuple = namedtuple(ntuple, header)
             else:
                 Ntuple = ntuple
-            res = TupleList(Ntuple(*row) for row in res)
+            res = TupleList(Ntuple(row) for row in res)
             res.descr = fields
-            res.header = Ntuple(*header)
+            res.header = Ntuple(header)
         return res
 
     def executescript(self, sql, *dicts, **kw):
@@ -250,6 +253,11 @@ class LazyConnection(object):
     @property
     def rowcount(self):
         return self._storage.curs.rowcount
+
+class RetryingConnection(LazyConnection):
+    """A LazyConnection which retries once in case of execution errors.
+    It makes sense for long running applications in autocommit mode."""
+    _raw_execute = retry(LazyConnection._raw_execute.im_func)
 
 class NullObject(object):
     '''Implements the NullObject pattern.

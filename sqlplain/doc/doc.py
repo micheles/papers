@@ -112,10 +112,10 @@ parsing the connection string or uri (in this case
 corresponding database driver (in this case ``pymssql``) which must be
 installed in your system, otherwise you get an ``ImportError``.
 
-The syntax of the URI is the same as in SQLAlchemy (I did copy from
-SQLAlchemy; even Storm uses the same convention and I see no reason
-to change it). Internally ``LazyConn`` instantiates an URI object
-which is a dictionary:
+The syntax of the URI is the same as in SQLAlchemy (I did copy it
+directly from SQLAlchemy; even Storm uses the same convention and I
+see no reason to change it). Internally ``LazyConn`` instantiates an
+URI object which is a dictionary:
 
 .. code-block:: python
 
@@ -131,25 +131,38 @@ which is a dictionary:
 The port is None here, therefore the low level driver ``pymssql`` will open
 the connection by using the default port number for MS SQL, i.e. 1433.
 
-The ``execute`` method of the lazy connection object is the one performing
-the real job: it opens a low level connection, instantiates a DB API 2
-cursor and it runs the ``SELECT`` query: the result is returned as a list
-of named tuples. Named tuples are a Python 2.6 construct, however ``sqlplain``
-ships with its own version of namedtuples (I have just copied Raymond
-Hettinger's recipe from the Python Cookbook site) which is used if
-you are running an early version of Python.
+The ``execute`` method of the lazy connection object is the one
+performing the real job: it opens a low level connection, instantiates
+a DB API 2 cursor and it runs the ``SELECT`` query: the result is
+returned as a list of named tuples. Named tuples are a Python 2.6
+construct, however ``sqlplain`` ships with its own version of
+namedtuples (I have just copied Raymond Hettinger's recipe from the
+Python Cookbook site, with a few tweaks) which is used if you are
+running an early version of Python.
 
 An important thing to notice is that ``sqlplain`` uses named arguments
-for *all* supported database drivers, even
-if the underlying low level driver uses qmark paramstyle (like SQLite)
-or (py)format paramstyle
-(like pymssql and psycogpg). BTW, the (py)format paramstyle, is really
-a terrible choice, since it collides for the usage of ``%s`` in Python
-string templates :-(.
+in the templates for *all* supported database drivers, even if the
+underlying low level driver uses qmark paramstyle - like SQLite - or
+(py)format paramstyle - like pymssql and psycogpg. BTW, the (py)format
+paramstyle, is really a terrible choice, since it collides for the
+usage of ``%s`` in Python string templates :-(. 
+Also notice that by default ``execute`` does not accept a mapping as 
+arguments: it expects an integer-indexed sequence. However, the
+default behavior can be changed by setting the option ``params='MAPPING'``
+at initialization time. Here is an example:
+
+ >> bookdb = connect('mssql://pyadmin:secret@localhost/bookdb', 
+                     params='MAPPING')
+ >> bookdb.execute('SELECT * FROM book WHERE author=:author', 
+                    dict(author='Asimov'))
 
 The ``execute`` method is smart enough: if you run it again,
 the previously instantiated DB API2 connection and cursors are
 re-used, i.e. it does not recreate a connection for each query.
+Moreover, the template is parsed only once and then cached,
+so that there is not big penalty is you execute twice the same
+template with different parameters.
+
 You can access the low level connection and cursor via the
 properties ``._conn`` and ``._curs``:
 
