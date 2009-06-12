@@ -842,14 +842,6 @@ The secret of the ellipsis
 macros generating macros
 ----------------------------------------------------
 
-
-There is not upper limit to the level of sophistication you can reach
-with macros: in particular it is possible to define higher order
-macros, i.e. macros taking other macros as arguments or macros
-expanding to other macros. Higher order macros allows an extremely
-elegant programming style; on the other hand, they are exposed to the
-risk of making the code incomprehensible and very hard to debug.
-
 In this paragraph I will give an example of a second order macro
 expanding to a regular (first order) macro. Here it is:
 

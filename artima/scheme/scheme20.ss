@@ -283,21 +283,11 @@ and thus offer full autocompletion.
 (def-syntax (assert-distinct arg ...)
   #'(#f)
   (distinct? bound-identifier=? #'(arg ...))
-  (syntax-violation 'assert-distinct "Duplicate name" #'(arg ...)))
+  (syntax-violation 'assert-distinct "Duplicated name" #'(arg ...)))
 ;;END
 
 ;(assert-distinct a b a)
              
-;;ALIST2
- (def-syntax (alist2 arg ...)
-   (: with-syntax ((name value) ...) (normalize #'(arg ...))
-     (if (for-all identifier? #'(name ...))
-         #'(let* ((name value) ...)
-             (list (list 'name name) ...))
-         (syntax-violation 'alist "Found non identifier" #'(name ...)
-                           (remp identifier? #'(name ...))))))
-;;END
-
 (run
 
  ;;TEST-DISTINCT

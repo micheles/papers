@@ -52,6 +52,7 @@ def makefiles(name, snippet):
     write_on(name + '/main.sls', ikarus_code)
     write_on(name + '/main.mzscheme.sls', main % snippet)
     write_on('sweet-macros.larceny.sls', main % snippet)
+    write_on('sweet-macros.mosh.sls', ikarus_code)
     write_on(name + '/helper1.sls', helper1 % snippet)
     write_on(name + '/helper2.sls', helper2 % snippet)
     write_on(name + '/helper3.sls', helper3 % snippet)

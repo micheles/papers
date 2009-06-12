@@ -12,7 +12,15 @@ easier, by providing a nicer syntax and introspection features.
 However now, after more than a dozen
 episodes about macros, I can assume my readers are beginners no more,
 and it is time to have a look at the larger Scheme world and to
-compare/contrast ``sweet-macro`` with the other systems out there.
+compare/contrast ``sweet-macro`` with the most used systems, i.e.
+``syntax-rules``, ``syntax-case`` and ``define-macro``.
+
+Actually, there a few other intesting options
+out there, such as syntactic closures and systems based on explicit
+renaming. Since I do not want to discuss all the macro systems in existence
+here, I will point out a good resource on the
+subject: this excellent `post by Alex Shinn`_ on the Chicken mailing list
+summarizes the situation better than I could do.
 
 ``syntax-match`` vs ``syntax-rules``
 -----------------------------------------------------------------
@@ -23,19 +31,19 @@ compare/contrast ``sweet-macro`` with the other systems out there.
  (def-syntax (syntax-rules (literal ...) (patt templ) ...)
    #'(syntax-match (literal ...) (sub patt #'templ) ...))
 
-As you see, the difference between ``syntax-rules`` (a part
-for missing the ``sub`` literal)
-is that ``syntax-rules`` automatically adds the syntax-quote ``#'``
-operator to you templates. That means that you cannot use
-quasisyntax tricks and that ``syntax-rules`` is strictly less
-powerful than ``syntax-match``. Moreover, ``syntax-rules`` macros
-do not have guarded patterns; the most direct consequence is that
-providing good error messages for wrong syntaxes is more difficult.
+As you see, the difference between ``syntax-rules`` (a part for
+missing the ``sub`` literal) is that ``syntax-rules`` automatically
+adds the syntax-quote ``#'`` operator to you templates. That means
+that you cannot use quasisyntax tricks and that ``syntax-rules`` is
+strictly less powerful than ``syntax-match``. Moreover,
+``syntax-rules`` macros do not have guarded patterns; the most direct
+consequence is that providing good error messages for wrong syntaxes
+is more difficult.
 
 ``syntax-match`` vs ``syntax-case``
 -----------------------------------------------------------------
 
-``syntax-case`` can also be defined in terms of ``syntax-match`` as
+``syntax-case`` could be defined in terms of ``syntax-match`` as
 follows::
 
  (def-syntax syntax-case
@@ -46,7 +54,7 @@ follows::
      #'(syntax-match x (literal ...) (sub patt skel) ...))
   ))
 
-In practice, however, ``syntax-case`` is a Scheme primitive and
+In reality, ``syntax-case`` is a Scheme primitive and
 ``syntax-match`` is defined on top of it. So, ``syntax-case`` has
 theoretically the same power as ``syntax-match``, but in practice
 ``syntax-match`` is more convenient to use because of the
@@ -58,7 +66,8 @@ the skeleton, whereas in ``syntax-match`` is positioned *after* the skeleton.
 Changing the position has cost me a lot of reflection, since I *hate*
 gratuitous breaking. However, I am convinced that the position of the
 guard in ``syntax-case`` is really broken, so I had to *fix* the issue.
-Why do I say so?
+
+XXX: why do I say so?
 
 ``syntax-match`` versus ``define-macro``
 ---------------------------------------------------------------
@@ -83,6 +92,7 @@ back into a syntax object in the context of the macro.
 .. _9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
 .. _On Lisp: http://www.paulgraham.com/onlisp.html
 .. _hygiene in R6RS: http://docs.plt-scheme.org/r6rs-lib-std/r6rs-lib-Z-H-13.html#node_sec_12.1
+.. _post by Alex Shinn: http://lists.gnu.org/archive/html/chicken-users/2008-04/msg00013.html
 
 The hygiene problem
 ---------------------------------------------------------------------
@@ -96,22 +106,20 @@ effects. As Paul Graham puts it,
 *errors caused by variable capture are rare, but what they lack
 in frequency they make up in viciousness*.
 
-The hygiene problem is the main reason why `define-macro``
-is becoming less and less used in the Scheme world. PLT
-Scheme has being deprecating it for many years and nowadays
-even Chicken Scheme, which
-traditionally used ``define-macro`` a lot, has removed it from
-the core, by using hygienic macros instead: this is the reason why the
-current Chicken (Chicken 4.0) is called "hygienic
-Chicken".
+The hygiene problem is the main reason why `define-macro`` is becoming
+less and less used in the Scheme world. PLT Scheme has being
+deprecating it for many years and nowadays even Chicken Scheme, which
+traditionally used ``define-macro`` a lot, has removed it from the
+core, by using hygienic macros instead: this is the reason why the
+current Chicken (Chicken 4.0) is called "hygienic Chicken".
 
 You can find good discussions of the hygiene problem in Common Lisp
 in many places; I am familiar with Paul Graham's book `On Lisp`_ which
 I definitively recommend: the chapter on variable chapter is the best
-reference I know. Another extremely good reference is the chapter
+reference I know. Another good reference is the chapter
 about ``syntax-case`` - by Kent Dybvig - in the book `Beautiful Code`_.
-Here I will give just a short example exhibiting the problem, with
-the readers unfamiliar with it.
+Here I will give just a short example exhibiting the problem, for the
+sake of the readers unfamiliar with it.
 
 .. image:: hygienic-paper-small.jpg
 
@@ -154,6 +162,8 @@ There is an error here because shadowing ``unless`` affects the
 ``dirty-for`` macro.  This is pretty tricky to debug: in practice, it
 means that the macro user is forced to know all the identifiers
 that are used internally by the macro.
+
+.. _Beautiful Code: http://oreilly.com/catalog/9780596510046/
 
 Breaking hygiene
 -------------------------------------------------
@@ -255,6 +265,11 @@ $$DEF-BOOK
 to be used as in the following test:
 
 $$TEST-DEF-BOOK
+
+There are better ways to define records in Scheme, and there is also
+a built-in facility to define record types: you should consider
+``def-book`` just as an example of use of ``identifier-append``,
+not as a recommended pattern to define records.
 |#
 
 (import (rnrs) (sweet-macros) (aps lang) (aps list-utils) (aps compat)

@@ -1,244 +1,313 @@
-#|
-Records from macros
-=========================================================================
+#|Comparing identifiers
+==============================================================
 
-In this episode I show how to introduce auxiliary identifiers in a
-macro, by using the standard R6RS utility
-``generate-temporaries``. As an example, I show how you can define
-record types and I discuss the hygienic feature of Scheme macros.
+What does it mean that two identifiers are equal in a lexically
+scoped language with hygienic macros?
 
-``generate-temporaries``
------------------------------------------------------
-
-The R6RS standard provides a few convenient utilities to work with
-macros. One of such utilities is the ``with-syntax`` form, which
-allows to introduce auxiliary pattern variables into a skeleton
-(a better name would have been ``let-pattern-vars``).  Let me make an
-example.  ``with-syntax`` is often used in conjunction with the
-``generate-temporaries`` function, which returns a list of temporary
-identifiers.
-
-Here is an example where the temporary variable is used
-as argument in the lambda function: a ``fold`` macro
-providing a nicer syntax for the ``fold-left`` and ``fold-right``
-higher order functions.
-
-$$list-utils:FOLD
-
-Notice the usage of the literals ``left`` and ``right`` to avoid
-writing two separated macros, and the usage of ``in`` to enhance
-readability.
-
-In this example, for each variable ``x`` a pattern variable ``a`` is
-generated with a temporary name. For instance, in Ypsilon
+Take for instance this piece of code:
 
 .. code-block:: scheme
 
-  (fold left (s 0) (x in (range 3)) (y in (range 3)) (+ s x y))
+ (let ((a 1))
+     (let ((a 2))
+        ...))
 
-expands to
-
-.. code-block:: scheme
-
- (fold-left
-   (lambda (s \x2E;L271 \x2E;L272)
-     (let+ (x \x2E;L271) (y \x2E;L272) (+ s x y)))
-   0 (range 3) (range 3))
-
-as you can check by using ``syntax-expand``.  The temporary names are
-quite arbitrary, and you will likely get different names, since each
-time ``generate-temporaries`` is called, different names are
-generated. ``generated-temporaries`` is perfect to generate dummy
-names used as arguments, as seen in this example. Another typical
-usage is to generate dummy names for helper functions, as shown in the
-following paragraph.
-
-A record type macro
----------------------------------------------------------------
-
-Scheme has a vector data type, which is used to manage finite sequences
-with a fixed number *n* of values, known at compile time. Each element
-can be accessed in O(1) time by specifying an integer index starting from
-*0* to *n*, with the notation ``(vector-ref v i)``. Vectors are perfect
-to implement records, since you can see a record as a vector with *n+1*
-arguments, where the 0-th element specify the type of the vector
-and the i-th element is the i-th field of the record.
-Notice that the stardard specifies a record system, but writing a
-record system based on macros is a good exercise nonetheless.
-It also provides a good example of a second order macro expanding
-to a macro. Here is the code:
-
-$$DEF-RECORD-TYPE
-
-.. image:: vinyl-record.png
-
-An example will make everything clear. Suppose we want to define a
-``Book`` record type; we can do so by writing
-
-``(def-record-type Book title author)``
-
-which expands to (in Ikarus):
+Is the first ``a`` equal to the second ``a``? They are bound to
+different values, and they may be considered equal or not.
+Moreover, consider the following:
 
 .. code-block:: scheme
 
- (begin
-  (def-syntax Book
-    (syntax-match (New Signature ? title author)
-      (sub (Book New) #'record-new)
-      (sub (Book Signature) #''(Book title author))
-      (sub (Book ?) #'record?)
-      (sub (Book title) #'#{title |Ivhf4sEgOry2IG%W|})
-      (sub (Book author) #'#{author |r=hJyxJbHsP$j&$3|})))
-  (define (record-new title author)
-    (vector 'Book title author))
-  (define (record? b) (eq? 'Book (vector-ref b 0)))
-  (define (#{title |Ivhf4sEgOry2IG%W|} b)
-    (assert (record? b))
-    (vector-ref b 1))
-  (define (#{author |r=hJyxJbHsP$j&$3|} b)
-    (assert (record? b))
-    (vector-ref b 2)))
+ (let ((a 1))
+     (let ((b a))
+        ...))
 
-This code defines a ``Book`` macro and a few auxiliary functions such
-as ``record-new``, ``record?`` and two others with temporary names.
-The temporary names are of course implementation-specific. Ikarus
-here does a nice thing by prefixing them with the names coming
-from the list given as argument to ``generate-temporaries``, so
-that you can ascertain their origin.
+Here ``a`` and ``b`` are different names for the same value. Should they
+be considered equal?
 
-The ``Book`` macro allows to create new records
+Finallly, consider what happens in a macro introducing dummy
+identifiers:
 
-::
+.. code-block:: scheme
 
- > (define book ((Book New) "title" "author"))
- > book
- #(Book "title" "author")
+ (def-syntax (macro x)
+   #'(let ((dummy 1))
+       ...))
 
-to introspect records
+What happens if I pass to the macro an ``x`` argument named ``dummy``?
+Should it be considered equal to the identifier introduced by the ``let``
+form or not?
 
-::
 
- > ((Book ?) book)
+As a matter
+of fact the Scheme standard define two different equality procedures
+for identifiers (``bound-identifier=?`` and ``free-identifier=?``); to
+those, I will add a third one, ``raw-identifier=?``:
+
+$$lang:RAW-IDENTIFIER=?
+
+This episode will be spent discussing the subtilities of identifier
+equality.
+
+Using ``raw-identifier=?``
+-----------------------------------------------
+
+The simplest procedure by far is ``raw-identifier=?``: two
+identifiers are ``raw-identifier=?`` if they are equal as symbols.
+For convenience, I have added the
+``raw-identifier=?`` precedure in the ``(aps lang)`` library.
+``raw-identifier=?`` can be used to manage duplicate names in
+macros defining multiple identifiers at once, or in macros
+defining tables names->values, such as the ``static-map``
+we discussed in episode 22.
+
+$$STATIC-MAP
+
+Using ``bound-identifier=?``
+-----------------------------------------------
+
+``raw-identifier=?`` is simple and easy to understand, but it cannot
+be used in all situations. Consider for instance the very first macro
+we wrote, in episode 9_:
+
+.. code-block:: scheme
+
+  (def-syntax (multi-define (name1 name2 ...) (value1 value2 ...))
+    #'(begin (define name1 value1) (define name2 value2) ...))
+
+It is quite common to write macros defining multiple bindings, such
+as ``multi-define``. There is also the common situation of
+macros which expand themselves to macros defining
+multiple bindings. When code is generated automatically, errors are
+more than likely and it makes sense to manage explicitly
+the situation when the list of names to be defined contains some
+duplicate. ``multi-define`` as written does not perform any check, so that it
+relies on the standard behavior of R6RS scheme, raising an error.
+Unfortunately, the standard behavior only applies to programs and scripts,
+whereas the REPL is quite free to behaves differently and indeed it does:
+
+.. code-block:: scheme
+
+ > (multi-define (a a) (1 2))
+ a
+ 2
+
+(in the REPL latter definitions override previous definitions). Being
+unhappy with that, we can introduce a ``bound-identifier=?`` check
+and raise a custom exception:
+
+.. code-block:: scheme
+
+ > (multi-define (a a) (1 2))
+ Unhandled exception
+  Condition components:
+    1. &who: multi-define
+    2. &message: "Found duplicated identifier in"
+    3. &syntax:
+        form: (a a)
+        subform: #f
+
+This is a case where using ``raw-identifier=?`` would not work.
+Here is a (made-up) example explaining the problem with ``raw-identifier=?``
+in the presence of dummy identifiers introduced by macros. Consider
+the following macro expanding to ``multi-define``:
+
+$$MULTI-DEFINE2
+
+The macro introduces a dummy identifier ``id2``. What happens if
+we call ``multi-define2`` with argument ``id`` equal to  ``id2``?
+
+ > (multi-define2 id2 1)
+ id2
+ 1
+
+The answer is nothing, since we defined ``multi-define`` in terms of
+``bound-identifier=?``, and two identifiers are equal according to
+``bound-identifier=?`` only if they have the same name *and* the same
+marks. In this case the identifier ``id2`` introduced by the macro
+has different marks from the identifier ``id2`` used as an argument
+in the macro. Had we defined ``multi-define`` in
+terms of ``raw-identifier=?``, we would have had a spurious name
+clash.
+
+Using ``free-identifier=?``
+------------------------------------
+
+``free-identifier=?`` is the trickiest equality predicate. It is able
+to determinate if two bound identifiers are the same apart possibly for
+a rename at import time:
+
+.. code-block:: scheme
+
+ > (import (only (aps list-utils) range))
+ > (import (rename (aps list-utils) (range r)))
+ > (free-identifier=? #'r #'range)
  #t
 
- > (Book Signature)
- (book title author)
+Both ``raw-identifier=?`` and ``bound-identifier=?`` would fail to
+recognize the identity of ``range`` and ``r`` in this case.
+Notice that two aliases (same name, same binding) are *not*
+considered ``free-identifier=?``:
 
-and to retrieve the elements of a record by field name::
+.. code-block:: scheme
 
- > ((Book title) book)
- "title"
+ > (define a 1)
+ > (define b a) ;; alias for a 
+ > (free-identifier=? #'a #'b)
+ #f
 
- > ((Book author) book)
- "author"
+Moreover
 
-Since I am a fan of functional programming, I am not providing mutation
-methods, so that you may regard them as immutable records (actually
-they are not, since you can change them by using ``vector-set!``,
-but that would be a dirty trick ;)
+For things like cond which need to distinguish macro-specific literals
+from bound names (e.g.: (let ((else 1)) (cond (else ---)))),
+free-identifier=? is the right predicate.
 
-Notice that a record system like the one presented here features
-record types which are not first class objects - since they are
-macros; in this respect it
-is more similar to the type system of languages like SML, where types
-are not objects, and very different from a type system like the Python
-one, where classes are objects. Of course in Scheme you can also
-implement a Python-like object system, where it is possible to create
-dynamic record types at runtime and not only at compile time. You can
-implement it yourself, or wait for a future episode ;)
+For your convenience I have defined a ``compare-ids`` macro that can be
+used to determine how two identifiers compare with respect to the different
+equality operators:
 
-.. hygiene in R6RS: http://docs.plt-scheme.org/r6rs-lib-std/r6rs-lib-Z-H-13.html#node_sec_12.1
+$$COMPARE-IDS
 
-There is a subtle point about the ``def-record-type`` macro defined in
-the previous paragraph. Such a macro introduces a lots of auxiliary
-functions, such as ``record-new``, ``record?``, and an accessor
-function with a temporary name for every record field.  One may expect
-those names to litter the namespace: i.e., after expansion, you would
-expect the names ``record-new``, ``record?`` and the temporary names
-to be defined in the namespaces.  Actually this is not the case:
-Scheme macros are *hygienic*, and auxiliary names introduced in the
-macro *are not visible outside*.
+(notice the usage of ``syntax->datum``: a list of literals
+is generated, quoted and then converted into a syntax
+object in the context of the macro, so that
+``(compare-ids id1 id2)`` expands into a list of literals).
 
-This is a major difference with respect to Common Lisp macros.
-The only names which enter in the namespace are the ones we put in;
-in the case of ``def-record-type`` only the name of the record type (i.e.
-``Book``) enters in the namespace after macro expansion. Nonetheless,
-the auxiliary names are known to ``Book`` macro, and for instance
-``(Book ?)`` will expand to the right ``record?`` function.
+Auxiliary keywords
+----------------------------------
 
-Everything works even if
-in the same module you define a different record type with a different
-``record?`` function: there will be no nameclashes. The reason is that
-the implementation of macros takes care of distinguishing the
-names in some way (it could be based on marking the names, or on
-explicit renaming).
+The R6RS document defines a set of special macros, such as ``_``, ``...``,
+``else`` and ``=>``, which lives in the global namespace and are
+available to all R6RS programs. Such macros are used as auxiliary
+syntax in various special forms, like ``cond`` and ``syntax-case``;
+for this reason they are usually called auxiliary keywords.
+The existence of such global variables makes it impossible to redefine
+at top-level in scripts (but it can be done at the REPL);
+however they can be redefined locally, thus breaking
+the macros using the auxiliary syntax. 
 
-In particular, in the ``def-record-type``
-macro, I should notice that I have been able to use the name ``record?``
-only because is an internal name: if the macroexpansion were literal,
-I would have incurred in a name clash, since ``record?`` is a builtin
-name.
+.. code-block:: scheme
+
+ (import (rnrs))
+ (display
+  (let ((else #f))
+    (cond (else 2))))
+
 |#
 
-(import (rnrs) (sweet-macros) (for (aps lang) run expand)
-        (aps easy-test) (for (aps list-utils) run expand) (aps compat))
+(import (rnrs) (sweet-macros) (aps list-utils) (aps lang) (aps easy-test))
 
-;;DEF-RECORD-TYPE
-(def-syntax (def-record-type name field ...)
-  (: with-syntax
-     (getter ...) (generate-temporaries #'(field ...))
-     (i ...) (range 1 (+ (length #'(field ...)) 1))
-     #`(begin
-         (def-syntax name
-           (syntax-match (New Signature ? field ...)
-              (sub (name New) #'record-new)
-              (sub (name Signature) #''(name field ...))
-              (sub (name ?) #'record?)
-              (sub (name field) #'getter)
-              ...))
-         (define (record-new field ...) (vector 'name field ...))
-         (define (record? b) (eq? 'name (vector-ref b 0)))
-         (define (getter b) (assert (record? b)) (vector-ref b i)) ...
-      )))
+;;ALIST2
+ (def-syntax (alist2 arg ...)
+   (: with-syntax ((name value) ...) (normalize #'(arg ...))
+     (if (for-all identifier? #'(name ...))
+         #'(let* ((name value) ...)
+             (list (list 'name name) ...))
+         (syntax-violation 'alist "Found non identifier" #'(name ...)
+                           (remp identifier? #'(name ...))))))
 ;;END
 
-;;RECORD
-(def-syntax (record-syntax name field ...)
-  (: with-syntax
-     (getter ...) (generate-temporaries #'(field ...))
-     (i ...) (range 1 (+ (length #'(field ...)) 1))
-     #`(let ()
-         (define (record-new field ...) (vector 'name field ...))
-         (define (record? b) (eq? 'name (vector-ref b 0)))
-         (define (getter b) (assert (record? b)) (vector-ref b i))
-         ...
-         (syntax-match (New Signature ? field ...)
-            (sub (name New) #'record-new)
-            (sub (name Signature) #''(name field ...))
-            (sub (name ?) #'record?)
-            (sub (name field) #'getter)
-            ...))))
+;;MULTI-DEFINE
+(def-syntax (multi-define (name1 name2 ...) (value1 value2 ...))
+    #'(begin (define name1 value1) (define name2 value2) ...)
+    (distinct? bound-identifier=? #'(name1 name2 ...))
+    (syntax-violation 'multi-define "Found duplicated identifier in"
+                      #'(name1 name2 ...)))
 ;;END
 
-           
-;(def-syntax Book (record-syntax Book title author))
-;(pretty-print (syntax-expand (record-syntax Book title author)))
+;;MULTI-DEFINE2
+(def-syntax (multi-define2 id value)
+   #'(multi-define (id id2) (value 'dummy)))
+;;END
 
-(def-record-type Book title author)
+;;STATIC-MAP
+(def-syntax (static-map (name value) ...)
+  #'(syntax-match (<names> name ...)
+      (sub (ctx <names>) #''(name ...))
+      (sub (ctx name) #'value)
+      ...)
+  (distinct? raw-identifier=? #'(name ...))
+  (syntax-violation 'static-map "Found duplicated identifier in"
+                    #'(name ...)))
+;;END
 
-(pretty-print (syntax-expand (def-record-type Book title author)))
+;;COMPARE-IDS
+(def-syntax (compare-ids id1 id2)
+  (let ((res '()))
+   (when (raw-identifier=? #'id1 #'id2)
+     (set! res (cons 'raw= res)))
+   (when (bound-identifier=? #'id1 #'id2)
+     (set! res (cons 'bound= res))) 
+   (when (free-identifier=? #'id1 #'id2)
+     (set! res (cons 'free= res)))
+   (datum->syntax #'compare-ids `',res)))
+;; END
 
-(define b ((Book New) "T" "A"))
-(display b)
+(def-syntax (compare id1 a id2 b)
+  #'(let ((id1 a))
+      (let ((id2 b))
+        (compare-ids id1 id2))))
+
+(multi-define (a b) (1 2))
+
+;(import (rnrs) (sweet-macros) (aps list-utils))
+
+(def-syntax (free-bound= id1 id2)
+  #`(list #,(free-identifier=? #'id1 #'id2)
+          #,(bound-identifier=? #'id1 #'id2)))
+
+(display
+ (let ([fred 17])
+  (def-syntax (compare-with-fred id)
+    #'(free-bound= fred id))
+  (compare-with-fred fred))) ;=> (#t #f)
+
+;;EXPAND-X
+(def-syntax expand-x
+  (syntax-match ()
+    (sub (expand-x id) "bound x" (bound-identifier=? #'id #'x))
+    (sub (expand-x id) "free x" (free-identifier=? #'id #'x))   
+    (sub (expand-x id) "other")))
+;;END
+
+(run
+ (test "free identifier"
+       (expand-x x)
+       "free x")
+ (test "non-free identifier"
+       (let ((x 1)) (display (expand-x x)))
+       "other")
+ (test "other identifier"
+       (expand-x y)
+       "other"))
+
+(define (free-bound-x id)
+  (list (free-identifier=? #'x id) (bound-identifier=? #'x id)))
+
+(def-syntax (is-a id)
+  (free-identifier=? #'id #'a))
+
+(display
+ (let () 
+   (list (is-a x) (is-a a))))
+
+(display
+ (let* ((a 2) (x a))   
+   (list (is-a x) (is-a a))))
+
 (newline)
-(display (Book Signature))
-(display ((Book ?) b))
 
 
-(display (syntax-expand (Book title)))
-(newline)
-(display ((Book title) b))
-(newline)
+(display (compare a 1 b a))
 
-(display ((Book author) b))
+(display (let ((a 1) (b 2))
+  (compare-ids a b)))
 
+(display (let ((a 1) (b 1))
+  (compare-ids a b)))
+
+(display (let ((a 1) (b a))
+  (compare-ids a b)))
+
+(display (let ((a 1))
+  (compare-ids a a)))

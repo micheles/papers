@@ -1,8 +1,18 @@
 #!r6rs
 (library (aps lang)
-(export literal-replace : identifier-append identifier-prepend
+(export literal-replace : raw-identifier=? identifier-append identifier-prepend
         get-name-from-define)
 (import (rnrs) (sweet-macros))
+
+;;RAW-IDENTIFIER=?
+(define (raw-identifier=? id1 id2)
+  (symbol=? (syntax->datum id1) (syntax->datum id2)))
+;;END
+
+;;RAW-ID=?
+(define (raw-id=? raw-id x)
+    (and (identifier? x) (raw-identifier=? raw-id x)))
+;;END
 
 ;;LITERAL-REPLACE
 (def-syntax literal-replace
@@ -16,9 +26,9 @@
 ;;END
 
 ;;COLON
-(def-syntax :
+(def-syntax : ; colon macro
   (syntax-match ()
-    (sub (: let-form e)
+    (sub (: let-form e); do nothing
          #'e)
     (sub (: let-form e1 e2)
          (syntax-violation ': "Odd number of arguments" #'let-form))

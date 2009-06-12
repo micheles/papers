@@ -1,30 +1,55 @@
 #|Syntax objects
 ===================================================================
 
-In the last dozen episodes I have defined plenty of macros, but I have
-not really explained what macros are and how they work. This episode
-will close the gap, and will explain the true meaning of macros by
-introducing the concepts of *syntax object* and of *transformer* over
-syntax objects.
-
-Syntax objects
-------------------------------------------------------------------
-
-Scheme macros are built over the concept of *syntax object*.
+Scheme macros - as standardized in the R6RS document -
+are built over the concept of *syntax object*.
 The concept is peculiar to Scheme and has no counterpart in other 
 languages (including Common Lisp), therefore it is worth to spend some time
 on it.
 
 A *syntax-object* is a kind of enhanced *s*-espression: it contains
-the source code as a list of symbols and primitive values, plus
+the source code as a list of symbols and primitive values, but also
 additional informations, such as
 the name of the file containing the source code, the line numbers,
 a set of marks to distinguish identifiers according to their
 lexical context, and more.
 
-It is possible to convert a name or a literal value into a 
-syntax object with the syntax quoting operation, i.e. the funny
-``#'`` symbol you have seen in all the macros I have defined until now::
+The easiest way to get a syntax object is to use the syntax quoting operation,
+i.e. the funny ``#'`` symbol you have seen in all the macros I have defined
+until now. Consider for instance the following script, which displays
+on standard out the string representation of the syntax object ``#1``:
+
+.. code-block:: scheme
+
+ $ cat x.ss
+ (import (rnrs))
+ (display #'1)
+
+If you run it under PLT Scheme you will get
+
+::
+
+ $ plt-r6rs x.ss
+ #<syntax:/home/micheles/Dropbox/gcode/artima/scheme/x.ss:2:11>
+
+i.e. the full pathname of the script and the line number/column number
+where the syntax object appears in the source code. Clearly this
+information is pretty useful for tools like IDEs and debuggers.  The
+internal implementation of syntax objects is totally
+implementation-dependent, so that you will get different
+informations in different implementations. For instance Ikarus
+would give
+
+::
+
+ $ ikarus --r6rs-script x.ss
+ #<syntax 1 [char 28 of x.ss]>
+
+i.e. Ikarus syntax objects do not store line numbers, they just store
+the character position from the beginning of the file. If you are using
+the REPL you will have less information, of course, and even more
+implementation-dependency. Here are a few example of syntax objects
+obtained from syntax quoting::
 
  > #'x ; convert a name into an identifier
  #<syntax x>
@@ -63,12 +88,13 @@ that both corresponds to the same datum::
            (syntax->datum #'(display "hello")))
  #t
 
-The ``(syntax )`` macro is analogous to the ``(quote )`` macro;
-moreover, there is a ``quasisyntax`` macro denoted with ``#``` which
-is analogous to the ``quasiquote`` macro (`````) and, in analogy to
-the operation ``,`` and ``,@`` on regular lists, there are two
+The ``(syntax )`` macro is analogous to the ``(quote )`` macro.
+Mreover, there is a ``quasisyntax`` macro denoted with ``#``` which
+is analogous to the ``quasiquote`` macro (`````).
+In analogy to
+the operations ``,`` and ``,@`` on regular lists, there are two
 operations ``unsyntax`` ``#,`` (*sharp comma*) e ``unsyntax-splicing``
-``#,@`` (*sharp comma splice*) on lists (including improper lists) of
+``#,@`` (*sharp comma splice*) on lists and improper lists of
 syntax objects.
 
 Here is an example using sharp-comma::
@@ -83,17 +109,17 @@ and here is an example using sharp-comma-splice::
  (#<syntax display>
  (#<syntax list> #<syntax "michele"> #<syntax "mario">) . #<syntax ()>)
 
-Notice that the output is an improper list. This is somewhat consistent
-with the behavior of usual quoting: for usual quoting ``'(a b c)``
-is a shortcut for ``(cons* 'a 'b 'c '())``, which is a proper list,
-and for syntax-quoting ``#'(a b c)`` is equivalent to
-``(cons* #'a #'b #'c #'())``, which is an improper list.
-The ``cons*`` operator here is a R6RS shortcut for nested conses:
-``(cons* w x y z)`` is the same as ``(cons w (cons x (cons y z)))``.
+Notice that the output - in Ikarus - is an improper list. This is
+somewhat consistent with the behavior of usual quoting: for usual
+quoting ``'(a b c)`` is a shortcut for ``(cons* 'a 'b 'c '())``, which
+is a proper list, and for syntax-quoting ``#'(a b c)`` is equivalent
+to ``(cons* #'a #'b #'c #'())``, which is an improper list.  The
+``cons*`` operator here is a R6RS shortcut for nested conses: ``(cons*
+w x y z)`` is the same as ``(cons w (cons x (cons y z)))``.
 
 However, the result of a quasi quote interpolation is very much
 *implementation-dependent*: Ikarus returns an improper list, but other
-implementations returns different results; for instance ypsilon
+implementations returns different results; for instance Ypsilon
 returns a proper list of syntax objects whereas PLT Scheme returns
 an atomic syntax object. The lesson is that you cannot
 rely on properties of the inner representation of syntax objects:
@@ -109,7 +135,7 @@ by using an identifier::
  #<syntax (display "hello")
 
 (the meaning of the lexical context in ``datum->syntax`` is tricky and
-I will go back to that in the next episode).
+I will go back to that in a future episode, when I will talk about hygiene).
 
 What ``syntax-match`` really is
 --------------------------------------------------------------
@@ -117,7 +143,7 @@ What ``syntax-match`` really is
 ``syntax-match`` is a general utility to perform pattern matching
 on syntax objects; it takes a syntax object in output and returns
 another syntax object in output, depending on the patterns, skeletons and guards
-used::
+used. Here is an example of a simple transformer based on ``syntax-match``::
 
  > (define transformer 
      (syntax-match ()
@@ -128,9 +154,9 @@ used::
 
 For convenience, ``syntax-match`` also accepts a second syntax
 ``(syntax-match x (lit ...) clause ...)`` to match syntax expressions
-directly, more convenient than using
+directly. This is more convenient than writing
 ``((syntax-match (lit ...) clause ...) x)``.
-Here is a simple example of usage::
+Here is a simple example::
 
  > (syntax-match #'(a 1 2 3) ()
     (sub (name . args) #'args)); return the args as a syntax object
@@ -142,29 +168,25 @@ Here is an example using ``quasisyntax`` and ``unsyntax-splicing``::
      (sub (name . args) #`(name #,@#'args)))
  (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
 
+.. image:: hieroglyphics.jpg
+
 As you see, it easy to write hieroglyphs if you use ``quasisyntax`` 
 and ``unsyntax-splicing``. You can avoid that by means of the ``with-syntax``
 form::
 
  > (syntax-match #'(a 1 2 3) ()
-     (sub (name . args) (: with-syntax (a ...) #'args #'(name a ...))))
+     (sub (name . args) (with-syntax (((a ...) #'args)) #'(name a ...))))
  (#<syntax a> #<syntax 1> #<syntax 2> #<syntax 3>)
  
-
 The pattern variables introduced by ``with-syntax``
 are automatically expanded inside the syntax template, without
 resorting to the quasisyntax notation (i.e. there is no need for
 ``#``` ``#,`` ``#,@``).
 
-.. image:: hieroglyphics.jpg
-
-Matching generic syntax lists
---------------------------------------------------------------
-
 The previous paragraphs about syntax objects were a little abstract and
 probably of unclear utility (but what would you expect from
-an advanced macro tutorial? ;). Here I will be more
-concrete and I will provide an example where
+an advanced macro tutorial? ;). Now let me be more
+concrete. I will provide an example where
 ``syntax-match`` is used as a list matcher inside a bigger macro.
 The final goal is to provide
 a nicer syntax for association lists (an association list is just
@@ -190,7 +212,7 @@ The expression ``#'(arg ...)`` expands to a list of syntax
 objects which are then transformed by is the ``syntax-match`` transformer,
 which converts identifiers of the form ``n`` into couples of the form
 ``(n n)``, whereas it leaves couples ``(n v)`` unchanged, however
-by checking that ``n`` is an identifier.
+it checks that ``n`` is an identifier.
 
 Macros as list transformers
 ---------------------------------------------------------------------
@@ -207,21 +229,21 @@ list: for instance a macro describing function composition
 
 :: 
 
-  (def-syntax (app f g)
+  (def-syntax (o f g)
     #'(f g))
 
 can be written equivalently also as
 
 ::
 
- (def-syntax (app f g)
+ (def-syntax (o f g)
    (list #'f #'g))
 
 or
 
 ::
 
- (def-syntax (app f g)
+ (def-syntax (o f g)
    (cons* #'f #'g #'()))
 
 The sharp-quoted syntax is more readable, but it hides the underlying list
@@ -232,13 +254,13 @@ macros.
 ``sweet-macros`` provide a convenient feature:
 it is possible to extract the associated
 transformer for each macro defined via ``def-syntax``. For instance,
-here is the transformer associated to  the ``define-a`` macro:
+here is the transformer associated to  the ``o`` macro:
 
 .. code-block:: scheme
 
- > (define tr (define-a <transformer>))
- > (tr (list #'dummy #'1))
- (#<syntax define> #<syntax a> 1)
+ > (define tr (o <transformer>))
+ > (tr (list #'o #'f #'g))
+ (#<syntax f> #<syntax g> . #<syntax ()>)
 
 Notice that the name of the macro (in this case ``define-a`` is ignored
 by the transformer, i.e. it is a dummy identifier.
@@ -276,8 +298,9 @@ by the transformer, i.e. it is a dummy identifier.
 
  ;;TEST-ALIST
  (test "simple"
-       (alist (a 1) (b (* 2 a)))
-       '((a 1) (b 2)))
+       (let ((a 0))
+         (alist a (b 1) (c (* 2 b))))
+         '((a 0) (b 1) (c 2)))
  
  ;;END
  ;(test "with-error"

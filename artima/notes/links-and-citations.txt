@@ -1,3 +1,7 @@
+Those who can, do; those who can't, teach -- G. B. Shaw
+
+
+
 #Why I Hate Frameworks
 http://discuss.joelonsoftware.com/default.asp?joel.3.219431.12
 
@@ -31,3 +35,8 @@ it on your own. -- Ian Bicking http://pythonpaste.org/webob/do-it-yourself.html
 defined purpose as an implementation experimental platform and as a
 teaching language ... the fact that it can actually be used
 productively is, in some sense, incidental. -- George Neuner on c.l.s.
+
+
+
+I think one good outcome of R6RS is that library writers form a
+bridge between implementors who would not be collaborating otherwise -- Aziz
