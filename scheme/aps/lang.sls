@@ -1,17 +1,43 @@
 #!r6rs
 (library (aps lang)
-(export literal-replace : raw-identifier=? identifier-append identifier-prepend
-        get-name-from-define)
+(export literal-replace : unbound? raw-identifier=? raw-id=?
+        identifier-append identifier-prepend
+        get-name-from-define let1)
 (import (rnrs) (sweet-macros))
 
+;;LET1
+(def-syntax let1
+  (syntax-match ()
+    (sub (let1 () lst e e* ...)
+         #'(if (null? lst) (begin e e* ...)
+               (apply error 'let1 "Too many elements" lst)))
+    (sub (let1 (arg1 arg2 ... . rest) lst e e* ...)
+         #'(let ((ls lst))
+             (if (null? ls)
+                 (apply error 'let1 "Missing arguments" '(arg1 arg2 ...))
+                 (let1 arg1 (car ls)
+                   (let1 (arg2 ... . rest) (cdr ls) e e* ...)))))
+    (sub (let1 name value e e* ...)
+         #'(letrec ((name value)) e e* ...)
+         (identifier? #'name)
+         (syntax-violation 'let1 "Argument is not an identifier" #'name))
+    ))
+;;END
+
 ;;RAW-IDENTIFIER=?
-(define (raw-identifier=? id1 id2)
-  (symbol=? (syntax->datum id1) (syntax->datum id2)))
+(define (raw-identifier=? raw id)
+  (symbol=? raw (syntax->datum id)))
 ;;END
 
 ;;RAW-ID=?
 (define (raw-id=? raw-id x)
     (and (identifier? x) (raw-identifier=? raw-id x)))
+;;END
+
+;;UNBOUND?
+(define (unbound? id)
+  (define unbound-id (datum->syntax #'dummy-ctxt (syntax->datum id)))
+  (free-identifier=? id  unbound-id))
 ;;END
 
 ;;LITERAL-REPLACE

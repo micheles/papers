@@ -9,7 +9,8 @@
         ((error-message #f)
          (result
           (guard (err ;; as a side effect, set! the error message if any
-                  ((or (assertion-violation? err) (error? err))
+                  ((or (assertion-violation? err) (error? err)
+                       (undefined-violation? err))
                    (set! error-message (condition-message err))))
                  body body* ...)))
       (if error-message error-message

@@ -17,7 +17,7 @@ try:
 except ImportError:
     print 'Warning: sphinx is not installed'
 
-identifier = r'[-A-Z\d_!\?\+\-\*/]+'
+identifier = r'[-A-Z\d_=!\?\+\-\*/]+'
 BIGCOMMENT = re.compile(r'#\|(.*)\|#(.*)', re.DOTALL)
 SNIPPET = re.compile(r'\n\s*;+\s*(%s)\s*\n(.*?)\n\s*;+\s*END' % identifier,
                      re.DOTALL)

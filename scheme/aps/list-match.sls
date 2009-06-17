@@ -1,6 +1,6 @@
 (library (aps list-match)
 (export list-match _match)
-(import (rnrs) (sweet-macros))
+(import (rnrs) (sweet-macros) (aps lang) (aps cut))
 
 ;; see http://groups.google.com/group/comp.lang.scheme/msg/7701b9231835635f?hl=en
 
@@ -9,7 +9,7 @@
       (cond
        ((_match obj pattern (list template) guard ...) => car) ...
        (else (error 'list-match "pattern failure" obj))))
-  (for-all (cut raw-id=? #'sub <>) #'(sub ...)))
+  (for-all (cut raw-id=? 'sub <>) #'(sub ...)))
 
 (def-syntax _match
   (syntax-match (quote quasiquote)

@@ -141,12 +141,14 @@
      (sub (fold left (acc seed) (x in lst) (x* in lst*) ... new-acc)
            (: with-syntax (a a* ...) (generate-temporaries #'(x x* ...))
               #'(fold-left
-                 (lambda (acc a a* ...) (let+ (x a) (x* a*) ... new-acc))
+                 (lambda (acc a a* ...)
+                   (let+ ((x x* ...) (list a a* ...)) new-acc))
                  seed lst lst* ...)))
      (sub (fold right (acc seed) (x in lst) (x* in lst*) ... new-acc)
            (: with-syntax (a a* ...) (generate-temporaries #'(x x* ...))
               #'(fold-right
-                 (lambda (a a* ... acc) (let+ (x a) (x* a*) ... new-acc))
+                 (lambda (a a* ... acc)
+                   (let+ ((x x* ...) (list a a* ...)) new-acc))
                  seed lst lst* ...)))
      ))
 ;;END
