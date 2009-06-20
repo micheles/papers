@@ -1,6 +1,160 @@
 #|Comparing identifiers
 ==============================================================
 
+
+Hygienic vs non-hygienic macro systems
+----------------------------------------------
+
+Understanding the hygiene issue is important if you intend to work
+in the larger Lisp world. In the small Scheme world
+everybody thinks that hygiene is an essential feature and nowadays
+all major Scheme implementations provide hygienic macros;
+however, in the rest of the world things are different.
+
+Common Lisp does not use hygienic macros and cope with the
+variable capture problem by using ``gensym``; the free symbol
+capture problem is not solved, but it is rare. Also the fact
+that Common Lisp has multiple namespaces and a package system
+helps to mitigate the issue.
+
+The hygiene problem is more
+serious in Lisp-1_ dialects like the newborn Arc_ and Clojure_:
+still their authors, which are extremely competent programmers,
+have decided not to use hygienic macros and to rely on various workarounds.
+
+Personally I have made my mind up and I am in the pro-hygiene camp now.
+I should admit that for a long time I have been in the opposite
+camp, preferring the simplicity of ``define-macro`` over
+the complexity of ``syntax-case``. It turns out I was wrong.
+The only problem of ``syntax-case`` is a cosmetic one: it
+looks very complex and cumbersome to use, but that can be easily
+solved by providing a nicer API - which I did with ``sweeet-macros``.
+I believe that
+eventually all Lisp dialects will start using hygienic macros, but
+that could take decades, because of inertia and backward-compatibility
+concerns.
+
+Having attended to a talk on the subject at the `EuroLisp
+Symposium`_, I will mention here that Pascal Costanza has found a way to
+implement hygienic macros on top of ``defmacro`` in Common
+Lisp *portably*. There is no technical reason why
+hygienic macros are not widespread in the whole Lisp world,
+just a matter of different opinions on the importance of
+the problem and the different tradeoffs.
+
+
+.. _Arc: http://arclanguage.org/
+.. _Clojure: http://clojure.org/
+.. _Lisp-1: http://en.wikipedia.org/wiki/Lisp-1#The_function_namespace
+.. _EuroLisp Symposium: http://www.european-lisp-symposium.org/
+
+The hygiene problem (II)
+-------------------------------------------------
+
+However, there is the opposite problem: you need a way of breaking
+hygiene on purpose.  Consider for instance the following apparently
+trivial macro:
+
+$$DEFINE-A
+
+``(define-a x)`` *apparently* should expand to ``(define a x)``, so
+you may find the following surprising::
+
+ > (define-a 1)
+ > a
+ Unhandled exception
+  Condition components:
+    1. &undefined
+    2. &who: eval
+    3. &message: "unbound variable"
+    4. &irritants: (a)
+
+Why is the variable ``a`` not defined? The reason is that Scheme
+macros are *hygienic*, i.e. they *do not introduce identifiers
+implicitly*.  Auxiliary names introduced in a macro *are not visible
+outside*: the only names which enter in the expansion are the ones we
+put in.
+
+This is a major difference with respect to Common Lisp macros.  In
+Common Lisp the mechanism of macro expansion is much simpler to
+explain, since the expansion is literal: you could just cut and paste
+the result of the expansion in your original code. In Scheme instead
+the expansion is not literally inserted in the original code, and a
+lot of magic takes place to avoid name clashes. In practice, the
+implementation of Scheme macros takes care of distinguishing the
+introduced identifiers with some specific mechanism (it
+could be based on marking the names, or on explicit renaming).
+
+Once you get used to the idea that the expansion is not
+literal, and that all the identifiers internally used by a macro
+are opaque unless they are explicitly marked as visible, you will
+see the advantages of hygiene.
+
+For instance, if you are writing a library which can be imported
+in an unknown environment, in absence of hygiene you could introduce
+name clashes impossible to foresee in advance, and that could be solved
+only by the final user, which however will likely be ignorant of how
+your library works.
+
+To be fair, I should
+remark that in Common Lisp there
+are ways to work around the absence of hygiene;
+nevertheless I like the Scheme way
+better, since by default you cannot introduce unwanted names. If
+want to introduce new names you can, but you must say so. Introducing
+new names in a macro is called *breaking hygiene*. Since I like
+to keep you in suspense, I will close this episode here, and I will
+make you wait for the next one to discover how to break hygiene ;-)
+
+Breaking hygiene
+--------------------------------------------
+
+Scheme provides a builtin mechanism to break hygiene, via the
+``datum->syntax`` utility which converts
+literal objects (*datums*) into syntax objects. 
+
+I have already shown ``datum->syntax``
+at work in the definition of ``define-macro`` from ``syntax-match``,
+where it was used to convert a list describing source code into a syntax
+object. 
+
+A typical use case for ``datum->syntax`` is to turn symbols
+into proper identifiers which can be introduced in macros and made
+visible to expanded code, thus breaking hygiene. Here is how
+you can "fix" the macro ``define-a``:
+
+$$DEFINE-A
+
+Notice that I have used the name of the macro as the context identifier
+in ``datum->syntax``. This is the common practice, but any dummy
+identifier would have worked for this example. You can check that
+the identifier ``a`` is really introduced as follows:
+
+.. code-block:: scheme
+
+ > (define-a 1)
+ > a
+ 1
+
+A more realistic example is to build identifiers from strings and
+symbols. For that purpose I have added an ``identifier-append``
+utility in my ``(aps lang)`` library, defined as follow:
+
+$$lang:IDENTIFIER-APPEND
+
+Here is a simple ``def-book`` macro using ``identifier-append``:
+
+$$DEF-BOOK
+
+to be used as in the following test:
+
+$$TEST-DEF-BOOK
+
+There are better ways to define records in Scheme, and there is also
+a built-in facility to define record types: you should consider
+``def-book`` just as an example of use of ``identifier-append``,
+not as a recommended pattern to define records.
+
 What does it mean that two identifiers are equal in a lexically
 scoped language with hygienic macros?
 
@@ -156,7 +310,18 @@ considered ``free-identifier=?``:
  > (free-identifier=? #'a #'b)
  #f
 
-Moreover
+Moreover you can use ``free-identifier=?`` to compare two unbound
+identifiers or a bound and an unbound identifier. It returns true only
+if the identifiers share the same name and the same bound/unbound state.
+You can leverage on this feature to define a function which is able
+to determine if an identifier is bound or unbound:
+
+$$lang:UNBOUND?
+
+Using ``unbound?`` it is easy to write code that performs a certain
+action only if a given identifier is bound:
+
+$$WHEN-BOUND
 
 For things like cond which need to distinguish macro-specific literals
 from bound names (e.g.: (let ((else 1)) (cond (else ---)))),
@@ -311,3 +476,56 @@ the macros using the auxiliary syntax.
 
 (display (let ((a 1))
   (compare-ids a a)))
+
+;;WHEN-BOUND
+(def-syntax (when-bound (id) e* ...)
+  #'#f (unbound? #'id) #'(begin e* ...))
+;;END
+;;DEFINE-A
+(def-syntax (define-a x)
+  #`(define #,(datum->syntax #'define-a 'a) x))
+;;END
+
+;;DEF-BOOK
+(def-syntax (def-book name title author)
+  (: with-syntax
+     name-title (identifier-append #'name "-title")
+     name-author (identifier-append #'name "-author")
+     #'(begin
+         (define inner-name (vector title author))
+         (define name-title (vector-ref inner-name 0))
+         (define name-author (vector-ref inner-name 1)))))
+
+;;END
+
+;(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
+
+ ;;TEST-DEF-BOOK
+ (test "def-book"
+       (let ()
+         (def-book bible "The Bible" "God")
+         (list bible-title bible-author))
+       (list "The Bible" "God"))
+ ;;END
+
+(def-syntax (is-name x)
+  #'(begin (display 'x) (display " is a name\n"))
+  (identifier? #'x)
+  #'(begin (display 'x) (display " is not a name\n")))
+  
+(def-syntax (let-3 name list-3 body body* ...)
+  #`(let+ ((x y z) list-3)
+          (let ((#,(identifier-append #'name  ".x") x)
+                (#,(identifier-append #'name  ".y") y)
+                (#,(identifier-append #'name  ".z") z))
+            body body* ...)))
+ 
+(pretty-print (syntax-expand             
+  (let-3 v '(a b c)
+   (display (list v.x v.y v.z)))
+))
+
+
+(let-3 v '(a b c)
+   (display (list v.x v.y v.z)))
+(newline)

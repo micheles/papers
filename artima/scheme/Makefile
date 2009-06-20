@@ -74,8 +74,8 @@ linkcheck:
 	@echo "Link check complete; look for any errors in the above output " \
 	      "or in .build/linkcheck/output.txt."
 
-POST = python2.5 ../post.py
-RST = python2.5 ../../scheme2rst.py -r
+POST = python ../post.py
+RST = python ../../scheme2rst.py -r
 
 1: scheme1.ss
 	$(RST) scheme1.ss; $(POST) scheme1.rst 238789

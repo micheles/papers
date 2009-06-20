@@ -217,7 +217,7 @@ the whole of R6RS. You could even perform the opposite, and remove ``set!``
 from the run-time, but allowing it at compile time.
 
 However, personally I do not feel a need to distinguish the languages
-at different phases and I like Scheme to be a Lisp-1 language with a
+at different phases and I like Scheme to be a Lisp-1_ language with a
 single namespace for all variables.  I am also not happy with having
 to keep manually track of the meta-levels, which is difficult and
 error prone when writing higher order macros. Moreover, in PLT and
@@ -238,5 +238,6 @@ the programmer does not need to think about it explicitly). The model
 of implicit phasing was proposed by Kent Dybvig and
 Abdul Aziz Ghuloum, who wrote his `Ph. D. thesis`_ on the subject.
 
+.. _Lisp-1: http://en.wikipedia.org/wiki/Lisp-1#The_function_namespace
 .. _Ph. D. thesis: http://portal.acm.org/citation.cfm?id=1291151.1291197&coll=GUIDE&dl=GUIDE&CFID=34012650&CFTOKEN=38507862
 |#
