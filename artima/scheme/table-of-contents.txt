@@ -55,6 +55,16 @@ Part IV - The Module System
 
  Ep24_ Mutating variables across modules
 
+Part V - Macros, again
+
+ Ep25_ Back to macros (and accumulators)
+
+ Ep26_ Macros taking macros as arguments (and the beauty of parentheses)
+
+ Ep27_ Syntax objects and syntax transformers
+
+ Ep28_ Hygienic macros
+
 .. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
 .. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941
 .. _Ep3: http://www.artima.com/weblogs/viewpost.jsp?thread=239466
@@ -79,3 +89,7 @@ Part IV - The Module System
 .. _Ep22: http://www.artima.com/weblogs/viewpost.jsp?thread=256848
 .. _Ep23: http://www.artima.com/weblogs/viewpost.jsp?thread=257998
 .. _Ep24: http://www.artima.com/weblogs/viewpost.jsp?thread=258103
+.. _Ep25: http://www.artima.com/weblogs/viewpost.jsp?thread=258580
+.. _Ep26: http://www.artima.com/weblogs/viewpost.jsp?thread=259977
+.. _Ep27: http://www.artima.com/weblogs/viewpost.jsp?thread=260182
+.. _Ep28: http://www.artima.com/weblogs/viewpost.jsp?thread=260195
