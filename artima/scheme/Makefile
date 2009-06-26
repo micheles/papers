@@ -175,3 +175,9 @@ eurolisp2: eurolisp2.txt
 
 28: scheme28.ss
 	$(RST) scheme28.ss; $(POST) scheme28.rst 260195
+
+29: scheme29.ss
+	$(RST) scheme29.ss; $(POST) scheme29.rst 261363
+
+30: scheme30.ss
+	$(RST) scheme30.ss; $(POST) scheme30.rst 261364

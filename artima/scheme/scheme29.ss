@@ -1,63 +1,15 @@
-#|Comparing identifiers
+#|Breaking hygiene
 ==============================================================
 
+In the `previous episode`_ I said that hygienic macros are good, since
+they solve the variable capture problem. However, purely hygienic macros
+introduce a problem of their own, since they
+make it impossible to introduce variables at all.
+Consider for instance the following trivial macro:
 
-Hygienic vs non-hygienic macro systems
-----------------------------------------------
+$$DEFINE-A*
 
-Understanding the hygiene issue is important if you intend to work
-in the larger Lisp world. In the small Scheme world
-everybody thinks that hygiene is an essential feature and nowadays
-all major Scheme implementations provide hygienic macros;
-however, in the rest of the world things are different.
-
-Common Lisp does not use hygienic macros and cope with the
-variable capture problem by using ``gensym``; the free symbol
-capture problem is not solved, but it is rare. Also the fact
-that Common Lisp has multiple namespaces and a package system
-helps to mitigate the issue.
-
-The hygiene problem is more
-serious in Lisp-1_ dialects like the newborn Arc_ and Clojure_:
-still their authors, which are extremely competent programmers,
-have decided not to use hygienic macros and to rely on various workarounds.
-
-Personally I have made my mind up and I am in the pro-hygiene camp now.
-I should admit that for a long time I have been in the opposite
-camp, preferring the simplicity of ``define-macro`` over
-the complexity of ``syntax-case``. It turns out I was wrong.
-The only problem of ``syntax-case`` is a cosmetic one: it
-looks very complex and cumbersome to use, but that can be easily
-solved by providing a nicer API - which I did with ``sweeet-macros``.
-I believe that
-eventually all Lisp dialects will start using hygienic macros, but
-that could take decades, because of inertia and backward-compatibility
-concerns.
-
-Having attended to a talk on the subject at the `EuroLisp
-Symposium`_, I will mention here that Pascal Costanza has found a way to
-implement hygienic macros on top of ``defmacro`` in Common
-Lisp *portably*. There is no technical reason why
-hygienic macros are not widespread in the whole Lisp world,
-just a matter of different opinions on the importance of
-the problem and the different tradeoffs.
-
-
-.. _Arc: http://arclanguage.org/
-.. _Clojure: http://clojure.org/
-.. _Lisp-1: http://en.wikipedia.org/wiki/Lisp-1#The_function_namespace
-.. _EuroLisp Symposium: http://www.european-lisp-symposium.org/
-
-The hygiene problem (II)
--------------------------------------------------
-
-However, there is the opposite problem: you need a way of breaking
-hygiene on purpose.  Consider for instance the following apparently
-trivial macro:
-
-$$DEFINE-A
-
-``(define-a x)`` *apparently* should expand to ``(define a x)``, so
+``(define-a x)`` *apparently* expand to ``(define a x)``, so
 you may find the following surprising::
 
  > (define-a 1)
@@ -69,75 +21,56 @@ you may find the following surprising::
     3. &message: "unbound variable"
     4. &irritants: (a)
 
-Why is the variable ``a`` not defined? The reason is that Scheme
-macros are *hygienic*, i.e. they *do not introduce identifiers
-implicitly*.  Auxiliary names introduced in a macro *are not visible
-outside*: the only names which enter in the expansion are the ones we
-put in.
+Why is the variable ``a`` not bound to 1? The problem is that hygienic
+macros *never introduce identifiers implicitly*.
+Auxiliary names introduced in a macro *are not visible outside* and the
+only names which enter in the expansion are the ones we put in.
+A mechanism to introduce identifiers, i.e. a mechanism
+to break hygiene, is needed if you want to define binding forms.
 
-This is a major difference with respect to Common Lisp macros.  In
-Common Lisp the mechanism of macro expansion is much simpler to
-explain, since the expansion is literal: you could just cut and paste
-the result of the expansion in your original code. In Scheme instead
-the expansion is not literally inserted in the original code, and a
-lot of magic takes place to avoid name clashes. In practice, the
-implementation of Scheme macros takes care of distinguishing the
-introduced identifiers with some specific mechanism (it
-could be based on marking the names, or on explicit renaming).
+.. _previous episode: http://www.artima.com/weblogs/viewpost.jsp?thread=260195
+.. _28: http://www.artima.com/weblogs/viewpost.jsp?thread=260195
+.. _27: http://www.artima.com/weblogs/viewpost.jsp?thread=260182
 
-Once you get used to the idea that the expansion is not
-literal, and that all the identifiers internally used by a macro
-are opaque unless they are explicitly marked as visible, you will
-see the advantages of hygiene.
-
-For instance, if you are writing a library which can be imported
-in an unknown environment, in absence of hygiene you could introduce
-name clashes impossible to foresee in advance, and that could be solved
-only by the final user, which however will likely be ignorant of how
-your library works.
-
-To be fair, I should
-remark that in Common Lisp there
-are ways to work around the absence of hygiene;
-nevertheless I like the Scheme way
-better, since by default you cannot introduce unwanted names. If
-want to introduce new names you can, but you must say so. Introducing
-new names in a macro is called *breaking hygiene*. Since I like
-to keep you in suspense, I will close this episode here, and I will
-make you wait for the next one to discover how to break hygiene ;-)
-
-Breaking hygiene
+``datum->syntax`` revisited
 --------------------------------------------
 
-Scheme provides a builtin mechanism to break hygiene, via the
-``datum->syntax`` utility which converts
-literal objects (*datums*) into syntax objects. 
+Scheme has a builtin mechanism to break hygiene, and we already saw
+it: it is the ``datum->syntax`` utility which converts literal
+objects (*datums*) into syntax objects.  I have shown
+``datum->syntax`` at work in episodes 27_ and 28_ : it was used there
+to convert lists describing source code into syntax objects.  A more
+typical use case for ``datum->syntax`` is to turn symbols into proper
+identifiers. Such identifiers can then be introduced in macros and
+made visible to expanded code.
 
-I have already shown ``datum->syntax``
-at work in the definition of ``define-macro`` from ``syntax-match``,
-where it was used to convert a list describing source code into a syntax
-object. 
+In order to understand the mechanism, you must always remember
+that identifiers in Scheme - in the technical sense of objects
+recognized by the ``identifier?`` predicate - are not just raw
+symbols, they are syntax objects with lexical information attached to
+them. If you want to turn a raw symbol into an identifier you must add
+the lexical information to it, and this is done by copying the lexical
+information coming from the context object in ``datum->syntax``.
 
-A typical use case for ``datum->syntax`` is to turn symbols
-into proper identifiers which can be introduced in macros and made
-visible to expanded code, thus breaking hygiene. Here is how
+For instance, here is how
 you can "fix" the macro ``define-a``:
 
 $$DEFINE-A
 
-Notice that I have used the name of the macro as the context identifier
-in ``datum->syntax``. This is the common practice, but any dummy
-identifier would have worked for this example. You can check that
-the identifier ``a`` is really introduced as follows:
+The symbol ``'a`` here is being promoted to a *bona fide* identifier,
+by adding to it the lexical context associated to the macro name.
+You can check that the identifier ``a`` is really introduced as
+follows:
 
 .. code-block:: scheme
 
- > (define-a 1)
+ > (define-a* 1)
  > a
  1
 
-A more realistic example is to build identifiers from strings and
-symbols. For that purpose I have added an ``identifier-append``
+A more realistic example is to use ``syntax->datum``
+to build new identifiers from strings.
+For that purpose I have added an ``identifier-append``
 utility in my ``(aps lang)`` library, defined as follow:
 
 $$lang:IDENTIFIER-APPEND
@@ -146,221 +79,187 @@ Here is a simple ``def-book`` macro using ``identifier-append``:
 
 $$DEF-BOOK
 
-to be used as in the following test:
+``def-book`` here is just as an example of use of ``identifier-append``,
+it is not as a recommended pattern to define records.
+There are much better ways to define records in Scheme, as we will see
+in part VI of these Adventures.
 
-$$TEST-DEF-BOOK
-
-There are better ways to define records in Scheme, and there is also
-a built-in facility to define record types: you should consider
-``def-book`` just as an example of use of ``identifier-append``,
-not as a recommended pattern to define records.
-
-What does it mean that two identifiers are equal in a lexically
-scoped language with hygienic macros?
-
-Take for instance this piece of code:
+Anyway, ``def-book`` works as follows.
+Given a single identifier ``name`` and two values it
+introduces three identifiers 
+in the current lexical scope: ``name`` (bound to a vector
+containing the two values), ``name-title`` (bound to the
+first value) and ``name-author`` (bound to the second value).
 
 .. code-block:: scheme
 
- (let ((a 1))
-     (let ((a 2))
-        ...))
+ > (def-book bible "The Bible" "God")
+ > bible
+ #("The Bible" "God")
+ > bible-title
+ "The Bible"
+ > bible-author
+ "God"
 
-Is the first ``a`` equal to the second ``a``? They are bound to
-different values, and they may be considered equal or not.
-Moreover, consider the following:
+Playing with the lexical context
+---------------------------------------------------------------
 
-.. code-block:: scheme
+The lexical context is just the set of
+names which are visible to an object in a given lexical position
+in the source code. Here is an example of a lexical context which
+is particularly restricted:
 
- (let ((a 1))
-     (let ((b a))
-        ...))
+$$experimental/dummy-ctxt:
 
-Here ``a`` and ``b`` are different names for the same value. Should they
-be considered equal?
-
-Finallly, consider what happens in a macro introducing dummy
-identifiers:
-
-.. code-block:: scheme
-
- (def-syntax (macro x)
-   #'(let ((dummy 1))
-       ...))
-
-What happens if I pass to the macro an ``x`` argument named ``dummy``?
-Should it be considered equal to the identifier introduced by the ``let``
-form or not?
-
-
-As a matter
-of fact the Scheme standard define two different equality procedures
-for identifiers (``bound-identifier=?`` and ``free-identifier=?``); to
-those, I will add a third one, ``raw-identifier=?``:
-
-$$lang:RAW-IDENTIFIER=?
-
-This episode will be spent discussing the subtilities of identifier
-equality.
-
-Using ``raw-identifier=?``
------------------------------------------------
-
-The simplest procedure by far is ``raw-identifier=?``: two
-identifiers are ``raw-identifier=?`` if they are equal as symbols.
-For convenience, I have added the
-``raw-identifier=?`` precedure in the ``(aps lang)`` library.
-``raw-identifier=?`` can be used to manage duplicate names in
-macros defining multiple identifiers at once, or in macros
-defining tables names->values, such as the ``static-map``
-we discussed in episode 22.
-
-$$STATIC-MAP
-
-Using ``bound-identifier=?``
------------------------------------------------
-
-``raw-identifier=?`` is simple and easy to understand, but it cannot
-be used in all situations. Consider for instance the very first macro
-we wrote, in episode 9_:
+The identifier ``#'here`` only sees the names ``define``,
+``syntax`` and ``dummy-ctxt``: this is the lexical
+context of any object in its position in the source code. Had we not
+restricted the import, the lexical context of ``#'here`` would have
+been the entire ``rnrs`` set of identifiers. We can use ``dummy-ctxt``
+to expand a macro into a minimal context. Here is an example of
+a trivial macro expanding into such minimal context:
 
 .. code-block:: scheme
 
-  (def-syntax (multi-define (name1 name2 ...) (value1 value2 ...))
-    #'(begin (define name1 value1) (define name2 value2) ...))
+ > (import (experimental dummy-ctxt))
+ > (def-syntax expand-to-car
+    (lambda (x) (datum->syntax dummy-ctxt 'car)))
 
-It is quite common to write macros defining multiple bindings, such
-as ``multi-define``. There is also the common situation of
-macros which expand themselves to macros defining
-multiple bindings. When code is generated automatically, errors are
-more than likely and it makes sense to manage explicitly
-the situation when the list of names to be defined contains some
-duplicate. ``multi-define`` as written does not perform any check, so that it
-relies on the standard behavior of R6RS scheme, raising an error.
-Unfortunately, the standard behavior only applies to programs and scripts,
-whereas the REPL is quite free to behaves differently and indeed it does:
+The macro ``expand-to-car`` expands to a syntax object obtained by
+attaching to the symbol ``'car`` the lexical context ``dummy-ctxt``.
+Since in such lexical context the built-in ``car`` is not defined,
+the expansion fails:
 
 .. code-block:: scheme
 
- > (multi-define (a a) (1 2))
- a
- 2
+ > (expand-to-car)
+  Unhandled exception
+   Condition components:
+     1. &undefined
+     2. &who: eval
+     3. &message: "unbound variable"
+     4. &irritants: (car)
 
-(in the REPL latter definitions override previous definitions). Being
-unhappy with that, we can introduce a ``bound-identifier=?`` check
-and raise a custom exception:
-
-.. code-block:: scheme
-
- > (multi-define (a a) (1 2))
- Unhandled exception
-  Condition components:
-    1. &who: multi-define
-    2. &message: "Found duplicated identifier in"
-    3. &syntax:
-        form: (a a)
-        subform: #f
-
-This is a case where using ``raw-identifier=?`` would not work.
-Here is a (made-up) example explaining the problem with ``raw-identifier=?``
-in the presence of dummy identifiers introduced by macros. Consider
-the following macro expanding to ``multi-define``:
-
-$$MULTI-DEFINE2
-
-The macro introduces a dummy identifier ``id2``. What happens if
-we call ``multi-define2`` with argument ``id`` equal to  ``id2``?
-
- > (multi-define2 id2 1)
- id2
- 1
-
-The answer is nothing, since we defined ``multi-define`` in terms of
-``bound-identifier=?``, and two identifiers are equal according to
-``bound-identifier=?`` only if they have the same name *and* the same
-marks. In this case the identifier ``id2`` introduced by the macro
-has different marks from the identifier ``id2`` used as an argument
-in the macro. Had we defined ``multi-define`` in
-terms of ``raw-identifier=?``, we would have had a spurious name
-clash.
-
-Using ``free-identifier=?``
-------------------------------------
-
-``free-identifier=?`` is the trickiest equality predicate. It is able
-to determinate if two bound identifiers are the same apart possibly for
-a rename at import time:
+A similar macro ``expand-to-dummy-ctxt`` instead would succeed since
+``dummy-ctxt`` is bound in that lexical context:
 
 .. code-block:: scheme
 
- > (import (only (aps list-utils) range))
- > (import (rename (aps list-utils) (range r)))
- > (free-identifier=? #'r #'range)
- #t
+ > (def-syntax expand-to-dummy-ctxt
+     (lambda (x) (datum->syntax dummy-ctxt 'dummy-ctxt)))
+ >  (expand-to-dummy-ctxt)
+ #<syntax here [char 115 of /home/micheles/gcode/scheme/aps/dummy-ctxt.sls]>
 
-Both ``raw-identifier=?`` and ``bound-identifier=?`` would fail to
-recognize the identity of ``range`` and ``r`` in this case.
-Notice that two aliases (same name, same binding) are *not*
-considered ``free-identifier=?``:
+.. image:: you-are-here.png
 
-.. code-block:: scheme
-
- > (define a 1)
- > (define b a) ;; alias for a 
- > (free-identifier=? #'a #'b)
- #f
-
-Moreover you can use ``free-identifier=?`` to compare two unbound
-identifiers or a bound and an unbound identifier. It returns true only
-if the identifiers share the same name and the same bound/unbound state.
-You can leverage on this feature to define a function which is able
-to determine if an identifier is bound or unbound:
-
-$$lang:UNBOUND?
-
-Using ``unbound?`` it is easy to write code that performs a certain
-action only if a given identifier is bound:
-
-$$WHEN-BOUND
-
-For things like cond which need to distinguish macro-specific literals
-from bound names (e.g.: (let ((else 1)) (cond (else ---)))),
-free-identifier=? is the right predicate.
-
-For your convenience I have defined a ``compare-ids`` macro that can be
-used to determine how two identifiers compare with respect to the different
-equality operators:
-
-$$COMPARE-IDS
-
-(notice the usage of ``syntax->datum``: a list of literals
-is generated, quoted and then converted into a syntax
-object in the context of the macro, so that
-``(compare-ids id1 id2)`` expands into a list of literals).
-
-Auxiliary keywords
-----------------------------------
-
-The R6RS document defines a set of special macros, such as ``_``, ``...``,
-``else`` and ``=>``, which lives in the global namespace and are
-available to all R6RS programs. Such macros are used as auxiliary
-syntax in various special forms, like ``cond`` and ``syntax-case``;
-for this reason they are usually called auxiliary keywords.
-The existence of such global variables makes it impossible to redefine
-at top-level in scripts (but it can be done at the REPL);
-however they can be redefined locally, thus breaking
-the macros using the auxiliary syntax. 
+In the definition of ``define-macro`` I gave
+in episode 28_ I used the name of the defined macro as lexical
+context. The consequence of this choice is that ``define-macro`` style
+macros are expanded within the lexical context of the code
+where the macro is invoked. For instance in this example
 
 .. code-block:: scheme
 
- (import (rnrs))
- (display
-  (let ((else #f))
-    (cond (else 2))))
+ > (let ((x 42))
+    (define-macro (m) 'x) ; (m) should expand to 42
+    (let ((x 43))
+      (m)))
+ 43 ; surprise!
 
+``(m)`` expand to 43 since in the lexical context where the macro
+is invoked ``x`` is bound to 43. However, this behavior is quite
+surprising, and most likely not what it is wanted. This is actually
+another example of the free-symbol capture problem. It should be
+clear that the capture comes from expanding the macro in the macro-call
+context, not in the macro-definition context.
+
+Hygienic vs non-hygienic macro systems
+----------------------------------------------
+
+Understanding non-hygienic macros is important if you intend to work
+in the larger Lisp world. In the scheme community
+everybody thinks that hygiene is an essential feature and
+all major Scheme implementations provide hygienic macros; nevertheless,
+in the rest of the world things are different.
+
+For instance, Common Lisp does not use hygienic macros and it copes with the
+variable capture problem by using ``gensym``; the free symbol
+capture problem is not solved, but it is extremely rare, because
+Common Lisp has multiple namespaces and a package system.
+
+The hygiene problem is more serious in Lisp-1_ dialects like the
+newborns Arc_ and Clojure_.  Arc_ macros behave just like
+``define-macro`` and are fully unhygienic, whereas `Clojure macros`_ are
+rather special, being nearly hygienic. In particular Clojure
+macros are not affected by the free-symbol capture problem:
+
+.. code-block:: scheme
+
+ user=> (defmacro m[x] `(list ~x))
+ #'user/m
+ user=> (let [list 1] (m 2))
+ (2)
+
+The reason is that Clojure is smart enough to recognize the fully
+qualified ``list`` object appearing at macro definition
+time (``clojure.core/list``) as a distinct object from the local
+variable ``list`` bound to the number 1.  Moreover, the ordinary
+capture problem can be solved with ``gensym`` or even cooler feature,
+automatic gensyms (look at the documentation of the syntax-quote_
+reader macro if you want to know more).  Speaking as a
+non-expert, Clojure macros seem to fare pretty well with respect to
+the hygiene issue.
+
+It is worth mentioning that if you use a package system (like in
+Common Lisp) or a namespace system (like in Clojure) in practice
+variable capture becomes pretty rare. In Scheme instead, which uses a
+module system, hygiene is essential: if you are writing a module
+containing macros which can be imported and expanded in an unknown
+lexical scope, in absence of hygiene you could introduce name clashes
+impossible to foresee in advance, and that could be solved only by the
+final user, which however will likely be ignorant of how your library
+works.
+
+This is why in Scheme the macro expansion is not literally
+inserted in the original code, and a lot of magic takes place to avoid
+name clashes. In practice, the implementation of Scheme macros takes
+care of distinguishing the introduced identifiers with some specific
+mechanism (it could be based on marking the names, or on explicit
+renaming). As a consequence, the mechanism of macro expansion is less
+simple to explain: you cannot just cut and paste the result
+of the expansion in your original code.
+
+Personally I have made my mind up and I am in the pro-hygiene camp
+now.  I should admit that for a long time I have been in the opposite
+camp, preferring the simplicity of ``define-macro`` over the
+complexity of ``syntax-case``. It turns out I was wrong.  The major
+problem of ``syntax-case`` is a cosmetic one: it looks very complex
+and cumbersome to use, but that can be easily solved by providing a
+nicer API - which I did with ``sweeet-macros``. Actually I have
+been able to use ``sweet-macros`` for twenty episodes without
+explaining the intricacies of the hygienic expansion.
+
+Having attended to a talk on the subject at the `EuroLisp Symposium`_,
+I will mention here that there are `ways to implement hygienic
+macros`_ on top of ``defmacro`` in Common Lisp *portably*. Therefore
+there is no technical reason why hygienic macros are not widespread in
+the whole Lisp world, just a matter of different opinions on the
+importance of the problem and the different tradeoffs.  I believe that
+eventually all Lisp dialects will start using hygienic macros, but
+that could take decades, because of inertia and backward-compatibility
+concerns.
+
+.. _Clojure macros: http://clojure.org/Macros
+.. _Arc: http://arclanguage.org/
+.. _Clojure: http://clojure.org/
+.. _syntax-quote: http://clojure.org/reader#syntax-quote
+.. _Lisp-1: http://en.wikipedia.org/wiki/Lisp-1#The_function_namespace
+.. _EuroLisp Symposium: http://www.european-lisp-symposium.org/
+.. _ways to implement hygienic macros: http://p-cos.net/documents/hygiene.pdf
 |#
 
-(import (rnrs) (sweet-macros) (aps list-utils) (aps lang) (aps easy-test))
+(import (rnrs) (sweet-macros) (aps list-utils) (aps lang) (aps easy-test)
+        (aps compat))
 
 ;;ALIST2
  (def-syntax (alist2 arg ...)
@@ -383,17 +282,6 @@ the macros using the auxiliary syntax.
 ;;MULTI-DEFINE2
 (def-syntax (multi-define2 id value)
    #'(multi-define (id id2) (value 'dummy)))
-;;END
-
-;;STATIC-MAP
-(def-syntax (static-map (name value) ...)
-  #'(syntax-match (<names> name ...)
-      (sub (ctx <names>) #''(name ...))
-      (sub (ctx name) #'value)
-      ...)
-  (distinct? raw-identifier=? #'(name ...))
-  (syntax-violation 'static-map "Found duplicated identifier in"
-                    #'(name ...)))
 ;;END
 
 ;;COMPARE-IDS
@@ -481,32 +369,29 @@ the macros using the auxiliary syntax.
 (def-syntax (when-bound (id) e* ...)
   #'#f (unbound? #'id) #'(begin e* ...))
 ;;END
-;;DEFINE-A
+
+;DEFINE-A*
 (def-syntax (define-a x)
-  #`(define #,(datum->syntax #'define-a 'a) x))
+  #'(define a x))
+;END
+
+;;DEFINE-A
+(def-syntax (define-a* x)
+  #`(define #,(datum->syntax #'define-a* 'a) x))
 ;;END
 
 ;;DEF-BOOK
 (def-syntax (def-book name title author)
-  (: with-syntax
-     name-title (identifier-append #'name "-title")
-     name-author (identifier-append #'name "-author")
+  (with-syntax (
+     (name-title (identifier-append #'name "-title"))
+     (name-author (identifier-append #'name "-author")))
      #'(begin
-         (define inner-name (vector title author))
-         (define name-title (vector-ref inner-name 0))
-         (define name-author (vector-ref inner-name 1)))))
-
+         (define name (vector title author))
+         (define name-title (vector-ref name 0))
+         (define name-author (vector-ref name 1)))))
 ;;END
 
-;(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
-
- ;;TEST-DEF-BOOK
- (test "def-book"
-       (let ()
-         (def-book bible "The Bible" "God")
-         (list bible-title bible-author))
-       (list "The Bible" "God"))
- ;;END
+(pretty-print (syntax-expand (def-book bible "The Bible" "God")))
 
 (def-syntax (is-name x)
   #'(begin (display 'x) (display " is a name\n"))
