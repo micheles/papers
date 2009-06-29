@@ -134,6 +134,7 @@ of ``define-macro`` in many references; I learned it from
 .. _On Lisp: http://www.paulgraham.com/onlisp.html
 .. _hygiene in R6RS: http://docs.plt-scheme.org/r6rs-lib-std/r6rs-lib-Z-H-13.html#node_sec_12.1
 .. _post by Alex Shinn: http://lists.gnu.org/archive/html/chicken-users/2008-04/msg00013.html
+.. _chapter about syntax-case: http://www.cs.indiana.edu/~dyb/pubs/bc-syntax-case.pdf
 
 The hygiene problem
 ---------------------------------------------------------------------
@@ -154,7 +155,7 @@ You can find good discussions of the hygiene problem in Common Lisp in
 many places; I am familiar with Paul Graham's book `On Lisp`_ which I
 definitively recommend: chapter 9 on variable capture
 has influenced this section. Another good
-reference is the chapter about ``syntax-case`` - by Kent Dybvig - in
+reference is the `chapter about syntax-case`_ - by Kent Dybvig - in
 the book `Beautiful Code`_.  Here I will give just a short example
 exhibiting the problem, for the sake of the readers unfamiliar with
 it.
@@ -303,10 +304,5 @@ hygiene on purpose, don't miss it!
    #'(let ((start i1) (stop i2))
       (let loop ((i start))
         (unless (>= i stop) body1 body2 ... (loop (+ 1 i))))))
-;END
-
-;DEFINE-A
-(define-macro (define-a x)
-  `(define a ,x))
 ;END
 

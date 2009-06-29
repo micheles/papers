@@ -1009,3 +1009,116 @@ professional languages which are too tricky to use
 for the casual programmer. We have also examples of languages which
 are both weak in power *and* difficult to use (insert your chosen
 language here).
+
+;Writing your own language
+;------------------------------------
+
+(import (except (rnrs) let) (rename (rnrs) (let let-orig)) (sweet-macros))
+                
+(def-syntax let
+  (syntax-match ()
+    (sub (let () lst e e* ...)
+         #'(if (null? lst) (begin e e* ...)
+               (apply error 'let "Too many elements" lst)))
+    (sub (let (arg1 arg2 ... . rest) lst e e* ...)
+         #'(let-orig ((ls lst))
+             (if (null? ls)
+                 (apply error 'let "Missing arguments" '(arg1 arg2 ...))
+                 (let arg1 (car ls)
+                   (let (arg2 ... . rest) (cdr ls) e e* ...)))))
+    (sub (let name value e e* ...)
+         #'(let-orig ((name value)) e e* ...)
+         (identifier? #'name)
+         (syntax-violation 'let "Argument is not an identifier" #'name))
+    ))
+
+(def-syntax (named-let name n v b b* ...)
+  #'(letrec ((name (lambda (lst) (let n lst b b* ...))))
+      (name v))
+  (identifier? #'name))
+
+
+;(write (let (x) (list 1) x))
+;(write (let (x y) (list 1 2) (+ x y)))
+(write (let (x y x) (list 1 2 3) (+ x y)))
+
+
+.. http://community.schemewiki.org/?syntactic-closures
+.. http://community.schemewiki.org/?hygiene-versus-gensym
+
+extra-long thread "What's up with Scheme macros?" Feb 12 2008
+.. http://groups.google.com/group/comp.lang.lisp/browse_frm/thread/75c5f5e550b905d3/9bb9ea36925d4040?#9bb9ea36925d4040
+
+my own thread about phase separation
+.. http://groups.google.com/group/ikarus-users/browse_frm/thread/ec579ad3b619f2d5/7e10a07a8f6789b4?hl=ene10a07a8f6789b4
+
+
+Take for instance this piece of code:
+
+.. code-block:: scheme
+
+ (let ((a 1))
+     (let ((a 2))
+        ...))
+
+Is the first ``a`` equal to the second ``a``? They are bound to
+different values.
+Moreover, consider the following:
+
+.. code-block:: scheme
+
+ (let ((a 1))
+     (let ((b a))
+        ...))
+
+Here ``a`` and ``b`` are different names for the same value, but they
+have different lexical context . Should they
+be considered equal?
+
+Notice that two aliases (same name, same binding) are *not*
+considered ``free-identifier=?``:
+
+.. code-block:: scheme
+
+ > (define a 1)
+ > (define b a) ;; alias for a 
+ > (free-identifier=? #'a #'b)
+ #f
+
+
+You can leverage on ``free-identifier=?`` to define a function which is able
+to determine if an identifier is bound or unbound. The trick is to
+take the identifier and to strip its lexical context form it;
+if the identifier was unbound, stripping the lexical context
+does not change much, and the original identifier is 
+``free-identifier=?`` to its stripped version. On th other hand,
+if the original identifier was bound in its lexical context,
+it will not be ``free-identifier=?`` to its stripped version.
+
+The R6RS standard does not specify a way to create a truly minimal
+context (i.e. one where no names are bound) however in all R6RS
+implementations (except Ypsilon) ``generate-temporaries``
+returns identifiers with an empty context, so that the
+following trick does the job:
+
+$$lang:UNBOUND?
+
+
+
+What happens if I pass to the macro an identifier ``id`` named ``forbidden``?
+Should it be considered equal to the literal identifier ``#'forbidden``?
+What if ``id`` is bound and what what if ``id`` is unbound? Moreover,
+how do we compare identifiers in systems with full phase separation,
+since an identifier can be bound in a phase and unbound in another
+phase? Finally, what if ``check-id`` is used inside as follows:
+
+.. code-block:: scheme
+
+ (def-syntax (check forbidden)
+   (check-id #'forbidden))
+
+Should ``forbidden`` in this context be traited as a dummy name
+or should it raise a ``syntax-violation``?
+
+This episode will be spent discussing the subtilities of identifier
+equality.
