@@ -1,264 +1,356 @@
-#|Runtime pattern matching and object oriented APIs
-=======================================================
+#|Comparing identifiers
+=================================================
 
-As a final example of macros power, this episode will implement a syntax
-for full runtime pattern matching of lists .
+Equality of identifiers is one of the trickiest things in R6RS
+Scheme, since the meaning of identifier equality in a lexically
+scoped language with hygienic macros is non-obvious.
 
-.. _13: http://www.artima.com/weblogs/viewpost.jsp?thread=248953
-.. _15: http://www.artima.com/weblogs/viewpost.jsp?thread=249681
-.. _association lists:
+Identifier equality is a compile-time
+concept which has nothing to do with the run-time concept of equality
+between variables: two variables are equal if their underlying values
+are equal, but the value to which a variable is bound is only known
+at run-time, therefore identifier equality cannot rely on it.
 
-list-match
-----------------------------------------------------------------
+Identifiers are not variables: they are syntax objects with an
+underlying symbol and an underlying lexical context, which are known
+statically at compile time. It is possible to know if an
+identifier is bound or not at compile-time, but the value the
+identifier will be bound to at run-time is unknown.
 
-In episode 15_ I have discussed a very limited form of pattern
-matching, i.e. list destructuring. There is more to
-pattern matching than that.
+The Scheme standard define two different equality procedures
+for identifiers (``bound-identifier=?`` and ``free-identifier=?``,
+with absolutely misleading names); to those, I will add a third one,
+``symbol-identifier=?``.
 
-A general list matcher should be able to
-destructure a list, whatever complicate it may be, and to perform
-*different* actions for different structures. In this sense, pattern
-matching is a kind of if statement on steroids.
+This episode will be spent discussing the subtilities of identifier
+equality.
 
-The Scheme standard does not provide a default list matcher, but there
-are tons of libraries providing such a feature, and in the appendix
-we will provide an implementation of ``list-match`` ourselves, so
-let us assume we have list matcher accepting the following patterns:
+.. image:: Love_equality.png
 
-.. code-block:: scheme
+``symbol-identifier=?``
+-----------------------------------------------
 
- > (list-match <patterns>)
- ((list-match lst (sub pattern action guard ...) ...))
+The simplest concept of identifier equality is expressed by
+the following ``symbol-identifier=?`` comparison function
+(for convenience, I have added the ``symbol-identifier=?``
+precedure in the ``(aps lang)`` library):
 
-Given an object (which usually is a list), the matcher compares
-it with various patterns, and perform different actions depending
-on the match, which can be further restricted with a guard.
-Here are a few trivial tests:
+$$lang:SYMBOL-IDENTIFIER=?
 
-$$MATCH-TESTS
+Two identifiers are ``symbol-identifier=?`` if they are equal as
+symbols.
 
-As usual, the understore ``_`` means "match but do not bind.
-Here are two further tests, that makes use of the following helper function:
+``symbol-identifier=?`` can
+be used to manage duplicate names in macros defining multiple
+identifiers at once, or in macros defining name->value tables, such as
+the ``static-map`` I discussed in episode 22. Moreover, 
+``symbol-identifier=?`` can be used to reject reserved
+identifiers (you may need such
+functionality if are buildin a mini-language on top of Scheme
+and you want to reject a few identifiers as language keywords), as
+in the following macro:
 
-$$MATCH-ODD
+$$CHECK-RESERVED
 
-``replace-odd`` makes use of guarded patterns to replace the odd
-numbers in a list of numbers with the string "odd":
+``(check-reserved id)`` will raise a syntax-violation if ``id``
+is one of the keyword ``reserved1`` or  ``reserved2``.
 
-$$MATCH-ODD1
+``bound-identifier=?``
+-----------------------------------------------
 
-``replace-odd`` only recognizes numbers and lists: it chokes on strings
-or any other kind of object, by raising a ``pattern failure`` error:
-
-$$MATCH-ODD2
-
-This example is simple, but it does not make justice to the power of
-pattern matching. The following example, however, will do (or at least
-I hope so): it explains how to implement object oriented APIs in terms
-of pattern matching functions.
-
-Pattern matching vs message passing
--------------------------------------------------------
-
-A typical use case for
-full pattern matching is message passing: in functional languages you
-can send lists as messages to an object, and the object will respond
-differently depending on the structure of the list.  This is the
-standard mechanism to send messages in Erlang, but can be done in any
-functional language with pattern matching.
-
-I you think about it for a minute, you will recognize that pattern
-matching makes the creation of object oriented APIs rather trivial.
-Let consider for instance Scheme `association lists`_, which by default
-have a functional API, and suppose we want to provide an object oriented
-interface on top on it, say a Python-like API. The task can be easily
-performed via pattern matching, as follows:
-
-$$ALIST
-
-Here we used the R6RS procedures ``(assq k a)`` to extract the slot
-corresponding to the key ``k`` from the association list ``a``, as
-well as the procedure ``set-cdr!`` described in episode 13_ to modify
-the ``cdr`` of a slot (imported from ``(rnrs mutable-pairs)``).
-Notice that I am using the term *slot* here to refer to
-the inner lists that compose an association list.
-
-Here are a few tests:
-
-$$ALIST-TESTS
-
-Appendix: implementation of ``list-match``
--------------------------------------------------------------
-
-The implementation below is not my own, I have adapted
-(i.e. shamelessly copied) it from Phil Bewig, which in turns copied it
-from Jos Koot, which maybe is the original author, or maybe he copied
-it from some other source.  But attribution is not important, the
-important thing is the code:
-
-$$aps/list-match:
-
-The implementation above makes use of a few tricks which are well known
-to experienced Schemers, but may look unfamiliar to my readers.
-
-First of all, we leverage on the fact that ``(and boolean expr)`` returns
-``expr`` if ``boolean`` is true and ``#f`` otherwise, i.e. it is equivalent
-to ``(if boolean expr #f)``. Then, we use the ``=>`` form of the conditional
-expression.
-As explained in the `cond specification`, a ``cond`` clause may
-have the form ``(value => func)``; when the value is not false,
-then the function is applied to it and ``cond`` returns the result,
-otherwise ``cond`` looks at the next clause. For instance
+``symbol-identifier=?`` is simple and easy to understand, but it cannot
+be used in all situations. Consider for instance the very first macro
+I wrote, in episode 9_:
 
 .. code-block:: scheme
 
- > (cond (#f => any-function) ('(1) => car))
+  (def-syntax (multi-define (name1 name2 ...) (value1 value2 ...))
+    #'(begin (define name1 value1) (define name2 value2) ...))
+
+It is quite common to write macros defining multiple bindings, such
+as ``multi-define``. There is also the common situation of
+macros which expand themselves to macros defining
+multiple bindings. When code is generated automatically, errors are
+more than likely and it makes sense to manage explicitly
+the situation when the list of names to be defined contains some
+duplicate. ``multi-define`` as written does not perform any check, so that it
+relies on the standard behavior of R6RS scheme, raising an error.
+Unfortunately, the standard behavior only applies to programs and scripts,
+whereas the REPL is quite free to behaves differently and indeed it does:
+
+.. code-block:: scheme
+
+ > (multi-define (a a) (1 2))
+ a
+ 2
+
+(in the REPL latter definitions override previous definitions). Being
+unhappy with that, we can introduce a ``bound-identifier=?`` check
+and raise a custom exception:
+
+$$MULTI-DEFINE
+
+Two identifiers are equal according to ``bound-identifier=?`` only if
+they have the same name *and* the same marks. The name is
+misleading since the arguments of ``bound-identifier=?`` are not
+required to be bound identifiers; a better name would be
+``strict-identifier=?``.
+
+You can ``check`` that ``multi-define`` correctly reject duplicated
+identifiers:
+
+.. code-block:: scheme
+
+ > (multi-define (a a) (1 2))
+ Unhandled exception
+  Condition components:
+    1. &who: multi-define
+    2. &message: "Found duplicated identifier in"
+    3. &syntax:
+        form: (a a)
+        subform: #f
+
+You may also believe that using ``symbol-identifier=?`` would work too.
+However this is not the case, in general. Consider
+for instance the following macro expanding to ``multi-define``:
+
+$$MULTI-DEFINE2
+
+The macro introduces a dummy identifier ``id2``. 
+Had we defined ``multi-define`` in terms of ``symbol-identifier=?``,
+calling ``multi-define2`` with argument ``id`` equal to  ``id2``
+would have generated a spurious name clash. Fortunately, since we defined
+``multi-define`` in terms of ``bound-identifier=?``, nothing bad happens:
+
+.. code-block:: scheme
+
+ > (multi-define2 id2 1)
+ id2
  1
 
-Notice that the underscore is a special identifier in macros
-(just as the ellipsis identifier ``...``` is special) and it
-cannot be used as a literal, this is why the trick
-``(free-identifier=? #'_ underscore)`` is used.
+``bound-identifier=?`` works in this case because
+the identifier ``id2`` introduced by the macro has
+different marks from the identifier ``id2`` coming as an argument.
 
-I have exported the internal macro ``_match``, to make it
-possible to understand how the implementation works. ``_match`` is
-able to match a single pattern. For instance we have
+``free-identifier=?``
+------------------------------------
+
+``bound-identifier=?`` is not good for every circumstance. Consider
+for instance the following variation of ``multi-define``, featuring
+a literal keyword ``as``:
+
+$$MULTI-DEF
+
+This work, but the error messages could stand some improvement.
+For instance, if an user misspells the infix identifier ``as``,
+she gets a generic ``"invalid syntax"`` error, whereas we
+would like to provide a customized error message showing the misspelled
+literal identifier. Using ``bound-identifier=?`` we could try to
+solve the problem as follows:
+
+$$MULTI-DEF-BAD
+
+Unfortunately this solution does not work at all, since it raises
+an error even when the ``as`` identifiers are spelled correctly:
 
 .. code-block:: scheme
 
- > (_match '(1 2) (x y) (list (+ x y)))
- (3)
+ > (multi-def-bad (x as y) (1 as 2))
+ Unhandled exception
+  Condition components:
+    1. &who: multi-def-bad
+    2. &message: "Offending infix syntax (expected `as')"
+    3. &syntax:
+        form: (as as)
+        subform: #f
 
-Using ``syntax-expand`` we can see the inner working of ``_match``:
+The reason is that ``as`` is not ``bound-identifier=?``
+to ``#'as``. We need a less strict comparison predicate such as
+``symbol-identifier=?`` or ``free-identifier=?``.
+
+``free-identifier=?`` is
+the most complicated equality predicate. As
+usual, the name is misleading since the arguments of
+``free-identifier=?`` are not required to be free identifiers.
+A better name would be ``lax-identifier=?``.
+Two identifiers are ``free-identifier=?`` if
+
+1. they are both bound and they share the same name, or they shared
+   the same name before renaming at import time;
+2. they are both unbound and they share the same name.
+
+In implementations with full phase separation, the identifiers
+must also be both bound/unbound in the same phase.
+In all other cases the two identifiers are not ``free-identifier=?``.
+Here is an example:
 
 .. code-block:: scheme
 
- > (syntax-expand(_match '(1 2) (x y) (list (+ x y)) #t))
- (let ((ob '(1 2)))
-  (and (pair? ob)
-       (let ((kar-obj ob) (kdr-obj (cdr ob)))
-         (_match kar-obj x
-           (_match kdr-obj (y) (list (+ x y)) #t)))))
+ > (import (only (aps list-utils) range))
+ > (import (rename (aps list-utils) (range r)))
+ > (free-identifier=? #'r #'range)
+ #t
 
+Notice that both ``symbol-identifier=?`` and ``bound-identifier=?``
+would fail to recognize the identity of ``range`` and ``r`` in this
+case.
 
-.. _cond specification: http://www.r6rs.org/final/html/r6rs/r6rs-Z-H-14.html#node_idx_376
+.. _9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
+
+Literal identifiers and auxiliary syntax
+-----------------------------------------------------
+
+Macros with literal identifiers may be surprising, because internally
+the literal identifiers are compared by using ``free-identifier=?``.
+Consider for instance the macro ``multi-def`` defined in the previous
+paragraph. This works:
+
+.. code-block:: scheme
+
+ > (let ()
+    (multi-def (x as 1) (y as 2))
+    (list x y))
+ (1 2)
+
+But this does not work:
+
+.. code-block:: scheme
+
+ > (let ((as 2))
+     (multi-def (x as 1) (y as 2))
+     (list x y))
+ Unhandled exception
+  Condition components:
+    1. &message: "invalid syntax"
+    2. &syntax:
+        form: (multi-def (x as 1) (y as 2))
+        subform: #f
+    3. &trace: #<syntax (multi-def (x as 1) (y as 2))>
+
+The reason is that in the second example ``as`` is bound, and therefore
+it is not ``free-identifier=?`` to the literal identifier ``#'as``.
+
+The recommended "solution" is to define at top-level and to
+export some dummy definition for the literal identifiers you
+are going to use in your macro. I think this is fundamentally
+broken: literal identifiers should be a concept internal to
+the macro and they should not be exported. The mistake is
+that the R6RS requires the literal identifiers to be matched
+via ``free-identifier=?``, whereas they should be matched
+with ``symbol-identifier=?``. I never understood why the editors
+decided to use ``free-identifier=?``, perhaps because it makes it
+possible to rename the identifiers used as literal identifiers,
+a feature that looks more like a misfeature to me.
+
+Anyway, the R6RS document defines a set of special macros, such as
+``_``, ``...``, ``else`` and ``=>``, which lives in the global
+namespace and are available to all R6RS programs. Such macros are used
+as auxiliary syntax in various special forms, like ``cond`` and
+``syntax-case``; for this reason they are usually called auxiliary
+keywords.  The existence of such global variables makes it impossible
+to redefine them at top-level in scripts (but it can be done at the
+REPL); however they can be redefined locally, thus breaking the macros
+using the auxiliary syntax:
+
+.. code-block:: scheme
+
+ > (let ((else #f))
+    (cond (else 'something)))
+ > ; does not return something
 
 |#
 
-(import (rnrs) (sweet-macros) (aps list-utils) (aps list-match)
-        (rnrs mutable-pairs) (aps easy-test) (aps compat))
-                    
-;;ALIST
-;; a function performing pattern matching which provides a Pythonic
-;; dictionary interface over an association list
-(define (alist . a)
-  (lambda args
-    (list-match args
-     (sub () a); return the underlying alist
-     (sub ('->keys); return the keys 
-          (map car a))
-     (sub ('->values); return the values
-          (map cdr a))
-     (sub (k); emulate Python .__getitem__
-          (let ((slot (assq k a)))
-            (if slot
-                (cdr slot)
-                (error 'alist (format "Missing key ~a" k)))))
-     (sub (k 'or val); emulate Python .get
-          (let ((slot (assq k a)))
-            (if slot
-                (cdr slot)
-                val)))
-     (sub (k '! val); emulate Python .__setitem__
-          (let ((slot (assq k a)))
-            (if slot
-                ;; modify existing slot
-                (begin (set-cdr! slot val) a)
-                ;; else append new slot    
-                (let ((new-a (append a (list (cons k val)))))
-                  (set! a new-a) a))))
-     )))
+(import (rnrs) (sweet-macros) (aps compat)
+        (for (aps cut) expand)
+        (for (aps lang) expand)
+        (for (aps list-utils) expand)
+        (aps easy-test))
+
+;;STATIC-MAP
+(def-syntax (static-map (name value) ...)
+  #'(syntax-match (<names> name ...)
+      (sub (ctx <names>) #''(name ...))
+      (sub (ctx name) #'value)
+      ...)
+  (distinct? symbol-identifier=? #'(name ...))
+  (syntax-violation 'static-map "Found duplicated identifier in"
+                    #'(name ...)))
 ;;END
 
-(define a (alist '(x . 1) '(y . 2)))
-
-;;MATCH-ODD
-(define (replace-odd obj)
-  (list-match obj
-    (sub x "odd" (and (integer? x) (odd? x)))
-    (sub x x (integer? x))
-    (sub x (map replace-odd x) (list? x))
-    ))
+;;MULTI-DEFINE
+(def-syntax (multi-define (name1 name2 ...) (value1 value2 ...))
+    #'(begin (define name1 value1) (define name2 value2) ...)
+    (distinct? bound-identifier=? #'(name1 name2 ...))
+    (syntax-violation 'multi-define "Found duplicated identifier in"
+                      #'(name1 name2 ...)))
 ;;END
+
+;;MULTI-DEFINE2
+(def-syntax (multi-define2 id value)
+   #'(multi-define (id id2) (value 'dummy)))
+;;END
+
+(def-syntax (compare-ids id1 id2)
+  (let ((res '()))
+   (when (symbol-identifier=? #'id1 #'id2)
+     (set! res (cons 'raw= res)))
+   (when (bound-identifier=? #'id1 #'id2)
+     (set! res (cons 'bound= res))) 
+   (when (free-identifier=? #'id1 #'id2)
+     (set! res (cons 'free= res)))
+   (datum->syntax #'compare-ids `',res)))
+
+(let ((a 1))
+  (define id-a #'a)
+  (let ((a a))
+    (free-identifier=? #'a id-a)))
+    
+;;MULTI-DEF-BAD
+(def-syntax (multi-def-bad (name as_ value) ...)
+  #'(begin (define name value) ...)
+  (for-all (lambda (id) (bound-identifier=? id #'as)) #'(as_ ...))
+  (syntax-violation 'multi-def-bad "Offending infix syntax (expected `as')"
+    (remp (lambda (id) (bound-identifier=? id #'as)) #'(as_ ...))))
+;;END
+
+;;MULTI-DEF
+ (define-syntax multi-def
+   (syntax-rules (as)
+     ((multi-def (name as value) ...)
+        (begin (define name value) ...))))
+;;END
+
+;;FREE-DISTINCT
+(def-syntax (free-distinct name ...)
+  (distinct? free-identifier=? #'(name ...)))
+;;END
+
+;;BOUND-DISTINCT
+(def-syntax (bound-distinct name ...)
+  (distinct? bound-identifier=? #'(name ...)))
+;;END
+
+;;SYMBOL-DISTINCT
+(def-syntax (symbol-distinct name ...)
+  (distinct? symbol-identifier=? #'(name ...)))
+;;END
+
+;;CHECK-RESERVED
+(def-syntax (check-reserved id)
+  (syntax-violation 'check-reserved "Reserved identifier" #'id)
+  (exists (cut symbol-identifier=? #'id <>) (list #'reserved1 #'reserved2))
+  #f)
+;;END
+
+(def-syntax (distinct-x a)
+  #'(symbol-distinct x a))
 
 (run
-
- (test "patterns"
-       (list-match <patterns>)
-       '((list-match lst (sub pattern template guard ...) ...)))
-
- ;;MATCH-TESTS
- (test "match1"
-       (list-match '(1) (sub (x) x))
-       1)
+ (test "symbol1" (symbol-distinct a b) #t)
+ (test "symbol2" (symbol-distinct a a) #f)
  
- (test "match2"
-       (list-match '(1 2) (sub (_ y) y))
-       2)
-
- (test "match3"
-       (list-match '(1 (2 3)) (sub (_ (_ z)) z))
-       3)
- ;;END
-
- ;;MATCH-ODD1
- (test "match-odd1"
-       (replace-odd '(1 (2 3)))
-       '("odd" (2 "odd")))
- ;;END
-
- ;;MATCH-ODD2
- (test "match-odd2"
-       (catch-error (replace-odd "string"))
-       "pattern failure")
- ;;END
- 
- ;;ALIST-TESTS
- (test "alist1"
-       (a 'x)
-       1)
- 
- (test "alist2"
-       (a 'y)
-       2)
-
- (test "alist3"
-       (catch-error (a 'z))
-       "Missing key z")
- 
- (test "alist4"
-       (a 'z 'or 3)
-       3)
- 
- (test "alist5"
-       (a 'z '! 3)
-       '((x . 1) (y . 2) (z . 3)))
- 
- (test "alist6"
-       (a 'y '! 4)
-       '((x . 1) (y . 4) (z . 3)))
-
- (test "alist7"
-       (a '->keys)
-       '(x y z))
-
- (test "alist8"
-       (a '->values)
-       '(1 4 3))
- ;;END
+ (test "bound1" (bound-distinct a b) #t)
+ (test "bound2" (bound-distinct a a) #f)
+ (test "free1" (free-distinct a b) #t)
+ (test "free2" (free-distinct a a) #f)
  )
-
-; (test "match4"
-;       (list-match '(1 (2 (x 4) 5) 6)
-;                   (sub x (and (integer? x) (odd? x)) "odd")
-;                   (sub x (and (integer? x) (odd? x)) "odd")) 1)
