@@ -1,8 +1,8 @@
 (library (sweet-macros)
-;;; Version: 0.8.1
+;;; Version: 0.9
 ;;; Author: Michele Simionato
 ;;; Email: michele.simionato@gmail.com
-;;; Date: 23-Apr-2009
+;;; Date: 31-Jun-2009
 ;;; Licence: BSD
 (export syntax-match def-syntax syntax-expand)
 (import (rnrs))
@@ -33,8 +33,17 @@
 
 ;;SYNTAX-MATCH
 (define-syntax syntax-match
+  (let ()
+    (define (check-sub id)
+      (when (not (symbol=? 'sub (syntax->datum id)))
+        (syntax-violation
+         'syntax-match "Expected literal `sub'" id)))
+    (define (check-id id)
+      (when (not (identifier? id))
+        (syntax-violation
+         'syntax-match "Found non-identifier in literal list" id)))
   (lambda (y)
-    (guarded-syntax-case y (sub)
+    (guarded-syntax-case y ()
       
       ((self (literal ...) (sub patt skel rest ...) ...)
        #'(lambda (x) (self x (literal ...) (sub patt skel rest ...) ...)))
@@ -45,10 +54,8 @@
            ((ctx <patterns>) #''((... (... patt)) ...))
            (patt skel rest ...)
            ...)
-       (for-all identifier? #'(literal ...))
-       (syntax-violation 'syntax-match "Found non identifier" #'(literal ...)
-                         (remp identifier? #'(literal ...))))
-      )))
+       (and (for-all check-sub #'(sub ...)) (for-all check-id #'(literal ...))))
+      ))))
 ;;END
 
 ;; DEF-SYNTAX
