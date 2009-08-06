@@ -34,6 +34,12 @@ Contents:
    scheme22
    scheme23
    scheme24
+   scheme25
+   scheme26
+   scheme27
+   scheme28
+   scheme29
+   scheme30
 
 Indices and tables
 ==================

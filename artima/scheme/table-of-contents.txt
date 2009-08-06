@@ -65,6 +65,10 @@ Part V - Macros, again
 
  Ep28_ Hygienic macros
 
+ Ep29_ Breaking hygiene
+
+ Ep30_ Comparing identifiers
+
 .. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
 .. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941
 .. _Ep3: http://www.artima.com/weblogs/viewpost.jsp?thread=239466
@@ -93,3 +97,5 @@ Part V - Macros, again
 .. _Ep26: http://www.artima.com/weblogs/viewpost.jsp?thread=259977
 .. _Ep27: http://www.artima.com/weblogs/viewpost.jsp?thread=260182
 .. _Ep28: http://www.artima.com/weblogs/viewpost.jsp?thread=260195
+.. _Ep29: http://www.artima.com/weblogs/viewpost.jsp?thread=261363
+.. _Ep30: http://www.artima.com/weblogs/viewpost.jsp?thread=261364
