@@ -164,7 +164,7 @@ next paragraph.
 Further examples of destructuring: opt-lambda
 ---------------------------------------------------------------------
 
-A weekness of standard Scheme is the lack of function with default
+A weekness of standard Scheme is the lack of functions with default
 arguments and keyword arguments. In practice, this is a minor weakness
 since there many libraries implementing the functionality, although in
 different ways, as usual. I recommend you to look at SRFI-88_ and
