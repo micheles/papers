@@ -1,0 +1,106 @@
+In the latest couple of months I have been quite silent on Artima;
+actually, I have only published `episode #30`_ of my Adventures which 
+was originally written a long time ago.
+The main reason is the Italian summer: with a temperature of 35 degrees
+Celsius (95 Fahrenheit) I do not feel very motivated to write and I
+spend my weekends on the beach. Also, I spent a couple of weeks of
+vacation in Montreal in July (and it was really cool there, in the
+literal sense of the world!). Plus, I discovered
+`A Song of Ice and Fire`_ by George R. R. Martin. I bought all the
+currently published volumes (in the French edition, which means
+12 volumes for a total of 5,000+ pages) and I read of all them
+in four weeks. I used to read a lot when I was young, but in the
+latest ten years or so I have nearly stopped reading fiction: I had already
+read all the classics and I could not find recent things worth reading. 
+But Martin is good.
+
+I have not been completely lazy this summer, and I have found the
+time to upload a new release of my `decorator module`_ to PyPI_.
+Actually, I had to upload it twice. My first attempt (release 3.1.0)
+was accidentally breaking Pylons. The problem was immediately
+reported (thanks to Gabriel de Perthuis!) and fixed the day after.
+You are encouraged to download release 3.1.1 and to forget about
+3.1.0. There are various internal changes but not many user level 
+changes, except the addition of a new
+convenient API to dynamically generate functions (``FunctionMaker.create``).
+This is mostly intended for framework authors. For instance in SQLAlchemy_
+there is a machinery to instrument classes, which involves adding
+properties corresponding to database columns and also redefining
+the constructor ``__init__``, by preserving the original signature.
+This is done without using the decorator module, but using the same
+techniques. If you want to play this kind of games, 
+``FunctionMaker.create`` will simplify your life a lot. You can find
+examples of use in the documentation, so I will not insist on it here.
+Instead, I will comment on an user request I had two months ago 
+from David Laban. He wanted an easy to define decorator factories.
+I have thought a lot about that - I had the same request before,
+I implemented a solution in version 2.3 and removed it in version 3.0 -
+but at the end I have decided *not* to include the feature.
+The reasons are that I want to keep the API small and that I do not want
+to add even mor magic. Moreover, I am strong believer in the "there must
+be only one way" mantra. Finally, it is not difficult to define decorator
+factories with the current functionality anyway. So, I have added
+to the documentation a recipe (actually a one-liner) to implement
+decorator factories on top of the pre-existing functionality.
+
+What about the `Adventures of a Pythonista in Schemeland`_? I am taking
+a pause from them for a while, to recover my energy. My blog never
+wanted to be Scheme-only. I have updated the table of contents and uploaded
+the `full PDF version`_ on my site. This is the good moment to re-read
+the Adventures if you have lost the pace and need some time to digest all
+the material I have published until now. I must also think about how
+to continue the series. A few weeks ago Kent Dybvig released the fourth
+edition of `The Scheme Programming Language`_ which is updated to
+R6RS Scheme. I have to read to book, since it makes no sense for me
+to talk about things which are already covered there.
+Anyway, I still have a lot of things to write and soon or later I will
+resume the publications (hopefully with a more clement weather).
+BTW, there are important news in the Scheme world: just today the
+Steering Committee for the next version of Scheme (R7RS) made
+a statement about their vision for the Scheme language evolution. 
+You can find it here_. A few relevant excerpts tell everything:
+
+* *A programming language stays healthy and vibrant by virtue of being
+  used. When it comes to using Scheme, however, the Scheme community has
+  rarely missed an opportunity to miss an opportunity*
+
+* *We believe that one primary purpose of a programming language is to program*
+
+* *Scheme has the unhappy distinction of being the world's most
+  unportable programming language*
+
+* *We believe the diversity of constituencies justifies the design of
+  two separate but compatible languages, which we will (for now) call
+  "small" and "large" Scheme*
+
+* *Small Scheme*
+
+    - *Constituencies: educators, casual implementors, researchers,
+      embedded languages, "50-page" purists*
+    - *Think "IEEE/R5RS brought up to the current date."*
+    - *~ 90% supermajority to be required for final ratification*
+
+* Large Scheme
+
+    - *Constituencies: programmers, implementors*
+    - *Think "R6RS with a happier outcome."*
+    - *~ 75% supermajority to be required for final ratification*
+
+All this makes a lot of sense to me. I hope the editors will make a better
+job than what was done with the R6RS. Still, I am always skeptical when
+it comes to languages designed by committed. See the following worlds from
+Marc Feeley when we spoke in person at the `EuroLisp Symposium`_ in Milan:
+
+ *I do not believe in languages designed by committee*
+ [Marc Feeley, appointed member of the R7RS Scheme committee]
+
+.. _episode #30: http://www.artima.com/weblogs/viewpost.jsp?thread=261364
+.. _A Song of Ice and Fire: http://en.wikipedia.org/wiki/A_Song_of_Ice_and_Fire
+.. _decorator module: http://pypi.python.org/pypi/decorator
+.. _PyPI: http://pypi.python.org/pypi
+.. _Adventures of a Pythonista in Schemeland: http://www.artima.com/weblogs/viewpost.jsp?thread=251474
+.. _full PDF version: http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf
+.. _The Scheme Programming Language: http://www.scheme.com/tspl4/
+.. _here: http://www.scheme-reports.org/2009/position-statement.html
+.. _EuroLisp Symposium: http://www.artima.com/weblogs/viewpost.jsp?thread=259505
+.. _SQLAlchemy: http://www.sqlalchemy.org/
