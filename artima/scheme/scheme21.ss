@@ -21,7 +21,7 @@ import variables in the runtime phase only or in the expand time phase
 only: variables are imported simultaneously for all phases.
 
 Larceny has a stronger form of phase separation (*explicit phasing*):
-it can import variables in a specific phase on not in another,
+it can import variables in a specific phase and not in another,
 depending on the import syntax used.  However, if you instantiate a
 module in more than one phase - for instance both at run-time and at
 expand-time - only one instance of the module is created and variables
