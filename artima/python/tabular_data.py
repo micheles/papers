@@ -1,5 +1,5 @@
 # tabular_data.py
-from namedtuple import namedtuple
+from collections import namedtuple
 
 def headtail(iterable):
     "Returns the head and the tail of a non-empty iterator"
