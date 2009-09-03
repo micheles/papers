@@ -23,5 +23,18 @@ if __name__ == '__main__':
     c.formvalue('1', 'password', 'pippolippo')
     c.submit()
     c.go('http://www.artima.com/weblogs/editpost.jsp?thread=%s' % thread)
-    c.formvalue('1', 'body', text)
+    try:
+        c.formvalue('1', 'body', text)
+    except:
+        print "Saving the offending post on /tmp/x.txt ..."
+        file('/tmp/x.txt', 'w').write(text)
+        raise
     c.submit()
+
+"""
+from ms.http_utils import urlopen2
+urlopen2('http://www.artima.com/sign_in?d=%2Findex.jsp', 
+  dict(username='micheles', password='pippolippo'))
+urlopen2('http://www.artima.com/weblogs/editpost.jsp',
+  dict(thread='261364', body='prova'))
+"""
