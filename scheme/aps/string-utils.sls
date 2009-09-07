@@ -1,6 +1,27 @@
+#!r6rs
 (library (aps string-utils)
-(export string-split)
-(import (rnrs) (aps compat))
+(export string-split drop1 collect-symbols-starting-with
+        replace-with-commas)
+(import (rnrs) (aps compat) (aps list-utils))
+
+(define (string-cdr s)
+  (list->string (cdr (string->list s))))
+
+(define (drop1 s);; drop the first character from a symbol
+  (string->symbol (list->string (cdr (string->list (symbol->string s))))))
+
+(define (collect-symbols-starting-with char lst)
+  (remove-dupl symbol=?
+   (deep-fold
+    (lambda (x a)
+      (if (and (symbol? x) (char=? char (string-ref (symbol->string x) 0)))
+          (cons x a) a)) '() lst)))
+
+(define (replace-with-commas char lst)
+  (deep-map
+   (lambda (x)
+     (if (and (symbol? x) (char=? char (string-ref (symbol->string x) 0)))
+         (list 'unquote x) x)) lst))
 
 ;;STRING-SPLIT
 ;; adapted from http://schemecookbook.org/Cookbook/StringSplit

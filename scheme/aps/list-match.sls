@@ -9,7 +9,7 @@
       (cond
        ((_match obj pattern (list template) guard ...) => car) ...
        (else (error 'list-match "pattern failure" obj))))
-  (for-all (cut raw-id=? 'sub <>) #'(sub ...)))
+  (for-all (cut symbol-identifier=? #'sub <>) #'(sub ...)))
 
 (def-syntax _match
   (syntax-match (quote quasiquote)
@@ -19,7 +19,7 @@
        #'(and (null? obj) guard? template))
       (sub (_match obj underscore template guard?)
         #'(and guard? template)
-        (raw-id=? #'_ #'underscore))
+        (symbol-identifier=? #'_ #'underscore))
       (sub (_match obj var template guard?)
         #'(let ((var obj)) (and guard? template))
         (identifier? #'var))

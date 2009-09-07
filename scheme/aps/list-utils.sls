@@ -1,7 +1,8 @@
 #!r6rs
 (library (aps list-utils)
 (export range enumerate zip transpose distinct? let+ perm list-of-aux list-for
-        remove-dupl append-unique fold flatten list-of normalize symbol-table)
+        remove-dupl append-unique deep-map deep-fold fold
+        flatten list-of normalize symbol-table)
 (import (rnrs) (sweet-macros) (aps cut) (for (aps lang) expand))
 
 ;;; macros
@@ -27,6 +28,22 @@
     (sub (let+ (name value) (n v) ... expr)
          #'(let+ (name value) (let+ (n v) ... expr)))
     ))
+;;END
+
+;;DEEP-MAP
+(define (deep-map f lst)
+  (map (lambda (x)
+         (if (and (list? x) (not (eq? 'quote (car x))))
+             (deep-map f x)
+             (f x))) lst))
+;;END
+
+;;DEEP-FOLD
+(define (deep-fold f seed lst);; this is flattening the structure
+  (fold-right
+   (lambda (x a)
+     (if (and (list? x) (not (eq? 'quote (car x))))
+         (deep-fold f a x) (f x a))) seed lst))
 ;;END
 
 ;;LIST-OF

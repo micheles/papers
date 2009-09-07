@@ -4,5 +4,5 @@ upload:
 	scp aps.zip micheles@merlin.phyast.pitt.edu:public_html/scheme
 experimental.zip:
 	zip -r experimental experimental/mod?.sls experimental/use-mod?.ss \
-        experimental/static-map.sls
+        experimental/static-map.sls experimental/static-map/dummy-ctxt.slsx
 	scp experimental.zip micheles@merlin.phyast.pitt.edu:public_html/scheme

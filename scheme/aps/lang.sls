@@ -1,9 +1,11 @@
 #!r6rs
 (library (aps lang)
-(export literal-replace : unbound? raw-identifier=? raw-id=?
-        identifier-append identifier-prepend
-        get-name-from-define let1)
+(export literal-replace : empty-ctxt unbound? symbol-identifier=? inject
+        identifier-append identifier-prepend ct-eval get-name-from-define let1)
 (import (rnrs) (sweet-macros))
+
+(def-syntax (inject ctxt (pat val) ... templ)
+  #'(with-syntax ((pat (datum->syntax ctxt val)) ...) templ))
 
 ;;LET1
 (def-syntax let1
@@ -24,20 +26,18 @@
     ))
 ;;END
 
-;;RAW-IDENTIFIER=?
-(define (raw-identifier=? raw id)
-  (symbol=? raw (syntax->datum id)))
-;;END
-
-;;RAW-ID=?
-(define (raw-id=? raw-id x)
-    (and (identifier? x) (raw-identifier=? raw-id x)))
+;;SYMBOL-IDENTIFIER=?
+(define (symbol-identifier=? id1 id2)
+  (symbol=? (syntax->datum id1) (syntax->datum id2)))
 ;;END
 
 ;;UNBOUND?
+(define empty-ctxt
+  (generate-temporaries '(empty-ctxt)))
+
 (define (unbound? id)
-  (define unbound-id (datum->syntax #'dummy-ctxt (syntax->datum id)))
-  (free-identifier=? id  unbound-id))
+  (define stripped-id (datum->syntax #'empty-ctxt (syntax->datum id)))
+  (free-identifier=? id  stripped-id))
 ;;END
 
 ;;LITERAL-REPLACE
@@ -65,6 +65,10 @@
     ))
 ;;END
 
+;;CT-EVAL;; probably useless having inject
+(define (ct-eval form ctxt)
+  (lambda (x) (datum->syntax ctxt (syntax->datum form))))
+;;END
 
 ;;GET-NAME-FROM-DEFINE
 (define get-name-from-define
