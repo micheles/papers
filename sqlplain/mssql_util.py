@@ -1,4 +1,4 @@
-import sys
+import re, sys
 from sqlplain.util import openclose, getoutput
 
 BCP = ['freebcp', 'bcp'][sys.platform == 'win32']
@@ -42,8 +42,19 @@ def get_keys_mssql(conn, table):
                     nextrow.constraint_keys))
         elif ctype.startswith('PRIMARY KEY'):
             ref = '(%s)' % row.constraint_keys
+        else: # other column type
+            continue
         result.append('%s %s' % (ctype, ref))
     return result
+
+def get_dependencies(conn, *tables):
+    s = set()
+    for table in tables:
+        for line in get_keys_mssql(conn, table):
+            if line.startswith('FOREIGN KEY'):
+                mo = re.search('REFERENCES ([\w\d]+) ', line)
+                s.add((table.lower(), mo.group(1).lower()))
+    return sorted(s)
 
 # works only for views and procedures, and constraints
 GET_DEF = '''SELECT definition FROM sys.sql_modules WHERE object_id=\

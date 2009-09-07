@@ -24,10 +24,10 @@ class _SymbolReplacer(object):
                 raise NameError('Duplicate argument %r in SQL template'
                                 % argname)
             argnames.append(argname)
-            return self.placeholder
+            return self.placeholder or mo.group()
         out = []
         for i, chunk in enumerate(self.STRING_OR_COMMENT.split(templ)):
-            if i % 2 == 0 and self.placeholder: # real sql code
+            if i % 2 == 0: # real sql code
                 chunk = self.SYMBOL.sub(repl, chunk)
             out.append(chunk)
         return argnames, ''.join(out)
@@ -35,10 +35,10 @@ class _SymbolReplacer(object):
 templ_cache = {}
 
 # used in .execute and do
-def get_args_templ(templ, repl=None):
+def get_args_templ(templ, placeholder=None):
     # this is small hack instead of a full featured SQL parser
     """
-    Take a SQL template and replace named arguments with the repl, except
+    Take a SQL template and replace named arguments with the placeholder, except
     in strings and comments. Return the replaced arguments and the new
     template. The results are cached.
 
@@ -50,10 +50,10 @@ def get_args_templ(templ, repl=None):
     >>> print get_args_templ('INSERT INTO book (:title, :author)', '?')[1]
     INSERT INTO book (?, ?)
     """
-    if (templ, repl) in templ_cache:
-        return templ_cache[templ, repl]
-    argnames, new_templ = _SymbolReplacer(repl).get_args_templ(templ)
-    templ_cache[templ, repl] = argnames, new_templ
+    if (templ, placeholder) in templ_cache:
+        return templ_cache[templ, placeholder]
+    argnames, new_templ = _SymbolReplacer(placeholder).get_args_templ(templ)
+    templ_cache[templ, placeholder] = argnames, new_templ
     return argnames, new_templ
             
 def do(templ, name='sqlquery', defaults=None, scalar=False, ntuple=None):

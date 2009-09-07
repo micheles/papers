@@ -45,7 +45,8 @@ def exists_db_postgres(uri):
             return True
     return False
 
-def dump_file_postgres(uri, query, filename, mode, sep='\t', null='\N'):
+def dump_file_postgres(uri, query, filename, mode, sep='\t', null='\N',
+                       schema=None):
     """
     Save the result of a query on a local file by using COPY TO and psql
     """
@@ -54,24 +55,26 @@ def dump_file_postgres(uri, query, filename, mode, sep='\t', null='\N'):
     else:
         query = '(%s)' % query
     if mode == 'b':
-        return psql(uri, "COPY %s TO STDOUT BINARY" % query, filename)
+        return psql(uri, "COPY %s TO STDOUT BINARY" % query, filename, schema)
     else:
         return psql(
             uri, "COPY %s TO STDOUT WITH DELIMITER '%s' NULL '%s'" %
-            (query, sep, null), filename)
+            (query, sep, null), filename, schema)
 
 # apparently copy_from from psycopg2 is buggy for large files
-def load_file_postgres(uri, tname, filename, mode, sep='\t', null='\N'):
+def load_file_postgres(uri, tname, filename, mode, sep='\t', null='\N',
+                       schema=None):
     """
     Load a file into a table by using COPY FROM and psql
     """
     stdin = file(filename)
     if mode == 'b':
-        return psql(uri, "COPY %s FROM STDIN BINARY" % tname, stdin=stdin)
+        return psql(uri, "COPY %s FROM STDIN BINARY" % tname, stdin=stdin,
+                    schema=schema)
     else: # csv mode
-        copy_from = "COPY %s FROM STDIN WITH DELIMITER '%s' NULL '%s'" % (
+        copy_from = "COPY %s FROM STDIN WITH DELIMITER E'%s' NULL E'%s'" % (
             tname, sep, null)
-    return psql(uri, copy_from, stdin=stdin)
+        return psql(uri, copy_from, stdin=stdin, schema=schema)
 
 ###############################################################################
 
@@ -98,10 +101,12 @@ def pg_restore(uri, filename, *args):
     return getoutput(cmd)
 
 
-def psql(uri, query, filename=os.devnull, stdin=None):
+def psql(uri, query, filename=os.devnull, stdin=None, schema=None):
     "Execute a query and save its result on filename"
     if not ' ' in query: # assumes a table name was given
         query = 'select * from %s' % query
+    if schema:
+        query = 'SET search_path TO %s; %s' % (schema, query) 
     cmd = ['psql', '-h', uri['host'], '-U', uri['user'], '-d', uri['database'],
            '-c', query, '-o', filename]
     # print cmd

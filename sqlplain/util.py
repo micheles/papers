@@ -195,7 +195,8 @@ def remote_copy_table(remote_db, local_db, src, dest, mode='b', truncate=False):
         return tempname
 
 def truncate_table(conn, tname):
-    if conn.dbtype == 'sqlite': # TRUNCATE is not supported right now
+    if conn.dbtype == 'sqlite': 
+        # TRUNCATE is not supported right now
         return conn.execute('DELETE FROM %s' % tname)
     else:
         return conn.execute('TRUNCATE TABLE %s' % tname)
@@ -210,10 +211,10 @@ def insert_rows(conn, tname, rows):
         row = lst[0]
     except IndexError: # nothing to insert
         return n
-    dummies = [':%s' % (i + 1) for i in range(len(row))]
-    templ = 'INSERT INTO %s VALUES (%s)' % (tname, ', '.join(dummies))
-    argnames, templ = get_args_templ(templ)
-    return conn._conn.executemany(templ, rows)
+    numeric = [':%s' % (i + 1) for i in range(len(row))]
+    templ = 'INSERT INTO %s VALUES (%s)' % (tname, ', '.join(numeric))
+    argnames, raw_templ = get_args_templ(templ)
+    return conn._conn.executemany(raw_templ, rows)
     
 def load_file(uri, tname, fname, mode, **kwargs):
     "Bulk insert a (binary or csv) file into a table"""
@@ -288,9 +289,9 @@ def get_dfields(conn, tname):
 
 ## the folling routines are postgres-only
 
-set_schema = do('SET search_path TO ?')
+set_schema = do('SET search_path TO :schema')
 
-exists_schema = do("SELECT nspname FROM pg_namespace WHERE nspname=?")
+exists_schema = do("SELECT nspname FROM pg_namespace WHERE nspname=:schema")
 
 def drop_schema(db, schema):
     db.execute('DROP SCHEMA %s CASCADE' % schema)
