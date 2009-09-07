@@ -5,7 +5,7 @@ A script to post articles on my blog
 import re, sys
 from twill import commands as c
 
-IMAGE = re.compile('e::\s+([-+\w\.]+)') # figure/image
+IMAGE = re.compile('e:: ([-+\w\.]+)') # figure/image
 
 def replace_image_links(txt):
     "Remove code-block directives and relative images to make Artima happy"
