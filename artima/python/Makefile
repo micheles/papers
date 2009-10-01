@@ -1,4 +1,5 @@
 POST = python ../post.py
+RST = python ~/trunk/ROnline/RCommon/Python/ms/tools/rst.py
 MINIDOC = python ~/trunk/ROnline/RCommon/Python/ms/tools/minidoc.py
 
 default:
@@ -13,6 +14,10 @@ super2:	super2.py
 super3:	super3.py
 	$(MINIDOC) -d super3; $(POST) /tmp/super3.rst 237121
 
+super: super.rst
+	$(RST) -tp super.rst
+	scp super.pdf micheles@merlin.phyast.pitt.edu:public_html/python
+
 generic: genericfunctions.py
 	$(MINIDOC) -d genericfunctions; $(POST) /tmp/genericfunctions.rst 237764
 
@@ -25,6 +30,12 @@ pycon3: pycon3.txt
 records1: records1.py
 	$(MINIDOC) -d records1; $(POST) /tmp/records1.rst 236637
 
+records2: records2.py
+	$(MINIDOC) -d records2; $(POST) /tmp/records2.rst 269269
+
+records3: records3.py
+	$(MINIDOC) -d records3; $(POST) /tmp/records3.rst 
+
 decorator3: decorator3.txt
 	$(POST) decorator3.txt 243843
 
@@ -36,7 +47,6 @@ mixins1: mixins1.py
 
 mixins2: mixins2.py
 	$(MINIDOC) -d mixins2; $(POST) /tmp/mixins2.rst 246483
-
 
 mixins3: mixins3.py
 	$(MINIDOC) -d mixins3; $(POST) /tmp/mixins3.rst 254367

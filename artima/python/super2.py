@@ -104,9 +104,9 @@ turned into ``super(C, d).a`` and retrieves ``B.a``.
 There is a single use case for the single argument 
 syntax of ``super`` that I am aware of, but I think it gives more troubles 
 than advantages. The use case is the implementation of *autosuper* made 
-by Guido on his essay about `new-style classes`_.
+by Guido on his essay about `new style classes`_.
 
-.. _new-style classes: http://www.python.org/download/releases/2.2.3/descrintro/#cooperation
+.. _new style classes: http://www.python.org/download/releases/2.2.3/descrintro/#cooperation
 
 The idea there is to use the unbound super objects as private
 attributes. For instance, in our example, we could define the

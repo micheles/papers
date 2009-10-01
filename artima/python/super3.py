@@ -174,7 +174,7 @@ the application programmer cannot use ``super`` either, otherwise
  >>> c = C()
  C A
 
-So, if use classes coming from a library in a multiple inheritance
+So, if you use classes coming from a library in a multiple inheritance
 situation, you must know if the classes were intended to be
 cooperative (using ``super``) or not. Library author should always
 document their usage of ``super``.
