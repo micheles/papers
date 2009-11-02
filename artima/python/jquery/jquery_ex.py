@@ -21,12 +21,17 @@ $(document).ready(function(){
 '''
 
 # the body of the page
-body = "<h3>click me and I will disappear!</h3>"
+body = """
+<button id="sql-button" class="short">SQL</button>
+<pre id="sql" class="sql" style="display: none">SELECT * FROM Product</pre>
+"""
 
 # the javascript relying on JQuery
 js = """
-$("h3").click(function(event){
-   $(this).hide("slow");
+$("#sql-button").toggle(function(event){
+   $("#sql").hide("slow");
+ }, function(event){
+   $("#sql").show("slow");
  });
 """
 

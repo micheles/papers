@@ -257,7 +257,7 @@ hacks. It is just more efficient to convert a a program into machine
 code with a compiler than to interpret it expression by expression.
 
 The other main reason to favor compilers over interpreters, apart
-from performance, is compile-time cheching. Compilers are able to reject a
+from performance, is compile-time checking. Compilers are able to reject a
 class of incorrect programs even before executing them.
 Scheme compilers are traditionally not too strong in this respect, because of
 dynamic typing and because of the design philosophy of the

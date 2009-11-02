@@ -197,7 +197,7 @@ just a bug (`already fixed in the trunk`_).
 Discussion
 ------------------------------------------
 
-The concept of meta-level is tricky. On one hand, there only two physical
+The concept of meta-level is tricky. On one hand, there are only two physical
 meta-levels, i.e. the run-time (when the code is executed) and the compile
 time (when the code is compiled). On the other hand, conceptually there is
 an arbitrary number of positive meta-levels ("before compile time") and

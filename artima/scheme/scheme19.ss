@@ -100,7 +100,7 @@ Compiling Scheme modules vs compiling Python modules
 Let me continue my comparison between Python modules and Scheme
 modules, by comparing the compilation/execution mechanism in the two
 languages. I will begin from Python, by giving a simplified
-description which is however not far for the truth.
+description which is however not far from the truth.
 
 When you run a script ``script.py`` depending on some library
 ``lib.py``, the Python interpreter searches fo a bytecode-compiled

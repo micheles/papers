@@ -144,7 +144,7 @@ def safecall(call_hook, resource, req, args, content_type, show_tb=True):
     """
     Utility calling the resource component and returning a WSGI
     response.  The component can return a sequence of strings or raise
-    an HTTPResponse, which is trapped, or an unexpected exception,
+    a HTTPResponse, which is trapped, or an unexpected exception,
     which is trapped if show_tb=True and re-raised otherwise. The only
     way to change the headers for the resource is to raise an
     HTTPResponse by using http.respond.

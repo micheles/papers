@@ -1,5 +1,6 @@
 Those who can, do; those who can't, teach -- G. B. Shaw
 
+Programmers don't die, they just GOSUB without RETURN. (*continuations*)
 
 
 #Why I Hate Frameworks

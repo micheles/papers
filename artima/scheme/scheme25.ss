@@ -37,8 +37,8 @@ hygiene; I can skip it for the moment being.]
 
 I have already stated in episode 12_ my political objection, i.e. my
 belief that macros have a high cost in terms of complication of the
-language (look how much complicated the R6RS module system is!). Moreover,
-codes based on macros tends to be too clever, difficult to debug, and
+language (look how complicated the R6RS module system is!). Moreover,
+code based on macros tends to be too clever, difficult to debug, and
 sometime idiosyncratic; I do not want to maintain code such kind of code
 in a typical enterprise context, with programmers of any kind of competence.
 Sometimes I wish that even Python was a simpler language!
@@ -91,7 +91,7 @@ questions like "what would a language look like if it had feature X?",
 can solve his doubts by implementing the feature with macros.
 
 Notice that I recognize that perhaps not everybody should design its
-own programming language, and that xcertainly not everybody should
+own programming language, and that certainly not everybody should
 *distribute* its own personal language. Nevertheless, I think
 everybody can have opinions about language design. Experimenting
 with macrology can help to put to test such opinions and to learn
