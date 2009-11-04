@@ -66,7 +66,7 @@ must be noticed that Chicken had eggs years before Python and more
 rights to use the name ;-)
 
 Guile_ is the Scheme version sponsored by
-the Free Software Foundation and it is used as scription language for
+the Free Software Foundation and it is used as scripting language for
 GIMP; it has been dreamed that Guile_ would become the main scripting
 language for the FSF applications and that it would have replaced
 Emacs Lisp in Emacs, but that never happened.
