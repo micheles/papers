@@ -1,0 +1,128 @@
+I am an atypical programmer, since I spent most of my career doing
+science, not programming. When I first learned about Object Oriented
+Programming, a little bit more than seven years ago, I compared it
+with my experience in Mathematics and Physics. I was puzzled. In
+Mathematics you have objects (consider for instance the elements of a
+`Lie group`_) but the objects themselves are not important: the
+important entities are the relations about the objects, their
+properties.  When I write ``a + b`` in a mathematical expression I am
+not really interested in the objects: ``a`` and ``b`` may be numbers,
+or matrices, or functions, or oven operators in a Hilbert space if I
+am doing Quantum Mechanics: in any case, the important thing is the
+addition operation. The ``+`` means that I am performing a commutative
+operation and therefore that the objects I am using are part of a
+commutative group and a set of well know properties are valid for
+them. Translated into programming jargon, that idea means exactly that
+the important things are the interfaces, i.e.  the set of
+operations/methods which are available to the objects, not the objects
+themselves. Actually, the details about what the objects really are
+can be disregarded as implementation artifacts and I can write generic
+code which works for all objects satisfying a known interface, just as
+in Mathematics I can write a single proof valid for the entire class
+of entities satisfying a given set of properties.
+
+This was my *forma mentis* when I begun studying object orientation. I
+was used to consider functions as the primary entities, and objects as
+inert material on top of which functions operate. Actually, it seemed
+backwards to me to attach functions to (classes of) objects.  In
+traditional (Smalltalk-inspired) OOP instead this is exactly what
+happens.  One focuses on objects: one writes ``window.create()``, not
+``create(window)``. One is induced to put the focus on the window
+which owns the ``.create`` method and not on the general operation of
+creation which is meaningful for all kinds of objects.  Anyway, I kept
+studying and at the end I become acquainted with the OOP approach: I
+was no more disturbed by ``window.create()`` vs ``create(window)``.
+It is ironic that a year later I discovered Lisp and its object system
+(CLOS_) where you indeed write ``create(window)``. It is understable
+that I immediately became a supporter of generic functions: I decided
+that I was right the first time after all ;) It is also clear why I am
+a supporter of functional programming.  Nowadays, after years of
+experience writing an maintaining large code bases, I am even more
+convinced the really important things are not the objects (or classes)
+but the interfaces.
+
+During my first six months of OOP programming I also
+had issues with another concept: *inheritance*. I remember that when I saw
+classes for the first time I said "look ma, objects are just the same as Pascal
+records and methods are just functions taking a record as first
+argument, they are not difficult at all!". It turns out I was
+wrong. Classes are very much different than Pascal records, the reason
+being *inheritance*. Inheritance makes classes quite nontrivial, and I
+had to write a paper on inheritance to understand its gory details (my
+first paper about programming, the infamous MRO_ paper). At that point
+however I only understood the tecnical details; but a year later I was
+hired as a programmer, I started working with Zope and then I
+understood what inheritance really was in the real word. From that
+time I started looking for alternative solutions to
+inheritance. I remember that once (something like 4 or 5 years ago) I
+implemented a toy object system in Scheme without inheritance, to see
+how it was like to program without it. From that experiment I
+concluded that one cannot really avoid single inheritance (I mean, you
+can, but then you have to implement some workaround which is more or
+less equivalent to it) whereas instead you can easily throw multiple
+inheritance out of the window. A couple of years ago
+I also became interested in the language SML_ which I really liked for
+various reasons, the most important being the lack on inheritance
+and the presence of *interfaces*.
+
+It is at that moment that I decided to start a public campaign against
+inheritance and pro interfaces. Interfaces are the really important
+idea, not inheritance, but unfortunately many languages conflate the
+two concepts and make things confusing. Inheritance is a (often wrong) way
+of ensuring interface compliance, in the sense that a subclass
+satifies the same interface of its superclass, but in general two
+objects can have the same interface without having a common base
+class. After studying SML I became really convinced that there should
+be a formal way to specify that property in the language.  I also
+decided to write a set of articles about the dangers of inheritance: I
+published on Artima four papers about mixins (1_, 2_, 3_ and 4_), a
+paper about `generic functions`_ and a paper about traits_ for people
+still emotionally attached to the Smalltalk OOP model and not wanting
+to switch to the CLOS model. I also planned to write a paper about
+interfaces, to explain how things should be done, but I never wrote
+it. The main reason is lack of time, since I was busy with `The
+Adventures of a Pythonista in Schemeland`_ and other things; there is
+also a secondary reason; I needed a language with interfaces done
+right to explain what I had in mind, and I was reluctant to use SML as
+that language. I mean, SML is very nice and it does interfaces really
+well, but it is definitively not a language for the large
+public. Python has interfaces (starting from Python 2.6) which are
+acceptable but not really what I had in mind.
+
+Now finally there is Go_. Go is a new language which was released this
+week by Google; it was designed by old-timers of the caliber of Rob
+Pike and Ken Thompson, so I decided to take it very seriously and to
+have a look at it.  It turns out that Go `lacks inheritance`_ and it
+has exactly `the kind of interfaces I had in mind`_ for all this
+time. I do not need to write my paper about interfaces vs inheritance
+anymore: just look at `Go documentation`_!  I am still playing with Go
+at the moment.  As every language it has a few good things and a few
+bad things.  I particularly like two blog posts by Mark Chu-Carroll
+(this_ and that_). Of course everybody is writing about Go nowadays
+and you can find tons of comments about the language on the net. There
+is also an extremely activew newsgroup_. Here I just wanted to point
+out the design choices about interfaces and inheritance.  Such ideas
+are not new and it is a shame that no popular language has followed
+such particular route in the design space. I hope Go will become
+popular; if not, I hope such ideas will finally enter in a popular
+language, we are already 10 or 20 years too late :-(
+
+.. _this: http://scienceblogs.com/goodmath/2009/11/googles_new_language_go.php
+.. _that: http://scienceblogs.com/goodmath/2009/11/the_go_i_forgot_concurrency_an.php
+
+.. _Lie group: http://en.wikipedia.org/wiki/Lie_group
+.. _SML: http://en.wikipedia.org/wiki/Standard_ML
+.. _Go: http://golang.org/
+.. _lacks inheritance: http://golang.org/doc/go_lang_faq.html#inheritance
+.. _the kind of interfaces I had in mind: http://golang.org/doc/effective_go.html#interfaces_and_types
+.. _Go documentation: http://golang.org/doc/go_for_cpp_programmers.html
+.. _newsgroup: http://groups.google.com/group/golang-nuts
+.. _1: http://www.artima.com/weblogs/viewpost.jsp?thread=246341
+.. _2: http://www.artima.com/weblogs/viewpost.jsp?thread=246483
+.. _3: http://www.artima.com/weblogs/viewpost.jsp?thread=254367 
+.. _4: http://www.artima.com/weblogs/viewpost.jsp?thread=254507
+.. _generic functions: http://www.artima.com/weblogs/viewpost.jsp?thread=237764
+.. _traits: http://www.artima.com/weblogs/viewpost.jsp?thread=246488
+.. _MRO: http://www.python.org/download/releases/2.3/mro/
+.. _The Adventures of a Pythonista in Schemeland: http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf
+.. _CLOS: http://en.wikipedia.org/wiki/CLOS
