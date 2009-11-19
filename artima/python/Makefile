@@ -56,3 +56,6 @@ mixins4: mixins4.py
 
 traits: traits.txt
 	$(POST) traits.txt 246488
+
+caches: caches.py
+	$(MINIDOC) -d caches; $(POST) /tmp/caches.rst 274438
