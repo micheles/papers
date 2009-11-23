@@ -98,7 +98,7 @@ class URI(object):
     def get_driver_params(self):
         """
         Determine the database type (and therefore the driver to use) from
-        the URI and returns the right connection factory, as well as its
+        the URI and returns the right driver, as well as the connection string
         arguments user, pwd, host, port, db.
         """
         driver = self.import_driver()

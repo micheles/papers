@@ -1,5 +1,6 @@
 import os
 from sqlplain.util import openclose, insert_rows
+from sqlplain import connect
 
 def get_info(conn, tname):
     """
@@ -7,9 +8,11 @@ def get_info(conn, tname):
     """
     return conn.execute('PRAGMA table_info(%s)' % tname)
 
-def load_file_sqlite(conn, fname, tname, sep):
+def load_file_sqlite(uri, tname, fname, mode, sep):
     import csv
+    assert mode == 'c', "Only CSV files can be bulk imported in sqlite"
     csvfile = file(fname)
+    conn = connect(uri)
     conn.execute('PRAGMA synchronous = OFF')
     try:
         n = insert_rows(conn, tname, csv.reader(csvfile, delimiter=sep))

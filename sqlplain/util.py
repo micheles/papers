@@ -214,7 +214,7 @@ def insert_rows(conn, tname, rows):
     numeric = [':%s' % (i + 1) for i in range(len(row))]
     templ = 'INSERT INTO %s VALUES (%s)' % (tname, ', '.join(numeric))
     argnames, raw_templ = get_args_templ(templ)
-    return conn._conn.executemany(raw_templ, rows)
+    return conn._storage.curs.executemany(raw_templ, rows)
     
 def load_file(uri, tname, fname, mode, **kwargs):
     "Bulk insert a (binary or csv) file into a table"""

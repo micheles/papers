@@ -102,7 +102,7 @@ def get_tables_mssql(conn, schema=None):
                 if r.TABLE_TYPE == 'TABLE']
  
 def exists_table_mssql(conn, tname):
-    return conn.execute('SELECT count(*) FROM sysobjects WHERE name=?',
+    return conn.execute('SELECT count(*) FROM sysobjects WHERE name=:name',
                         (tname,), scalar=True)
 
 def exists_db_mssql(uri):
