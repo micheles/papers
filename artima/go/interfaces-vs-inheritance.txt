@@ -7,7 +7,7 @@ Mathematics you have objects (consider for instance the elements of a
 important entities are the relations about the objects, their
 properties.  When I write ``a + b`` in a mathematical expression I am
 not really interested in the objects: ``a`` and ``b`` may be numbers,
-or matrices, or functions, or oven operators in a Hilbert space if I
+or matrices, or functions, or even operators in a Hilbert space if I
 am doing Quantum Mechanics: in any case, the important thing is the
 addition operation. The ``+`` means that I am performing a commutative
 operation and therefore that the objects I am using are part of a
@@ -93,7 +93,7 @@ Now finally there is Go_. Go is a new language which was released this
 week by Google; it was designed by old-timers of the caliber of Rob
 Pike and Ken Thompson, so I decided to take it very seriously and to
 have a look at it.  It turns out that Go `lacks inheritance`_ and it
-has exactly `the kind of interfaces I had in mind`_ for all this
+has something similar to `the kind of interfaces I had in mind`_ for all this
 time. I do not need to write my paper about interfaces vs inheritance
 anymore: just look at `Go documentation`_!  I am still playing with Go
 at the moment.  As every language it has a few good things and a few
