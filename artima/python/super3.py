@@ -216,6 +216,32 @@ some old style classes mixing with new style classes: the result may
 depend on the order of the base classes (see examples 2-2b and 2-3b
 in `Super considered harmful`_).
 
+
+UPDATE: the introduction of Python 2.6 made the
+special methods ``__new__`` and ``__init__`` even more brittle with respect to
+cooperative super calls.
+
+Starting from Python 2.6 the special methods ``__new__`` and
+``__init__`` of ``object`` do not take any argument, whereas
+previously the had a generic signature, but all the arguments were
+ignored. That means that it is very easy to get in trouble if your
+constructors take arguments. Here is an example:
+
+$$A
+$$B
+$$C
+
+As you see, this cannot work: when ``self`` is an instance of ``C``,
+``super(A, self).__init__()`` will call ``B.__init__`` without
+arguments, resulting in a ``TypeError``. In older Python you could
+avoid that by passing ``a`` to the super calls, since
+``object.__init__`` could be called with any number of arguments.
+This problem was recently pointed out by `Menno Smits`_ in his blog
+and there is no way to solve it in Python 2.6, unless you change all
+of your classes to inherit from a custom ``Object`` class with an
+``__init__`` accepting all kind of arguments, i.e. basically reverting
+back to the Python 2.5 situation.
+
 Conclusion: is there life beyond super?
 -------------------------------------------------------
 
@@ -265,13 +291,25 @@ series starts from here_ and it is a recommended reading if you ever
 had troubles with mixins.
 
 .. _here: http://stacktrace.it/articoli/2008/06/i-pericoli-della-programmazione-con-i-mixin1/
-
 .. _Super considered harmful: http://fuhm.net/super-harmful/
 .. _fragility of super: http://tinyurl.com/3jqhx7
 .. _traits: http://www.iam.unibe.ch/~scg/Research/Traits/
+.. _Menno Smits: http://freshfoo.com/blog/object__init__takes_no_parameters
 """
 
 import library_using_super, library_not_using_super, cooperation_ex
+
+class A(object):
+    def __init__(self, a):
+        super(A, self).__init__() # object.__init__ cannot take arguments
+
+class B(object):
+    def __init__(self, a):
+        super(B, self).__init__() # object.__init__ cannot take arguments
+
+class C(A, B):
+    def __init__(self, a):
+        super(C, self).__init__(a) # A.__init__ takes one argument 
 
 if __name__ == '__main__':
     import __main__, doctest; doctest.testmod(__main__)

@@ -14,6 +14,9 @@ super2:	super2.py
 super3:	super3.py
 	$(MINIDOC) -d super3; $(POST) /tmp/super3.rst 237121
 
+super4:	super4.py
+	$(MINIDOC) -d super4; $(POST) /tmp/super4.rst 281127
+
 super: super.rst
 	$(RST) -tp super.rst
 	scp super.pdf micheles@merlin.phyast.pitt.edu:public_html/python
