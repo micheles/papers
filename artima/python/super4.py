@@ -1,20 +1,18 @@
 """\
-Most languages supporting inheritance support cooperative inheritance too,
+Most languages supporting inheritance support cooperative inheritance,
 i.e.  there is a language-supported way for children methods
-to dispatch to their parent method. Cooperation is usually implemented via a
+to dispatch to their parent method: this is usually done via a
 ``super`` keyword.  Things are easy when the language support single
 inheritance only, since each class has a single parent and there is an
 unique concept of super method. Things are difficult when the
-language support multiple inheritance: in that case there is no
-meaningful concept of super class and of super method, but the programmer
-has to understand the intricacies of so-called Method Resolution Order.
+language support multiple inheritance: in that case the programmer
+has to understand the intricacies of the Method Resolution Order.
 
 Why cooperative hierarchies are tricky
 --------------------------------------------
 
-This paper is intended to be very practical, so I will explain
-cooperative multiple inheritance with an example. Consider the
-following hierarchy (in Python 3):
+This paper is intended to be very practical, so let me start with an example.
+Consider the following hierarchy (in Python 3):
 
 $$A
 $$B
@@ -29,36 +27,35 @@ will call ``super().__init__()`` in ``A.__init__`` at some point: the
 tricky point is to understand which method will be called
 for *indirect* instances of ``A``.
 
-In a single inheritance language there would be an unique answer both
-for direct and indirect instances (``object`` is the super class of
-``A`` and ``object.__init__`` is the method called by ``super().__init__()``)
-but in a multiple inheritance language there is no easy answer. It is
-better to say that there is no super class and it is impossible to
-know which method will be called by ``super().__init__()`` unless the
-entire hierarchy is known in advance. In this case let us assume that
-the entire hierarchy is known (i.e. there are no other subclasses
-defined in other modules). In particular, this is what happens when we
-instantiate ``C``:
+In a single inheritance language there is an unique answer both for
+direct and indirect instances (``object`` is the super class of ``A``
+and ``object.__init__`` is the method called by
+``super().__init__()``).  On the other hand, in a multiple inheritance
+language there is no easy answer. It is better to say that there is no
+super class and it is impossible to know which method will be called
+by ``super().__init__()`` unless the subclass from wich ``super`` is 
+called is known. In particular, this is what happens when we instantiate ``C``:
 
 >>> c = C()
 C.__init__
 A.__init__
 B.__init__
 
-As you see the super call  in ``C`` dispatches to ``A.__init__`` and the super
-call there dispatches to  ``B.__init__`` which in turns dispatches to
-``object.__init__``. Therefore *the same super call can dispatch to different
-methods*: when ``super().__init__()`` is called directly by instantiating 
+As you see the super call  in ``C`` dispatches to ``A.__init__`` and then
+the super call there dispatches to  ``B.__init__`` which in turns dispatches to
+``object.__init__``. The important point is that
+*the same super call can dispatch to different methods*: 
+when ``super().__init__()`` is called directly by instantiating 
 ``A`` it dispatches to ``object.__init__`` whereas when it is called indirectly
 by instantiating ``C`` it dispatches to ``B.__init__``. If somebody 
 extends the hierarchy, adds subclasses of ``A`` and instantiated them, 
 then the super call in ``A.__init__``
 can dispatch to an entirely different method: the super method call 
 depends on the instance I am starting from. The precise algorithm 
-specifying the order in which the methods are called by ``super`` is
-called the Method Resolution Order algorithm, or MRO for short and it 
-is discussed in detail in an old essay I wrote years ago.
-Interested readers are referred to it.
+specifying the order in which the methods are called is
+called the Method Resolution Order algorithm, or MRO for short. It 
+is discussed in detail in an old essay I wrote years ago and 
+interested readers are referred to it (see the references below).
 Here I will take the easy way and I will ask Python.
 
 Given any class, it is possibly to extract its linearization, i.e. the
@@ -114,14 +111,16 @@ When you design a hierarchy you will expect for instance that
 ``A.__init__`` will call ``B.__init__``, but adding classes (and such
 classes may be added by a third party) may change the method chain. In this
 case ``A.__init__`` (when invoked by an ``F`` instance) will call
-``D.__init__``: if the behavior of your code depends on the ordering of the
+``D.__init__``. This is dangerous: for instance, 
+if the behavior of your code depends on the ordering of the
 methods you may get in trouble. Things are worse if one of the methods
-in the cooperative chain does not have a compatible signature.
+in the cooperative chain does not have a compatible signature, since the
+chain will break.
 
 This problem is not theoretical and it happens even in very trivial
 hierarchies.  For instance, here is an example of incompatible
-signatures in the ``__init__`` method (this affects even Python 2.6,
-not only Python 3.X):
+signatures in the ``__init__`` method (this problem 
+affects even Python 2.6, not only Python 3.X):
 
 .. code-block:: python
 
@@ -143,13 +142,14 @@ introduce ``Z`` you get in trouble since ``super().__init__(a)`` in
 turns will call ``Y.__init__`` with no arguments, resulting in a
 ``TypeError``!  In older Python versions (from 2.2 to 2.5) such
 problem can be avoided by leveraging on the fact that
-``object.__init__`` accepts any number of arguments (ignoring them) and 
-thus replacing ``super().__init__()`` with ``super().__init__(a)``. In Python
+``object.__init__`` accepts any number of arguments (ignoring them), by
+replacing ``super().__init__()`` with ``super().__init__(a)``. In Python
 2.6+ instead there is no real solution for this problem, except avoiding
 ``super`` in the constructor or avoiding multiple inheritance.
 
-In general you should use ``super`` only when all the
-cooperative methods have consistent signature: that means that you
+In general if you want to support multiple inheritance you should use 
+``super`` only when the methods in a cooperative chain 
+have consistent signature: that means that you
 will not use super in ``__init__`` and ``__new__`` since likely your
 constructors will have custom arguments whereas ``object.__init__``
 and ``object.__new__`` have no arguments.  However, in practice, you may
@@ -174,7 +174,7 @@ Even if ``super`` has its shortcomings, there are meaningful use cases for
 it, assuming you think multiple inheritance is a legitimate design technique.
 For instance, if you use metaclasses and you want to support multiple 
 inheritance, you *must* use ``super`` in the ``__new__`` and ``__init__``
-methods: there is no problem in doing so, since the constructor for 
+methods: there is no problem, since the constructor for 
 metaclasses has a fixed signature *(name, bases, dictionary)*. But metaclasses
 are extremely rare, so let me give a more meaningful example for an application
 programmer where a design bases on cooperative
@@ -196,9 +196,8 @@ and two concrete classes ``DbManager`` and ``FtpManager``:
 $$DbManager
 $$FtpManager
 
-Now suppose you need to manage both a database and an FTP site and suppose that
-you think multiple inheritance is a good idea: then you can define a 
-``MultiManager`` as follows:
+Now suppose you need to manage both a database and an FTP site:
+then you can define a ``MultiManager`` as follows:
 
 $$MultiManager
 
@@ -219,12 +218,12 @@ method ``getinfolist`` calling ```DbManager.getinfolist`` and
 $$close
 $$getinfolist
 
-This would less elegant but probably clearer and safer so you can always
+This would be less elegant but probably clearer and safer so you can always
 decide not to use ``super`` if you really hate it. However, if you have
 ``N`` common methods, there is some boiler plate to write; moreover, every time
 you add a ``Manager`` class you must add it to the ``N`` common methods, which
 is ugly. Here ``N`` is just 2, so not using ``super`` may work well, 
-but in general it is clear that the cooperative approach is more elegant.
+but in general it is clear that the cooperative approach is more effective.
 Actually, I strongly believe (and always had) that ``super`` and the
 MRO are the *right* way to do multiple inheritance: but I also believe
 that multiple inheritance itself is *wrong*. For instance, in the
@@ -235,11 +234,11 @@ such as the following:
 $$MyMultiManager
 
 There are languages that do not provide inheritance (even single
-inheritance!)  and are perfectly fine, so you should keep an open
-mind. There are always many options and the design space is rather
-large.  Personally, I always use ``super`` but I use
-single-inheritance only, so that my cooperative hierarchies are
-trivial.
+inheritance!)  and are perfectly fine, so you should always question
+if you should use inheritance or not. There are always many options
+and the design space is rather large.  Personally, I always use
+``super`` but I use single-inheritance only, so that my cooperative
+hierarchies are trivial.
 
 The magic of super in Python 3
 ----------------------------------------------------------------------
@@ -273,7 +272,7 @@ the first argument of the current method is ``self``, but it may be
 Since ``super()`` knows the class it is invoked from and the class of
 the original caller, it can walk the MRO correctly. Such information
 is stored in the attributes ``.__thisclass__`` and ``.__self_class__``
-and you may understand how it works with the following example:
+and you may understand how it works from the following example:
 
 $$Mother
 $$Child
@@ -284,8 +283,8 @@ $$Child
  <class '__main__.Mother'>
  <class '__main__.Child'>
 
-Here ``.__self__class__`` is just the clas<s of the first argument (``self``)
-but this not always the case. The exception is the case of classmethods and
+Here ``.__self__class__`` is just the class of the first argument (``self``)
+but this is not always the case. The exception is the case of classmethods and
 staticmethods taking a class as first argument, such as ``__new__``.
 Specifically, ``super(cls, x)`` checks if ``x`` is an instance
 of ``cls`` and then sets ``.__self_class__`` to ``x.__class__``; otherwise
@@ -308,10 +307,8 @@ argument:
  __selfclass__ <class '__main__.C2'>
  called classmethod C0.c
 
-So take care that ``__selfclass__`` is not the class of ``self``, if ``self``
-is a subclass of ``__thisclass__``.
-There is a lot of magic going on, and even more. For instance, this
-is a syntax that cannot work:
+There is a lot of magic going on in Python 3 ``super``, and even more.
+For instance, this is a syntax that cannot work:
 
 $$super_external
 
@@ -324,32 +321,45 @@ syntax, by writing the external method as
 
 $$__init__
 
-everything will work because we are explicitly telling than the method
+everything will work because you are explicitly telling than the method
 will be attached to the class ``C``.
 
-There is also a wart of Python 3, pointed out by `Armin Ronacher`_ and
-others: the fact that ``super`` should be a keyword but it is
-not. Therefore horrors like the following are possible:
+I will close this section by noticing a wart of ``super`` in Python 3,
+pointed out by `Armin Ronacher`_ and others: the fact that ``super``
+should be a keyword but it is not. Therefore horrors like the
+following are possible:
 
 $$super_horrors
 
 DON'T DO THAT! Here the called ``__init__`` is the ``__init__`` method
-of the object ``None``!!
+of the object ``None``!!  
 
-Also, ``super`` is special and it will not work if
+Of course, only an evil programmer would shadow ``super`` on purpose,
+but that may happen accidentally. Consider for instance this use case:
+you are refactoring an old code base written before the existence of
+``super`` and using ``from mod import *`` (this is ugly but we know
+that there are code bases written this way), with ``mod`` defining a
+function ``super`` which has nothing to do with the ``super``
+builtin. If in this code you replace ``Base.method(self, *args)`` with
+``super().method(*args)`` you will introduce a bug. This is not common
+(it never happened to me), but still it is bug that could not happen if
+``super`` were a keyword.
+
+Moreover, ``super`` is special and it will not work if
 you change its name as in this example:
 
 .. code-block:: python
 
- # see http://lucumr.pocoo.org/2010/1/7/pros-and-cons-about-python-3
+ # from http://lucumr.pocoo.org/2010/1/7/pros-and-cons-about-python-3
  _super = super
  class Foo(Bar):
      def foo(self):
          _super().foo()
 
-This is unfortunate, since we missed the opportunity to make it a keyword
-in Python 3, without good reasons (Python 3 was expected to break compatibility
-anyway).
+Here the bytecode compiler will not treat specially ``_super``, only
+``super``. It is unfortunate that we missed the opportunity to make ``super``
+a keyword in Python 3, without good reasons (Python 3 was expected 
+to break compatibility anyway).
 
 References
 ---------------------------------------

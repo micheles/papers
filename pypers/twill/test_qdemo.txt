@@ -1,9 +1,0 @@
->>> from urllib import urlopen
->>> PAGE = "http://localhost:8080/extras/form"
->>> page = urlopen(PAGE, "name=michele&password=SECRET")
-
->>> print page.read()
-
->>> page = urlopen("http://issola.caltech.edu/~t/qwsgi/qwsgi-demo.cgi/widgets",
-...        "name=michele&password=SECRET&time=50")
->>> print page.read()

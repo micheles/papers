@@ -41,3 +41,19 @@ productively is, in some sense, incidental. -- George Neuner on c.l.s.
 
 I think one good outcome of R6RS is that library writers form a
 bridge between implementors who would not be collaborating otherwise -- Aziz
+
+Enterprise Scale
+------------------ 
+
+In talking with a sysadmin about installs, it occurred to me what the working definition of Enterprise Scale is
+
+    The install is not "next-next-done" wizard
+
+
+Desktop and "departmental" applications have easy-to-use installers with few options and simple configurations.
+
+Enterprise applications do not have installers and have configurations so complex and terrifying that it takes numerous specialists (Sysadmins, DBA's, programmers, managers, business analysts and users) to install and configure the application.
+
+That's how we know that a LAMP-based application stack involving Python can't be enterprise-ready. Python and MySQL install with "next-next-done" wizards. The application suite installs with a few dozen easy_install steps followed by a database build script.
+
+Anything that simple can't scale. *S.Lott*

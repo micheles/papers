@@ -1,69 +1,104 @@
 Enterprise programming means working with legacy code
 ===========================================================
 
-In a recent thread on Artima people argued about the productivity 
-differences between working on a startup company and working in an
-old-fashioned enterprise company. Some people ascribe the improved
+In a recent thread on Artima, solicited by a `post of Tim Bray`_, people
+argued about the productivity differences between startups and
+old-fashioned companies. Some programmers, like Bray, ascribe the improved
 productivity we see in startups to the methodology which is typically
 in such enviroments, in particular the reliance on Agile methods; on
 the other side some people question such analysis.
 
 I am also skeptical: it looks plain obvious to me that the reason why
-startups are so productive is not (much) the methodology they use, is the
-fact that they work mostly with new code whereas traditional
-enterprises mostly work with old code. That made most of the
-difference. Of course, the methology has its relevance, but I would
-say that it is not the most important parameter. My claim is that
-working with legacy code in an enterprise context is inherently more
-difficult than working with new code in a startup context, and that is
-independent from the methodology: even if the best of the possible
-cases, when you have a code base in good shape, in any case a company
-will have millions of lines of code written by developers which are no
-more there, answering requeriments that nobody remembers, 
-whereas a startup (being born only recently, by
-definition) will have much less code and it will very likely be code
-written by the developers working there for customers which are still
-actively using the software.
+startups are so productive is not (much) the methodology they use, is
+the fact that they work mostly with *new* code. On the other hand, traditional
+enterprises mostly work with *old* code: this fact alone makes most of
+the difference. Of course, the methology has its relevance, but I
+would say that it is not the most important parameter. My claim is
+that working with legacy code in an enterprise context is inherently
+more difficult than working with new code in a startup context, and
+that is independent from the methodology: even if the best of the
+possible cases, when you have a code base in good shape, the situation
+is never favorable to the traditional company. The usual case for the
+company is to have millions of lines of code written by developers
+which are no more there, answering requeriments that nobody
+remembers. On the other hand, the startup - being born only recently,
+by its very definition - will have much less code and it will very
+likely be code written by the developers working there for customers
+which are still actively using the software.
 
-It should not be necessary to state the obvious, but perhaps there a few things
-which are not obvious to people that never worked in an enterprise context.
-Here by "enterprise" I will mean any company which has a (possibly long) 
-history and a significant number of developers. The company were I work
-is only 10 years old the total number of developers who work or worked there
-is only 15: still, we have a lot of the troubles of enterprise programming
-and I can imagine what is going on in larger and older companies.
-
-In can split my programming career in three phases:
-
- - solo scripter
- - startup developer
- - enterprise developer
-
-In the first phase I was just programming for personal projects, for
-the learning experience and to simplify my daily life with helper
+It should not be necessary to state the obvious, but perhaps there are
+a few things which are not obvious to people that never worked in an
+enterprise context.  Here by "enterprise" I will mean any company
+which has a (possibly long) history and a significant number of
+developers. The company were I work is only 10 years old the total
+number of developers who work or worked there is under 20: still, we
+have a lot of the troubles of enterprise programming and I can imagine
+what is going on in larger and older companies. When I worked in a
+startup I had no idea of what it meant to work with legacy code.
+Actually I started my programming career as a hobbyist: at the time
+I was just programming for personal projects, for
+the learning experience and to simplify my daily life with a few
 scripts.  I was the only developer for such projects, I did not use a
 Version Control System and everything went smoothly and fine. Old code
-was just thrown out, libraries were written with time and ease, I had
-no time constraint and no problems at all. My productivity rocket.  In
-the second phase I worked at a startup. All my code was new code, i.e.
-I had not to read other people code, except for what concerns the
-framework we used. And then the trouble lied, since the framework
-(Zope) was large and complex. I learned the whole Python and its
-standard library in a few months: but learning Zope and Plone would
-require a few years. This is the first difficulty of working in an
-enterprise world, having to learn enterprise-oriented frameworks with
-all their problems. Still, this is not yet working in an
-enterprise. When I started working as an enterprise developer, on top
-of studying third party software, I had to study our internal
-software, which is much bigger and much less documented and well
-structured. The reason is that frameworks released in the open are
-intended for third party consumption and are somewhat polished
-(sometimes this is not really true, but let it pass), whereas code
-written for internal usage is typically dirty. And there all the
-difficulty of working in an enterprise enters in the game. (of course, there are
-also other difficulties related to company policies and politics,
-which may be much more serious than coding-related issues but here I
-will focus only on the programming-related aspects).
+was just thrown away, libraries were written with time and ease, I had
+no time constraints and no problems at all. My productivity rocked.
+
+Later on, I entered professionally in the field and I was hired as
+a consultant in a startup. In such occasion I started doing pair programming
+and I learned a lot of things. Still, all of my code was new code, i.e. 
+I had not to read other people code,
+except for what concerns the framework we used. And then the trouble
+lied, since the framework (Zope) was large and complex. I learned the
+whole Python and its standard library in a few months: but learning
+Zope and Plone would require a few years. This is the first difficulty
+of working in an enterprise world, having to learn enterprise-oriented
+frameworks with all their problems. Still, this is not yet working in
+an enterprise. The big problem, when you work as an enterprise developer,
+is that on top of studying
+third party software, you have to study *a lot* of internal software.
+Whereas frameworks released in the open are intended for third party
+consumption and are somewhat polished (sometimes this is not really
+true, but let it pass), code written for internal usage is
+typically dirty, less documented and well structured
+being written under time constraints. And there all
+the difficulty of working in an enterprise enters in the game. (of
+course, there are also other difficulties related to company policies
+and politics, which may be much more serious than coding-related
+issues but here I will focus only on the programming-related aspects).
+
+In companies with an history, you never start from scratch: even new
+projects live in a pre-existing ecosystem and must be written by
+knowning how do they relate to the rest of the world. And there aren't
+many new projects anyway. Nearly all projects are refactoring and
+extensions of code which is already there and which is usually old,
+difficult to understand, often obsolete in some parts, and nearly
+always insufficiently documented.
+
+This is the *natural* state of the affairs: I actually think that
+whereas it is important to keep a certain level of sanity in the code
+one writes, one should accept a certain level of uncleaness as
+natural. For instance, in our context business requirements change so
+often that it would not make sense to write more documentation,
+because then we would have the problem of outdated documentation,
+which is worse than no documentation.  Also, if the company is healthy
+there should always be more things to do than people, so that there is
+not much time to cure old code, unless there is a business requirement
+to do so. Often we write code for a specific client: in such a
+situations there are two possible outcomes: we sell the same service
+to other customers - in that case we refactor and clean up the
+original code - or the original client closes the contract - in that
+case then we remove the code. It makes no business sense to spent too
+much time in writing code that could be removed after a year, whereas
+it makes sense to refactor it if we are going to reuse it for another
+paying customer.
+
+I started working at my current company with the charge of maintaing an
+old Zope project; I am still maintaining it after more than four years,
+even if we want to dismiss the Zope tecnology. Over the years I have
+ported most of the code to a new platform, but the parts which are
+exposed to the customers are still running on the Plone site and they
+will probably stay there because it works and there is nearly no
+maintenance to perform (just add a new customer once in a while).
 
 Let me be concrete: I have been spending the latest two months in a
 large refactoring project (which is only at the beginning, anyway) so
@@ -72,11 +107,12 @@ developer is facing every day.
 
 
 
-
+ because it was written with specs which are not valid anymore
 
 .. http://www.michaelfeathers.com/	
 .. Working Effectively with Legacy Code 
-   
+..  _post of Tim Bray:
+
 ..  persone a StatPro
    
    1 Adolfo
@@ -94,3 +130,5 @@ developer is facing every day.
    13 Silvia
    14 Andrea
    15 Paolo
+   16 Tipo a Udine
+   17 Tipo libanese

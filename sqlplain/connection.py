@@ -164,7 +164,9 @@ class LazyConnection(object):
             # converts unicode arguments to utf8
             lst = []
             for a in args:
-                if isinstance(a, unicode):
+                if isinstance(a, bool):
+                    lst.append(int(a))
+                elif isinstance(a, unicode):
                     lst.append(a.encode('utf8'))
                 else:
                     lst.append(a)
