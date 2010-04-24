@@ -441,7 +441,6 @@ classes in the list of parents:
 Python 2.2 (both for classic classes and new style classes) in this
 situation, would not raise any exception.
 
-
 Examples of non-monotonic MROs
 -------------------------------------------
 
@@ -564,7 +563,7 @@ Here is an example using Python 3 syntax:
 It is clear that the ``__init__`` method in the class ``A`` is calling
 the ``__init__`` method of the parent of ``A``,
 i.e. ``object.__init__``.  However, things are
-much subtler in multiple inheritance situations and it is non-obvious to
+subtle in multiple inheritance situations and it is non-obvious to
 figure out which is the next method to call.
 For instance, suppose we define the following additional classes:
  
@@ -580,7 +579,7 @@ For instance, suppose we define the following additional classes:
           print('C.__init__')
           super().__init__()
  
-When I create an instance of ``A``, which method will be called by
+When we create an instance of ``A``, which method will be called by
 ``super().__init__()``?  Notice that I am considering here generic
 instances of ``A``, not only direct instances: in particular, an
 instance of ``C`` is also an instance of ``A`` and instantiating ``C``
@@ -718,19 +717,23 @@ Nowadays I tend to favor the second choice.
 
 Luckily, usually multiple inheritance is used with mixin classes, and mixins do
 not have constructors, so that in practice the problem is mitigated.
+The current recommended approach is to pass along a ``**kwds`` argument so 
+that the API is extendable and the methods can extract the arguments 
+that are needed for a particular class.
 
 Method cooperation done right
 ----------------------------------------------------
 
 Even if ``super`` has its shortcomings, there are meaningful use cases for
-it, assuming you think multiple inheritance is a legitimate design technique.
-For instance, if you use metaclasses and you want to support multiple 
-inheritance, you *must* use ``super`` in the ``__new__`` and ``__init__``
-methods: there is no problem, since the constructor for 
+it, assuming you think multiple inheritance is a legitimate design technique. 
+The original motivating use case was to support cooperative metaclasses:
+if you want to compose two metaclasses properly
+you *must* use ``super`` in the ``__new__`` and ``__init__``
+methods. Luckily, there is no problem there, since the constructor for 
 metaclasses has a fixed signature *(name, bases, dictionary)*. But metaclasses
-are extremely rare, so let me give a more meaningful example for an application
-programmer where a design bases on cooperative
-multiple inheritances could be reasonable.
+are somewhat abstract and rarely used; I want to give a more concrete 
+example to show a case where a design bases on cooperative
+multiple inheritance can be reasonable.
 
 Suppose you have a bunch of ``Manager`` classes which
 share many common methods and which are intended to manage different resources,
@@ -1011,14 +1014,21 @@ who wants to see code. In turns my essay is based on
 `a paper about the Dylan language`_ and on a `thread on python-dev`_
 started by Samuele Pedroni.
 
-The part about super is based on a `recent blog
-post` of mine.
-There is plenty of material about super and multiple inheritance. You
-should probably start from `Super considered harmful`_ by James
-Knight. A lot of the issues with ``super``, especially in old versions
-of Python are covered in `Things to know about super`_. I did spent
-some time thinking about ways to avoid multiple inheritance; you may
-be interested in reading my series `Mixins considered harmful`_.
+The part about super is based on a `recent blog post` of mine.  There
+is plenty of material about super and multiple inheritance. You should
+probably start from `Super considered harmful`_ by James Knight. A lot
+of the issues with ``super``, especially in old versions of Python are
+covered in `Things to know about super`_. I did spent some time
+thinking about ways to avoid multiple inheritance; you may be
+interested in reading my series `Mixins considered harmful`_.
+
+If you are willing to risk your head exploding, you can also read the
+documentation of the strait_ module, which explain how method cooperation
+can be implemented in a single inheritance word. The idea is based on
+the concepts of traits_, which can be seen as a very restricted form
+of multiple inheritance or as an empowered form of single inheritance.
+Traits are implemented - in different forms - in languages
+such as as Smalltalk_ and Scala_.
 
 ..  _thread on python-dev: http://mail.python.org/pipermail/python-dev/2002-October/029035.html
 .. _a paper about the Dylan language: http://www.webcom.com/haahr/dylan/linearization-oopsla96.html
@@ -1031,3 +1041,7 @@ be interested in reading my series `Mixins considered harmful`_.
 .. _Armin Ronacher: http://lucumr.pocoo.org/2008/4/30/how-super-in-python3-works-and-why-its-retarded
 .. _warts in Python 3: http://lucumr.pocoo.org/2010/1/7/pros-and-cons-about-python-3
 .. _recent blog post: http://www.artima.com/weblogs/viewpost.jsp?thread=281127
+.. _strait: http://pypi.python.org/pypi/strait
+.. _traits: http://scg.unibe.ch/research/traits/
+.. _Smalltalk: http://scg.unibe.ch/archive/papers/Scha02bTraits.pdf
+.. _Scala: http://www.scala-lang.org/docu/files/ScalaOverview.pdf
