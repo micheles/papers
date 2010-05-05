@@ -189,7 +189,7 @@ Moreover, concrete implementations often have a lot of useful
 But let me go back to syntax. It must be noted that the prefix syntax
 has enourmous advantages when macros enter the game. The absolute
 regularity of Scheme/Lisp programs, which are sequences of
-*s*-espressions of the form
+*s*-expressions of the form
 
   ``(arguments ...)``
 

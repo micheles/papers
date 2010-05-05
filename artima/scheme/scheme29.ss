@@ -10,7 +10,9 @@ Consider for instance the following trivial macro:
 $$DEFINE-A*
 
 ``(define-a x)`` *apparently* expand to ``(define a x)``, so
-you may find the following surprising::
+you may find the following surprising:
+
+.. code-block:: scheme
 
  > (define-a 1)
  > a

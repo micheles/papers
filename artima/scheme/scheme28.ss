@@ -52,8 +52,7 @@ that ``syntax-rules`` macros do not have guarded patterns; the most direct
 consequence is that providing good error messages for incorrect syntax
 is more difficult. You may learn everything you ever wanted to know
 about ``syntax-rules`` in the `Syntax-Rules Primer for the Mildly Insane`_
-by Joe Marshall.
-
+by Al Petrofsky.
 
 ``syntax-match`` vs ``syntax-case``
 -----------------------------------------------------------------

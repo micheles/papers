@@ -109,7 +109,7 @@ the same iterator returns different values:
  2
 
 Thus, Python iterators *are not functional*.  Functional languages
-such as Scheme ML and Haskell have no imperative iterators: they have
+such as Scheme, ML and Haskell have no imperative iterators: they have
 *streams* instead.  Ikarus comes with a built-in stream
 library, so that I can give a concrete example right now (of course
 you can use streams in other implementations simply by using the

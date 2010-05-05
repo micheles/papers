@@ -7,7 +7,7 @@ The concept is peculiar to Scheme and has no counterpart in other
 languages (including Common Lisp), therefore it is worth to spend some time
 on it.
 
-A *syntax-object* is a kind of enhanced *s*-espression: it contains
+A *syntax-object* is a kind of enhanced *s*-expression: it contains
 the source code as a list of symbols and primitive values, but also
 additional informations, such as
 the name of the file containing the source code, the position

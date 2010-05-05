@@ -278,7 +278,7 @@ between R6RS-conforming implementations.
 
 All the *Adventures* have my name at the top and I take full
 responsibility for the opinions and the mistakes. But for
-the parts which are correct, I deserves little credit, since
+the parts which are correct, I deserve little credit, since
 most of the time I am just reporting advice which I have received
 from the Scheme community, mostly from comp.lang.scheme and
 ikarus-users, as well from private emails. This is true for all of
