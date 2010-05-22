@@ -45,8 +45,8 @@ def exists_db_postgres(uri):
             return True
     return False
 
-def dump_file_postgres(uri, query, filename, mode, sep='\t', null='\N',
-                       schema=None):
+def dump_file_postgres(uri, query, filename, mode, sep='\t', null='',
+                       schema=None): # or null='\N'
     """
     Save the result of a query on a local file by using COPY TO and psql
     """
@@ -62,8 +62,8 @@ def dump_file_postgres(uri, query, filename, mode, sep='\t', null='\N',
             (query, sep, null), filename, schema)
 
 # apparently copy_from from psycopg2 is buggy for large files
-def load_file_postgres(uri, tname, filename, mode, sep='\t', null='\N',
-                       schema=None):
+def load_file_postgres(uri, tname, filename, mode, sep='\t', null='',
+                       schema=None): # or null='\N'
     """
     Load a file into a table by using COPY FROM and psql
     """

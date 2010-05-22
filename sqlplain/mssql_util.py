@@ -64,7 +64,7 @@ def get_source_mssql(conn, objname):
     "Extracts the source code for views and procedures"
     return conn.execute(GET_DEF, (objname,), scalar=True)
 
-def dump_file_mssql(uri, table_or_query, fname, mode, sep='\t', null='\N'):
+def dump_file_mssql(uri, table_or_query, fname, mode, sep='\t', null=''):
     """
     Dump a table or query into a CSV file by using bcp. Examples:
     >> dump_file(conn, 'client.csv', 'client', sep='\t')
