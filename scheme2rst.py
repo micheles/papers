@@ -25,11 +25,11 @@ SNIPPETNAME = re.compile(r'\n\$\$(%s)\n' % identifier)
 INCLUDE = re.compile(r'\$\$([-\w\d_\./]+):')
 INCLUDESNIPPET = re.compile(r'\$\$([-\w\d_\.]+):(%s)\n' % identifier)
 
-PATH = os.environ['IKARUS_LIBRARY_PATH']
+PATHS = os.environ['IKARUS_LIBRARY_PATH'].split(':')
 
-APS_PATH = os.path.join(PATH, 'aps')
+APS_PATH = os.path.join(PATHS[0], 'aps')
 
-PATHS = '.', PATH, APS_PATH
+PATHS = ['.'] + PATHS + [APS_PATH]
 
 def include(fname, paths=PATHS, exts=('.ss', '.sls')):
     for path in paths:

@@ -1,4 +1,4 @@
-The *Adventures of a Pythonista in Schemeland* have grown to become a
+The `Adventures of a Pythonista in Schemeland`_ have grown to become a
 rather big series. I think a table of contents is needed to index all
 the episodes. Here it is.
 
@@ -99,3 +99,4 @@ Part V - Macros, again
 .. _Ep28: http://www.artima.com/weblogs/viewpost.jsp?thread=260195
 .. _Ep29: http://www.artima.com/weblogs/viewpost.jsp?thread=261363
 .. _Ep30: http://www.artima.com/weblogs/viewpost.jsp?thread=261364
+.. _Adventures of a Pythonista in Schemeland: http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf

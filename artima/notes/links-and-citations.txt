@@ -57,3 +57,9 @@ Enterprise applications do not have installers and have configurations so comple
 That's how we know that a LAMP-based application stack involving Python can't be enterprise-ready. Python and MySQL install with "next-next-done" wizards. The application suite installs with a few dozen easy_install steps followed by a database build script.
 
 Anything that simple can't scale. *S.Lott*
+
+multiple-inheritance can be seen as required for basic
+object-oriented programming, because many objects in the real world belong to
+several classes. In classical systems without MI, a class which should inherit
+from more than one class must textually include all but one of those classes in
+its interface, causing code duplication (and a messy interface) - http://stason.org/TULARC/software/object-oriented-programming/1-9-Does-Multiple-Inheritance-Pose-Any-Additional-Difficult.html
