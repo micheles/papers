@@ -200,9 +200,10 @@ and should be done with care.
 Structures are not first class values
 -----------------------------------------------------------
  
-The problem with structures is that they are not first class values, i.e. they cannot
-be passed to functions and they cannot be inspected. This is the reason why giving at
-the prompt the name of  a structure does not work::
+The problem with structures is that they are not first class values,
+i.e. they cannot be passed to functions and they cannot be
+inspected. This is the reason why giving at the prompt the name of a
+structure does not work::
 
  - TextIO;
  1.0-1.6: unknown value or constructor `TextIO'
@@ -332,24 +333,25 @@ the signature to a concrete structure::
         val sub : 'a Vector.t * int -> 'a
      end = Vector
 
-i.e. the abstract type ``t`` is replaced by the concrete type ``list`` when the
-signature is ascribed to the ``List`` structure and by the concrete type ``vector``
-when the signature is ascribed to the ``Vector`` structure.
-Moreover, having ascribed the ``SIMPLE_SEQUENCE`` signature to the
-structures ``L`` and ``V``, we have automatically hidden all the additional
-functionality of the original structures, so that for instance ``L.map``
-and ``V.map`` are not accessible, even if ``List.map`` and ``Vector.map``
-do exists::
+i.e. the abstract type ``t`` is replaced by the concrete type ``list``
+when the signature is ascribed to the ``List`` structure and by the
+concrete type ``vector`` when the signature is ascribed to the
+``Vector`` structure.  Moreover, having ascribed the
+``SIMPLE_SEQUENCE`` signature to the structures ``L`` and ``V``, we
+have automatically hidden all the additional functionality of the
+original structures, so that for instance ``L.map`` and ``V.map`` are
+not accessible, even if ``List.map`` and ``Vector.map`` do exists::
 
  - L.map
  1.2-1.5: unknown value or constructor `map'
  - V.map;
  1.2-1.5: unknown value or constructor `map'
 
-In a sense, you may see ascribing the signature as a way of importing a selected
-subset of the functionality of the original structure; you could even import a subset
-of the names defined in the original structures in the current namespace
-by opening the ascribed structure:: 
+In a sense, you may see ascribing the signature as a way of importing
+a selected subset of the functionality of the original structure; you
+could even import a subset of the names defined in the original
+structures in the current namespace by opening the ascribed
+structure::
 
  - open Vector:SIMPLE_SEQUENCE;
  structure _id20 :

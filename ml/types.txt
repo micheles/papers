@@ -77,7 +77,7 @@ For instance, suppose you want to define an utility function casting integer to 
 You can do so as follows::
 
  - fun valueToString (INT x) = Int.toString x
-        | valueToString (STR x) = x;
+     | valueToString (STR x) = x;
  val valueToString : int_or_string -> string = _fn
 
 Let me check that it works::
@@ -138,9 +138,10 @@ a pair ``(string, int)`` as input::
  - STRING_INT;
  val it  : string * int -> string_int = _fn
 
-Moreover, SML allows to define recursive types. For instance, a file system is a typical
-example of recursion, since directories can contains directories at any
-level of nesting. It can modeled with the following recursive datatype::
+Moreover, SML allows to define recursive types. For instance, a file
+system is a typical example of recursive data structure, since
+directories can contains directories at any level of nesting. It can
+modeled with the following recursive datatype::
 
   - datatype file_or_dir = File of string | Dir of string * file_or_dir list
   datatype file_or_dir = Dir of string * file_or_dir list | File of string
@@ -186,8 +187,8 @@ enumeration types, like the following one::
  - datatype color = RED|GREEN|BLUE;
  datatype color = BLUE | GREEN | RED
 
-For enumeration types the name "constructor" is rather improper, since constructor are
-just values::
+For enumeration types the name "constructor" is rather improper, since
+constructor are just values::
 
  - RED;
  val it : color = RED
@@ -224,7 +225,8 @@ can define ::
 
 In technical terms, we say that SML support *parametric polymorphism*.
 
-Notice that it is pretty easy to define a function extracting the inner value from a box::
+Notice that it is pretty easy to define a function extracting the
+inner value from a box::
 
   - fun unbox (Box x) = x;
 
@@ -276,7 +278,7 @@ Possibly the most used word in statically typed languages is *polymorphism*.
 The word does not exist in dynamic languages, since dynamically typed languages
 are polymorphic by design, whereas in statically typed languages you have
 to work to achieve polymorphism, i.e. the ability to define functions accepting 
-generic types. In order to give a poor man' example, suppose we want to
+generic types. In order to give a poor man example, suppose we want to
 define a few polymorphic utilities accepting both lists and vectors. We could
 do so by defining a ``ListOrVector`` structure associated with a
 ``list_or_vector`` datatype::
@@ -320,7 +322,7 @@ introduce functors with a motivating example, again in the arena of
 input and output. 
 We saw in an earlier installament that the standard library provides two
 structures ``TextIO`` and ``BinIO`` for managing text files and binary
-files respectively; we also show that the two structures have many things
+files respectively; we also saw that the two structures have many things
 in common, and it is possibile to define a (sub)signature matching both.
 
 
@@ -328,7 +330,7 @@ Structures are not first class objects and
 they cannot be passed to and returned from regular functions.
 To circumvent this restriction, the authors of ML invented
 the concept of *functor*, which is basically a *sui generis* function
-taking structures in input and to returning structures in output. Functors
+taking structures in input and returning structures in output. Functors
 are not-first-class objects themselves and therefore they require a specific
 declaration ``functor Name(Struct:SIGNATURE) = funct ... end``.
 
@@ -348,10 +350,11 @@ by writing::
  - structure T = ManagedIO(TextIO)
  - structure B = ManagedIO(BinIO)
 
-The operation of specializing a functor is also called *functor instantiation*;
-since it happens in a structure declaration it is performed by the compiler
-*at compile time*. The advantage is that the compiler can generate different optimized
-code for  the structures ``T`` and ``B`` in the *client* program.
+The operation of specializing a functor is also called *functor
+instantiation*; since it happens in a structure declaration it is
+performed by the compiler *at compile time*. The advantage is that the
+compiler can generate different optimized code for the structures
+``T`` and ``B`` in the *client* program.
 
  ``- T.withInputFile "three-lines.txt" (print o T.inputAll)``
 

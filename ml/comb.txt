@@ -80,15 +80,16 @@ are a few differences.
     at the lottery and decided to leave for a tropical paradise, nobody would
     provide support for Alice ML on the mailing list
 
-4. 
-    SML is a deserted language, even compared to non-mainstream languages
-    as OCaml, Haskell, Scheme, Common Lisp, Smalltalk,  Tcl, ...; it is perhaps the
-    least used language I have ever seen and this is a pity.
+4.
+    SML is a deserted language, even compared to non-mainstream
+    languages as OCaml, Haskell, Scheme, Common Lisp, Smalltalk, Tcl,
+    ...; it is perhaps the least used language I have ever seen and
+    this is a pity.
 
-5. 
-    Generally speaking,  if you want bindings for external libraries you have to write 
-    it yourself; there are no standard bindings for GUI toolkits, database drivers,
-    scientific programming libraries.
+5.
+    Generally speaking, if you want bindings for external libraries
+    you have to write it yourself; there are no standard bindings for
+    GUI toolkits, database drivers, scientific programming libraries.
 
 6. 
     Scripting languages have traditionally a strong support for Web programming
@@ -167,10 +168,10 @@ nested Python list, i.e.
 
 .. _basis library: http://www.standardml.org/Basis/list.html 
  
-The core of the algorithm used in the interpolation library is a recursive function
-which takes a list of N+1 terms ``t_1 ... t_{N+1}`` and a list of N arguments 
-``a_1 .. a_N`` and returns the string obtained by interspersing the terms
-with the arguments,
+The core of the algorithm used in the interpolation library is a
+recursive function which takes a list of N+1 terms ``t_1 ... t_{N+1}``
+and a list of N arguments ``a_1 .. a_N`` and returns the string
+obtained by interspersing the terms with the arguments,
 
   ``t_1 ^ a_1 ^ ... _tN ^ a_N ^ t_{N+1}``
 
@@ -269,11 +270,12 @@ celestial operators back to earthly strings::
  - fun l O = O Fn. id "";
  val l : (('a -> 'a) -> string -> 'b) -> 'b = _fn
 
-``l`` takes the operator, applies it to the identity function and returns a function
-which is then applied to the empty string, finally bringing back at home a
-plain string; ``l`` is the inverse of ``L``, i.e. ``l o L`` is the identity
-in the space of strings where ``L o l`` is the identity in the space
-of operators. You can try yourself at the prompt that
+``l`` takes the operator, applies it to the identity function and
+returns a function which is then applied to the empty string, finally
+bringing back at home a plain string; ``l`` is the inverse of ``L``,
+i.e. ``l o L`` is the identity in the space of strings where ``L o l``
+is the identity in the space of operators. You can try yourself at the
+prompt that
 
 ::
 

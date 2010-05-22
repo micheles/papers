@@ -105,7 +105,7 @@ they just make everything immutable. Making everything immutable has
 big advantages especially in multithreaded programming, since
 different threads cannot interfere each other and you can just forget
 about locks. On the other hand, various programming patterns based on
-mutability (for instance keeping a registry of callbacks) becames
+mutability (for instance keeping a dynamic registry of callbacks) becames
 impossible.
 
 Another very common operation in imperative languages is rebinding a variable.

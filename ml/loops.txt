@@ -118,8 +118,8 @@ Loops and recursion
 
 Perhaps the most common construct in imperative programming is the *for* loop;
 in spite of that, *for* loops are usually missing in functional languages. In this
-section I will explain and the way to work around this omission.
-To start with a practical example, suppose we want to define a function
+section I will explain why and the way to work around this omission.
+To begin with a practical example, suppose we want to define a function
 to count the number of lines in a text file, something akin to the following
 Python code [#]_::
 
@@ -176,17 +176,18 @@ Return the new value of the counter::
 From this explanation, it should be obvious what ``countLines`` does;
 the implementation works, but it is very ugly and strongly discouraged.  I
 show it here, to prove that SML can be used in an imperative way, not
-to suggest to code in this way.   However, it may be 
+to suggest you to code in this way.   However, it may be 
 not obvious to re-implement ``countLines`` without mutation, unless
 you have already coded in functional languages.
 
-There is a standard tecnique to solve this kind of problem, i.e. the conversion of an
-imperative loop into a functional recursion: *the accumulator tecnique*.
+There is a standard tecnique to solve this kind of problem, i.e. the
+conversion of an imperative loop into a functional recursion: *the
+accumulator tecnique*.
 
-The accumulator is the mutating parameter in the imperative loop, in this case, the 
-counter. The accumulator tecnique consists in rewriting the loop
-as a recursive function, promoting the accumulator to the rank of additional
-parameter in the function signature::
+The accumulator is the mutating parameter in the imperative loop, in
+this case, the counter. The accumulator tecnique consists in rewriting
+the loop as a recursive function, promoting the accumulator to the
+rank of additional parameter in the function signature::
 
  - fun countLines' (file, counter) = 
        case TextIO.inputLine file
@@ -215,14 +216,15 @@ by noting that the accumulator tecnique is also used to convert non-tail-call
 recursive functions like the good old factorial::
 
  - fun fact 0 = 1
-        | fact n = n*fact (n-1);
+     | fact n = n*fact (n-1);
 
-into a tail-call recursive function, i.e. a function returning either a value without 
-making a recursive call, or directly the result of a recursive call::
+into a tail-call recursive function, i.e. a function returning either
+a value without making a recursive call, or directly the result of a
+recursive call::
 
  - fun fact n = fact' (n, 1) 
-    and fact' (0, acc) = acc
-        | fact' (n, acc) = fact' (n-1,  acc*n);
+   and fact' (0, acc) = acc
+     | fact' (n, acc) = fact' (n-1,  acc*n);
 
 Here I have use the ``and`` syntax to define two or more conceptually connected
 functions in a single step.
@@ -248,9 +250,9 @@ language, it is possible to write::
        else: 
              return fact(n-1, acc*n)
      
-but this function is not converted into a loop, you will have a loss of performance
-and you will incur in the recursion limit if try to compute the factorial of a
-large enough integer (say 1000) [#]_ .
+but this function is not converted into a loop, you will have a loss
+of performance and you will incur in the recursion limit if try to
+compute the factorial of a large enough integer (say 1000) [#]_ .
 
 .. [#] Notice that Python does not make tail call optimization *on
         purpose*, essentially for two reasons: 1) the language has a
@@ -269,10 +271,11 @@ Higher order functions
 ---------------------------------------------------------
 
 Just as recursion is pervasive in functional programming, so are
-higher order functions. You may judge how much functional is a language
-by measuring how good is the support for recursion and for higher order
-functions. In this respect, ML shines since it has a particularly elegant syntax to 
-define higher order functions i.e. functions returning functions.
+higher order functions. You may judge how much functional is a
+language by measuring how good is the support for recursion and for
+higher order functions. In this respect, ML shines since it has a
+particularly elegant syntax to define higher order functions
+i.e. functions returning functions.
 
 .. higher order functions: http://en.wikipedia.org/wiki/Higher_order_functions
 
@@ -330,18 +333,19 @@ natural to define a higher order function such as the following::
     end;
   val ` : (TextIO.instream -> 'a) -> string -> 'a = _fn
 
-Here ````` is just an identifier for the higher order function; I could have used
-for it a longer name, such as 
-``higherOrderFunctionAddingAutomaticOpenCloseFunctionality``, but I am lazy,
-and also I wanted to show that in ML one has a considerable freedom in the choice
-of valid identifiers. The action of  `````  is clear: it takes a function which operates
-on TextIO.stream objects (i.e. text files) and converts it into a function that
-operates on strings (i.e. file names) and has opening/closing functionality
-embedded. The type of the return value is not specified at this stage, and
-this is indicated by the notation *'a* (to be read alpha), which denotes a
-generic type.
-Using ````` the ``fileToString`` function defined in the first
-article of this series could be written as simply as::
+Here ````` is just an identifier for the higher order function; I
+could have used for it a longer name, such as
+``higherOrderFunctionAddingAutomaticOpenCloseFunctionality``, but I am
+lazy, and also I wanted to show that in ML one has a considerable
+freedom in the choice of valid identifiers. The action of ````` is
+clear: it takes a function which operates on TextIO.stream objects
+(i.e. text files) and converts it into a function that operates on
+strings (i.e. file names) and has opening/closing functionality
+embedded. The type of the return value is not specified at this stage,
+and this is indicated by the notation *'a* (to be read alpha), which
+denotes a generic type.  Using ````` the ``fileToString`` function
+defined in the first article of this series could be written as simply
+as::
 
  - val fileToString = `TextIO.inputAll;
  val fileToString : string -> string = _fn
@@ -351,18 +355,19 @@ whereas ``countLines`` could be written as::
  - val countLines = `(fn file => countLines'(file, 0))
  val countLines : string -> int = _fn
 
-You should begin to appreciate the power of higher order functions, now ;)
-An evident weakness of the approach used here, is that it works only
-for text files (actually only for files opened for input; we would need to
-define a different higher order function for files opened for output); 
-if we wanted to wrap binary files, we would need
-to define equivalent higher order functions using the ``BinIO`` library
-instead of ``TextIO``; then, if we wanted to use it for sockets, we would need
-to define yet another higher order function; in general there
-are infinite resources which can be opened and closed, and we could define
-an infinite number of higher order functions doing all the same thing.
-This is bad; fortunately this potentially infinite code duplication can be solved 
-using functors, but you will have to wait for the next articles to see how to do it ;)
+You should begin to appreciate the power of higher order functions,
+now ;) An evident weakness of the approach used here, is that it works
+only for text files (actually only for files opened for input; we
+would need to define a different higher order function for files
+opened for output); if we wanted to wrap binary files, we would need
+to define equivalent higher order functions using the ``BinIO``
+library instead of ``TextIO``; then, if we wanted to use it for
+sockets, we would need to define yet another higher order function; in
+general there are infinite resources which can be opened and closed,
+and we could define an infinite number of higher order functions doing
+all the same thing.  This is bad; fortunately this potentially
+infinite code duplication can be solved using functors, but you will
+have to wait for the next articles to see how to do it ;)
 
 ----
 

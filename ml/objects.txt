@@ -185,7 +185,8 @@ systems; consider for instance this example::
     def reset(self):
          self.value = self.initial_value
 
-We can get the same effect via a stateful higher order function (a.k.a. a closure)::
+We can get the same effect via a stateful higher order function
+(a.k.a. a closure)::
 
  exception MissingMethod
 

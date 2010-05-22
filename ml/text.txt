@@ -16,15 +16,15 @@ that Haskell.
 Text processing in SML
 ----------------------------------------------
 
-Scripting languages, starting from Perl, have a very strong tradition in the field
-of text processing. In comparison, SML has very primitive libraries. Still, it is
-not difficult to implement a few basic facilities. In this assessment, as a
-learning exercise, I will show how can implement a simple template mechanism.
-In order to do so, the first thing to discuss is the regular expression.
-More or less all SML implementations have they own regular expression
-library; here I will consider only Alice ML library, which is very simple
-and needs to be supplemented by some utility in order to become
-usable.
+Scripting languages, starting from Perl, have a very strong tradition
+in the field of text processing. In comparison, SML has very few
+primitive text processing functions. Still, it is not difficult to implement a few
+basic facilities. In this assessment, as a learning exercise, I will
+show how can implement a simple template mechanism.  In order to do
+so, the first thing to discuss is the regular expression.  More or
+less all SML implementations have they own regular expression library;
+here I will consider only Alice ML library, which is very simple and
+needs to be supplemented by some utility in order to become usable.
 
 $pippo:
 $hello
