@@ -1,17 +1,20 @@
 ubuntu:
-	python2.5 ../post.py ubuntu-on-mac.txt 240272
+	python ../post.py ubuntu-on-mac.txt 240272
 
 eeepc:
-	python2.5 ../post.py eeepc.txt 240841
+	python ../post.py eeepc.txt 240841
 
 eeepc-ubuntu:
-	python2.5 ../post.py eeepc-ubuntu.txt 246386
+	python ../post.py eeepc-ubuntu.txt 246386
 
 eeepc-main:
-	python2.5 ../post.py eeepc-as-main-box.txt 257325
+	python ../post.py eeepc-as-main-box.txt 257325
 
 caring:
-	python2.5 ../post.py caring.txt 259296 
+	python ../post.py caring.txt 259296 
 
 eurolisp2:
-	python2.5 ../post.py eurolisp2.txt 259505
+	python ../post.py eurolisp2.txt 259505
+
+europython2010:
+	python ../post.py europython2010.txt 293373
