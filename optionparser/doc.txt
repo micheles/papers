@@ -1,0 +1,77 @@
+optionparser: a simplified interface to optparse
+-------------------------------------------------
+
+The Python standard library contains three different modules for the
+parsing of command line options: ``getopt`` (from the stone age),
+``optparse`` (from Python 2.3) and ``argparse`` (from Python 2.7).
+There are therefore plenty of industrial strength ways of parsing
+the command line in Python; nevertheless, in my opinion, we a *simple*
+way is still missing.
+
+I see two classes of users for command line scripts: on one side there
+are programmers, sysadmins, scientists and in general people writing throw-away
+scripts for themselves, choosing to use a command line interface
+because it is the quick and simple; on the other side there are programmers
+writing power user tools for other programmers or system administrators.
+I strongly believe that 99.9% of the users of command line interfaces
+fit in the first category. Such users are
+not interested in features, they just want to be able to write a simple
+command line tool from a simple specification, not to build a command line
+parser by hand. Unfortunately, the current modules in the standard
+library forces them to go the hard way.
+
+``optionparser`` solves this problem. By design it is not intended to
+be an industrial strength command line parsing module. Its capabilities
+are limited *on purpose*. If you need more power, by all means use the
+parsing modules in the standard library. Still, I have been using Python for 8
+years and never once I had to use the full power of ``optparse``: the
+features provided by ``optionparser`` have been more than enough for
+me and I guess that the same could be said for most people.
+
+The fundamental idea behind ``optionparser`` is to extract the parser
+from the usage docstring. In this way the user does not need to write
+the parser by hand by duplicating the instructions which she has already
+encoded implicitly in the usage docstring.
+
+Here is a concrete example of a script using ``optionparser``:
+
+.. include:: example.py
+   :literal:
+
+Here are a few examples of usage:
+
+.. include:: example.txt
+   :literal:
+
+Here are some explanations. First of all, ``optionparser`` recognizes 
+four classes of command line arguments:
+
+- positional arguments (none in this example)
+- options with non-trivial defaults (``color=black`` in this example)
+- options with null defaults (``delete=`` in this example)
+- flags (``delete-all`` in this example)
+
+You can have a generic number of positional arguments, including no
+arguments. An option with default can be set on the command line
+(for instance you can pass ``--color=red``) or not; if not, the default
+value is used. An option with null default is a special case of
+option with a default, where the default value is the empty string. 
+A flag is similar to an option with null default: if the
+flag is not passed its value is False, otherwise it is True.
+The difference with respect to a null default option is that
+the flag value is a boolean, not a string, and that the syntax
+is different (there is no ``=``).
+
+The ``OptionParser.parse_args`` method 
+parses the usage docstring by looking at the
+characters ",", ":", "=", "\\n" (be careful when using them, if
+the docstring is not correctly formatted you will get a ``SyntaxError``).
+
+Options with dashes inside the name, such as
+``--delete-all``, are translated into  with underscore (``delete_all``), since
+``delete-all`` is not a valid Python identifier.
+
+Limitations
+------------------------------------
+
+The default values cannot contain a ':' (or it should be escaped).

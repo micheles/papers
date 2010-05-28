@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.6: http://docutils.sourceforge.net/" />
+<title>optionparser: a simplified interface to optparse</title>
+<style type="text/css">
+
+.highlight  { background: #f8f8f8; }
+.highlight .c { color: #408080; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #FF0000 } /* Error */
+.highlight .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight .o { color: #666666 } /* Operator */
+.highlight .cm { color: #408080; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #BC7A00 } /* Comment.Preproc */
+.highlight .c1 { color: #408080; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #408080; font-style: italic } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .gr { color: #FF0000 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #00A000 } /* Generic.Inserted */
+.highlight .go { color: #808080 } /* Generic.Output */
+.highlight .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #0040D0 } /* Generic.Traceback */
+.highlight .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #008000; font-weight: bold } /* Keyword.Type */
+.highlight .m { color: #666666 } /* Literal.Number */
+.highlight .s { color: #BA2121 } /* Literal.String */
+.highlight .na { color: #7D9029 } /* Name.Attribute */
+.highlight .nb { color: #008000 } /* Name.Builtin */
+.highlight .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight .no { color: #880000 } /* Name.Constant */
+.highlight .nd { color: #AA22FF } /* Name.Decorator */
+.highlight .ni { color: #999999; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #D2413A; font-weight: bold } /* Name.Exception */
+.highlight .nf { color: #0000FF } /* Name.Function */
+.highlight .nl { color: #A0A000 } /* Name.Label */
+.highlight .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #19177C } /* Name.Variable */
+.highlight .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight .mf { color: #666666 } /* Literal.Number.Float */
+.highlight .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight .se { color: #BB6622; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight .si { color: #BB6688; font-weight: bold } /* Literal.String.Interpol */
+.highlight .sx { color: #008000 } /* Literal.String.Other */
+.highlight .sr { color: #BB6688 } /* Literal.String.Regex */
+.highlight .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight .vc { color: #19177C } /* Name.Variable.Class */
+.highlight .vg { color: #19177C } /* Name.Variable.Global */
+.highlight .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight .il { color: #666666 } /* Literal.Number.Integer.Long */
+
+</style>
+</head>
+<body>
+<div class="document" id="optionparser-a-simplified-interface-to-optparse">
+<h1 class="title">optionparser: a simplified interface to optparse</h1>
+
+<p>The Python standard library contains three different modules for the
+parsing of command line options: <tt class="docutils literal">getopt</tt> (from the stone age),
+<tt class="docutils literal">optparse</tt> (from Python 2.3) and <tt class="docutils literal">argparse</tt> (from Python 2.7).
+There are therefore plenty of industrial strength ways of parsing
+the command line in Python; nevertheless, in my opinion, we a <em>simple</em>
+way is still missing.</p>
+<p>I see two classes of users for command line scripts: on one side there
+are programmers, sysadmins, scientists and in general people writing throw-away
+scripts for themselves, choosing to use a command line interface
+because it is the quick and simple; on the other side there are programmers
+writing power user tools for other programmers or system administrators.
+I strongly believe that 99.9% of the users of command line interfaces
+fit in the first category. Such users are
+not interested in features, they just want to be able to write a simple
+command line tool from a simple specification, not to build a command line
+parser by hand. Unfortunately, the current modules in the standard
+library forces them to go the hard way.</p>
+<p><tt class="docutils literal">optionparser</tt> solves this problem. By design it is not intended to
+be an industrial strength command line parsing module. Its capabilities
+are limited <em>on purpose</em>. If you need more power, by all means use the
+parsing modules in the standard library. Still, I have been using Python for 8
+years and never once I had to use the full power of <tt class="docutils literal">optparse</tt>: the
+features provided by <tt class="docutils literal">optionparser</tt> have been more than enough for
+me and I guess that the same could be said for most people.</p>
+<p>The fundamental idea behind <tt class="docutils literal">optionparser</tt> is to extract the parser
+from the usage docstring. In this way the user does not need to write
+the parser by hand by duplicating the instructions which she has already
+encoded implicitly in the usage docstring.</p>
+<p>Here is a concrete example of a script using <tt class="docutils literal">optionparser</tt>:</p>
+<pre class="literal-block">
+&quot;&quot;&quot;\
+usage: %prog [options]
+-c, --color=black: set default color
+-d, --delete=: delete the given file
+-a, --delete-all: delete all files
+&quot;&quot;&quot;
+
+def print_(color, txt):
+    code = {'black': 30, 'red': 31}[color]
+    print '\x1b[%dm%s\x1b[0m' % (code, txt)
+
+if __name__=='__main__':
+    from optionparser import OptionParser
+    option, args = OptionParser(__doc__).parse_args()
+    color = option.color
+    if option.delete_all:
+        print_(color, &quot;Delete all files&quot;)
+    elif option.delete:
+        print_(color, &quot;Delete the file %s&quot; % option.delete)
+
+</pre>
+<p>Here are a few examples of usage:</p>
+<pre class="literal-block">
+$ python example.py
+&lt;no output&gt;
+
+$ python example.py -h
+Usage: example.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -c COLOR, --color=COLOR
+                        set default color
+  -d DELETE, --delete=DELETE
+                        delete the given file
+  -a, --delete_all      delete all files
+
+$ python example.py -d
+Usage: example.py [options]
+
+example.py: error: -d option requires an argument
+
+$ python example.py --delete x.txt
+Delete the file x.txt
+
+$ python example.py --delete-all
+Delete all files
+
+$  python example.py -a --color=red
+Delete all files # this is printed in red on most terminals
+
+
+</pre>
+<p>Here is some explanation. First of all, <tt class="docutils literal">optionparser</tt> recognizes
+four classes of command line arguments:</p>
+<ul class="simple">
+<li>positional arguments (none in this example)</li>
+<li>options with non-trivial defaults (<tt class="docutils literal">color=black</tt> in this example)</li>
+<li>options with null defaults (<tt class="docutils literal">delete=</tt> in this example)</li>
+<li>flags (<tt class="docutils literal"><span class="pre">delete-all</span></tt> in this example)</li>
+</ul>
+<p>You can have a generic number of positional arguments, including no
+arguments. An option with default can be set on the command line
+(for instance you can pass <tt class="docutils literal"><span class="pre">--color=red</span></tt>) or not; if not, the default
+value is used. An option with null default is a special case of
+option with a default, where the default value is the empty string.
+A flag is similar to an option with null default: if the
+flag is not passed its value is False, otherwise it is True.
+The difference with respect to a null default option is that
+the flag value is a boolean, not a string, and that the syntax
+is different (there is no <tt class="docutils literal">=</tt>).</p>
+<p>The <tt class="docutils literal">OptionParser.parse_args</tt> method
+parses the usage docstring by looking at the
+characters &quot;,&quot;, &quot;:&quot;, &quot;=&quot;, &quot;\n&quot;, so be careful when using them. If
+the docstring is not correctly formatted you will get a SyntaxError.</p>
+<p>Options with dashes inside the name, such as
+<tt class="docutils literal"><span class="pre">--delete-all</span></tt>, will be translated with underscore (<tt class="docutils literal">delete_all</tt>), since
+<tt class="docutils literal"><span class="pre">delete-all</span></tt> is not a valid Python identifier.</p>
+</div>
+</body>
+</html>

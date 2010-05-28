@@ -1,0 +1,31 @@
+$ python example.py 
+usage: example.py [options]
+-c, --color=black: set default color
+-d, --delete=: delete the given file
+-a, --delete-all: delete all files
+
+$ python example.py -h
+Usage: example.py [options]
+
+Options:
+  -h, --help            show this help message and exit
+  -c COLOR, --color=COLOR
+                        set default color
+  -d DELETE, --delete=DELETE
+                        delete the given file
+  -a, --delete_all      delete all files
+
+$ python example.py -d
+Usage: example.py [options]
+
+example.py: error: -d option requires an argument
+
+$ python example.py --delete x.txt
+Delete the file x.txt
+
+$ python example.py --delete-all
+Delete all files
+
+$  python example.py -a --color=red
+Delete all files # this is printed in red on most terminals
+
