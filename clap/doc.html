@@ -4,7 +4,7 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
 <meta name="generator" content="Docutils 0.6: http://docutils.sourceforge.net/" />
-<title>optionparser: a simplified interface to optparse</title>
+<title>clap: a simplified interface to optparse</title>
 <style type="text/css">
 
 .highlight  { background: #f8f8f8; }
@@ -71,8 +71,8 @@
 </style>
 </head>
 <body>
-<div class="document" id="optionparser-a-simplified-interface-to-optparse">
-<h1 class="title">optionparser: a simplified interface to optparse</h1>
+<div class="document" id="clap-a-simplified-interface-to-optparse">
+<h1 class="title">clap: a simplified interface to optparse</h1>
 
 <p>The Python standard library contains three different modules for the
 parsing of command line options: <tt class="docutils literal">getopt</tt> (from the stone age),
@@ -91,18 +91,18 @@ not interested in features, they just want to be able to write a simple
 command line tool from a simple specification, not to build a command line
 parser by hand. Unfortunately, the current modules in the standard
 library forces them to go the hard way.</p>
-<p><tt class="docutils literal">optionparser</tt> solves this problem. By design it is not intended to
+<p><tt class="docutils literal">clap</tt> solves this problem. By design it is not intended to
 be an industrial strength command line parsing module. Its capabilities
 are limited <em>on purpose</em>. If you need more power, by all means use the
 parsing modules in the standard library. Still, I have been using Python for 8
 years and never once I had to use the full power of <tt class="docutils literal">optparse</tt>: the
-features provided by <tt class="docutils literal">optionparser</tt> have been more than enough for
+features provided by <tt class="docutils literal">clap</tt> have been more than enough for
 me and I guess that the same could be said for most people.</p>
-<p>The fundamental idea behind <tt class="docutils literal">optionparser</tt> is to extract the parser
+<p>The fundamental idea behind <tt class="docutils literal">clap</tt> is to extract the parser
 from the usage docstring. In this way the user does not need to write
 the parser by hand by duplicating the instructions which she has already
 encoded implicitly in the usage docstring.</p>
-<p>Here is a concrete example of a script using <tt class="docutils literal">optionparser</tt>:</p>
+<p>Here is a concrete example of a script using <tt class="docutils literal">clap</tt>:</p>
 <pre class="literal-block">
 &quot;&quot;&quot;\
 usage: %prog [options]
@@ -116,7 +116,7 @@ def print_(color, txt):
     print '\x1b[%dm%s\x1b[0m' % (code, txt)
 
 if __name__=='__main__':
-    from optionparser import OptionParser
+    from clap import OptionParser
     option, args = OptionParser(__doc__).parse_args()
     color = option.color
     if option.delete_all:
@@ -157,7 +157,7 @@ Delete all files # this is printed in red on most terminals
 
 
 </pre>
-<p>Here is some explanation. First of all, <tt class="docutils literal">optionparser</tt> recognizes
+<p>Here is some explanation. First of all, <tt class="docutils literal">clap</tt> recognizes
 four classes of command line arguments:</p>
 <ul class="simple">
 <li>positional arguments (none in this example)</li>

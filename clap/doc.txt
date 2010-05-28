@@ -1,4 +1,4 @@
-optionparser: a simplified interface to optparse
+clap: a simplified interface to optparse
 -------------------------------------------------
 
 The Python standard library contains three different modules for the
@@ -20,20 +20,20 @@ command line tool from a simple specification, not to build a command line
 parser by hand. Unfortunately, the current modules in the standard
 library forces them to go the hard way.
 
-``optionparser`` solves this problem. By design it is not intended to
+``clap`` solves this problem. By design it is not intended to
 be an industrial strength command line parsing module. Its capabilities
 are limited *on purpose*. If you need more power, by all means use the
 parsing modules in the standard library. Still, I have been using Python for 8
 years and never once I had to use the full power of ``optparse``: the
-features provided by ``optionparser`` have been more than enough for
+features provided by ``clap`` have been more than enough for
 me and I guess that the same could be said for most people.
 
-The fundamental idea behind ``optionparser`` is to extract the parser
+The fundamental idea behind ``clap`` is to extract the parser
 from the usage docstring. In this way the user does not need to write
 the parser by hand by duplicating the instructions which she has already
 encoded implicitly in the usage docstring.
 
-Here is a concrete example of a script using ``optionparser``:
+Here is a concrete example of a script using ``clap``:
 
 .. include:: example.py
    :literal:
@@ -43,7 +43,7 @@ Here are a few examples of usage:
 .. include:: example.txt
    :literal:
 
-Here are some explanations. First of all, ``optionparser`` recognizes 
+Here are some explanations. First of all, ``clap`` recognizes 
 four classes of command line arguments:
 
 - positional arguments (none in this example)

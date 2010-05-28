@@ -4,7 +4,7 @@ usage: %prog [options]
 -d, --delete=: delete the given file
 -a, --delete-all: delete all files
 """
-from optionparser import OptionParser
+from clap import OptionParser
 
 def print_(color, txt):
     code = {'black': 30, 'red': 31}[color]

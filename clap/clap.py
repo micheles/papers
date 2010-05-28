@@ -24,7 +24,8 @@
 ##   DAMAGE.
 
 """
-See optionparser/doc.html for the documentation.
+CLAP, the smart and simple Command Line Arguments Parser.
+See clap/doc.html for the documentation.
 """
 
 import optparse, re, sys, string
@@ -94,19 +95,22 @@ def make_get_default_values(defaults):
                   dict(__nonzero__=__nonzero__))
     return lambda : Values(defaults)
 
+optionstring = None # singleton
+
 class OptionParser(object):
     """
     There should be only one instance of it.
     Attributes: all_options, expected_args, rest_arg, p
     """
-    def __init__(self, optionstring):
+    def __init__(self, doc):
         "Populate the option parser."
-        assert optionstring is not None, \
+        global optionstring
+        assert doc is not None, \
                "Missing usage string (maybe __doc__ is None)"
-        self.__class__.optionstring = optionstring
+        optionstring = doc.replace('%prog', sys.argv[0])
 
-        # parse the optionstring
-        match = rx.usage.search(optionstring)
+        # parse the doc
+        match = rx.usage.search(doc)
         if not match:
             raise ParsingError("Could not find the option definitions")
         optlines = match.group("lines").splitlines()
@@ -170,12 +174,25 @@ class OptionParser(object):
 
     @classmethod
     def exit(cls, msg=None):
-        if msg is None:
-            msg = cls.optionstring.replace("%prog", sys.argv[0])
-        raise SystemExit(msg)
+        exit(msg)
 
-if __name__ == '__main__':
-    arg = OptionParser('''\
-usage: %prog args ... [options]
--d, --delete=: delete a file
-''').parse_args(['-d', 'foo', 'arg1', 'arg2'])
+def call(func, args=None, doc=None):
+    """
+    Magically calls func by passing to it the command lines arguments,
+    parsed according to the docstring of func.
+    """
+    if args is None:
+        args = sys.argv[1:]
+    if doc is None:
+        doc = func.__doc__
+    try:
+        arg = OptionParser(doc).parse_args(args)
+    except ParsingError, e:
+        print 'ParsingError:', e
+        OptionParser.exit()
+    return func(**vars(arg))
+
+def exit(msg=None):
+    if msg is None:
+        msg = optionstring
+    raise SystemExit(msg)

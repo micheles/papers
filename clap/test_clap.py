@@ -1,5 +1,5 @@
 import sys
-from optionparser import OptionParser, ParsingError
+from clap import OptionParser, ParsingError
 
 def expect_error(err, func, *args, **kw):
     """
