@@ -143,9 +143,8 @@ class OptionParser(object):
                     action = 'store_true'
                     short, long_, help, default=match_flag.group(
                         "short", "long", "help") + (False,)
-                else: # raise an error
-                    raise ParsingError(
-                        "Cannot parse the definition %r correctly" % line)
+                else: # cannot parse the definition correctly
+                    continue
             # add the options
             long_ = long_.replace('-', '_')
             self.p.add_option("-" + short, "--" + long_,
