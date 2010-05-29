@@ -15,6 +15,6 @@ if __name__=='__main__':
     if not opt:
         OptionParser.exit()
     elif opt.delete_all:
-        print_(option.color, "Delete all files")
+        print_(opt.color, "Delete all files")
     elif opt.delete:
-        print_(option.color, "Delete the file %s" % option.delete)
+        print_(opt.color, "Delete the file %s" % opt.delete)

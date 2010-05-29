@@ -1,3 +1,7 @@
+"""
+The tests are runnable with nose, with py.test, or even as standalone script
+"""
+
 import sys
 from clap import OptionParser, ParsingError
 
@@ -84,3 +88,12 @@ def test_p4():
 
     arg = p4.parse_args(['--color=red'])
     assert arg, arg
+
+if __name__ == '__main__':
+    n = 0
+    for name, test in globals().items():
+        if name.startswith('test_'):
+            print 'Running', name
+            test()
+            n +=1
+    print 'Executed %d tests OK' % n
