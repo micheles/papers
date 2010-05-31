@@ -24,174 +24,121 @@
 ##   DAMAGE.
 
 """
-CLAP, the smart and simple Command Line Arguments Parser.
+clap, the easiest Command Line Arguments Parser in the world.
 See clap/doc.html for the documentation.
 """
+__version__ = '0.2.0'
 
-import optparse, re, sys, string
+import re, sys, inspect, argparse
 
-class RegexContainer(object):
+if sys.version >= '3':
+    from inspect import getfullargspec
+else:
+    class getfullargspec(object):
+        "A quick and dirty replacement for getfullargspec for Python 2.X"
+        def __init__(self, f):
+            self.args, self.varargs, self.keywords, self.defaults = \
+                inspect.getargspec(f)
+            self.annotations = getattr(f, '__annotations__', {})
+
+def annotations(**ann):
     """
-    A regular expression container for named regexps. 
-    All its regular attributes must be valid regular expression templates.
-    Notice that the termination character $ must be doubled in
-    order to avoid confusion with the template syntax.
+    Returns a decorator annotating a function with the given annotations.
+    This is a trick to support function annotations in Python 2.X.
     """
-    def __init__(self):
-        self._dic = {} # a dictionary {name: interpolated regex pattern}
-    def __setattr__(self, name, value):
-        if not name.startswith('_'): # regular attribute
-            templ = string.Template('(?P<' + name + '>' + value + ')')
-            pattern = templ.substitute(self._dic)
-            object.__setattr__(self, name, re.compile(pattern))
-            self._dic[name] = pattern
-        else: # private or special attribute
-            object.__setattr__(self, name, value)
+    def annotate(f):
+        fas = getfullargspec(f)
+        args = fas.args
+        if fas.varargs:
+            args.append(fas.varargs)
+        for argname in ann:
+            if argname not in args:
+                raise NameError(
+                    'Annotating non-existing argument: %s' % argname)
+        f.__annotations__ = ann
+        return f
+    return annotate
 
-rx = RegexContainer() # a few regular expressions to parse the usage string
-
-rx.argument = r'[a-zA-Z]\w*'
-rx.arguments = '(?:\s+$argument)*'
-rx.ellipsis = r'\.\.\.'
-rx.prog = r'%prog$arguments\s*$ellipsis?'
-
-rx.enddef = r'\n[ \t]*\n|$$'
-rx.lines = r'.*?'
-rx.short = r'\w'
-rx.long = r'[-\w]+'
-rx.default = r'[^:]*'
-rx.help = r'.*'
-
-rx.usage = r'(?is)\s*usage:$lines$enddef' # case-insensitive multiline rx
-rx.optiondef = r'\s*-$short\s*,\s*--$long\s*=\s*$default:\s*$help'
-rx.flagdef = r'\s*-$short\s*,\s*--$long\s*:\s*$help'
-
-def parse_usage(txt):
-    "An utility to extract the expected arguments and the rest argument, if any"
-    match = rx.prog.match(txt)
-    if match is None:
-        ParsingError.raise_(txt)
-    expected_args = match.group('arguments').split()
-    if match.group('ellipsis'):
-        return expected_args[:-1], match.group('argument')
-    else:
-        return expected_args, ''
-
-class ParsingError(Exception):
-    @classmethod
-    def raise_(cls, usage):
-        raise cls("""Wrong format for the usage message.\n\n%s\n
-            It should be '%%prog arguments ... [options]""" % usage)
-
-def make_get_default_values(defaults):
-    # the purpose of this trick is to allow the idiom
-    # if not arg: OptionParser.exit()
-    def __nonzero__(self):
-        "True if at least one option is set to a non-trivial value"
-        for k, v in vars(self).iteritems():
-            if v and v != defaults[k]: return True
-        return False
-    Values = type('Values', (optparse.Values, object), 
-                  dict(__nonzero__=__nonzero__))
-    return lambda : Values(defaults)
-
-optionstring = None # singleton
-
-class OptionParser(object):
+def is_annotation(obj):
     """
-    There should be only one instance of it.
-    Attributes: all_options, expected_args, rest_arg, p
+    An object is an annotation object if it has the attributes
+    help, kind, abbrev, type, choices, metavar.
     """
-    def __init__(self, doc):
-        "Populate the option parser."
-        global optionstring
-        assert doc is not None, \
-               "Missing usage string (maybe __doc__ is None)"
-        optionstring = doc.replace('%prog', sys.argv[0])
+    return (hasattr(obj, 'help') and hasattr(obj, 'kind') and 
+            hasattr(obj, 'abbrev') and hasattr(obj, 'type')
+            and hasattr(obj, 'choices') and hasattr(obj, 'metavar'))
 
-        # parse the doc
-        match = rx.usage.search(doc)
-        if not match:
-            raise ParsingError("Could not find the option definitions")
-        optlines = match.group("lines").splitlines()
-        prog = optlines[0] # first line
-        match = rx.prog.search(prog)
-        if not match:
-            ParsingError.raise_(prog)
-        self.expected_args, self.rest_arg = parse_usage(match.group())
-        self.p = optparse.OptionParser(prog)
-
-        # manage the default values
-        df = self.p.defaults
-        for a in self.expected_args:
-            df[a] = None
-        if self.rest_arg:
-            df[self.rest_arg] = []
-        self.p.get_default_values = make_get_default_values(df)
-
-        # parse the options
-        for line in optlines[1:]:
-            # check if the line is an option definition
-            match_option = rx.optiondef.match(line) 
-            if match_option:
-                action = 'store'
-                short, long_,  help, default=match_option.group(
-                    "short", "long", "help", "default")
-            else: # check if the line is a flag definition
-                match_flag = rx.flagdef.match(line)
-                if match_flag:
-                    action = 'store_true'
-                    short, long_, help, default=match_flag.group(
-                        "short", "long", "help") + (False,)
-                else: # cannot parse the definition correctly
-                    continue
-            # add the options
-            long_ = long_.replace('-', '_')
-            self.p.add_option("-" + short, "--" + long_,
-                              action=action, help=help, default=default)
-        # skip the help option, which destination is None
-        self.all_options = [o for o in self.p.option_list if o.dest]
-    
-    def parse_args(self, arglist=None):
-        """
-        Parse the received arguments and returns an ``optparse.Values``
-        object containing both the options and the positional arguments.
-        """
-        option, args = self.p.parse_args(arglist)
-        n_expected_args = len(self.expected_args)
-        n_received_args = len(args)
-        if (n_received_args < n_expected_args) or (
-            n_received_args > n_expected_args and not self.rest_arg):
-            raise ParsingError(
-                'Received %d arguments %s, expected %d %s' %
-                (n_received_args, args, n_expected_args, self.expected_args))
-        for name, value in zip(self.expected_args, args):
-            setattr(option, name, value)
-        if self.rest_arg:
-            setattr(option, self.rest_arg, args[n_expected_args:])
-        return option
+class Annotation(object):
+    def __init__(self, help="", kind="positional", abbrev=None, type=str,
+                 choices=None, metavar=None):
+        if kind == "positional":
+            assert abbrev is None, abbrev
+        else:
+            assert isinstance(abbrev, str) and len(abbrev) == 1, abbrev
+        self.help = help
+        self.kind = kind
+        self.abbrev = abbrev
+        self.type = type
+        self.choices = choices
+        self.metavar = metavar
 
     @classmethod
-    def exit(cls, msg=None):
-        exit(msg)
+    def from_(cls, obj):
+        "Helper to convert an object into an annotation, if needed"
+        if is_annotation(obj):
+            return obj # do nothing
+        elif hasattr(obj, '__iter__') and not isinstance(obj, str):
+            return cls(*obj)
+        return cls(obj)
+        
+NONE = object() # sentinel use to signal the absence of a default
 
-def call(func, args=None, doc=None):
-    """
-    Magically calls func by passing to it the command lines arguments,
-    parsed according to the docstring of func.
-    """
-    if args is None:
-        args = sys.argv[1:]
-    if doc is None:
-        doc = func.__doc__
-    try:
-        arg = OptionParser(doc).parse_args(args)
-    except ParsingError, e:
-        print 'ParsingError:', e
-        OptionParser.exit()
-    return func(**vars(arg))
+valid_attrs = getfullargspec(argparse.ArgumentParser.__init__).args[1:]
 
-def exit(msg=None):
-    if msg is None:
-        msg = optionstring
-    raise SystemExit(msg)
+def parser_from(func):
+    # extract the ArgumentParser arguments from the attributes of func
+    attrs = dict([(n, v) for n, v in vars(func).items() if n in valid_attrs])
+    p = argparse.ArgumentParser(**attrs)
+    f = p.argspec = getfullargspec(func)
+    defaults = f.defaults or ()
+    n_args = len(f.args)
+    n_defaults = len(defaults)
+    alldefaults = (NONE,) * (n_args - n_defaults) + defaults
+    for name, default in zip(f.args, alldefaults):
+        a = Annotation.from_(f.annotations.get(name, ()))
+        if a.kind in ('option', 'flag'):
+            short = '-' + a.abbrev
+            long = '--' + name
+        elif default is NONE: # mandatory positional argument
+            p.add_argument(name, help=a.help, type=a.type, choices=a.choices,
+                           metavar=a.metavar)
+        else: # regular default argument
+            p.add_argument(name, nargs='?', help=a.help, default=default, 
+                           type=a.type, choices=a.choices, metavar=a.metavar)
+        if a.kind == 'option':
+            if default is not NONE:
+                raise TypeError('Option %r does not want a default' % name)
+            p.add_argument(short, long, help=a.help, type=a.type, 
+                           choices=a.choices, metavar=a.metavar)
+        elif a.kind == 'flag':
+            if default is not NONE:
+                raise TypeError('Flag %r does not want a default' % name)
+            p.add_argument(short, long, action='store_true', help=a.help)
+    if f.varargs:
+        a = Annotation.from_(f.annotations.get(f.varargs, ()))
+        p.add_argument(f.varargs, nargs='*', help=a.help, default=[],
+                       type=a.type, metavar=a.metavar)
+    return p
+
+def call(func, arglist=sys.argv[1:]):
+    """
+    Parse the given arglist by using an argparser inferred from the
+    annotations of the given function (the main function of the script)
+    and call that function with the parsed arguments. The user can
+    provide a custom parse_annotation hook or replace the default one.
+    """
+    p = parser_from(func)
+    argdict = vars(p.parse_args(arglist))
+    args = [argdict[a] for a in p.argspec.args]
+    varargs = argdict.get(p.argspec.varargs, [])
+    func(*(args + varargs))

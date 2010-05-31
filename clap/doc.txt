@@ -75,3 +75,8 @@ Limitations
 ------------------------------------
 
 The default values cannot contain a ':' (or it should be escaped).
+
+
+.. Today I want to announce to the general public the birth of my latest
+.. project, which aims to be the easiest command line arguments
+.. parser in the Python world: clap_.
