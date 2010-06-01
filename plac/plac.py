@@ -24,9 +24,11 @@
 ##   DAMAGE.
 
 """
-clap, the easiest Command Line Arguments Parser in the world.
-See clap/doc.html for the documentation.
+plac, the easiest Command Line Arguments Parser in the world.
+See plac/doc.html for the documentation.
 """
+# this module should be kept Python 2.3 compatible
+
 __version__ = '0.2.0'
 
 import re, sys, inspect, argparse
@@ -82,7 +84,6 @@ class Annotation(object):
         self.choices = choices
         self.metavar = metavar
 
-    @classmethod
     def from_(cls, obj):
         "Helper to convert an object into an annotation, if needed"
         if is_annotation(obj):
@@ -90,14 +91,23 @@ class Annotation(object):
         elif hasattr(obj, '__iter__') and not isinstance(obj, str):
             return cls(*obj)
         return cls(obj)
-        
+    from_ = classmethod(from_)
+
 NONE = object() # sentinel use to signal the absence of a default
 
 valid_attrs = getfullargspec(argparse.ArgumentParser.__init__).args[1:]
 
 def parser_from(func):
-    # extract the ArgumentParser arguments from the attributes of func
-    attrs = dict([(n, v) for n, v in vars(func).items() if n in valid_attrs])
+    """
+    Extract the arguments from the attributes of the passed function and
+    return an ArgumentParser instance.
+    """
+    short_prefix = getattr(func, 'short_prefix', '-')
+    long_prefix = getattr(func, 'long_prefix', '--')
+    attrs = {'description': func.__doc__}
+    for n, v in vars(func).items():
+        if n in valid_attrs:
+            attrs[n] = v
     p = argparse.ArgumentParser(**attrs)
     f = p.argspec = getfullargspec(func)
     defaults = f.defaults or ()
@@ -106,20 +116,22 @@ def parser_from(func):
     alldefaults = (NONE,) * (n_args - n_defaults) + defaults
     for name, default in zip(f.args, alldefaults):
         a = Annotation.from_(f.annotations.get(name, ()))
+        if default is NONE:
+            dflt, metavar = None, a.metavar
+        else:
+            dflt, metavar = default, a.metavar or str(default)
         if a.kind in ('option', 'flag'):
-            short = '-' + a.abbrev
-            long = '--' + name
-        elif default is NONE: # mandatory positional argument
+            short = short_prefix + a.abbrev
+            long = long_prefix + name
+        elif default is NONE: # required argument
             p.add_argument(name, help=a.help, type=a.type, choices=a.choices,
-                           metavar=a.metavar)
-        else: # regular default argument
-            p.add_argument(name, nargs='?', help=a.help, default=default, 
-                           type=a.type, choices=a.choices, metavar=a.metavar)
+                           metavar=metavar)
+        else: # default argument
+            p.add_argument(name, nargs='?', help=a.help, default=dflt, 
+                           type=a.type, choices=a.choices, metavar=metavar)
         if a.kind == 'option':
-            if default is not NONE:
-                raise TypeError('Option %r does not want a default' % name)
-            p.add_argument(short, long, help=a.help, type=a.type, 
-                           choices=a.choices, metavar=a.metavar)
+            p.add_argument(short, long, help=a.help, default=dflt,
+                           type=a.type, choices=a.choices, metavar=metavar)
         elif a.kind == 'flag':
             if default is not NONE:
                 raise TypeError('Flag %r does not want a default' % name)

@@ -1,11 +1,11 @@
-clap, the easiest command line arguments parser in the world
+plac, the easiest command line arguments parser in the world
 ============================================================
 
 :Author: Michele Simionato
 :E-mail: michele.simionato@gmail.com
 :Requires: Python 2.3+
-:Download page: http://pypi.python.org/pypi/clap
-:Installation: ``easy_install clap``
+:Download page: http://pypi.python.org/pypi/plac
+:Installation: ``easy_install plac``
 :License: BSD license
 
 Installation
@@ -13,7 +13,7 @@ Installation
 
 If you are lazy, just perform
 
-$ easy_install clap
+$ easy_install plac
 
 which will install just the module on your system. Notice that
 Python 3 requires the easy_install version of the distribute_ project.
@@ -25,7 +25,7 @@ $ python setup.py install
 
 in the main directory, possibly as superuser.
 
-.. _tarball: http://pypi.python.org/pypi/clap
+.. _tarball: http://pypi.python.org/pypi/plac
 .. _distribute: http://packages.python.org/distribute/
 
 Testing
@@ -33,20 +33,20 @@ Testing
 
 Run
 
-$ python test_clap.py
+$ python test_plac.py
 
 or
 
-$ nosetests test_clap
+$ nosetests test_plac
 
 or
 
-$ py.test test_clap
+$ py.test test_plac
 
 Documentation
 --------------
 
 You can choose between the `HTML version`_  and the `PDF version`_ .
 
-.. _HTML version: http://micheles.googlecode.com/hg/clap/documentation.html
-.. _PDF version: http://micheles.googlecode.com/hg/clap/documentation.pdf
+.. _HTML version: http://micheles.googlecode.com/hg/plac/doc/plac.html
+.. _PDF version: http://micheles.googlecode.com/hg/plac/doc/plac.pdf

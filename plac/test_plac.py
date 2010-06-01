@@ -3,34 +3,36 @@ The tests are runnable with nose, with py.test, or even as standalone script
 """
 
 import sys
-import clap3
+import plac
 
-def expect_exit(func, *args, **kw):
+def expect(errclass, func, *args, **kw):
     try:
         func(*args, **kw)
-    except SystemExit:
+    except errclass:
         pass
     else:
-        raise RuntimeError('SystemExit expected, got none!')
+        raise RuntimeError('%s expected, got none!', errclass.__name__)
 
-def f1(delete: "d: delete a file", args=()):
-    pass
+def parser_from(f, **kw):
+    f.__annotations__ = kw
+    return plac.parser_from(f)
+
+p1 = parser_from(lambda delete, *args: None,
+                 delete=('delete a file', 'option', 'd'))
 
 def test_p1():
-    p1 = clap3.parser_from(f1)
     arg = p1.parse_args(['-d', 'foo', 'arg1', 'arg2'])
     assert arg.delete == 'foo'
     assert arg.args == ['arg1', 'arg2']
 
     arg = p1.parse_args([])
     assert arg.delete is None, arg.delete
-    assert arg.args is (), arg.args
+    assert arg.args == [], arg.args
 
-def f2(arg1, delete: "d: delete a file", args=()):
-    pass
+p2 = parser_from(lambda arg1, delete, *args: None,
+                 delete=('delete a file', 'option', 'd'))
 
 def test_p2():
-    p2 = clap3.parser_from(f2)
     arg = p2.parse_args(['-d', 'foo', 'arg1', 'arg2'])
     assert arg.delete == 'foo', arg.delete
     assert arg.arg1 == 'arg1', arg.arg1
@@ -38,30 +40,29 @@ def test_p2():
 
     arg = p2.parse_args(['arg1'])
     assert arg.delete is None, arg.delete
-    assert arg.args is (), arg.args
+    assert arg.args == [], arg.args
     assert arg, arg
     
-    expect_exit(p2.parse_args, [])
+    expect(SystemExit, p2.parse_args, [])
 
-def f3(arg1, delete: "d: delete a file"):
-    pass
+
+p3 = parser_from(lambda arg1, delete: None,
+                 delete=('delete a file', 'option', 'd'))
 
 def test_p3():
-    p3 = clap3.parser_from(f3)
     arg = p3.parse_args(['arg1'])
     assert arg.delete is None, arg.delete
     assert arg.arg1 == 'arg1', arg.args
 
-    expect_exit(p3.parse_args, ['arg1', 'arg2'])
-    expect_exit(p3.parse_args, [])
+    expect(SystemExit, p3.parse_args, ['arg1', 'arg2'])
+    expect(SystemExit, p3.parse_args, [])
 
-def f4(delete: "d: delete a file",
-       delete_all: "a, delete all files",
-       color: "c: set default color"="black"):
-    pass
+p4 = parser_from(lambda delete, delete_all, color="black": None,
+                 delete=('delete a file', 'option', 'd'),
+                 delete_all=('delete all files', 'flag', 'a'),
+                 color=('color', 'option', 'c'))
 
 def test_p4():
-    p4 = clap3.parser_from(f4)
     arg = p4.parse_args(['-a'])
     assert arg.delete_all is True, arg.delete_all
 
@@ -73,11 +74,15 @@ def test_p4():
     arg = p4.parse_args(['--color=red'])
     assert arg.color == 'red'
 
+def test_flag_with_default():
+    expect(TypeError, parser_from, lambda yes_or_no='no': None,
+           yes_or_no=('A yes/no flag', 'flag', 'f'))
+
 if __name__ == '__main__':
     n = 0
-    for name, test in list(globals().items()):
+    for name, test in sorted(globals().items()):
         if name.startswith('test_'):
-            print('Running', name)
+            print('Running ' + name)
             test()
             n +=1
     print('Executed %d tests OK' % n)
