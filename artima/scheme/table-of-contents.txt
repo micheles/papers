@@ -69,6 +69,9 @@ Part V - Macros, again
 
  Ep30_ Comparing identifiers
 
+You can find an (experimental) book version of the Adventures (in PDF)
+here_ .
+
 .. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
 .. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941
 .. _Ep3: http://www.artima.com/weblogs/viewpost.jsp?thread=239466
@@ -99,4 +102,5 @@ Part V - Macros, again
 .. _Ep28: http://www.artima.com/weblogs/viewpost.jsp?thread=260195
 .. _Ep29: http://www.artima.com/weblogs/viewpost.jsp?thread=261363
 .. _Ep30: http://www.artima.com/weblogs/viewpost.jsp?thread=261364
-.. _Adventures of a Pythonista in Schemeland: http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf
+.. _Adventures of a Pythonista in Schemeland: http://micheles.googlecode.com/hg/artima/scheme/TheAdventuresofaPythonistainSchemeland.pdf
+.. _here: http://micheles.googlecode.com/hg/artima/scheme/TheAdventuresofaPythonistainSchemeland.pdf
