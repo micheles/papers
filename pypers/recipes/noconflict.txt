@@ -1,0 +1,125 @@
+
+> Infatti, ho passato una serata interessante a farlo. Vorrei mettere
+> nei credits anche David (e magari Phil Eby?), hai loro email
+> "correnti"?
+
+Sì, mertz@gnosis.cx e pje@telecommunity.com. Il criticismo di Eby
+soprattutto e' stato importante. Tutta la storia e' documentata
+in questo thread:
+
+http://groups.google.com/groups?hl=en&lr=&threadm=25b5433d.0306081048.1d9ad5dd%40posting.google.com&rnum=1&prev=/groups%3Fhl%3Den%26lr%3D%26q%3Deby%2Bmetaclass%2Bconflict%26btnG%3DSearch%26meta%3Dgroup%253Dcomp.lang.python.*
+
+> Sarebbe carino avere qualcosa del genere in Python 2.5, effettivamente.
+> Ma e` da scrivere in C e in una parte gia` complicata, quindi la
+> semplicita` e chiarezza per partire sono cruciali. Poi bisogna vedere
+> se occorre qualche indicatore sintattico, hmmm...
+
+Infatti sarebbe da scrivere in C ma io pensavo ad un prototipo in
+puro Python. Tanto non e' che tipicamente le classi si creino a
+migliaia, l'efficienza non e' un vero problema. Il vero problema
+e' scrivere una soluzione generale che sia nello stesso tempo
+comprensibile e manutenibile :-(.
+
+Ho trovato tra le mie note un'altra versione della ricetta che fa
+uso di una funzione 'remove_redundant', che avevo introdotto
+appunto per migliorare la leggibilita'. Ti mando quella versione piu' 
+altri cambiamenti: nota in particolare il cambiamento
+nella segnatura di classmaker.
+
+Sarebbe anche da mettere una nota sul fatto che
+noconflict.classmaker() ritorna una funzione che genera la classe
+usando la metaclasse corretta, ma NON ritorna direttamente la 
+metaclasse corretta (insomma il right hand side of __metaclass__
+non deve necessariamente essere una metaclasse).
+
+Tra l'altro, ho visto che l'implementazione di string.Template usa 
+metaclasse non banale, e' la prima volta che ne vedo una nella libreria
+standard. Sei a conoscenza di altri esempi?  
+
+########################### noconflict.py #################################
+
+import sets
+
+def remove_redundant(classes):
+    """Given a sequence of (meta)classes, removes the redundant ones,
+    i.e. the (meta)classes implied (in the sense of being superclasses
+    or duplicated classes) by the others."""
+    remove_set = sets.Set()
+    ls = list(classes)
+    for c in classes:
+        is_super_class_of_at_least_one = True in [
+            (issubclass(C, c) and c is not C) for C in ls]
+        if c in remove_set or is_super_class_of_at_least_one:
+            ls.remove(c) # if c is less specific or duplicated
+        else:
+            remove_set.add(c)
+    return tuple(ls)
+
+memoized_metaclasses_map = {}
+
+def _get_noconflict_metaclass(bases, left_metas, right_metas):
+    # make the tuple of all needed metaclasses in specified priority order
+    metas = left_metas + tuple(map(type, bases)) + right_metas
+    non_trivial_metas = remove_redundant(metas)
+    # return existing confict-solving meta if any
+    if non_trivial_metas in memoized_metaclasses_map:
+        return memoized_metaclasses_map[non_trivial_metas]
+    # nope: compute, memoize and return needed conflict-solving meta
+    if not non_trivial_metas:         # wee, a trivial case, happy us
+        meta = type
+    elif len(non_trivial_metas) == 1: # another trivial case
+        meta = non_trivial_metas[0]
+    else:                     # nontrivial, gotta work...
+        metaname = '_' + ''.join([m.__name__ for m in non_trivial_metas])
+        meta = classmaker()(metaname, non_trivial_metas, {})
+    memoized_metaclasses_map[non_trivial_metas] = meta
+    return meta
+
+def classmaker(inject_left = (), inject_right = ()):
+    def make_class(name, bases, adict):
+        metaclass = _get_noconflict_metaclass(bases, inject_left, inject_right)
+        return metaclass(name, bases, adict)
+    return make_class
+
+
+__test__ = dict(
+    ex1 = """
+>>> class Meta_A(type): pass
+... 
+>>> class Meta_B(type): pass
+... 
+>>> class A: __metaclass__ = Meta_A
+... 
+>>> class B: __metaclass__ = Meta_B
+... 
+>>> class C(A, B): pass
+...
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+>>> import __main__ as noconflict
+>>> class Meta_C(Meta_A, Meta_B): pass
+...
+>>> class C(A, B): __metaclass__ = Meta_C
+...
+
+>>> class C(A, B): __metaclass__ = noconflict.classmaker()
+...
+>>> class D(A):
+...     __metaclass__ = noconflict.classmaker(inject_left=(Meta_B,))
+""" ,
+    remove_redundant="""
+    >>> class C1(object): pass
+    ...
+    
+    >>> class C2(C1): pass
+    ...
+    >>> from __main__ import remove_redundant
+    >>> remove_redundant((C1, C2, C1))
+    (<class '__main__.C2'>,)
+""")
+
+if __name__ == "__main__":
+    import doctest,__main__
+    doctest.testmod(__main__)

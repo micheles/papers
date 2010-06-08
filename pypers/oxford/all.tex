@@ -1,0 +1,2395 @@
+\documentclass[10pt,a4paper,english]{article}
+\usepackage{babel}
+\usepackage{ae}
+\usepackage{aeguill}
+\usepackage{shortvrb}
+\usepackage[latin1]{inputenc}
+\usepackage{tabularx}
+\usepackage{longtable}
+\setlength{\extrarowheight}{2pt}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{ifthen}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage[DIV12]{typearea}
+%% generator Docutils: http://docutils.sourceforge.net/
+\newlength{\admonitionwidth}
+\setlength{\admonitionwidth}{0.9\textwidth}
+\newlength{\docinfowidth}
+\setlength{\docinfowidth}{0.9\textwidth}
+\newlength{\locallinewidth}
+\newcommand{\optionlistlabel}[1]{\bf #1 \hfill}
+\newenvironment{optionlist}[1]
+{\begin{list}{}
+  {\setlength{\labelwidth}{#1}
+   \setlength{\rightmargin}{1cm}
+   \setlength{\leftmargin}{\rightmargin}
+   \addtolength{\leftmargin}{\labelwidth}
+   \addtolength{\leftmargin}{\labelsep}
+   \renewcommand{\makelabel}{\optionlistlabel}}
+}{\end{list}}
+\newlength{\lineblockindentation}
+\setlength{\lineblockindentation}{2.5em}
+\newenvironment{lineblock}[1]
+{\begin{list}{}
+  {\setlength{\partopsep}{\parskip}
+   \addtolength{\partopsep}{\baselineskip}
+   \topsep0pt\itemsep0.15\baselineskip\parsep0pt
+   \leftmargin#1}
+ \raggedright}
+{\end{list}}
+% begin: floats for footnotes tweaking.
+\setlength{\floatsep}{0.5em}
+\setlength{\textfloatsep}{\fill}
+\addtolength{\textfloatsep}{3em}
+\renewcommand{\textfraction}{0.5}
+\renewcommand{\topfraction}{0.5}
+\renewcommand{\bottomfraction}{0.5}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+% end floats for footnotes
+% some commands, that could be overwritten in the style file.
+\newcommand{\rubric}[1]{\subsection*{~\hfill {\it #1} \hfill ~}}
+\newcommand{\titlereference}[1]{\textsl{#1}}
+% end of "some commands"
+\input{style.tex}
+\title{Lectures on Advanced Python Programming}
+\author{}
+\date{}
+\hypersetup{
+pdftitle={Lectures on Advanced Python Programming}
+}
+\raggedbottom
+\begin{document}
+\maketitle
+
+
+\setlength{\locallinewidth}{\linewidth}
+
+\includegraphics{accu2005.ps}
+\begin{quote}
+\begin{description}
+\item [Author:]
+Michele Simionato
+
+
+\item [Given:]
+19 April 2005
+
+
+\item [Revised:]
+7 September 2005
+
+
+\end{description}
+\end{quote}
+\hypertarget{contents}{}
+\pdfbookmark[0]{Contents}{contents}
+\subsubsection*{~\hfill Contents\hfill ~}
+\begin{list}{}{}
+\item {} \href{\#lecture-1-loops-i-e-iterators-generators}{Lecture 1: Loops (i.e. iterators {\&} generators)}
+\begin{list}{}{}
+\item {} \href{\#part-i-iterators}{Part I: iterators}
+\begin{list}{}{}
+\item {} \href{\#iterators-are-everywhere}{Iterators are everywhere}
+
+\item {} \href{\#iterables-and-iterators}{Iterables and iterators}
+
+\item {} \href{\#simpler-way-to-get-an-iterator}{Simpler way to get an iterator}
+
+\item {} \href{\#sentinel-syntax-iter-callable-sentinel}{Sentinel syntax iter(callable, sentinel)}
+
+\item {} \href{\#second-simpler-way-to-get-an-iterator-generator-expressions}{Second simpler way to get an iterator: generator-expressions}
+
+\item {} \href{\#iteration-caveats}{Iteration caveats}
+
+\end{list}
+
+\item {} \href{\#part-ii-generators}{Part II: generators}
+\begin{list}{}{}
+\item {} \href{\#a-simple-recipe-skip-redundant}{A simple recipe: skip redundant}
+
+\item {} \href{\#another-real-life-example-working-with-nested-structures}{Another real life example: working with nested structures}
+
+\item {} \href{\#another-typical-use-case-for-generators-parsers}{Another typical use case for generators: parsers}
+
+\item {} \href{\#other-kinds-of-iterables}{Other kinds of iterables}
+
+\item {} \href{\#the-itertools-module}{The itertools module}
+
+\item {} \href{\#anytrue}{anyTrue}
+
+\item {} \href{\#chop}{chop}
+
+\item {} \href{\#tee}{tee}
+
+\item {} \href{\#grouping-and-sorting}{Grouping and sorting}
+
+\end{list}
+
+\end{list}
+
+\item {} \href{\#lecture-2-objects-delegation-inheritance}{Lecture 2: Objects (delegation {\&} inheritance)}
+\begin{list}{}{}
+\item {} \href{\#part-i-delegation}{Part I: delegation}
+\begin{list}{}{}
+\item {} \href{\#accessing-simple-attributes}{Accessing simple attributes}
+
+\item {} \href{\#accessing-methods}{Accessing methods}
+
+\item {} \href{\#converting-functions-into-methods}{Converting functions into methods}
+
+\item {} \href{\#hack-a-very-slick-adder}{Hack: a very slick adder}
+
+\item {} \href{\#descriptor-protocol}{Descriptor Protocol}
+
+\item {} \href{\#multilingual-attribute}{Multilingual attribute}
+
+\item {} \href{\#another-use-case-for-properties-storing-users}{Another use case for properties: storing users}
+
+\item {} \href{\#low-level-delegation-via-getattribute}{Low-level delegation via {\_}{\_}getattribute{\_}{\_}}
+
+\item {} \href{\#traditional-delegation-via-getattr}{Traditional delegation via {\_}{\_}getattr{\_}{\_}}
+
+\item {} \href{\#keyword-dictionaries-with-getattr-setattr}{Keyword dictionaries with {\_}{\_}getattr{\_}{\_}/{\_}{\_}setattr{\_}{\_}}
+
+\item {} \href{\#delegation-to-special-methods-caveat}{Delegation to special methods caveat}
+
+\end{list}
+
+\item {} \href{\#part-ii-inheritance}{Part II: Inheritance}
+\begin{list}{}{}
+\item {} \href{\#why-you-need-to-know-about-mi-even-if-you-do-not-use-it}{Why you need to know about MI even if you do not use it}
+
+\item {} \href{\#a-few-details-about-super-not-the-whole-truth}{A few details about \texttt{super} (not the whole truth)}
+
+\item {} \href{\#subclassing-built-in-types-new-vs-init}{Subclassing built-in types; {\_}{\_}new{\_}{\_} vs. {\_}{\_}init{\_}{\_}}
+
+\item {} \href{\#be-careful-when-using-new-with-mutable-types}{Be careful when using {\_}{\_}new{\_}{\_} with mutable types}
+
+\end{list}
+
+\end{list}
+
+\item {} \href{\#lecture-3-magic-i-e-decorators-and-metaclasses}{Lecture 3: Magic (i.e. decorators and metaclasses)}
+\begin{list}{}{}
+\item {} \href{\#part-i-decorators}{Part I: decorators}
+\begin{list}{}{}
+\item {} \href{\#a-typical-decorator-traced}{A typical decorator: traced}
+
+\item {} \href{\#a-decorator-factory-timed}{A decorator factory: Timed}
+
+\item {} \href{\#a-powerful-decorator-pattern}{A powerful decorator pattern}
+
+\item {} \href{\#a-deferred-decorator}{A deferred decorator}
+
+\end{list}
+
+\item {} \href{\#part-ii-metaclasses}{Part II: metaclasses}
+\begin{list}{}{}
+\item {} \href{\#rejuvenating-old-style-classes}{Rejuvenating old-style classes}
+
+\item {} \href{\#a-typical-metaclass-example-metatracer}{A typical metaclass example: MetaTracer}
+
+\item {} \href{\#real-life-example-check-overriding}{Real life example: check overriding}
+
+\item {} \href{\#logfile}{LogFile}
+
+\item {} \href{\#cooperative-hierarchies}{Cooperative hierarchies}
+
+\item {} \href{\#metaclass-enhanced-modules}{Metaclass-enhanced modules}
+
+\item {} \href{\#magic-properties}{Magic properties}
+
+\item {} \href{\#hack-evil-properties}{Hack: evil properties}
+
+\item {} \href{\#why-i-suggest-not-to-use-metaclasses-in-production-code}{Why I suggest \emph{not} to use metaclasses in production code}
+
+\item {} \href{\#is-there-an-automatic-way-of-solving-the-conflict}{Is there an automatic way of solving the conflict?}
+
+\end{list}
+
+\end{list}
+
+\end{list}
+
+
+
+%___________________________________________________________________________
+
+\hypertarget{lecture-1-loops-i-e-iterators-generators}{}
+\pdfbookmark[0]{Lecture 1: Loops (i.e. iterators {\&} generators)}{lecture-1-loops-i-e-iterators-generators}
+\section*{Lecture 1: Loops (i.e. iterators {\&} generators)}
+
+
+%___________________________________________________________________________
+
+\hypertarget{part-i-iterators}{}
+\pdfbookmark[1]{Part I: iterators}{part-i-iterators}
+\subsection*{Part I: iterators}
+
+
+%___________________________________________________________________________
+
+\hypertarget{iterators-are-everywhere}{}
+\pdfbookmark[2]{Iterators are everywhere}{iterators-are-everywhere}
+\subsubsection*{Iterators are everywhere}
+\begin{verbatim}>>> for i in 1, 2, 3:
+...     print i
+1
+2
+3\end{verbatim}
+
+The 'for' loop is using \emph{iterators} internally:
+\begin{quote}{\ttfamily \raggedright \noindent
+it~=~iter((1,2,3))~\\
+while~True:~\\
+~~~~try:~\\
+~~~~~~~~print~it.next()~\\
+~~~~except~StopIteration:~\\
+~~~~~~~~break
+}\end{quote}
+
+
+%___________________________________________________________________________
+
+\hypertarget{iterables-and-iterators}{}
+\pdfbookmark[2]{Iterables and iterators}{iterables-and-iterators}
+\subsubsection*{Iterables and iterators}
+
+\emph{Iterable} = anything you can loop over = any sequence + any object with an {\_}{\_}iter{\_}{\_} method;
+
+Not every sequence has an {\_}{\_}iter{\_}{\_} method:
+\begin{verbatim}>>> "hello".__iter__()
+Traceback (most recent call last):
+  ...
+AttributeError: 'str' object has no attribute '__iter__'\end{verbatim}
+
+\emph{Iterator} = any object with a .next method and an {\_}{\_}iter{\_}{\_} method returning self
+
+
+%___________________________________________________________________________
+
+\hypertarget{simpler-way-to-get-an-iterator}{}
+\pdfbookmark[2]{Simpler way to get an iterator}{simpler-way-to-get-an-iterator}
+\subsubsection*{Simpler way to get an iterator}
+\begin{verbatim}>>> it = iter("hello")
+>>> it.next()
+'h'
+>>> it.next()
+'e'
+>>> it.next()
+'l'
+>>> it.next()
+'l'
+>>> it.next()
+'o'
+>>> it.next()
+Traceback (most recent call last):
+  ...
+StopIteration\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{sentinel-syntax-iter-callable-sentinel}{}
+\pdfbookmark[2]{Sentinel syntax iter(callable, sentinel)}{sentinel-syntax-iter-callable-sentinel}
+\subsubsection*{Sentinel syntax iter(callable, sentinel)}
+
+Example:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\$}~echo~-e~"value1{\textbackslash}nvalue2{\textbackslash}nEND{\textbackslash}n"~>~data.txt~\\
+{\$}~python~-c~"print~list(iter(file('data.txt').readline,~'END{\textbackslash}n'))"~\\
+{[}'value1{\textbackslash}n',~'value2{\textbackslash}n']
+}\end{quote}
+
+Beware of infinite iterators:
+\begin{verbatim}>>> repeat = iter(lambda : "some value", "")
+>>> repeat.next()
+'some value'\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{second-simpler-way-to-get-an-iterator-generator-expressions}{}
+\pdfbookmark[2]{Second simpler way to get an iterator: generator-expressions}{second-simpler-way-to-get-an-iterator-generator-expressions}
+\subsubsection*{Second simpler way to get an iterator: generator-expressions}
+\begin{verbatim}>>> squares = (i*i for i in range(1,11)) 
+>>> list(squares)
+[1, 4, 9, 16, 25, 36, 49, 64, 81, 100]\end{verbatim}
+
+Excessive parenthesis can be skipped, so use
+\begin{verbatim}>>> dict((i, i*i) for i in range(1,11))
+{1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81, 10: 100}\end{verbatim}
+
+instead of
+\begin{verbatim}>>> dict([(i, i*i) for i in range(1,11)])
+{1: 1, 2: 4, 3: 9, 4: 16, 5: 25, 6: 36, 7: 49, 8: 64, 9: 81, 10: 100}\end{verbatim}
+
+(as usual, the most elegant version is the most efficient).
+
+
+%___________________________________________________________________________
+
+\hypertarget{iteration-caveats}{}
+\pdfbookmark[2]{Iteration caveats}{iteration-caveats}
+\subsubsection*{Iteration caveats}
+\begin{verbatim}>>> ls = [i for i in (1,2,3)]
+>>> i 
+3\end{verbatim}
+\begin{verbatim}>>> it = (j for j in (1,2,3))
+>>> j 
+Traceback (most recent call last):
+  ...
+NameError: name 'j' is not defined\end{verbatim}
+
+A subtler example:
+\begin{verbatim}>>> ls = [lambda :i for i in (1,2,3)]
+>>> ls[0]()
+3\end{verbatim}
+
+instead
+\begin{verbatim}>>> it = (lambda :i for i in (1,2,3))
+>>> it.next()()
+1
+>>> it.next()()
+2
+>>> it.next()()
+3\end{verbatim}
+
+\emph{seems} to be working but it is not really the case:
+\begin{verbatim}>>> it = (lambda :i for i in (1,2,3))
+>>> f1 = it.next()
+>>> f2 = it.next()
+>>> f3 = it.next()
+>>> f1()
+3\end{verbatim}
+
+The reason is that Python does LATE binding \emph{always}. The solution is ugly:
+\begin{verbatim}>>> it = list(lambda i=i:i for i in (1,2,3))
+>>> it[0]()
+1
+>>> it[1]()
+2
+>>> it[2]()
+3\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{part-ii-generators}{}
+\pdfbookmark[1]{Part II: generators}{part-ii-generators}
+\subsection*{Part II: generators}
+
+Trivial example:
+\begin{verbatim}>>> def gen123(): # "function" which returns an iterator over the values 1, 2, 3
+...     yield 1
+...     yield 2
+...     yield 3
+...
+>>> it = gen123()
+>>> it.next()
+1
+>>> it.next()
+2
+>>> it.next()
+3
+>>> it.next()
+Traceback (most recent call last):
+  ...
+StopIteration\end{verbatim}
+
+Real life example: using generators to generate HTML tables
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<htmltable.py>~\\
+~\\
+def~HTMLTablegen(table):~\\
+~~~~yield~"<table>"~\\
+~~~~for~row~in~table:~\\
+~~~~~~~yield~"<tr>"~\\
+~~~~~~~for~col~in~row:~\\
+~~~~~~~~~~~yield~"<td>{\%}s</td>"~{\%}~col~\\
+~~~~~~~yield~"</tr>"~\\
+~~~~yield~"</table>"~\\
+~\\
+def~test():~\\
+~~~~return~"{\textbackslash}n".join(HTMLTablegen({[}{[}"Row",~"City"],~~\\
+~~~~~~~~~~~~~~~~~~~~~~~{[}1,'London'],~{[}2,~'Oxford']]))~\\
+~\\
+if~{\_}{\_}name{\_}{\_}~==~"{\_}{\_}main{\_}{\_}":~{\#}~example~\\
+~~~~print~test()~\\
+~\\
+{\#}</htmltable.py>
+}\end{quote}
+\begin{verbatim}>>> from htmltable import test
+>>> print test()
+<table>
+<tr>
+<td>Row</td>
+<td>City</td>
+</tr>
+<tr>
+<td>1</td>
+<td>London</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Oxford</td>
+</tr>
+</table>\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{a-simple-recipe-skip-redundant}{}
+\pdfbookmark[2]{A simple recipe: skip redundant}{a-simple-recipe-skip-redundant}
+\subsubsection*{A simple recipe: skip redundant}
+
+How to remove duplicates by keeping the order:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<skip{\_}redundant.py>~\\
+~\\
+def~skip{\_}redundant(iterable,~skipset=None):~\\
+~~~"Redundant~items~are~repeated~items~or~items~in~the~original~skipset."~\\
+~~~if~skipset~is~None:~skipset~=~set()~\\
+~~~for~item~in~iterable:~\\
+~~~~~~~if~item~not~in~skipset:~\\
+~~~~~~~~~~~skipset.add(item)~\\
+~~~~~~~~~~~yield~item~\\
+~~~~~~~~~~\\
+{\#}</skip{\_}redundant.py>
+}\end{quote}
+\begin{verbatim}>>> from skip_redundant import skip_redundant
+>>> print list(skip_redundant("<hello, world>", skipset=set("<>")))
+['h', 'e', 'l', 'o', ',', ' ', 'w', 'r', 'd']\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{another-real-life-example-working-with-nested-structures}{}
+\pdfbookmark[2]{Another real life example: working with nested structures}{another-real-life-example-working-with-nested-structures}
+\subsubsection*{Another real life example: working with nested structures}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<walk.py>~\\
+~\\
+def~walk(iterable,~level=0):~\\
+~~~~for~obj~in~iterable:~\\
+~~~~~~~~if~not~hasattr(obj,~"{\_}{\_}iter{\_}{\_}"):~{\#}~atomic~object~\\
+~~~~~~~~~~~~yield~obj,~level~\\
+~~~~~~~~else:~{\#}~composed~object:~iterate~again~\\
+~~~~~~~~~~~~for~subobj,~lvl~in~walk(obj,~level~+~1):~\\
+~~~~~~~~~~~~~~~~yield~subobj,~lvl~\\
+~\\
+def~flatten(iterable):~\\
+~~~~return~(obj~for~obj,~level~in~walk(iterable))~\\
+~~~~~~~~\\
+def~pprint(iterable):~\\
+~~~~for~obj,~level~in~walk(iterable):~\\
+~~~~~~~~print~"~"*level,~obj~\\
+~~~~~~~~\\
+{\#}</walk.py>
+}\end{quote}
+\begin{verbatim}>>> from walk import flatten, pprint
+>>> nested_ls = [1,[2,[3,[[[4,5],6]]]],7]
+>>> pprint(nested_ls)     
+ 1
+  2
+   3
+      4
+      5
+     6
+ 7
+>>> pprint(flatten(nested_ls))
+ 1
+ 2
+ 3
+ 4
+ 5
+ 6
+ 7\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{another-typical-use-case-for-generators-parsers}{}
+\pdfbookmark[2]{Another typical use case for generators: parsers}{another-typical-use-case-for-generators-parsers}
+\subsubsection*{Another typical use case for generators: parsers}
+
+A very stripped down parser for nested expressions
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<sexpr2indent.py>~\\
+"{}"{}"A~simple~s-expression~formatter."{}"{}"~\\
+~\\
+import~re~\\
+~\\
+def~parse(sexpr):~\\
+~~~~position~=~0~\\
+~~~~nesting{\_}level~=~0~\\
+~~~~paren~=~re.compile(r"(?P<paren{\_}beg>{\textbackslash}()|(?P<paren{\_}end>{\textbackslash}))")~\\
+~~~~while~True:~\\
+~~~~~~~~match~=~paren.search(sexpr,~position)~\\
+~~~~~~~~if~match:~\\
+~~~~~~~~~~~~yield~nesting{\_}level,~sexpr{[}position:~match.start()]~\\
+~~~~~~~~~~~~if~match.lastgroup~==~"paren{\_}beg":~\\
+~~~~~~~~~~~~~~~~nesting{\_}level~+=~1~\\
+~~~~~~~~~~~~elif~match.lastgroup~==~"paren{\_}end":~\\
+~~~~~~~~~~~~~~~~nesting{\_}level~-=~1~\\
+~~~~~~~~~~~~position~=~match.end()~\\
+~~~~~~~~else:~\\
+~~~~~~~~~~~~break~\\
+~\\
+def~sexpr{\_}indent(sexpr):~\\
+~~~~for~nesting,~text~in~parse(sexpr.replace("{\textbackslash}n",~"{}")):~\\
+~~~~~~~~if~text.strip():~~print~"~"*nesting,~text~\\
+~\\
+{\#}</sexpr2indent.py>
+}\end{quote}
+\begin{verbatim}>>> from sexpr2indent import sexpr_indent
+>>> sexpr_indent("""\
+... (html (head (title Example)) (body (h1 s-expr formatter example)
+... (a (@ (href http://www.example.com)) A link)))""")
+... #doctest: +NORMALIZE_WHITESPACE
+  html
+   head
+    title Example
+    body
+    h1 s-expr formatter example
+    a
+     @
+      href http://www.example.com
+     A link\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{other-kinds-of-iterables}{}
+\pdfbookmark[2]{Other kinds of iterables}{other-kinds-of-iterables}
+\subsubsection*{Other kinds of iterables}
+
+The following class generates iterable which are not iterators:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<reiterable.py>~\\
+~\\
+class~ReIter(object):~\\
+~~~~"A~re-iterable~object."~\\
+~~~~def~{\_}{\_}iter{\_}{\_}(self):~\\
+~~~~~~~~yield~1~\\
+~~~~~~~~yield~2~\\
+~~~~~~~~yield~3~\\
+~\\
+{\#}</reiterable.py>
+}\end{quote}
+\begin{verbatim}>>> from reiterable import ReIter
+>>> rit = ReIter()
+>>> list(rit)
+[1, 2, 3]
+>>> list(rit) # it is reiterable!
+[1, 2, 3]\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{the-itertools-module}{}
+\pdfbookmark[2]{The itertools module}{the-itertools-module}
+\subsubsection*{The itertools module}
+\begin{quote}
+\begin{itemize}
+\item {} 
+count({[}n]) -{}-{\textgreater} n, n+1, n+2, ...
+
+\item {} 
+cycle(p) -{}-{\textgreater} p0, p1, ... plast, p0, p1, ...
+
+\item {} 
+repeat(elem {[},n]) -{}-{\textgreater} elem, elem, elem, ... endlessly or up to n times
+
+\item {} 
+izip(p, q, ...) -{}-{\textgreater} (p{[}0], q{[}0]), (p{[}1], q{[}1]), ...
+
+\item {} 
+ifilter(pred, seq) -{}-{\textgreater} elements of seq where pred(elem) is True
+
+\item {} 
+ifilterfalse(pred, seq) -{}-{\textgreater} elements of seq where pred(elem) is False
+
+\item {} 
+islice(seq, {[}start,] stop {[}, step]) -{}-{\textgreater} elements from seq{[}start:stop:step]
+
+\item {} 
+imap(fun, p, q, ...) -{}-{\textgreater} fun(p0, q0), fun(p1, q1), ...
+
+\item {} 
+starmap(fun, seq) -{}-{\textgreater} fun(*seq{[}0]), fun(*seq{[}1]), ...
+
+\item {} 
+tee(it, n=2) -{}-{\textgreater} (it1, it2 , ... itn) splits one iterator into n
+
+\item {} 
+chain(p, q, ...) -{}-{\textgreater} p0, p1, ... plast, q0, q1, ...
+
+\item {} 
+takewhile(pred, seq) -{}-{\textgreater} seq{[}0], seq{[}1], until pred fails
+
+\item {} 
+dropwhile(pred, seq) -{}-{\textgreater} seq{[}n], seq{[}n+1], starting when pred fails
+
+\item {} 
+groupby(iterable{[}, keyfunc]) -{}-{\textgreater} sub-iterators grouped by value of keyfunc(v)
+
+\end{itemize}
+\end{quote}
+
+
+%___________________________________________________________________________
+
+\hypertarget{anytrue}{}
+\pdfbookmark[2]{anyTrue}{anytrue}
+\subsubsection*{anyTrue}
+\begin{verbatim}>>> import itertools
+>>> def anyTrue(predicate, iterable): 
+...     return True in itertools.imap(predicate, iterable)
+...
+>>> fname = "picture.ps"
+>>> anyTrue(fname.endswith, ".jpg .ps .ps".split())
+True\end{verbatim}
+
+AnyTrue does \emph{short-circuit}:
+\begin{verbatim}>>> def is3(i):
+...     print "i=%s" % i
+...     return i == 3\end{verbatim}
+\begin{verbatim}>>> anyTrue(is3, range(10))
+i=0
+i=1
+i=2
+i=3
+True\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{chop}{}
+\pdfbookmark[2]{chop}{chop}
+\subsubsection*{chop}
+
+You want to chop an iterable in batches of a given size:
+\begin{verbatim}>>> from chop import chop
+>>> list(chop([1, 2, 3, 4], 2))
+[[1, 2], [3, 4]]
+>>> list(chop([1, 2, 3, 4, 5, 6, 7],3))
+[[1, 2, 3], [4, 5, 6], [7]]\end{verbatim}
+
+Here is a possible implementation:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<chop.py>~\\
+~\\
+{\#}~see~also~http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/303279~\\
+~\\
+import~itertools~\\
+~\\
+def~chop(iterable,~batchsize):~\\
+~~~~it~=~iter(iterable)~\\
+~~~~while~True:~\\
+~~~~~~~~batch~=~list(itertools.islice(it,~batchsize))~\\
+~~~~~~~~if~batch:~yield~batch~\\
+~~~~~~~~else:~break~\\
+~\\
+{\#}</chop.py>
+}\end{quote}
+
+For people thinking Python is too readable, here is a one-liner:
+\begin{verbatim}>>> chop = lambda it, n : itertools.izip(*(iter(it),)*n)
+...
+>>> list(chop([1,2,3,4], 2))
+[(1, 2), (3, 4)]\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{tee}{}
+\pdfbookmark[2]{tee}{tee}
+\subsubsection*{tee}
+
+To make copies of iterables; typically used in parsers:
+\begin{verbatim}>>> from itertools import tee, chain, izip
+>>> chars, prevs = tee("abc")
+>>> prevs = chain([None], prevs)
+>>> for char, prev in izip(chars, prevs):
+...     print char, prev
+...
+a None
+b a
+c b\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{grouping-and-sorting}{}
+\pdfbookmark[2]{Grouping and sorting}{grouping-and-sorting}
+\subsubsection*{Grouping and sorting}
+\begin{verbatim}>>> from itertools import groupby
+>>> from operator import itemgetter\end{verbatim}
+\begin{verbatim}>>> NAME, AGE = 0, 1
+>>> query_result = ("Smith", 34), ("Donaldson", 34), ("Lee", 22), ("Orr", 22)\end{verbatim}
+
+Grouping together people of the same age:
+\begin{verbatim}>>> for k, g in groupby(query_result, key=itemgetter(AGE)):
+...     print k, list(g)
+...
+34 [('Smith', 34), ('Donaldson', 34)]
+22 [('Lee', 22), ('Orr', 22)]\end{verbatim}
+
+Sorting by name:
+\begin{verbatim}>>> for tup in sorted(query_result, key=itemgetter(NAME)):
+...     print tup
+('Donaldson', 34)
+('Lee', 22)
+('Orr', 22)
+('Smith', 34)\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{lecture-2-objects-delegation-inheritance}{}
+\pdfbookmark[0]{Lecture 2: Objects (delegation {\&} inheritance)}{lecture-2-objects-delegation-inheritance}
+\section*{Lecture 2: Objects (delegation {\&} inheritance)}
+
+
+%___________________________________________________________________________
+
+\hypertarget{part-i-delegation}{}
+\pdfbookmark[1]{Part I: delegation}{part-i-delegation}
+\subsection*{Part I: delegation}
+
+Understanding how attribute access works: internal delegation via \emph{descriptors}
+
+
+%___________________________________________________________________________
+
+\hypertarget{accessing-simple-attributes}{}
+\pdfbookmark[2]{Accessing simple attributes}{accessing-simple-attributes}
+\subsubsection*{Accessing simple attributes}
+\begin{verbatim}>>> class C(object):
+...     a = 2
+...     def __init__(self, x):
+...        self.x = x
+...\end{verbatim}
+\begin{verbatim}>>> c = C(1)
+>>> c.x
+1
+>>> c.a
+2\end{verbatim}
+
+We are retrieving
+\begin{verbatim}>>> c.__dict__["x"]
+1\end{verbatim}
+
+If there is nothing in c.{\_}{\_}dict{\_}{\_}, Python looks at C.{\_}{\_}dict{\_}{\_}:
+\begin{verbatim}>>> print c.__dict__.get("a")
+None\end{verbatim}
+\begin{verbatim}>>> C.__dict__["a"]
+2\end{verbatim}
+
+If there is nothing in C.{\_}{\_}dict{\_}{\_}, Python looks at the superclasses according
+to the MRO (see part II).
+
+
+%___________________________________________________________________________
+
+\hypertarget{accessing-methods}{}
+\pdfbookmark[2]{Accessing methods}{accessing-methods}
+\subsubsection*{Accessing methods}
+\begin{verbatim}>>> c.__init__ #doctest: +ELLIPSIS
+<bound method C.__init__ of <__main__.C object at 0x...>>\end{verbatim}
+
+since {\_}{\_}init{\_}{\_} is not in c.{\_}{\_}dict{\_}{\_} Python looks in the class dictionary 
+and finds
+\begin{verbatim}>>> C.__dict__["__init__"] #doctest: +ELLIPSIS
+<function __init__ at 0x...>\end{verbatim}
+
+Then it magically converts the function into a method bound to the instance
+``c''.
+
+NOTE: this mechanism works for new-style classes only.
+
+The old-style mechanism is less consistent and the attribute lookup of special
+methods is special: (*)
+\begin{verbatim}>>> class C(object): pass
+>>> c = C()
+>>> c.__str__ = lambda : "hello!"
+>>> print c #doctest: +ELLIPSIS
+<__main__.C object at ...>\end{verbatim}
+
+whereas for old-style classes
+\begin{verbatim}>>> class C: pass
+>>> c = C()
+>>> c.__str__ = lambda : "hello!"
+>>> print c 
+hello!\end{verbatim}
+
+the special method is looked for in the instance dictionary too.
+
+(*) modulo a very subtle difference for {\_}{\_}getattr{\_}{\_}-delegated special methods,
+see later.
+
+
+%___________________________________________________________________________
+
+\hypertarget{converting-functions-into-methods}{}
+\pdfbookmark[2]{Converting functions into methods}{converting-functions-into-methods}
+\subsubsection*{Converting functions into methods}
+
+It is possible to convert a function into a bound or unbound method
+by invoking the \texttt{{\_}{\_}get{\_}{\_}} special method:
+\begin{verbatim}>>> def f(x): pass
+>>> f.__get__ #doctest: +ELLIPSIS
+<method-wrapper object at 0x...>\end{verbatim}
+\begin{verbatim}>>> class C(object): pass
+...\end{verbatim}
+\begin{verbatim}>>> def f(self): pass
+...
+>>> f.__get__(C(), C) #doctest: +ELLIPSIS
+<bound method C.f of <__main__.C object at 0x...>>\end{verbatim}
+\begin{verbatim}>>> f.__get__(None, C)
+<unbound method C.f>\end{verbatim}
+
+Functions are the simplest example of \emph{descriptors}.
+
+Access to methods works since internally Python transforms
+\begin{quote}
+
+\texttt{c.{\_}{\_}init{\_}{\_} -> type(c).{\_}{\_}dict{\_}{\_}{[}'{\_}{\_}init{\_}{\_}'].{\_}{\_}get{\_}{\_}(c, type(c))}
+\end{quote}
+
+Note: not \emph{all} functions are descriptors:
+\begin{verbatim}>>> from operator import add
+>>> add.__get__
+Traceback (most recent call last):
+  ...
+AttributeError: 'builtin_function_or_method' object has no attribute '__get__'\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{hack-a-very-slick-adder}{}
+\pdfbookmark[2]{Hack: a very slick adder}{hack-a-very-slick-adder}
+\subsubsection*{Hack: a very slick adder}
+
+The descriptor protocol can be (ab)used as a way to avoid the late binding
+issue in for loops:
+\begin{verbatim}>>> def add(x,y):
+...     return x + y
+>>> closures = [add.__get__(i) for i in range(10)]
+>>> closures[5](1000)
+1005\end{verbatim}
+
+Notice: operator.add will not work.
+
+
+%___________________________________________________________________________
+
+\hypertarget{descriptor-protocol}{}
+\pdfbookmark[2]{Descriptor Protocol}{descriptor-protocol}
+\subsubsection*{Descriptor Protocol}
+
+Everything at \href{http://users.rcn.com/python/download/Descriptor.htm}{http://users.rcn.com/python/download/Descriptor.htm}
+
+Formally:
+\begin{quote}{\ttfamily \raggedright \noindent
+descr.{\_}{\_}get{\_}{\_}(self,~obj,~type=None)~-{}->~value~\\
+descr.{\_}{\_}set{\_}{\_}(self,~obj,~value)~-{}->~None~\\
+descr.{\_}{\_}delete{\_}{\_}(self,~obj)~-{}->~None
+}\end{quote}
+
+Examples of custom descriptors:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<descriptor.py>~\\
+~\\
+~\\
+class~AttributeDescriptor(object):~\\
+~~~def~{\_}{\_}get{\_}{\_}(self,~obj,~cls=None):~\\
+~~~~~~~if~obj~is~None~and~cls~is~None:~\\
+~~~~~~~~~~~raise~TypeError("{\_}{\_}get{\_}{\_}(None,~None)~is~invalid")~\\
+~~~~~~~elif~obj~is~None:~\\
+~~~~~~~~~~~return~self.get{\_}from{\_}class(cls)~\\
+~~~~~~~else:~\\
+~~~~~~~~~~~return~self.get{\_}from{\_}obj(obj)~\\
+~~~def~get{\_}from{\_}class(self,~cls):~\\
+~~~~~~~print~"Getting~{\%}s~from~{\%}s"~{\%}~(self,~cls)~\\
+~~~def~get{\_}from{\_}obj(self,~obj):~\\
+~~~~~~~print~"Getting~{\%}s~from~{\%}s"~{\%}~(self,~obj)~\\
+~\\
+~\\
+class~Staticmethod(AttributeDescriptor):~\\
+~~~def~{\_}{\_}init{\_}{\_}(self,~func):~\\
+~~~~~~~self.func~=~func~\\
+~~~def~get{\_}from{\_}class(self,~cls):~\\
+~~~~~~~return~self.func~\\
+~~~get{\_}from{\_}obj~=~get{\_}from{\_}class~\\
+~\\
+~\\
+class~Classmethod(AttributeDescriptor):~\\
+~~~def~{\_}{\_}init{\_}{\_}(self,~func):~\\
+~~~~~~~self.func~=~func~\\
+~~~def~get{\_}from{\_}class(self,~cls):~\\
+~~~~~~~return~self.func.{\_}{\_}get{\_}{\_}(cls,~type(cls))~\\
+~~~def~get{\_}from{\_}obj(self,~obj):~\\
+~~~~~~~return~self.get{\_}from{\_}class(obj.{\_}{\_}class{\_}{\_})~\\
+~\\
+class~C(object):~\\
+~~~s~=~Staticmethod(lambda~:~1)~\\
+~~~c~=~Classmethod(lambda~cls~:~cls.{\_}{\_}name{\_}{\_})~\\
+~\\
+c~=~C()~\\
+~\\
+assert~C.s()~==~c.s()~==~1~\\
+assert~C.c()~==~c.c()~==~"C"~\\
+~\\
+{\#}</descriptor.py>
+}\end{quote}
+
+
+%___________________________________________________________________________
+
+\hypertarget{multilingual-attribute}{}
+\pdfbookmark[2]{Multilingual attribute}{multilingual-attribute}
+\subsubsection*{Multilingual attribute}
+
+Inspirated by a question in the Italian Newsgroup:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<multilingual.py>~\\
+~\\
+import~sys~\\
+from~descriptor~import~AttributeDescriptor~\\
+~\\
+class~MultilingualAttribute(AttributeDescriptor):~\\
+~~~~"{}"{}"When~a~MultilingualAttribute~is~accessed,~you~get~the~translation~~\\
+~~~~corresponding~to~the~currently~selected~language.~\\
+~~~~"{}"{}"~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~**translations):~\\
+~~~~~~~~self.trans~=~translations~\\
+~~~~def~get{\_}from{\_}class(self,~cls):~\\
+~~~~~~~~return~self.trans{[}getattr(cls,~"language",~None)~or~\\
+~~~~~~~~~~~~~~~~~~~~~~~~~sys.modules{[}cls.{\_}{\_}module{\_}{\_}].language]~\\
+~~~~def~get{\_}from{\_}obj(self,~obj):~\\
+~~~~~~~~return~self.trans{[}getattr(obj,~"language",~None)~or~\\
+~~~~~~~~~~~~~~~~~~~~~~~~~sys.modules{[}obj.{\_}{\_}class{\_}{\_}.{\_}{\_}module{\_}{\_}].language]~\\
+~~~~~~\\
+~\\
+language~=~"en"~\\
+~\\
+{\#}~a~dummy~User~class~\\
+class~DefaultUser(object):~\\
+~~~~def~has{\_}permission(self):~\\
+~~~~~~~~return~False~\\
+~~~~\\
+class~WebApplication(object):~\\
+~~~~error{\_}msg~=~MultilingualAttribute(~\\
+~~~~~~~~en="You~cannot~access~this~page",~\\
+~~~~~~~~it="Questa~pagina~non~e'~accessibile",~\\
+~~~~~~~~fr="Vous~ne~pouvez~pas~acceder~cette~page",)~\\
+~~~~user~=~DefaultUser()~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~language=None):~\\
+~~~~~~~~self.language~=~language~or~getattr(self.{\_}{\_}class{\_}{\_},~"language",~None)~\\
+~~~~def~show{\_}page(self):~\\
+~~~~~~~~if~not~self.user.has{\_}permission():~\\
+~~~~~~~~~~~~return~self.error{\_}msg~\\
+~\\
+~\\
+app~=~WebApplication()~\\
+assert~app.show{\_}page()~==~"You~cannot~access~this~page"~\\
+~\\
+app.language~=~"fr"~\\
+assert~app.show{\_}page()~==~"Vous~ne~pouvez~pas~acceder~cette~page"~\\
+~\\
+app.language~=~"it"~\\
+assert~app.show{\_}page()~==~"Questa~pagina~non~e'~accessibile"~\\
+~\\
+app.language~=~"en"~\\
+assert~app.show{\_}page()~==~"You~cannot~access~this~page"~\\
+~\\
+{\#}</multilingual.py>
+}\end{quote}
+
+The same can be done with properties:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<multilingualprop.py>~\\
+~\\
+language~=~"en"~\\
+~\\
+{\#}~a~dummy~User~class~\\
+class~DefaultUser(object):~\\
+~~~~def~has{\_}permission(self):~\\
+~~~~~~~~return~False~\\
+~~~~\\
+def~multilingualProperty(**trans):~\\
+~~~~def~get(self):~\\
+~~~~~~~~return~trans{[}self.language]~\\
+~~~~def~set(self,~value):~\\
+~~~~~~~~trans{[}self.language]~=~value~~\\
+~~~~return~property(get,~set)~\\
+~\\
+class~WebApplication(object):~\\
+~~~~language~=~language~\\
+~~~~error{\_}msg~=~multilingualProperty(~\\
+~~~~~~~~en="You~cannot~access~this~page",~\\
+~~~~~~~~it="Questa~pagina~non~e'~accessibile",~\\
+~~~~~~~~fr="Vous~ne~pouvez~pas~acceder~cette~page",)~\\
+~~~~user~=~DefaultUser()~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~language=None):~\\
+~~~~~~~~if~language:~self.language~=~self.language~\\
+~~~~def~show{\_}page(self):~\\
+~~~~~~~~if~not~self.user.has{\_}permission():~\\
+~~~~~~~~~~~~return~self.error{\_}msg~\\
+~\\
+{\#}</multilingualprop.py>
+}\end{quote}
+
+This also gives the possibility to set the error messages.
+
+The difference with the descriptor approach
+\begin{verbatim}>>> from multilingual import WebApplication
+>>> app = WebApplication()
+>>> print app.error_msg
+You cannot access this page
+>>> print WebApplication.error_msg
+You cannot access this page\end{verbatim}
+
+is that with properties there is no nice access from the class:
+\begin{verbatim}>>> from multilingualprop import WebApplication
+>>> WebApplication.error_msg #doctest: +ELLIPSIS
+<property object at ...>\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{another-use-case-for-properties-storing-users}{}
+\pdfbookmark[2]{Another use case for properties: storing users}{another-use-case-for-properties-storing-users}
+\subsubsection*{Another use case for properties: storing users}
+
+Consider a library providing a simple User class:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<crypt{\_}user.py>~\\
+~\\
+class~User(object):~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~username,~password):~\\
+~~~~~~~~self.username,~self.password~=~username,~password~\\
+~\\
+{\#}</crypt{\_}user.py>
+}\end{quote}
+
+The User objects are stored in a database as they are.
+For security purpose, in a second version of the library it is
+decided to crypt the password, so that only crypted passwords
+are stored in the database. With properties, it is possible to
+implement this functionality without changing the source code for 
+the User class:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<crypt{\_}user.py>~\\
+~\\
+from~crypt~import~crypt~\\
+~\\
+def~cryptedAttribute(seed="x"):~\\
+~~~~def~get(self):~\\
+~~~~~~~~return~getattr(self,~"{\_}pw",~None)~\\
+~~~~def~set(self,~value):~\\
+~~~~~~~~self.{\_}pw~=~crypt(value,~seed)~\\
+~~~~return~property(get,~set)~\\
+~~~~\\
+User.password~=~cryptedAttribute()
+}\end{quote}
+
+{\#}{\textless}/crypt{\_}user.py{\textgreater}
+\begin{verbatim}>>> from crypt_user import User
+>>> u = User("michele", "secret")
+>>> print u.password
+xxZREZpkHZpkI\end{verbatim}
+
+Notice the property factory approach used here.
+
+
+%___________________________________________________________________________
+
+\hypertarget{low-level-delegation-via-getattribute}{}
+\pdfbookmark[2]{Low-level delegation via {\_}{\_}getattribute{\_}{\_}}{low-level-delegation-via-getattribute}
+\subsubsection*{Low-level delegation via {\_}{\_}getattribute{\_}{\_}}
+
+Attribute access is managed by the{\_}{\_}getattribute{\_}{\_} special method:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<tracedaccess.py>~\\
+~\\
+class~TracedAccess(object):~\\
+~~~~def~{\_}{\_}getattribute{\_}{\_}(self,~name):~\\
+~~~~~~~~print~"Accessing~{\%}s"~{\%}~name~\\
+~~~~~~~~return~object.{\_}{\_}getattribute{\_}{\_}(self,~name)~\\
+~\\
+~\\
+class~C(TracedAccess):~\\
+~~~~s~=~staticmethod(lambda~:~'staticmethod')~\\
+~~~~c~=~classmethod(lambda~cls:~'classmethod')~\\
+~~~~m~=~lambda~self:~'method'~\\
+~~~~a~=~"hello"~\\
+~\\
+{\#}</tracedaccess.py>
+}\end{quote}
+\begin{verbatim}>>> from tracedaccess import C
+>>> c = C()
+>>> print c.s()
+Accessing s
+staticmethod
+>>> print c.c()
+Accessing c
+classmethod
+>>> print c.m()
+Accessing m
+method
+>>> print c.a
+Accessing a
+hello
+>>> print c.__init__ #doctest: +ELLIPSIS
+Accessing __init__
+<method-wrapper object at 0x...>
+>>> try: c.x
+... except AttributeError, e: print e
+...
+Accessing x
+'C' object has no attribute 'x'\end{verbatim}
+\begin{verbatim}>>> c.y = 'y'
+>>> c.y
+Accessing y
+'y'\end{verbatim}
+
+You are probably familiar with \texttt{{\_}{\_}getattr{\_}{\_}} which is similar 
+to \texttt{{\_}{\_}getattribute{\_}{\_}}, but it is called \emph{only for missing attributes}.
+
+
+%___________________________________________________________________________
+
+\hypertarget{traditional-delegation-via-getattr}{}
+\pdfbookmark[2]{Traditional delegation via {\_}{\_}getattr{\_}{\_}}{traditional-delegation-via-getattr}
+\subsubsection*{Traditional delegation via {\_}{\_}getattr{\_}{\_}}
+
+Realistic use case in ``object publishing'':
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<webapp.py>~\\
+~\\
+class~WebApplication(object):~\\
+~~~~def~{\_}{\_}getattr{\_}{\_}(self,~name):~\\
+~~~~~~~~return~name.capitalize()~\\
+~\\
+~\\
+app~=~WebApplication()~\\
+~\\
+assert~app.page1~==~'Page1'~\\
+assert~app.page2~==~'Page2'~\\
+~\\
+{\#}</webapp.py>
+}\end{quote}
+
+Here is another use case in HTML generation:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<XMLtag.py>~\\
+~\\
+def~makeattr(dict{\_}or{\_}list{\_}of{\_}pairs):~\\
+~~~~dic~=~dict(dict{\_}or{\_}list{\_}of{\_}pairs)~~\\
+~~~~return~"~".join('{\%}s="{\%}s"'~{\%}~(k,~dic{[}k])~for~k~in~dic)~{\#}~simplistic~\\
+~\\
+class~XMLTag(object):~\\
+~~~~def~{\_}{\_}getattr{\_}{\_}(self,~name):~\\
+~~~~~~~~def~tag(value,~**attr):~\\
+~~~~~~~~~~~~"{}"{}"value~can~be~a~string~or~a~sequence~of~strings."{}"{}"~\\
+~~~~~~~~~~~~if~hasattr(value,~"{\_}{\_}iter{\_}{\_}"):~{\#}~is~iterable~\\
+~~~~~~~~~~~~~~~~value~=~"~".join(value)~\\
+~~~~~~~~~~~~return~"<{\%}s~{\%}s>{\%}s</{\%}s>"~{\%}~(name,~makeattr(attr),~value,~name)~\\
+~~~~~~~~return~tag~\\
+~\\
+class~XMLShortTag(object):~\\
+~~~~def~{\_}{\_}getattr{\_}{\_}(self,~name):~\\
+~~~~~~~~def~tag(**attr):~\\
+~~~~~~~~~~~~return~"<{\%}s~{\%}s~/>"~{\%}~(name,~makeattr(attr))~\\
+~~~~~~~~return~tag~\\
+~\\
+tag~=~XMLTag()~\\
+tg~=~XMLShortTag()~\\
+~\\
+{\#}</XMLtag.py>
+}\end{quote}
+\begin{verbatim}>>> from XMLtag import tag, tg
+>>> print tag.a("example.com", href="http://www.example.com")
+<a href="http://www.example.com">example.com</a>
+>>> print tg.br(**{'class':"br_style"})
+<br class="br_style" />\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{keyword-dictionaries-with-getattr-setattr}{}
+\pdfbookmark[2]{Keyword dictionaries with {\_}{\_}getattr{\_}{\_}/{\_}{\_}setattr{\_}{\_}}{keyword-dictionaries-with-getattr-setattr}
+\subsubsection*{Keyword dictionaries with {\_}{\_}getattr{\_}{\_}/{\_}{\_}setattr{\_}{\_}}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<kwdict.py>~\\
+~\\
+class~kwdict(dict):~{\#}~or~UserDict,~to~make~it~to~work~with~Zope~\\
+~~~~"{}"{}"A~typing~shortcut~used~in~place~of~a~keyword~dictionary."{}"{}"~\\
+~~~~def~{\_}{\_}getattr{\_}{\_}(self,~name):~\\
+~~~~~~~~return~self{[}name]~\\
+~~~~def~{\_}{\_}setattr{\_}{\_}(self,~name,~value):~\\
+~~~~~~~~self{[}name]~=~value~\\
+~\\
+{\#}</kwdict.py>
+}\end{quote}
+
+And now for a completely different solution:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<dictwrapper.py>~\\
+~\\
+class~DictWrapper(object):~~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~**kw):~\\
+~~~~~~~~self.{\_}{\_}dict{\_}{\_}.update(kw)~\\
+~\\
+{\#}</dictwrapper.py>
+}\end{quote}
+
+
+%___________________________________________________________________________
+
+\hypertarget{delegation-to-special-methods-caveat}{}
+\pdfbookmark[2]{Delegation to special methods caveat}{delegation-to-special-methods-caveat}
+\subsubsection*{Delegation to special methods caveat}
+\begin{verbatim}>>> class ListWrapper(object):
+...     def __init__(self, ls):
+...         self._list = ls
+...     def __getattr__(self, name):
+...         if name == "__getitem__": # special method
+...             return self._list.__getitem__
+...         elif name == "reverse": # regular method
+...             return self._list.reverse
+...         else:
+...             raise AttributeError("%r is not defined" % name)
+... 
+>>> lw = ListWrapper([0,1,2])
+>>> print lw.x
+Traceback (most recent call last):
+  ...
+AttributeError: 'x' is not defined\end{verbatim}
+\begin{verbatim}>>> lw.reverse()
+>>> print lw.__getitem__(0)
+2
+>>> print lw.__getitem__(1)
+1
+>>> print lw.__getitem__(2)
+0
+>>> print lw[0]
+Traceback (most recent call last):
+  ...
+TypeError: unindexable object\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{part-ii-inheritance}{}
+\pdfbookmark[1]{Part II: Inheritance}{part-ii-inheritance}
+\subsection*{Part II: Inheritance}
+
+The major changes in inheritance from Python 2.1 to 2.2+ are:
+\newcounter{listcnt1}
+\begin{list}{\arabic{listcnt1}.}
+{
+\usecounter{listcnt1}
+\setlength{\rightmargin}{\leftmargin}
+}
+\item {} 
+you can subclass built-in types (as a consequence the constructor{\_}{\_}new{\_}{\_} 
+has been exposed to the user, to help subclassing immutable types);
+
+\item {} 
+the Method Resolution Order (MRO) has changed;
+
+\item {} 
+now Python allows \emph{cooperative method calls}, i.e. we have \emph{super}.
+
+\end{list}
+
+
+%___________________________________________________________________________
+
+\hypertarget{why-you-need-to-know-about-mi-even-if-you-do-not-use-it}{}
+\pdfbookmark[2]{Why you need to know about MI even if you do not use it}{why-you-need-to-know-about-mi-even-if-you-do-not-use-it}
+\subsubsection*{Why you need to know about MI even if you do not use it}
+
+In principle, the last two changes are relevant only if you use multiple 
+inheritance. If you use single inheritance only, you don't need \texttt{super}:
+you can just name the superclass.
+However, somebody else may want to use your class in a MI hierarchy,
+and you would make her life difficult if you don't use \texttt{super}.
+
+My SI hierarchy:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<why{\_}super.py>~\\
+~\\
+class~Base(object):~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"B.{\_}{\_}init{\_}{\_}"~\\
+~\\
+class~MyClass(Base):~\\
+~~~~"I~do~not~cooperate~with~others"~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"MyClass.{\_}{\_}init{\_}{\_}"~\\
+~~~~~~~~Base.{\_}{\_}init{\_}{\_}(self)~~{\#}instead~of~super(MyClass,~self).{\_}{\_}init{\_}{\_}()~\\
+~\\
+{\#}</why{\_}super.py>
+}\end{quote}
+
+Her MI hierarchy:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<why{\_}super.py>~\\
+~\\
+class~Mixin(Base):~\\
+~~~~"I~am~cooperative~with~others"~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"Mixin.{\_}{\_}init{\_}{\_}"~\\
+~~~~~~~~super(Mixin,~self).{\_}{\_}init{\_}{\_}()~\\
+~\\
+class~HerClass(MyClass,~Mixin):~\\
+~~~~"I~am~supposed~to~be~cooperative~too"~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"HerClass.{\_}{\_}init{\_}{\_}"~\\
+~~~~~~~~super(HerClass,~self).{\_}{\_}init{\_}{\_}()~\\
+~\\
+{\#}</why{\_}super.py>
+}\end{quote}
+\begin{verbatim}>>> from why_super import HerClass
+>>> h = HerClass() # Mixin.__init__ is not called!
+HerClass.__init__
+MyClass.__init__
+B.__init__\end{verbatim}
+\begin{quote}
+\begin{quote}{\ttfamily \raggedright \noindent
+~~~~~~4~object~~~\\
+~~~~~~~~~~|~\\
+~~~~~~~3~Base~\\
+~~~~~~/~~~~~~{\textbackslash}~\\
+1~MyClass~~2~Mixin~\\
+~~~~~~~{\textbackslash}~~~~~/~\\
+~~~~~0~HerClass
+}\end{quote}
+\end{quote}
+\begin{verbatim}>>> [ancestor.__name__ for ancestor in HerClass.mro()]
+['HerClass', 'MyClass', 'Mixin', 'Base', 'object']\end{verbatim}
+
+In order to be polite versus your future users, you should use \texttt{super} 
+always. This adds a cognitive burden even for people not using MI :-(
+
+Notice that there is no good comprehensive reference on \texttt{super} (yet)
+Your best bet is still \href{http://www.python.org/2.2.3/descrintro.html\#cooperation}{http://www.python.org/2.2.3/descrintro.html{\#}cooperation}
+
+The MRO instead is explained here: \href{http://www.python.org/2.3/mro.html}{http://www.python.org/2.3/mro.html}
+
+Notice that I DO NOT recommand Multiple Inheritance.
+
+More often than not you are better off using composition/delegation/wrapping, 
+etc.
+
+See Zope 2 -{\textgreater} Zope 3 experience.
+
+
+%___________________________________________________________________________
+
+\hypertarget{a-few-details-about-super-not-the-whole-truth}{}
+\pdfbookmark[2]{A few details about super (not the whole truth)}{a-few-details-about-super-not-the-whole-truth}
+\subsubsection*{A few details about \texttt{super} (not the whole truth)}
+\begin{verbatim}>>> class B(object):
+...     def __init__(self): print "B.__init__"
+...
+>>> class C(B):
+...     def __init__(self): print "C.__init__"
+...
+>>> c = C()
+C.__init__\end{verbatim}
+
+\texttt{super(cls, instance)}, where \texttt{instance} is an instance of \texttt{cls} or of
+a subclass of \texttt{cls}, retrieves the right method in the MRO:
+\begin{verbatim}>>> super(C, c).__init__ #doctest: +ELLIPSIS
+<bound method C.__init__ of <__main__.C object at 0x...>>\end{verbatim}
+\begin{verbatim}>>> super(C, c).__init__.im_func is B.__init__.im_func
+True\end{verbatim}
+\begin{verbatim}>>> super(C, c).__init__()
+B.__init__\end{verbatim}
+
+\texttt{super(cls, subclass)} works for unbound methods:
+\begin{verbatim}>>> super(C, C).__init__
+<unbound method C.__init__>\end{verbatim}
+\begin{verbatim}>>> super(C, C).__init__.im_func is B.__init__.im_func
+True
+>>> super(C, C).__init__(c)
+B.__init__\end{verbatim}
+
+\texttt{super(cls, subclass)} is also necessary for classmethods and staticmethods. 
+Properties and custom descriptorsw works too:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<super{\_}ex.py>~\\
+~\\
+from~descriptor~import~AttributeDescriptor~\\
+~\\
+class~B(object):~\\
+~~~@staticmethod~\\
+~~~def~sm():~return~"staticmethod"~\\
+~\\
+~~~@classmethod~\\
+~~~def~cm(cls):~return~cls.{\_}{\_}name{\_}{\_}~\\
+~\\
+~~~p~=~property()~\\
+~~~a~=~AttributeDescriptor()~\\
+~\\
+class~C(B):~pass~\\
+~\\
+{\#}</super{\_}ex.py>
+}\end{quote}
+\begin{verbatim}>>> from super_ex import C\end{verbatim}
+
+Staticmethod usage:
+\begin{verbatim}>>> super(C, C).sm #doctest: +ELLIPSIS
+<function sm at 0x...>
+>>> super(C, C).sm()
+'staticmethod'\end{verbatim}
+
+Classmethod usage:
+\begin{verbatim}>>> super(C, C()).cm
+<bound method type.cm of <class 'super_ex.C'>>
+>>> super(C, C).cm() # C is automatically passed
+'C'\end{verbatim}
+
+Property usage:
+\begin{verbatim}>>> print super(C, C).p #doctest: +ELLIPSIS
+<property object at 0x...>
+>>> super(C, C).a #doctest: +ELLIPSIS
+Getting <descriptor.AttributeDescriptor object at 0x...> from <class 'super_ex.C'>\end{verbatim}
+
+\texttt{super} does not work with old-style classes, however you can use the
+following trick:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<super{\_}old{\_}new.py>~\\
+class~O:~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"O.{\_}{\_}init{\_}{\_}"~\\
+~\\
+class~N(O,~object):~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"N.{\_}{\_}init{\_}{\_}"~\\
+~~~~~~~~super(N,~self).{\_}{\_}init{\_}{\_}()~\\
+~\\
+{\#}</super{\_}old{\_}new.py>
+}\end{quote}
+\begin{verbatim}>>> from super_old_new import N
+>>> new = N()
+N.__init__
+O.__init__\end{verbatim}
+
+There are dozens of tricky points concerning \texttt{super}, be warned!
+
+
+%___________________________________________________________________________
+
+\hypertarget{subclassing-built-in-types-new-vs-init}{}
+\pdfbookmark[2]{Subclassing built-in types; {\_}{\_}new{\_}{\_} vs. {\_}{\_}init{\_}{\_}}{subclassing-built-in-types-new-vs-init}
+\subsubsection*{Subclassing built-in types; {\_}{\_}new{\_}{\_} vs. {\_}{\_}init{\_}{\_}}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<point.py>~\\
+~\\
+class~NotWorkingPoint(tuple):~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~x,~y):~\\
+~~~~~~~~super(NotWorkingPoint,~self).{\_}{\_}init{\_}{\_}((x,y))~\\
+~~~~~~~~self.x,~self.y~=~x,~y~\\
+~\\
+{\#}</point.py>
+}\end{quote}
+\begin{verbatim}>>> from point import NotWorkingPoint
+>>> p = NotWorkingPoint(2,3)
+Traceback (most recent call last):
+  ...
+TypeError: tuple() takes at most 1 argument (2 given)\end{verbatim}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<point.py>~\\
+~\\
+class~Point(tuple):~\\
+~~~~def~{\_}{\_}new{\_}{\_}(cls,~x,~y):~\\
+~~~~~~~~return~super(Point,~cls).{\_}{\_}new{\_}{\_}(cls,~(x,y))~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~x,~y):~\\
+~~~~~~~~super(Point,~self).{\_}{\_}init{\_}{\_}((x,~y))~\\
+~~~~~~~~self.x,~self.y~=~x,~y~\\
+~\\
+{\#}</point.py>
+}\end{quote}
+
+Notice that{\_}{\_}new{\_}{\_} is a staticmethod, not a classmethod, so one needs
+to pass the class explicitely.
+\begin{verbatim}>>> from point import Point
+>>> p = Point(2,3)
+>>> print p, p.x, p.y
+(2, 3) 2 3\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{be-careful-when-using-new-with-mutable-types}{}
+\pdfbookmark[2]{Be careful when using {\_}{\_}new{\_}{\_} with mutable types}{be-careful-when-using-new-with-mutable-types}
+\subsubsection*{Be careful when using {\_}{\_}new{\_}{\_} with mutable types}
+\begin{verbatim}>>> class ListWithDefault(list):
+...     def __new__(cls):
+...         return super(ListWithDefault, cls).__new__(cls, ["hello"])
+...
+>>> print ListWithDefault() # beware! NOT ["hello"]!
+[]\end{verbatim}
+
+Reason: lists are re-initialized to empty lists in list.{\_}{\_}init{\_}{\_}!
+
+Instead
+\begin{verbatim}>>> class ListWithDefault(list):
+...     def __init__(self):
+...         super(ListWithDefault, self).__init__(["hello"])
+...
+>>> print ListWithDefault() # works!
+['hello']\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{lecture-3-magic-i-e-decorators-and-metaclasses}{}
+\pdfbookmark[0]{Lecture 3: Magic (i.e. decorators and metaclasses)}{lecture-3-magic-i-e-decorators-and-metaclasses}
+\section*{Lecture 3: Magic (i.e. decorators and metaclasses)}
+
+
+%___________________________________________________________________________
+
+\hypertarget{part-i-decorators}{}
+\pdfbookmark[1]{Part I: decorators}{part-i-decorators}
+\subsection*{Part I: decorators}
+
+Decorators are just sugar: their functionality was already in the language
+\begin{verbatim}>>> def s(): pass
+>>> s = staticmethod(s)\end{verbatim}
+\begin{verbatim}>>> @staticmethod
+... def s(): pass
+...\end{verbatim}
+
+However sugar \emph{does} matter.
+
+
+%___________________________________________________________________________
+
+\hypertarget{a-typical-decorator-traced}{}
+\pdfbookmark[2]{A typical decorator: traced}{a-typical-decorator-traced}
+\subsubsection*{A typical decorator: traced}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<traced.py>~\\
+~\\
+def~traced(func):~\\
+~~~~def~tracedfunc(*args,~**kw):~\\
+~~~~~~~~print~"calling~{\%}s.{\%}s"~{\%}~(func.{\_}{\_}module{\_}{\_},~func.{\_}{\_}name{\_}{\_})~\\
+~~~~~~~~return~func(*args,~**kw)~\\
+~~~~tracedfunc.{\_}{\_}name{\_}{\_}~=~func.{\_}{\_}name{\_}{\_}~\\
+~~~~return~tracedfunc~\\
+~\\
+@traced~\\
+def~f():~pass~\\
+~\\
+{\#}</traced.py>
+}\end{quote}
+\begin{verbatim}>>> from traced import f
+>>> f()
+calling traced.f\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{a-decorator-factory-timed}{}
+\pdfbookmark[2]{A decorator factory: Timed}{a-decorator-factory-timed}
+\subsubsection*{A decorator factory: Timed}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<timed.py>~\\
+~\\
+import~sys,~time~\\
+~\\
+class~Timed(object):~\\
+~~~~"{}"{}"Decorator~factory:~each~decorator~object~wraps~a~function~and~~\\
+~~~~executes~it~many~times~(default~100~times).~\\
+~~~~The~average~time~spent~in~one~iteration,~expressed~in~milliseconds,~~\\
+~~~~is~stored~in~the~attributes~wrappedfunc.time~and~wrappedfunc.clocktime,~\\
+~~~~and~displayed~into~a~log~file~which~defaults~to~stdout.~\\
+~~~~"{}"{}"~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~repeat=100,~logfile=sys.stdout):~\\
+~~~~~~~~self.repeat~=~repeat~\\
+~~~~~~~~self.logfile~=~logfile~\\
+~~~~def~{\_}{\_}call{\_}{\_}(self,~func):~\\
+~~~~~~~~def~wrappedfunc(*args,~**kw):~\\
+~~~~~~~~~~~~fullname~=~"{\%}s.{\%}s~..."~{\%}~(func.{\_}{\_}module{\_}{\_},~func.func{\_}name)~\\
+~~~~~~~~~~~~print~>{}>~self.logfile,~'Executing~{\%}s'~{\%}~fullname.ljust(30),~\\
+~~~~~~~~~~~~time1~=~time.time()~\\
+~~~~~~~~~~~~clocktime1~=~time.clock()~\\
+~~~~~~~~~~~~for~i~in~xrange(self.repeat):~\\
+~~~~~~~~~~~~~~~~res~=~func(*args,**kw)~{\#}~executes~func~self.repeat~times~\\
+~~~~~~~~~~~~time2~=~time.time()~\\
+~~~~~~~~~~~~clocktime2~=~time.clock()~\\
+~~~~~~~~~~~~wrappedfunc.time~=~1000*(time2-time1)/self.repeat~\\
+~~~~~~~~~~~~wrappedfunc.clocktime~=~1000*(clocktime2~-~clocktime1)/self.repeat~\\
+~~~~~~~~~~~~print~>{}>~self.logfile,~{\textbackslash}~\\
+~~~~~~~~~~~~~~~~~~'Real~time:~{\%}s~ms;'~{\%}~self.rounding(wrappedfunc.time),~\\
+~~~~~~~~~~~~print~>{}>~self.logfile,~{\textbackslash}~\\
+~~~~~~~~~~~~~~~~~~'Clock~time:~{\%}s~ms'~{\%}~self.rounding(wrappedfunc.clocktime)~\\
+~~~~~~~~~~~~return~res~\\
+~~~~~~~~wrappedfunc.func{\_}name~=~func.func{\_}name~\\
+~~~~~~~~wrappedfunc.{\_}{\_}module{\_}{\_}~=~func.{\_}{\_}module{\_}{\_}~\\
+~~~~~~~~return~wrappedfunc~\\
+~~~~@staticmethod~\\
+~~~~def~rounding(float{\_}):~\\
+~~~~~~~~"Three~digits~rounding~for~small~numbers,~1~digit~rounding~otherwise."~\\
+~~~~~~~~if~float{\_}~<~10.:~\\
+~~~~~~~~~~~~return~"{\%}5.3f"~{\%}~float{\_}~\\
+~~~~~~~~else:~\\
+~~~~~~~~~~~~return~"{\%}5.1f"~{\%}~float{\_}~\\
+~~~~\\
+{\#}</timed.py>
+}\end{quote}
+\begin{verbatim}>>> from timed import Timed
+>>> from random import sample
+>>> example_ls = sample(xrange(1000000), 1000)
+>>> @Timed()
+... def list_sort(ls):
+...     ls.sort()
+... 
+>>> list_sort(example_ls) #doctest: +ELLIPSIS
+Executing __main__.list_sort ... Real time: 0... ms; Clock time: 0... ms\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{a-powerful-decorator-pattern}{}
+\pdfbookmark[2]{A powerful decorator pattern}{a-powerful-decorator-pattern}
+\subsubsection*{A powerful decorator pattern}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<traced{\_}function2.py>~\\
+~\\
+from~decorators~import~decorator~\\
+~\\
+def~trace(f,~*args,~**kw):~\\
+~~~~print~"calling~{\%}s~with~args~{\%}s,~{\%}s"~{\%}~(f.func{\_}name,~args,~kw)~~\\
+~~~~return~f(*args,~**kw)~\\
+~\\
+traced{\_}function~=~decorator(trace)~\\
+~\\
+@traced{\_}function~\\
+def~f1(x):~\\
+~~~~pass~\\
+~\\
+@traced{\_}function~\\
+def~f2(x,~y):~\\
+~~~~pass~\\
+~\\
+{\#}</traced{\_}function2.py>
+}\end{quote}
+\begin{verbatim}>>> from traced_function2 import traced_function, f1, f2
+>>> f1(1)
+calling f1 with args (1,), {}
+>>> f2(1,2)
+calling f2 with args (1, 2), {}\end{verbatim}
+
+works with pydoc:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\$}~pydoc2.4~traced{\_}function2.f2~~~\\
+Help~on~function~f1~in~traced{\_}function2:~\\
+~\\
+traced{\_}function2.f1~=~f1(x)~\\
+~\\
+{\$}~pydoc2.4~traced{\_}function2.f2~~~\\
+Help~on~function~f2~in~traced{\_}function2:~\\
+~\\
+traced{\_}function2.f2~=~f2(x,~y)
+}\end{quote}
+
+Here is the source code:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<decorators.py>~\\
+~\\
+def~getinfo(func):~\\
+~~~~"{}"{}"Return~an~info~dictionary~containing:~\\
+~~~~-~name~(the~name~of~the~function~:~str)~\\
+~~~~-~argnames~(the~names~of~the~arguments~:~list)~\\
+~~~~-~defarg~(the~values~of~the~default~arguments~:~list)~\\
+~~~~-~fullsign~(the~full~signature~:~str)~\\
+~~~~-~shortsign~(the~short~signature~:~str)~\\
+~~~~-~arg0~...~argn~(shortcuts~for~the~names~of~the~arguments)~\\
+~\\
+~~~~>{}>{}>~def~f(self,~x=1,~y=2,~*args,~**kw):~pass~\\
+~\\
+~~~~>{}>{}>~info~=~getinfo(f)~\\
+~\\
+~~~~>{}>{}>~info{[}"name"]~\\
+~~~~'f'~\\
+~~~~>{}>{}>~info{[}"argnames"]~\\
+~~~~{[}'self',~'x',~'y',~'args',~'kw']~\\
+~~~~~\\
+~~~~>{}>{}>~info{[}"defarg"]~\\
+~~~~(1,~2)~\\
+~\\
+~~~~>{}>{}>~info{[}"shortsign"]~\\
+~~~~'self,~x,~y,~*args,~**kw'~\\
+~~~~~\\
+~~~~>{}>{}>~info{[}"fullsign"]~\\
+~~~~'self,~x=defarg{[}0],~y=defarg{[}1],~*args,~**kw'~\\
+~\\
+~~~~>{}>{}>~info{[}"arg0"],~info{[}"arg1"],~info{[}"arg2"],~info{[}"arg3"],~info{[}"arg4"]~\\
+~~~~('self',~'x',~'y',~'args',~'kw')~\\
+~~~~"{}"{}"~\\
+~~~~assert~inspect.ismethod(func)~or~inspect.isfunction(func)~\\
+~~~~regargs,~varargs,~varkwargs,~defaults~=~inspect.getargspec(func)~\\
+~~~~argnames~=~list(regargs)~\\
+~~~~if~varargs:~argnames.append(varargs)~\\
+~~~~if~varkwargs:~argnames.append(varkwargs)~\\
+~~~~counter~=~itertools.count()~\\
+~~~~fullsign~=~inspect.formatargspec(~\\
+~~~~~~~~regargs,~varargs,~varkwargs,~defaults,~\\
+~~~~~~~~formatvalue=lambda~value:~"=defarg{[}{\%}i]"~{\%}~counter.next()){[}1:-1]~\\
+~~~~shortsign~=~inspect.formatargspec(~\\
+~~~~~~~~regargs,~varargs,~varkwargs,~defaults,~\\
+~~~~~~~~formatvalue=lambda~value:~"{}"){[}1:-1]~\\
+~~~~dic~=~dict(("arg{\%}s"~{\%}~n,~name)~for~n,~name~in~enumerate(argnames))~\\
+~~~~dic.update(name=func.{\_}{\_}name{\_}{\_},~argnames=argnames,~shortsign=shortsign,~\\
+~~~~~~~~fullsign~=~fullsign,~defarg~=~func.func{\_}defaults~or~())~\\
+~~~~return~dic~\\
+~\\
+def~{\_}contains{\_}reserved{\_}names(dic):~{\#}~helper~\\
+~~~~return~"{\_}call{\_}"~in~dic~or~"{\_}func{\_}"~in~dic~\\
+~\\
+def~{\_}decorate(func,~caller):~\\
+~~~~"{}"{}"Takes~a~function~and~a~caller~and~returns~the~function~\\
+~~~~decorated~with~that~caller.~The~decorated~function~is~obtained~\\
+~~~~by~evaluating~a~lambda~function~with~the~correct~signature.~\\
+~~~~"{}"{}"~\\
+~~~~infodict~=~getinfo(func)~\\
+~~~~assert~not~{\_}contains{\_}reserved{\_}names(infodict{[}"argnames"]),~{\textbackslash}~\\
+~~~~~~~~~~~"You~cannot~use~{\_}call{\_}~or~{\_}func{\_}~as~argument~names!"~\\
+~~~~execdict=dict({\_}func{\_}=func,~{\_}call{\_}=caller,~defarg=func.func{\_}defaults~or~())~\\
+~~~~if~func.{\_}{\_}name{\_}{\_}~==~"<lambda>":~\\
+~~~~~~~~lambda{\_}src~=~"lambda~{\%}(fullsign)s:~{\_}call{\_}({\_}func{\_},~{\%}(shortsign)s)"~{\textbackslash}~\\
+~~~~~~~~~~~~~~~~~~~~~{\%}~infodict~\\
+~~~~~~~~dec{\_}func~=~eval(lambda{\_}src,~execdict)~\\
+~~~~else:~\\
+~~~~~~~~func{\_}src~=~"{}"{}"def~{\%}(name)s({\%}(fullsign)s):~\\
+~~~~~~~~return~{\_}call{\_}({\_}func{\_},~{\%}(shortsign)s)"{}"{}"~{\%}~infodict~\\
+~~~~~~~~exec~func{\_}src~in~execdict~~\\
+~~~~~~~~dec{\_}func~=~execdict{[}func.{\_}{\_}name{\_}{\_}]~\\
+~~~~{\#}import~sys;~print~>{}>~sys.stderr,~func{\_}src~{\#}~for~debugging~~\\
+~~~~dec{\_}func.{\_}{\_}doc{\_}{\_}~=~func.{\_}{\_}doc{\_}{\_}~\\
+~~~~dec{\_}func.{\_}{\_}dict{\_}{\_}~=~func.{\_}{\_}dict{\_}{\_}~\\
+~~~~return~dec{\_}func~\\
+~\\
+class~decorator(object):~\\
+~~~~"{}"{}"General~purpose~decorator~factory:~takes~a~caller~function~as~\\
+input~and~returns~a~decorator.~A~caller~function~is~any~function~like~this::~\\
+~\\
+~~~~def~caller(func,~*args,~**kw):~\\
+~~~~~~~~{\#}~do~something~\\
+~~~~~~~~return~func(*args,~**kw)~\\
+~~~~~\\
+Here~is~an~example~of~usage:~\\
+~\\
+~~~~>{}>{}>~@decorator~\\
+~~~~...~def~chatty(f,~*args,~**kw):~\\
+~~~~...~~~~~print~"Calling~{\%}r"~{\%}~f.{\_}{\_}name{\_}{\_}~\\
+~~~~...~~~~~return~f(*args,~**kw)~\\
+~~~~~\\
+~~~~>{}>{}>~@chatty~\\
+~~~~...~def~f():~pass~\\
+~~~~...~\\
+~~~~>{}>{}>~f()~\\
+~~~~Calling~'f'~\\
+~~~~"{}"{}"~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~caller):~\\
+~~~~~~~~self.caller~=~caller~\\
+~~~~def~{\_}{\_}call{\_}{\_}(self,~func):~\\
+~~~~~~~~return~{\_}decorate(func,~self.caller)~\\
+~\\
+~\\
+{\#}</decorators.py>
+}\end{quote}
+
+The possibilities of this pattern are endless.
+
+
+%___________________________________________________________________________
+
+\hypertarget{a-deferred-decorator}{}
+\pdfbookmark[2]{A deferred decorator}{a-deferred-decorator}
+\subsubsection*{A deferred decorator}
+
+You want to execute a procedure only after a certain time delay (for instance
+for use within an asyncronous Web framework):
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<deferred.py>~\\
+"Deferring~the~execution~of~a~procedure~(function~returning~None)"~\\
+~\\
+import~threading~\\
+from~decorators~import~decorator~\\
+~\\
+def~deferred(nsec):~\\
+~~~~def~call{\_}later(func,~*args,~**kw):~\\
+~~~~~~~~return~threading.Timer(nsec,~func,~args,~kw).start()~\\
+~~~~return~decorator(call{\_}later)~\\
+~\\
+@deferred(2)~\\
+def~hello():~\\
+~~~~print~"hello"~\\
+~\\
+if~{\_}{\_}name{\_}{\_}~==~"{\_}{\_}main{\_}{\_}":~\\
+~~~~hello()~~~~~\\
+~~~~print~"Calling~hello()~..."~\\
+~~~~\\
+~\\
+{\#}</deferred.py>~\\
+~\\
+{\$}~python~deferred.py
+}\end{quote}
+
+Show an example of an experimental decorator based web framework
+(doctester{\_}frontend).
+
+
+%___________________________________________________________________________
+
+\hypertarget{part-ii-metaclasses}{}
+\pdfbookmark[1]{Part II: metaclasses}{part-ii-metaclasses}
+\subsection*{Part II: metaclasses}
+
+Metaclasses are there! Consider this example from a recent post on c.l.py:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<BaseClass.py>~\\
+~\\
+class~BaseClass(object):~\\
+~~~"Do~something"~\\
+~\\
+{\#}</BaseClass.py>
+}\end{quote}
+\begin{verbatim}>>> import BaseClass # instead of 'from BaseClass import BaseClass'
+>>> class C(BaseClass): pass
+...
+Traceback (most recent call last):
+  ...
+TypeError: Error when calling the metaclass bases
+    module.__init__() takes at most 2 arguments (3 given)\end{verbatim}
+
+The reason for the error is that class \texttt{C(BaseClass): pass} is
+actually calling the \texttt{type} metaclass with three arguments:
+\begin{quote}{\ttfamily \raggedright \noindent
+C~=~type("C",~(BaseClass,),~{\{}{\}})
+}\end{quote}
+
+\texttt{type.{\_}{\_}new{\_}{\_}} tries to use \texttt{type(BaseClass)} as metaclass,
+but since BaseClass here is a module,  and \texttt{ModuleType} is not
+a metaclass, it cannot work. The error message reflects a conflict with 
+the signature of ModuleType which requires two parameters and not three.
+
+So even if you don't use them, you may want to know they exist.
+
+
+%___________________________________________________________________________
+
+\hypertarget{rejuvenating-old-style-classes}{}
+\pdfbookmark[2]{Rejuvenating old-style classes}{rejuvenating-old-style-classes}
+\subsubsection*{Rejuvenating old-style classes}
+\begin{verbatim}>>> class Old: pass
+>>> print type(Old)
+<type 'classobj'>\end{verbatim}
+\begin{verbatim}>>> __metaclass__ = type # to rejuvenate class
+>>> class NotOld: pass
+...
+>>> print NotOld.__class__
+<type 'type'>\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{a-typical-metaclass-example-metatracer}{}
+\pdfbookmark[2]{A typical metaclass example: MetaTracer}{a-typical-metaclass-example-metatracer}
+\subsubsection*{A typical metaclass example: MetaTracer}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<metatracer.py>~\\
+~\\
+import~inspect~\\
+from~decorators~import~decorator~\\
+~\\
+@decorator~\\
+def~traced(meth,~*args,~**kw):~\\
+~~~~cls~=~meth.{\_}{\_}cls{\_}{\_}~\\
+~~~~modname~=~meth.{\_}{\_}module{\_}{\_}~or~cls.{\_}{\_}module{\_}{\_}~\\
+~~~~print~"calling~{\%}s.{\%}s.{\%}s"~{\%}~(modname,~cls.{\_}{\_}name{\_}{\_},~meth.{\_}{\_}name{\_}{\_})~\\
+~~~~return~meth(*args,~**kw)~\\
+~\\
+class~MetaTracer(type):~~~~~~~~~~~~~\\
+~~~~def~{\_}{\_}init{\_}{\_}(cls,~name,~bases,~dic):~\\
+~~~~~~~~super(MetaTracer,~cls).{\_}{\_}init{\_}{\_}(name,~bases,~dic)~\\
+~~~~~~~~for~k,~v~in~dic.iteritems():~\\
+~~~~~~~~~~~~if~inspect.isfunction(v):~\\
+~~~~~~~~~~~~~~~~v.{\_}{\_}cls{\_}{\_}~=~cls~{\#}~so~we~know~in~which~class~v~was~defined~\\
+~~~~~~~~~~~~~~~~setattr(cls,~k,~traced(v))~\\
+~\\
+{\#}</metatracer.py>
+}\end{quote}
+
+Usage: exploring classes in the standard library
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<dictmixin.py>~\\
+~\\
+from~metatracer~import~MetaTracer~\\
+from~UserDict~import~DictMixin~\\
+~\\
+class~TracedDM(DictMixin,~object):~\\
+~~~~{\_}{\_}metaclass{\_}{\_}~=~MetaTracer~\\
+~~~~def~{\_}{\_}getitem{\_}{\_}(self,~item):~\\
+~~~~~~~~return~item~\\
+~~~~def~keys(self):~~\\
+~~~~~~~~return~{[}1,2,3]~\\
+~\\
+{\#}</dictmixin.py>
+}\end{quote}
+\begin{verbatim}>>> from dictmixin import TracedDM
+>>> print TracedDM()
+calling dictmixin.TracedDM.keys
+calling dictmixin.TracedDM.__getitem__
+calling dictmixin.TracedDM.__getitem__
+calling dictmixin.TracedDM.__getitem__
+{1: 1, 2: 2, 3: 3}\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{real-life-example-check-overriding}{}
+\pdfbookmark[2]{Real life example: check overriding}{real-life-example-check-overriding}
+\subsubsection*{Real life example: check overriding}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<check{\_}overriding.py>~\\
+~\\
+class~Base(object):~\\
+~~~~a~=~0~\\
+~\\
+class~CheckOverriding(type):~\\
+~~~~"Prints~a~message~if~we~are~overriding~a~name."~\\
+~~~~def~{\_}{\_}new{\_}{\_}(mcl,~name,~bases,~dic):~\\
+~~~~~~~~for~name,~val~in~dic.iteritems():~\\
+~~~~~~~~~~~~if~name.startswith("{\_}{\_}")~and~name.endswith("{\_}{\_}"):~~\\
+~~~~~~~~~~~~~~~~continue~{\#}~ignore~special~names~\\
+~~~~~~~~~~~~a{\_}base{\_}has{\_}name~=~True~in~(hasattr(base,~name)~for~base~in~bases)~\\
+~~~~~~~~~~~~if~a{\_}base{\_}has{\_}name:~\\
+~~~~~~~~~~~~~~~~print~"AlreadyDefinedNameWarning:~"~+~name~\\
+~~~~~~~~return~super(CheckOverriding,~mcl).{\_}{\_}new{\_}{\_}(mcl,~name,~bases,~dic)~\\
+~\\
+class~MyClass(Base):~\\
+~~~~{\_}{\_}metaclass{\_}{\_}~=~CheckOverriding~\\
+~~~~a~=~1~\\
+~\\
+class~ChildClass(MyClass):~\\
+~~~~a~=~2
+}\end{quote}
+
+{\#}{\textless}/check{\_}overriding.py{\textgreater}
+\begin{verbatim}>>> import check_overriding
+AlreadyDefinedNameWarning: a
+AlreadyDefinedNameWarning: a\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{logfile}{}
+\pdfbookmark[2]{LogFile}{logfile}
+\subsubsection*{LogFile}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<logfile.py>~\\
+~\\
+import~subprocess~\\
+~\\
+def~memoize(func):~\\
+~~~~memoize{\_}dic~=~{\{}{\}}~\\
+~~~~def~wrapped{\_}func(*args):~\\
+~~~~~~~~if~args~in~memoize{\_}dic:~\\
+~~~~~~~~~~~~return~memoize{\_}dic{[}args]~\\
+~~~~~~~~else:~\\
+~~~~~~~~~~~~result~=~func(*args)~\\
+~~~~~~~~~~~~memoize{\_}dic{[}args]~=~result~\\
+~~~~~~~~~~~~return~result~\\
+~~~~wrapped{\_}func.{\_}{\_}name{\_}{\_}~=~func.{\_}{\_}name{\_}{\_}~\\
+~~~~wrapped{\_}func.{\_}{\_}doc{\_}{\_}~=~func.{\_}{\_}doc{\_}{\_}~\\
+~~~~wrapped{\_}func.{\_}{\_}dict{\_}{\_}~=~func.{\_}{\_}dict{\_}{\_}~\\
+~~~~return~wrapped{\_}func~\\
+~\\
+class~Memoize(type):~{\#}~Singleton~is~a~special~case~of~Memoize~\\
+~~~~@memoize~\\
+~~~~def~{\_}{\_}call{\_}{\_}(cls,~*args):~\\
+~~~~~~~~return~super(Memoize,~cls).{\_}{\_}call{\_}{\_}(*args)~\\
+~\\
+class~LogFile(file):~\\
+~~~~"{}"{}"Open~a~file~for~append."{}"{}"~\\
+~~~~{\_}{\_}metaclass{\_}{\_}~=~Memoize~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self,~name~=~"/tmp/err.log"):~\\
+~~~~~~~~self.viewer{\_}cmd~=~'xterm~-e~less'.split()~\\
+~~~~~~~~super(LogFile,~self).{\_}{\_}init{\_}{\_}(name,~"a")~\\
+~\\
+~~~~def~display(self,~*ls):~\\
+~~~~~~~~"Use~'less'~to~display~the~log~file~in~a~separate~xterm."~\\
+~~~~~~~~print~>{}>~self,~"{\textbackslash}n".join(map(str,~ls));~self.flush()~\\
+~~~~~~~~subprocess.call(self.viewer{\_}cmd~+~{[}self.name])~\\
+~\\
+~~~~def~reset(self):~\\
+~~~~~~~~"Erase~the~log~file."~\\
+~~~~~~~~print~>{}>~file(self.name,~"w")~\\
+~\\
+if~{\_}{\_}name{\_}{\_}~==~"{\_}{\_}main{\_}{\_}":~{\#}~test~\\
+~~~~print~>{}>~LogFile(),~"hello"~\\
+~~~~print~>{}>~LogFile(),~"world"~\\
+~~~~LogFile().display()~\\
+~\\
+{\#}</logfile.py>~\\
+~\\
+{\$}~python~logfile.py
+}\end{quote}
+
+
+%___________________________________________________________________________
+
+\hypertarget{cooperative-hierarchies}{}
+\pdfbookmark[2]{Cooperative hierarchies}{cooperative-hierarchies}
+\subsubsection*{Cooperative hierarchies}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<cooperative{\_}init.py>~\\
+~\\
+"{}"{}"Given~a~hierarchy,~makes~{\_}{\_}init{\_}{\_}~cooperative.~\\
+The~only~change~needed~is~to~add~a~line~\\
+~\\
+~~~{\_}{\_}metaclass{\_}{\_}~=~CooperativeInit~\\
+~\\
+to~the~base~class~of~your~hierarchy."{}"{}"~\\
+~\\
+from~decorators~import~decorator~~\\
+~\\
+class~CooperativeInit(type):~\\
+~~~~def~{\_}{\_}init{\_}{\_}(cls,~name,~bases,~dic):~\\
+~\\
+~~~~~~~~@decorator~\\
+~~~~~~~~def~make{\_}cooperative({\_}{\_}init{\_}{\_},~self,~*args,~**kw):~\\
+~~~~~~~~~~~~super(cls,~self).{\_}{\_}init{\_}{\_}(*args,~**kw)~\\
+~~~~~~~~~~~~{\_}{\_}init{\_}{\_}(self,~*args,~**kw)~\\
+~\\
+~~~~~~~~{\_}{\_}init{\_}{\_}~=~dic.get("{\_}{\_}init{\_}{\_}")~\\
+~~~~~~~~if~{\_}{\_}init{\_}{\_}:~\\
+~~~~~~~~~~~~cls.{\_}{\_}init{\_}{\_}~=~make{\_}cooperative({\_}{\_}init{\_}{\_})~\\
+~\\
+class~Base:~\\
+~~~~{\_}{\_}metaclass{\_}{\_}~=~CooperativeInit~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"B.{\_}{\_}init{\_}{\_}"~\\
+~\\
+class~C1(Base):~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"C1.{\_}{\_}init{\_}{\_}"~\\
+~\\
+class~C2(Base):~\\
+~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~print~"C2.{\_}{\_}init{\_}{\_}"~\\
+~\\
+class~D(C1,~C2):~\\
+~~~~def~{\_}{\_}init{\_}{\_}(self):~\\
+~~~~~~~~print~"D.{\_}{\_}init{\_}{\_}"~\\
+~\\
+{\#}</cooperative{\_}init.py>
+}\end{quote}
+\begin{verbatim}>>> from cooperative_init import D
+>>> d = D()
+B.__init__
+C2.__init__
+C1.__init__
+D.__init__\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{metaclass-enhanced-modules}{}
+\pdfbookmark[2]{Metaclass-enhanced modules}{metaclass-enhanced-modules}
+\subsubsection*{Metaclass-enhanced modules}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<import{\_}with{\_}metaclass.py>~\\
+"{}"{}"~\\
+`{}`import{\_}with{\_}metaclass(metaclass,~modulepath)`{}`~generates~\\
+a~new~module~from~and~old~module,~by~enhancing~all~of~its~classes.~\\
+This~is~not~perfect,~but~it~should~give~you~a~start."{}"{}"~\\
+~\\
+import~os,~sys,~inspect,~types~\\
+~\\
+def~import{\_}with{\_}metaclass(metaclass,~modulepath):~\\
+~~~~modname~=~os.path.basename(modulepath){[}:-3]~{\#}~simplistic~\\
+~~~~mod~=~types.ModuleType(modname)~\\
+~~~~locs~=~dict(~\\
+~~~~~~~~{\_}{\_}module{\_}{\_}~=~modname,~\\
+~~~~~~~~{\_}{\_}metaclass{\_}{\_}~=~metaclass,~\\
+~~~~~~~~object~=~metaclass("object",~(),~{\{}{\}}))~\\
+~~~~execfile(modulepath,~locs)~\\
+~~~~for~k,~v~in~locs.iteritems():~\\
+~~~~~~~~if~inspect.isclass(v):~{\#}~otherwise~it~would~be~"{\_}{\_}builtin{\_}{\_}"~\\
+~~~~~~~~~~~~v.{\_}{\_}module{\_}{\_}~=~"{\_}{\_}dynamic{\_}{\_}"~\\
+~~~~~~~~setattr(mod,~k,~v)~\\
+~~~~return~mod
+}\end{quote}
+
+{\#}{\textless}/import{\_}with{\_}metaclass.py{\textgreater}
+\begin{verbatim}>>> from import_with_metaclass import import_with_metaclass
+>>> from metatracer import MetaTracer
+>>> traced_optparse = import_with_metaclass(MetaTracer, 
+...     "/usr/lib/python2.4/optparse.py")
+>>> op = traced_optparse.OptionParser()
+calling __dynamic__.OptionParser.__init__
+calling __dynamic__.OptionContainer.__init__
+calling __dynamic__.OptionParser._create_option_list
+calling __dynamic__.OptionContainer._create_option_mappings
+calling __dynamic__.OptionContainer.set_conflict_handler
+calling __dynamic__.OptionContainer.set_description
+calling __dynamic__.OptionParser.set_usage
+calling __dynamic__.IndentedHelpFormatter.__init__
+calling __dynamic__.HelpFormatter.__init__
+calling __dynamic__.HelpFormatter.set_parser
+calling __dynamic__.OptionParser._populate_option_list
+calling __dynamic__.OptionParser._add_help_option
+calling __dynamic__.OptionContainer.add_option
+calling __dynamic__.Option.__init__
+calling __dynamic__.Option._check_opt_strings
+calling __dynamic__.Option._set_opt_strings
+calling __dynamic__.Option._set_attrs
+calling __dynamic__.OptionContainer._check_conflict
+calling __dynamic__.OptionParser._init_parsing_state\end{verbatim}
+
+traced{\_}optparse is a dynamically generated module not leaving in the
+file system.
+
+
+%___________________________________________________________________________
+
+\hypertarget{magic-properties}{}
+\pdfbookmark[2]{Magic properties}{magic-properties}
+\subsubsection*{Magic properties}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<magicprop.py>~\\
+~\\
+class~MagicProperties(type):~\\
+~~~~def~{\_}{\_}init{\_}{\_}(cls,~name,~bases,~dic):~\\
+~~~~~~~~prop{\_}names~=~set(name{[}3:]~for~name~in~dic~\\
+~~~~~~~~~~~~~~~~~~~~~~~~~if~name.startswith("get")~\\
+~~~~~~~~~~~~~~~~~~~~~~~~~or~name.startswith("set"))~\\
+~~~~~~~~for~name~in~prop{\_}names:~\\
+~~~~~~~~~~~~getter~=~getattr(cls,~"get"~+~name,~None)~\\
+~~~~~~~~~~~~setter~=~getattr(cls,~"set"~+~name,~None)~\\
+~~~~~~~~~~~~setattr(cls,~name,~property(getter,~setter))~\\
+~\\
+class~Base(object):~\\
+~~~~{\_}{\_}metaclass{\_}{\_}~=~MagicProperties~\\
+~~~~def~getx(self):~\\
+~~~~~~~~return~self.{\_}x~\\
+~~~~def~setx(self,~value):~\\
+~~~~~~~~self.{\_}x~=~value~\\
+~\\
+class~Child(Base):~\\
+~~~~def~getx(self):~\\
+~~~~~~~~print~"getting~x"~\\
+~~~~~~~~return~super(Child,~self).getx()~~\\
+~~~~def~setx(self,~value):~\\
+~~~~~~~~print~"setting~x"~\\
+~~~~~~~~super(Child,~self).setx(value)~~\\
+~\\
+{\#}</magicprop.py>
+}\end{quote}
+\begin{verbatim}>>> from magicprop import Child
+>>> c = Child()
+>>> c.x = 1
+setting x
+>>> print c.x
+getting x
+1\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{hack-evil-properties}{}
+\pdfbookmark[2]{Hack: evil properties}{hack-evil-properties}
+\subsubsection*{Hack: evil properties}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<evilprop.py>~\\
+~\\
+def~convert2property(name,~bases,~d):~\\
+~~~~return~property(d.get('get'),~d.get('set'),~\\
+~~~~~~~~~~~~~~~~~~~~d.get('del'),d.get('{\_}{\_}doc{\_}{\_}'))~\\
+~\\
+class~C(object):~\\
+~~~~class~x:~\\
+~~~~~~~~"{}"{}"An~evil~test~property"{}"{}"~\\
+~~~~~~~~{\_}{\_}metaclass{\_}{\_}~=~convert2property~\\
+~~~~~~~~def~get(self):~\\
+~~~~~~~~~~~~print~'Getting~{\%}s'~{\%}~self.{\_}x~\\
+~~~~~~~~~~~~return~self.{\_}x~\\
+~~~~~~~~def~set(self,~value):~\\
+~~~~~~~~~~~~self.{\_}x~=~value~\\
+~~~~~~~~~~~~print~'Setting~to',~value~\\
+~\\
+{\#}</evilprop.py>
+}\end{quote}
+\begin{verbatim}>>> from evilprop import C
+>>> c = C()
+>>> c.x = 5
+Setting to 5
+>>> c.x
+Getting 5
+5
+>>> print C.x.__doc__
+An evil test property\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{why-i-suggest-not-to-use-metaclasses-in-production-code}{}
+\pdfbookmark[2]{Why I suggest not to use metaclasses in production code}{why-i-suggest-not-to-use-metaclasses-in-production-code}
+\subsubsection*{Why I suggest \emph{not} to use metaclasses in production code}
+\begin{quote}
+\begin{itemize}
+\item {} 
+there are very few good use case for metaclasses in production code
+(i.e. 99{\%} of time you don't need them)
+
+\item {} 
+they put a cognitive burden on the developer;
+
+\item {} 
+a design without metaclasses is less magic and likely more robust;
+
+\item {} 
+a design with metaclasses makes it difficult to use other metaclasses 
+for debugging.
+
+\end{itemize}
+\end{quote}
+
+As far as I know, string.Template is the only metaclass-enhanced class
+in the standard library; the metaclass is used to give the possibility to
+change the defaults:
+\begin{quote}{\ttfamily \raggedright \noindent
+delimiter~=~'{\$}'~\\
+idpattern~=~r'{[}{\_}a-z]{[}{\_}a-z0-9]*'
+}\end{quote}
+
+in subclasses of Template.
+\begin{verbatim}>>> from string import Template
+>>> from metatracer import MetaTracer
+>>> class TracedTemplate(Template):
+...     __metaclass__ = MetaTracer
+...
+Traceback (most recent call last):
+  ...
+TypeError: Error when calling the metaclass bases
+    metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases\end{verbatim}
+
+Solution: use a consistent metaclass
+\begin{verbatim}>>> class GoodMeta(MetaTracer, type(Template)): pass
+...
+>>> class TracedTemplate(Template):
+...     __metaclass__ = GoodMeta\end{verbatim}
+
+
+%___________________________________________________________________________
+
+\hypertarget{is-there-an-automatic-way-of-solving-the-conflict}{}
+\pdfbookmark[2]{Is there an automatic way of solving the conflict?}{is-there-an-automatic-way-of-solving-the-conflict}
+\subsubsection*{Is there an automatic way of solving the conflict?}
+
+Yes, but you really need to be a metaclass wizard.
+
+\href{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/204197}{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/204197}
+\begin{verbatim}>>> from noconflict import classmaker
+>>> class TracedTemplate(Template):
+...     __metaclass__ = classmaker((MetaTracer,))
+>>> print type(TracedTemplate)
+<class 'noconflict._MetaTracer_TemplateMetaclass'>\end{verbatim}
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<noconflict.py>~\\
+~\\
+import~inspect,~types,~{\_}{\_}builtin{\_}{\_}~\\
+from~skip{\_}redundant~import~skip{\_}redundant~\\
+~\\
+memoized{\_}metaclasses{\_}map~=~{\{}{\}}~\\
+~\\
+{\#}~utility~function~\\
+def~remove{\_}redundant(metaclasses):~\\
+~~~skipset~=~set({[}types.ClassType])~\\
+~~~for~meta~in~metaclasses:~{\#}~determines~the~metaclasses~to~be~skipped~\\
+~~~~~~~skipset.update(inspect.getmro(meta){[}1:])~\\
+~~~return~tuple(skip{\_}redundant(metaclasses,~skipset))~\\
+~\\
+{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}~\\
+{\#}{\#}~now~the~core~of~the~module:~two~mutually~recursive~functions~{\#}{\#}~\\
+{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}~\\
+~\\
+def~get{\_}noconflict{\_}metaclass(bases,~left{\_}metas,~right{\_}metas):~\\
+~~~~"{}"{}"Not~intended~to~be~used~outside~of~this~module,~unless~you~know~\\
+~~~~what~you~are~doing."{}"{}"~\\
+~~~~{\#}~make~tuple~of~needed~metaclasses~in~specified~priority~order~\\
+~~~~metas~=~left{\_}metas~+~tuple(map(type,~bases))~+~right{\_}metas~\\
+~~~~needed{\_}metas~=~remove{\_}redundant(metas)~\\
+~\\
+~~~~{\#}~return~existing~confict-solving~meta,~if~any~\\
+~~~~if~needed{\_}metas~in~memoized{\_}metaclasses{\_}map:~\\
+~~~~~~return~memoized{\_}metaclasses{\_}map{[}needed{\_}metas]~\\
+~~~~{\#}~nope:~compute,~memoize~and~return~needed~conflict-solving~meta~\\
+~~~~elif~not~needed{\_}metas:~~~~~~~~~{\#}~wee,~a~trivial~case,~happy~us~\\
+~~~~~~~~meta~=~type~\\
+~~~~elif~len(needed{\_}metas)~==~1:~{\#}~another~trivial~case~\\
+~~~~~~~meta~=~needed{\_}metas{[}0]~\\
+~~~~{\#}~check~for~recursion,~can~happen~i.e.~for~Zope~ExtensionClasses~\\
+~~~~elif~needed{\_}metas~==~bases:~~\\
+~~~~~~~~raise~TypeError("Incompatible~root~metatypes",~needed{\_}metas)~\\
+~~~~else:~{\#}~gotta~work~...~\\
+~~~~~~~~metaname~=~'{\_}'~+~'{}'.join({[}m.{\_}{\_}name{\_}{\_}~for~m~in~needed{\_}metas])~\\
+~~~~~~~~meta~=~classmaker()(metaname,~needed{\_}metas,~{\{}{\}})~\\
+~~~~memoized{\_}metaclasses{\_}map{[}needed{\_}metas]~=~meta~\\
+~~~~return~meta~\\
+~\\
+def~classmaker(left{\_}metas=(),~right{\_}metas=()):~\\
+~~~def~make{\_}class(name,~bases,~adict):~\\
+~~~~~~~metaclass~=~get{\_}noconflict{\_}metaclass(bases,~left{\_}metas,~right{\_}metas)~\\
+~~~~~~~return~metaclass(name,~bases,~adict)~\\
+~~~return~make{\_}class~\\
+~\\
+{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}~\\
+{\#}{\#}~and~now~a~conflict-safe~replacement~for~'type'~~~~~~~~~~~~~~{\#}{\#}~~\\
+{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}{\#}~\\
+~\\
+{\_}{\_}type{\_}{\_}={\_}{\_}builtin{\_}{\_}.type~{\#}~the~aboriginal~'type'~\\
+{\#}~left~available~in~case~you~decide~to~rebind~{\_}{\_}builtin{\_}{\_}.type~\\
+~\\
+class~safetype({\_}{\_}type{\_}{\_}):~\\
+~~~~{\#}~this~is~REALLY~DEEP~MAGIC~\\
+~~~~"{}"{}"Overrides~the~`{}`{\_}{\_}new{\_}{\_}`{}`~method~of~the~`{}`type`{}`~metaclass,~making~the~\\
+~~~~generation~of~classes~conflict-proof."{}"{}"~\\
+~~~~def~{\_}{\_}new{\_}{\_}(mcl,~*args):~\\
+~~~~~~~~nargs~=~len(args)~\\
+~~~~~~~~if~nargs~==~1:~{\#}~works~as~{\_}{\_}builtin{\_}{\_}.type~\\
+~~~~~~~~~~~~return~{\_}{\_}type{\_}{\_}(args{[}0])~~\\
+~~~~~~~~elif~nargs~==~3:~{\#}~creates~the~class~using~the~appropriate~metaclass~\\
+~~~~~~~~~~~~n,~b,~d~=~args~{\#}~name,~bases~and~dictionary~\\
+~~~~~~~~~~~~meta~=~get{\_}noconflict{\_}metaclass(b,~(mcl,),~())~~\\
+~~~~~~~~~~~~if~meta~is~mcl:~{\#}~meta~is~trivial,~dispatch~to~the~default~{\_}{\_}new{\_}{\_}~\\
+~~~~~~~~~~~~~~~~return~super(safetype,~mcl).{\_}{\_}new{\_}{\_}(mcl,~n,~b,~d)~\\
+~~~~~~~~~~~~else:~{\#}~non-trivial~metaclass,~dispatch~to~the~right~{\_}{\_}new{\_}{\_}~\\
+~~~~~~~~~~~~~~~~{\#}~(it~will~take~a~second~round)~{\#}~print~mcl,~meta~\\
+~~~~~~~~~~~~~~~~return~super(mcl,~meta).{\_}{\_}new{\_}{\_}(meta,~n,~b,~d)~\\
+~~~~~~~~else:~\\
+~~~~~~~~~~~~raise~TypeError('{\%}s()~takes~1~or~3~arguments'~{\%}~mcl.{\_}{\_}name{\_}{\_})~\\
+~\\
+{\#}</noconflict.py>
+}\end{quote}
+
+\end{document}
+

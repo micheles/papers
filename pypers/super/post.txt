@@ -1,0 +1,14 @@
+"super" is one of the trickiest things in Python. I remember having
+spent a *lot* of time with it in the past. I keep seeing postings from
+people confused about "super" coming in this newsgroup. The current
+documentation about "super" is at the best incomplete, in some parts is
+misleading and in other parts even wrong. Finally, I decided to write a 
+paper telling the truth about super. This is not the whole truth,
+however, since I am not enough confident to say that I do understand 
+all secrets of "super". I have posted a draft here: 
+
+http://www.phyast.pitt.edu/~micheles/super.html,
+
+for review from knowledgeable Pythonistas.
+Ideally, a corrected/expanded/revision of this draft should go somewhere
+in python.org, so people will have a decent reference about "super".

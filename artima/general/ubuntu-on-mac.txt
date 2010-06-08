@@ -1,0 +1,208 @@
+Premise: I *hate* installing and configuring operating systems.  I
+would rather work on my "Adventures" and other projects I have in my
+(long) queue of things to do. However, I have been waiting for 18
+months for this OS X -> Ubuntu migration and I absolutely wanted to be
+done with it. Here I will document my findings.
+
+I bought my MacBook on April 2007 because I expected MacOS X to be
+quite similar to Linux (after all it is a Unix, right?) and that it
+would have been quite easy to adjust, coming from a Linux background.
+However the truth is that I never fully adjusted.
+
+The major issue I had was the pain to keep in sync the MacBook with
+the Ubuntu desktop I use at work.  By keeping in sync I mean to
+install on the Mac the same software I am using at work (subversion,
+postgres, rdesktop, openvpn, freetds, odbc drivers, boost, numpy etc
+etc).
+
+The problem is that I had to repeat the uninspiring job of installing the
+libraries (and the dependencies!)  twice and in subtly different ways:
+so if a library X was broken in Ubuntu and I had to spend a couple of
+hours googling for workarounds and solutions on the net, the same
+library was broken in a different way on Mac OS X. Then, I had to google
+four hours in the Mac forums to solve the issue there: it takes longer
+for the Mac since I am still unsure of the right places where to
+look. 
+
+Sometimes a library works out of the box on the Mac and does
+not work in Ubuntu, but most of the times it is the other way around.
+Also I had a lot of trouble in the past with fink, macports and darwin
+ports.  Once, when I finally got a running system it was broken by a
+selfupgrade in misterious ways. 
+After a few hours of effort, I realized that I did not want to spend
+days googling for solutions, so I reinstalled everything from
+scratch. 
+
+One thing that really disturbed me was
+that having installed a working library (matplotlib) with
+``easy_install`` without problems,
+after a few months it stopped working since it required new versions
+of some libraries (I think libfreetype or something like that) which
+was available only if I did the upgrade to Leopard.  However, I do not
+want to make the upgrade to Leopard! 
+
+Just a few days ago I installed
+Python 2.6 (using the Mac installer), but Tkinter did not work out of
+the box and frankly I had no desire to debug the issue.  In Ubuntu, by
+installing from sources, I had no issue at all, I did install
+tcl8.4-dev and tk-dev first with apt-get and I was done. 
+
+On top of that, the choice of
+libraries available with apt-get in Ubuntu is much larger than the
+choice available with fink, more updated and more importantly the
+system is much more reliable in my experience (of course I am biased
+by a long time familiarity with Linux).
+
+I am sure that many Mac fans
+will say that for them it is easier to build stuff on the Mac than on
+Linux, but this is not a point.  The point is that I *need* to install
+the stuff on Ubuntu first, and it is a pain to repeat it on the Mac.
+Thus, for a long time I had tried to use Ubuntu on the Mac but without
+much success. 
+
+First, I tried the virtual machine approach: I tried
+first Parallels, then Fusion, then VirtualBox. Unfortunately I have
+not been happy with any of them. The commercial solutions are
+especially targetted on running Windows on the Mac (which I do not
+care) and not on running Linux on the Mac. VirtualBox is better in
+this respect (and it is also free) but I would not say it is 100%
+reliable - Parallels and VMWare are not very reliable either, in my
+experience, especially for what concerns the USB support.
+
+Apart from the problem with USB devices, there is also the problem of
+the communication between the Mac and the virtual machine (cut and
+paste, shared directories, etc) which in my experience did not work
+well. Moreover there is certainly a performance loss and with a
+virtual machine on, my Mac started to be much less responsive.
+
+Then, I tried to got the dual-boot route. However my first experiments
+with the Ubuntu 7.04 live CD made clear that a lot of my hardware was
+not supported (the iSight camera, the microphone, the wireless, etc)
+and so I decided to wait. The situation improved a little six months later with
+Ubuntu 7.10, so I installed the boot loader rEFIt and I tried to boot
+from an Ubuntu installed on an external USB hard drive: unfortunately
+I could not get it to work. 
+
+Moreover, there was also work to do 
+to compile all the needed drivers so I decided to wait
+again. I tried with Ubuntu 8.04 six months later, but still without success.
+Finally, this week I tried the Live CD of Ubuntu
+8.10 beta and I discovered that the wireless was working out of the
+box, as well as Bluetooth, audio and video, and apparently even the
+'suspend' mode, so I decided that this was the right moment for the
+migration.
+
+It was not an easy job. Since booting from an external drive did not
+work in the past, I decided to resize the internal hard drive (I did
+not want to wipe it out: what if I later discovered that Ubuntu is
+killing my batteries, or that something else was seriously broken?
+clearly I wanted a way back to a working environment). However, ``diskutil``
+will not let me do resize the drive: I figured out the problem was that the
+drive was fragmented. An Internet search seemed to confirm my
+hypothesis, and at least a guy in a forum said that he solved
+the issue by defragmenting the drive first.
+
+So I looked for a defragmenter for Mac: there are hundreds of
+pages saying that defragmentation is useless in Mac OS X and
+this is perhaps the reason why there are so few defragmenters
+available. I was looking for an open source free command line
+tool, but I could not find any, even asking all my Mac-fan
+friends. The only defragmenter I could find was a commercial
+one named iDefrag. I got a copy of it and I
+tried to defragment my internal drive.
+
+I was able to do so: however, when I tried to resize the disk,
+I still got the 'no space left on device error 28' message,
+just the same message I was getting before defragmentation.
+I immediately figured out that I needed to run the 'Compact'
+option after the defragmentation: unfortunately, iDefrag
+would not let me run it.
+
+The problem is that in order to get complete defragmentation you need
+to unmount the drive, but clearly you cannot unmount the system drive.
+I realized that I would need a Mac recovery CD, but I have just the original
+installation CD and I am not sure if it can work as a recovery CD, and
+how to run iDefrag in that situation.
+
+I was stuck. At this point I tried a drastic measure: if I could install
+Mac OS X on the external drive and if I could boot from there, then I
+could unmount the internal drive and run a full defrag on it.
+However, could the Mac boot from an external USB drive, even if
+formatted with the Mac file systems in the right way (I mean with
+the GPT option for Intel Macs)?
+
+A search on the Internet said that officially Apple does *not* support
+this kind of boot, except from firewire drives: nevertheless at
+least a guy on the Internet reported a success even with an USB drive.
+I decided to take the risk to waste a lot of effort and I did it.
+
+Installing Mac OS X on my external drive took a few hours (I needed
+20G, so I had to repartition it and in the process I accidentally
+deleted some stuff I did not want to remove, but this is another
+story).  Finally, the moment of truth arrived, when I tried to boot
+from it: luckily, it worked the first time!
+
+That was a major success, but my work was only at the beginning: I had
+to run a full defragmentation on the internal disk now.  For some
+reason at the beginning I could not umount the internal drive, but
+after another reboot I was able to do so. The full defragmentation
+took a couple of hours (I have an 80G disk, which was half full) but
+finally it went well.
+
+At this point I tried to resize the internal drive, but I could not;
+I rebooted, this time from the internal drive, and I tried
+again: the second time was the good one and I resized my disk from
+80G to 50G, leaving 30G free for the Ubuntu partition.
+
+At this point I booted from the Ubuntu CD, and I installed the system
+in the traditional way. The only disturbing bit was that I expected to
+get at the end of the installation procedure a question on where to
+install GRUB, but the installer did everything by itself.
+
+This was the last and the more delicate step: I rebooted again expecting to
+see the rEFIt menu but nothing happened: the Mac would not boot!
+
+Luckily, I remembered that I had forgot to press the "alt option" key.
+By retrying and by pressing "alt option" I got the rEFIt menu, which
+allowed me to choose between booting from Max OS X and booting from
+Ubuntu: I chose Ubuntu and it worked!
+
+I am writing this message from my newly installed Ubuntu with my good
+gold Emacs perfectly integrated with my environment
+(Aquamacs on the Mac is very nice, but the spell checker
+never worked). For some reason now the cursor (both in Emacs, in the terminal
+and in other application) is dazzling fast with respect to the Mac, whereas
+is was dog slow.
+
+I have discovered
+that Ubuntu is able to read the Mac partition (except some files/directories
+which do not have the right permissions) even if it cannot write on it.
+I am copying now all my stuff from the Mac partition to the Ubuntu
+partition, since from the other side I should not have trouble reading/writing
+the ext3 file system (I remember I had found an utility to do that in
+the past).
+
+I have installed subversion and openvpn and I am checking out the trunk
+from the office; in the mean time I am playing with compiz that seems
+to work, wherea on my desktop in the office for some reason 
+it causes my system to freeze once in a while.
+
+The webcam does not seem to work out of the box, but I have found instructions
+to fix it, so I guess it can be made to work. I am also dubious about the
+suspend/hybernate support, I will have to try and to see how it works.
+
+For the moment however I am quite happy: if I can get everything working
+I will eventually wipe out Mac OS X and have an 100% Linux laptop running,
+which it what I wanted from the beginning, but I could not buy at the time
+(nowadays one can buy 100% Linux laptops like the eeePC quite easily,
+but this is another story I will leave for another post).
+
+UPDATE: I have been using the ``suspend`` mode for a while and now I
+am confident that it works. Moreover, I was able to get the webcam to
+work, by following the instructions in the `Ubuntu MacBook
+Wiki`_. There I have also found how to fix the volume (the audio was
+working, but with a very low volume). Now I am still fighting with the
+microphone, but the moment where my MacBook will become 100% Linux is
+approaching ...
+
+.. _Ubuntu MacBook Wiki: https://help.ubuntu.com/community/MacBook

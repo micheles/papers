@@ -1,0 +1,2 @@
+Error: <stdin>:70: syntax error near line 70
+context:  Node >>>  -> <<<  Element

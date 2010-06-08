@@ -1,0 +1,233 @@
+Functional Programming For Dynamic Programmers - Introduction
+===========================================================================
+
+:author: Michele Simionato
+:date: December 2007
+
+This is the first of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers,
+i.e.  for programmers with a background in dynamically typed
+languages, such as Perl, Python, Ruby, or languages in the Lisp
+family. The approch is eminently practical and example-based; the main
+goal is to see if we can stole some good idea from statically typed
+languages. I will mostly consider languages in the ML family, because
+they are pretty nice and much easier to understand than Haskell.
+
+Declaration of intents
+-------------------------------
+
+The title of this series of articles should make clear that the series
+is not intended for everybody, it is for dynamic programmers
+only. However, I have yet to specify what do I mean by dynamic
+programmer. For me a dynamic programmer is a non-believer, an heretic
+always ready to challenge the programming orthodoxia; moreover, it is
+a programmer with a Casanova complex, a person loving many languages
+and not marrying any one. A dynamic programmer is the kind of person
+who, when everbody says "the Earth is flat", will wonder: "is the
+Earth *really* flat?". When everybody says that object orientation is
+good and that inheritance is the best thing after sliced bread, a
+dynamic programmer will be suspicious of these claims and will seek
+for alternatives.  Exactly in the same way he will escape from the
+enslaving by static typing in C-like languages, he will escape from
+the enslaving by dynamic typing languages, if he finds valid
+alternatives. ll never be loyal to a single language.  The *forma
+mentis* of the dynamic programmer is very different from the *forma
+mentis* of the language evangelist: the dynamic programmer can be
+enhaumored of language for a while, but his love will not be
+exclusive.  This premise is important in order to undestand the goals
+of this series of articles. The goal is not advocating functional
+programming. Others have taken this role. For instance, there is an
+infamous article written by John Hughes in 1984 and titled `Why
+Functional Programming Matters`_ which begins with the sentence *This
+paper is an attempt to demonstrate to the “real world” that functional
+programming is vitally important, and also to help functional
+programmers exploit its advantages to the full by making it clear what
+those advantages are.* This is *not* the goal of this series of
+articles. The goal is this series if merely educational, to broaden
+the view of the world of my readers, including myself (after all, I am
+the first of my readers ;)
+
+A pragmatic programmer may rightly wonder why to study functional
+languages, since their relevance in enterprise programming is
+negligible, they are practically unknown for system administration
+task, and unless you are a computer science researcher you have no
+need to know them. All that is true; on the other hand, if you
+believed it, you would not be a dynamic programmer, you would have
+stick with C and you would not be a reader of my papers.  In
+particular, a dynamic programmer will judge academic languages worth
+of investigation: he may decided not to use them, but still he may get
+some good ideas from them. After all, Python stole the list
+comprehension idea from Haskell and iterators from Icon; Ruby stole
+many ideas from Scheme and Smalltalk; Perl stole from everybody.
+
+.. _Why Functional Programming Matters: http://www.math.chalmers.se/~rjmh/Papers/whyfp.html
+
+Mutation, rebinding and side effects in imperative languages
+------------------------------------------------------------------
+
+Usually functional programming is introduced by discussing
+the drawbacks of imperative programming, in particular the drawbacks 
+of mutation and side-effects. I will follow this tradition too
+(a dynamic programmer has no obbligation
+to be innovative at any cost, he may well decide to follow the traditional way).
+
+I will just add that I don't find the arguments against mutation and
+side effects terribly compelling. Certainy there are bugs due to
+mutation and side effects, but in my working experience they are
+relatively rare. Most of the bugs I have in my code are actually issue
+of business logic (I understood the specs incorrectly or the specs
+where incomplete); many others are due to an incomplete or wrong
+knowledge of the system I have work with; and others are due to the
+deadlines.  I would have the same bugs even using a functional
+language.  On the other hand, I have nothing against diminuishing the
+language-related bugs, even if they are a minority, so, let me
+contrast the functional way with the imperative way here. I will
+mostly use Python as an example of imperative language, because it is
+a language that I know well enough, and because it is so readable that
+the examples will be easy to understand even for programmers not
+familiar with Python.
+
+Let me begin by discussing the concept of mutation. 
+When you write code like 
+
+>>> lst = []; lst.append(1)
+
+in Python you are mutating the list ``lst``: originally it is empty,
+after the ``append`` operation it contains the number ``1``. Mutation
+is a potential source of bugs and there are various workaround to make
+the bugs less likely. For instance, Scheme and Ruby use the *bang
+convention*: the name of a function/method performing mutation ends
+with an exclamation mark, so that they are more visible to the
+programmer. Python has no bang, but there is the convention that
+mutating methods returns ``None`` and not the mutated object. Pure
+functional languages such as Haskell take a radication position and
+they just make everything immutable. Making everything immutable has
+big advantages especially in multithreaded programming, since
+different threads cannot interfere each other and you can just forget
+about locks. On the other hand, various programming patterns based on
+mutability (for instance keeping a dynamic registry of callbacks) becames
+impossible.
+
+Another very common operation in imperative languages is rebinding a variable.
+When you write code like 
+
+>>> i = 1; i = i+1
+
+in Python, you are explicitely rebinding the name ``i`` which
+originally points to the value ``1``, making it to point to the value
+``2``.  This looks like an harmless operation. It is however not so
+harmless and it may be the source of subtle bugs. Consider for
+instance the following example
+
+>>> f1, f2, f3 = [lambda : i for i in (1, 2, 3)]
+
+Here I am definiting three function without argument (thunks); at each iteration
+in the ``for`` loop the index ``i`` is rebound; at the end of the loop, ``i``
+points to the value ``3``, so all thunks return ``3``:
+
+>>> f1()
+3
+>>> f2()
+3
+>>> f3()
+3
+
+In Haskell, where there is no rebinding, the corresponding list
+comprehension would return three thunks, the first one returning
+``1``, the second ``2``, the third ``3`` [#]_.
+
+.. [#] To get the same in Python you can recur to the default argument hack,
+       i.e. you can rewrite ``f1, f2, f3 = [lambda i=i: i for i in (1, 2, 3)]``.
+
+Finally, let me discuss the side effects issue.  To be concrete, consider 
+the following function with side effects::
+
+  def square(x):
+     print "Called function square with argument %s" % x
+     result = x * x
+     return result
+
+Each time the function ``square`` is called, you get a log message as
+side effect.  Unfortunaly, side effects do not play well with
+memoization techniques and if you cache the result of ``square`` with
+a suitable decorator::
+
+  square = memoize(square)
+
+the log message will not be printed the second time you call the function. 
+Generally speaking, programs relying on side effects cannot perform some kind of
+optimization that functional programs cannot perform.
+
+Functional programs have also various formal properties which are appealing for
+language theorists. I will say something more on that on the following articles.
+
+The world of functional languages
+------------------------------------------------------------
+
+Often functional languages are classified according to their "purity",
+i.e. according to how hard they try to avoid mutation and side
+effects. That means that f unctional languages are not all equal: some
+are purer that others.  There are languages which have some support
+for functional programming, but are not considered functional (Python
+being an example); others, like Lisp, the grandfather of functional
+languages, that are pretty much regarded as impure nowadays; Scheme is
+somewhat perceived as more functional than Common Lisp, but this is
+debatable, and in any case it is not very pure; Standard ML (SML) is
+often perceived as purer than Scheme, but mostly because of
+syntactical convenience, not of technical merit; Haskell is possibly
+the purest functional language commonly used, but still can be used in
+an imperative way. This classification is sloppy and wrong in more
+than one way; nevertheless it is useful (in my personal opinion) in
+the sense that it gives and indication of how much the language
+departs from a mainstream imperative language, and how difficult it is
+to learn it.  Notice that there are no pure functional languages in
+use, since an absolutely pure language would have to rule out input
+and output and it would be pretty much useless.
+
+As always, one must be careful when distinguing the real benefits of
+purity (i.e. fewer bugs, simpler concurrency, better optimizations)
+versus religious thinking (remember OOP bigots?). There are always
+tradeoffs and by no means you should believe *the purest the better*.
+The important things in a language are things like simplicity of use,
+readability, interactivity, debuggability and of course the existence
+of good implementations and good libraries.  Still, it is nice to have
+a clean language, if possible.
+
+The world of functional languages is split in two: on one side there
+are the dynamically typed functional languages (Lisp, Scheme, Erlang
+...) on the other side there are the statically typed functional
+languages (SML, OCaml, Haskell ...) . To decide if the dynamically
+type languages are better than the statically typed ones or viceversa
+is an hot debate. For sure, dynamically typed languages are more used
+and better known. Programmers used to dynamic typing (i.e Pythonistas,
+Rubystas, etc) will have less trouble to understand dynamically typed
+functional language than statically types ones.
+
+Still I think it is interesting to look at statically typed
+languages. After all, I think a programmer should have at least a
+statically typed language in his toolbox (C++ and Java do not count ;)
+Also, I should notice that there are often issues of terminology when
+talking about types. Most people coming from the dynamic world will
+say that their language is strongly typed, contrasting it with weakly
+typed languages such as C or Assembly, where characters are the same
+as short integers, or with Perl, where 2+"3" is a valid expression and
+returns 5. On the other hand, people from the static world will say
+than dynamically typed languages are untyped, since you can change the
+type of a variable. For instance, the following is valid Scheme code::
+
+  (define a 1) 
+  (set! a  "hello")
+
+In a statically typed language, if a variable is of type integer, it
+stays of type integer, it cannot magically turn into a string.
+
+SML is the simplest statically
+language out there, so l decided to start with it.
+In the next installment I will show you "hello world" in SML as well as 
+a few other things, stay tuned!
+
+----
+
+*A long journey starts with the first step*
+
+      -- old Chinese saying

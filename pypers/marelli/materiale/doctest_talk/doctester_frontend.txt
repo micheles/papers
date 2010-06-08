@@ -1,0 +1,23 @@
+A simple example of how to doctest a Web application
+--------------------------------------------------------
+
+A few imports and settings:
+
+>>> from ms.webtester import start_server, stop_server
+>>> from ms.http_utils import urlopen
+>>> baseurl = "http://localhost:7080/"
+>>> server = "/home/micheles/md/python/quixote/doctester_frontend.py"
+
+Starting the server:
+
+>>> start_server(server)
+>>> import time; time.sleep(2) # wait a bit
+
+Making a POST:
+
+>>> res = urlopen(baseurl, dict(txt=">>> 1 + 1\n2")).read()
+>>> assert "tests" in res
+
+We are done:
+
+>>> stop_server()

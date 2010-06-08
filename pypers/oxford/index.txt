@@ -1,0 +1,83 @@
+ACCU Conference 2005 - Advanced Python Course Program
+=========================================================
+
+This course is intended for intermediate Python programmers who want to 
+raise their knowledge of modern Python to an advanced/expert level. 
+
+The course will begin by discussing in detail how Python 
+works behing the scenes (what really happens when you 
+write a for loop? what really happens when you access an attribute?
+what really happens when you define a class?) and explaining a few
+tricky/subtle points. Then, I will move to examples of real life use 
+cases where the advanced techniques explained here have been useful to me, 
+as well to cases where I have decided *not* to use those techniques. 
+To keep the attention of the public, as well as for exemplification
+purposes, some time will be spent discussing a few cool hacks and recipes 
+from the second edition of the Python Cookbook.
+
+The six hour course is split in three sessions on the same day.
+The session titles are:
+
+ 1. Loops (i.e. iterators & generators) 
+ 2. Objects (i.e. delegation & inheritance)
+ 3. Magic (i.e. decorators & metaclasses)
+
+Lecture 1 is probably the most useful to the average Python programmer;
+lecture 2 is of interest to programmers who wants to unveil the secrets 
+of the new-style object model; lecture 3 delves into the dark side of Python.
+
+Lecture 1: Loops (i.e. iterators & generators)
+-----------------------------------------------------------
+
+- the seemingly trivial 'for' loop;
+- iterables and iterators;
+- ex: read_data
+- generator-comprehension;
+- generators;
+- real life ex: generating HTML, walk
+- parsers;
+- the itertools module;
+- ex: chop, skip_redundant
+- sorting iterables;
+- iteration caveats;
+- final ex: adder
+
+Lecture 2: Objects (i.e. delegation & inheritance)
+------------------------------------------------------------------
+
++ delegation
+
+  - descriptors;
+  - relationship between functions and methods;
+  - staticmethods & classmethods;
+  - ex: MultilingualAttribute
+  - properties;
+  - ex: crypted passwords; 
+  - customized attribute access;  
+  - ex: kwdict, DictWrapper, XMLTag
+  - __getattr__ subtilities;
+
++ inheritance
+
+  - subclassing builtins; __new__ vs. __init__;
+  - private & protected variables;
+  - multiple inheritance;
+  - usage of super and a few caveats;
+  - ex. DictMixin, ChainMap, interp;
+  - operator overriding;
+
+Lecture 3: Magic (i.e. decorators & metaclasses)
+-----------------------------------------------------------
+
+- decorators:
+- ex: tracing, memoize, timed, HTMLgen;
+- metaclasses: why you should know they exist;
+- a typical usage: tracing
+- real life ex: logfile, check overriding, private/public
+- additional real life ex: cmd, plug-in;
+- playing with the language: restricting access, super sugar
+- a few evil hacks (properties, PEP312)
+- caveats: meta-attributes vs. class attributes;
+- ex: __name__ (and super)
+- why you should not use metaclasses in production code;
+- metaclass conflicts;

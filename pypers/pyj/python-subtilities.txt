@@ -1,0 +1,187 @@
+Python gotchas
+========================
+
+One of the strenghts of Python is its ability to be easy to understand and
+unsurprising most of the times. However, easy does not mean trivial and
+there actually situations where Python can surprise the new user (and 
+sometimes even the old timer). In this rubric we will discuss few of
+those Python gotchas.
+
+The choice will be based on questions which are periodically asked on
+the Python newsgroup: the fact that those questions are repeated means
+that i) they are non-trivial and ii) more than few persons are caught
+by those gotchas.
+
+I will start with a gotcha who got me actually, and was the reason
+for my first post on comp.lang.python.
+
+The issue has been discussed in many threads on comp.lang.python; the
+one where I understood the issue is this one:
+
+http://groups.google.it/groups?hl=it&lr=&ie=UTF-8&oe=UTF-8&threadm=tyfsmgtbewl.fsf%40lxplus030.cern.ch&rnum=1&prev=/groups%3Fhl%3Dit%26lr%3D%26ie%3DUTF-8%26oe%3DUTF-8%26q%3Dsimionato%2Blambda%26btnG%3DCerca%26meta%3Dgroup%253Dcomp.lang.python.*
+
+Statement of the issue
+------------------------
+
+This gotcha is related to the scope rules of Python in loops: it often
+appears in conjunction with lambda functions, but actually has nothing
+to do with them, since lambda functions are not special at all in
+Python. To show what the surprising behaviour is, consider the
+following code:
+ 
+>>> def make_adders(n):
+...    return [(lambda x: x+i) for i in range(n)]
+
+>>> add0,add1=make_adders(n=2)
+
+Now, it is clear what add1(0) will do:
+
+>>> add1(0)
+1
+
+The surprise is with add0(0), which does not return 0, as you
+would probably expect:
+
+>>> add0(0)
+1
+
+The issue has nothing to do with lambda functions and list comprehensions,
+since
+
+>>> def make_adders(n):
+...     ls=[]
+...     for i in range(n):
+...         def f(x):
+...             return x+i
+...         ls.append(f)
+...     return ls
+
+has the same exact behavior:
+
+>>> add1(0)
+1
+>>> add0(0)
+1
+
+The behavior is even more surprising if you think that other languages
+(such as Haskell, the language from which Python stole list comprehensions)
+do the "right" thing, i.e. 
+
+::
+
+  Prelude> let make-adders n = [ \x -> x + i | i <- [0..n-1] ]
+  Prelude> let [add0,add1] = make_adders 2
+  Prelude> add0 0
+  0
+  Prelude> add1 0
+  1
+
+(this example was provided to me by a Haskell expert, I never actually used
+the language, but I report it here just to show that there are languages
+where you get what you expect).
+
+
+So one could consider this as a Python wart. However, the truth is more
+complex.
+
+Explanation of the issue
+----------------------------------
+
+The reason why Python acts as it does, is that *by design* Python
+loops (both "for" loops and "while" loops) do not introduce a new
+scope.
+
+So, if I write
+
+>>> a = 1 # no-new-scope
+>>> for i in range(1,10):
+...     a = i
+...     if i == 2: break
+>>> a
+2
+
+the "a" inside the for loop is exactly the same as the "a" defined outside
+the "for" loop. This is what I want: if the "for" loop introduced a new
+scope, then the inner "a" would be a local variable and the result of
+this code would be "a=1" for the original global variable. Since
+Python does not have the ability to rebind variables in outer scopes,
+there would be no way to change "a" from inside the loop [#]_.
+
+But what exactly happens, when Python encounters a "for" loop?
+The answer is that the form
+
+::
+
+  for i in iterable:
+      <do_something i>
+
+is essentially interpreted as
+
+::
+
+  try:
+      it = iter(iterable)  
+      while True:
+          i = it.next()
+          <do_something i>
+  except StopIteration:
+      pass
+
+As you see, this does not introduce any new scope. In order to solve the 
+"issue" you have to introduce a new scope. In Python, the natural way
+to introduce a new scope is via a function.
+If the "for" loop was interpreted as follows
+
+::
+
+  try:   
+      it = iter(iterable)
+      def helper(i): # helper function
+          <do_something i>
+      while True:
+          helper(it.next())
+  except StopIteration:
+      pass
+
+then a new "i" would enter in the scope at each iteration.
+
+For instance, in the example I am talking about,
+
+::
+
+  def make_adders(n):
+      return [lambda x: x+i for i in range(n)]
+
+would be interpreted as
+
+>>> def make_adders(n):
+...     try:
+...         adders=[]
+...         it = iter(range(2))
+...         def helper(i):
+...             adders.append(lambda x: x+i)
+...         while True:
+...             helper(it.next())
+...     except StopIteration:
+...         return adders
+
+You can check that with this definition ``make_adders`` does the right thing:
+
+>>> add0,add1 = make_adders(n=2)
+>>> add1(0)
+1
+>>> add0(0)
+0
+
+Essentially, the "i" variable would be passed via the helper function
+call and at each iteration the lambda function would see a different
+value of it.
+
+Unfortunately, changing Python "for" loops in this way would cause
+an even worse wart, as I discussed in the ``no-new-scope`` example.
+
+That is the reason why the present behavior will
+not change.
+
+.. [#] Unless you use contorsion involving making "a" an element of
+    a mutable container.

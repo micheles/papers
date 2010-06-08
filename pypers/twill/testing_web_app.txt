@@ -1,0 +1,573 @@
+Introduction
+-----------------------
+
+You have just finished your beautiful Web application, with
+lots of pages, links, forms and buttons; you have spent weeks
+making sure that everything works fine, 
+that the special cases are handled correctly, that the user cannot 
+crash your system whatever she does.
+
+Now you are happy and you are ready to ship. But at the last minute
+the customer ask for a change: you have the time to apply the change,
+but not the time - nor the will - to pass trough another testing 
+ordalia. So you ship anyway, hoping that your last little fix did not break 
+some other part of the application. The result is that the hidden bug 
+shows up at the first day of usage.
+
+If you recognized yourself in this situation then this paper 
+is for you, keep reading. If not, well, keep reading anyway,
+I am sure you will find something interesting, among the following topics:
+
+* how to separate unit tests from functional tests;
+* how to test web applications (written in any language) using 
+  standard Python libraries;
+* how to use twill, a nice and easy to learn web testing tool.
+
+To test or not to test, that is the question
+----------------------------------------------------
+
+Let me begin with a brief personal recollection of how I became 
+interested in testing methodologies, and of what I have learned in
+the last couple of years.
+
+I have been aware of the importance of testing from the beginning, and
+I have heard about automatic testing for years. However, having 
+heard about automatic testing is not the same as doing automatic testing, 
+and not the same as doing automatic testing well.
+It takes some time and experience to get into the testing mood, as well
+as the ability to challenge some widespread misconceptions.
+
+For instance, when I began studying test driven methodologies, 
+I had gathered two wrong ideas:
+
+- that testing was all about unit testing;
+- that the more you test, the better.
+
+After some experience I quickly realized myself that unit tests were
+not the only tool, nor the best tool to effectively test my application [#]_.
+But to overcome the second misconception, I needed some help.
+
+The help come from an XP seminar I attended last year, were I
+actually asked the question "how do I test the user interface of
+a Web application, i.e. that when the user click on a given page she gets 
+the expected result?".
+
+The answer was: "You don't. Why do you want to test that your browser is 
+working?"
+
+The case for not testing everything
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The answer made me rethink many things. Obviously I was well aware
+from the beginning that full test coverage is a myth, still I thought
+one programmer should try to test as much as he can.
+
+But this is not the right approach. Instead, it is important to
+discriminate about the infinite amount of things that could be
+tested, and focus on the things that are of your responsability.
+
+If your customer wants functionality X, you must be sure functionality X
+is there. But if in order to get functionality X you need to rely on
+functionalities X1, X2 ,... XN, you don't need to test for all
+of them. You test only the functionality you are payed to
+implement. You don't test that the browser is working, it is
+not your job.
+
+For instance, in the case of a Web application, 
+you can interact with it *indirectly*, via the HTTP protocol, or *directly*, 
+via the internal API. If you check that when the user clicks
+on button B method M is called and the result R is displayed, you are
+testing both your application *and* the correctness of the
+HTTP protocol implementation both in the browser and in the server. This is
+way too much. You may rely on the HTTP protocol and just test the API, i.e
+just test that if method M is called the right result R is returned. 
+
+Of course, a similar viewpoint is applicable to GUIs. In the same
+vein, you must test that the interface to the DB you wrote is working, but
+you don't need to test that the database itself is working, this
+is not your responsability.
+
+The basic point is to separate the indirect testing of the user 
+interface - via the HTTP protocol - from the testing of the inner API. 
+To this aim, it is important to write your 
+application in such a way that you can test the logic independently 
+from the user interface. Working in this way you also have the additional 
+bonus that you can change the user interface later, without having to 
+change a single tests for the logic part.
+
+The problem is that typically the customer will give his specifications
+in terms of the user interface. He will tell you "There must be a page where 
+the user will enter her order, then she will enter her credit card number,
+then the system must send a confirmation email, ..."
+
+This kind of specification is a kind of very high level test - a 
+functional test - which has to be converted into a low-level test: 
+for instance you may have unit testing telling you that the ordered 
+item has been registered in the database, that the 
+``send_confirmation_email method`` has been called etc.
+
+The conversion requires some thinking and practice and it an art more
+than a science. Actually I think that the art of testing is not in *how* 
+to test, but in *what* to test. The best advice and best answer to somebody 
+asking about "how do I  test a Web application?" is probably "make a priority 
+lists of the things you would like to test and test as little as possible".
+
+For instance, one should never tests the details of the
+implementation. If you make this mistake (as I did at the beginning) 
+your tests will get in your way at refactoring time, i.e. they will
+have exactly the opposite of the intended effect. Generally speaking,
+good advices are: don't spend time testing third party software, don't 
+waste time testing code which API is likely to change, split
+the UI testing from the application logic testing.
+
+Ideally you should be able to determine what is the minimal set 
+of tests needed to make your customer happy, and restrict yourself to
+those tests. 
+
+The case for testing everything
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+The previous advice is nice and reasonable, especially in an ideal world 
+where third party software is bug free and everything is configured correctly.
+Unfortunately, the real world is a bit different. 
+
+For instance you must be aware that your application 
+does not work on some buggy browser, or that it cannot work in specific
+circumstances with some database. Also, you may have a nice and 
+comprehensive test suite which runs flawlessly
+on your development machine, but still
+that the application may not work correctly when installed on a different 
+machine, because the database could be installed improperly, or 
+the mail server settings could be incorrect, or the Internet
+connection could be down, etc. In the same vein, if you want
+to really be sure that if the user - using a specifing browser in a
+specific environment - clicks on that button she gets that result, 
+you have to emulate exactly that situation. 
+
+It looks like we are back to square one, i.e. the need of testing everything.
+But we have learned something in the process: whereas *in principle*
+you would like to test everything, *in practice* you can effectively
+prioritize your tests, focusing on some more than on others,and
+splitting them in separate categories to be run separately at
+different times.
+
+You definitely need to test that the 
+application is working as intended when deployed on a different
+machine: and from the failures to these installation tests you may also infer
+what is wrong and correct the problem. These installation tests
+- tests of the environment where your software is running - must
+be kept decoupled from the unit tests checking the 
+application logic. If you are sure that the logic is right, then you are 
+sure also sure that the problems are in the environment, and you can 
+focus your debugging skills in the right direction.
+
+In any case, you need to have both high level (functional, integration, 
+installation) tests and low level tests (unit tests, doctests). High level 
+tests include tests of the user interface. In particular, you need a test to 
+make sure that if an user click X he gets Y, so you are sure that the
+Internet connection, the web server, the database, the mail
+server, your application, the browser, all work nicely
+together. But you should not focus on these global kind
+of tests. You don't need to write a thousands of these 
+high level tests, if you already have many specific low-level 
+tests checking that the logic and the various components
+of your application are working.
+
+How to test the user interface
+---------------------------------------------------------
+
+Having structured your application properly, you will need a smaller
+number of user interface tests, but still you will need at
+least a few. How do you write these tests then?
+
+There are two possibilities: the hard way and the easy way.
+
+The hard way is just doing everything by hand, by using your
+favorite programming language Web libraries to perform GET and POST
+requests and to verify the results. The easy way is to leverage on
+tools built by others. Of course,internally these tools work just by calling 
+the low level libraries, so it is convenient to say a couple of words on the 
+hard way, just to understand what is going on, in case the high level tool 
+give you some problem. Moreover, there is always the possibility than
+you need something more customized, and knowledge of
+the low level libraries can be precious.
+
+The interaction between the user and a Web application
+passes through the HTTP protocol, so it is perfectly possible
+to simulate the action of an user clicking on a browser
+just by sending to the server an equivalent HTTP request (let me
+ignore the existence of Javascript for the moment).
+
+Any modern programming language has libraries to interact with the 
+HTTP protocol, but here I will give my examples in Python, since Python 
+is both a common language for Web programming and a readable one. In Python 
+the interaction with the Web is managed via the urllib libraries [#]_.
+You have two of them: urllib, which can be used in absence of authentication,
+and urllib2 which can also manage cookie-based authentication. A complete
+discussion of these two libraries would take a long
+time, but explaining the basics is pretty simple. I will just give
+a couple of recipes based on urllib2, the newest and most powerful library.
+
+I will notice here that the support for cookies in Python 2.4
+has improved (essentially by including the third party ClientCookie
+library) so you may not be aware of the trick I am going to explain, even 
+if have used the urllib libraries in the past. So, don't skip the
+next two sections ;)
+
+Recipe 1: how to send GET and POST requests
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Suppose you want to access a site which does not require authentication.
+Then making a GET request is pretty easy, just type at the intepreter
+prompt
+
+>>> from urllib2 import urlopen
+>>> page = urlopen("http://www.example.com")
+
+Now you have a file like-object which contains the HTML code
+of the page http://www.example.com:
+
+>>> for line in page: print line,
+<HTML>
+<HEAD>
+  <TITLE>Example Web Page</TITLE>
+</HEAD> 
+<body>  
+<p>You have reached this web page by typing &quot;example.com&quot;,
+&quot;example.net&quot;,
+  or &quot;example.org&quot; into your web browser.</p>
+<p>These domain names are reserved for use in documentation and are not available 
+  for registration. See <a href="http://www.rfc-editor.org/rfc/rfc2606.txt">RFC 
+  2606</a>, Section 3.</p>
+</BODY>
+</HTML>
+
+
+If you try to access a non-existent page, or if your Internet
+connection is down, you will get an ``urllib2.URLError`` instead. 
+Incidentally, this is why the ``urllib2.urlopen`` function is better 
+than the older ``urllib.urlopen``, which would just silently retrieve 
+a page containing the error message.
+
+You can easily imagine how to use urlopen to check your Web application:
+for instance, you could retrieve a page, extract all the links and
+check that they refer to existing pages; or you can verify that
+the retrieved page contains the right information, for instance
+by matching it with a regular expression. In practice, ``urlopen``
+(possibly coupled with a third party HTML parsing tool, such as
+BeautifulSoup [#]_) gives you all the fine granted control you may wish for.
+
+Moreover, ``urlopen`` gives you the possibility to make a POST: 
+just pass the query
+string as second argument to urlopen. As an example, I will make a POST
+to http://issola.caltech.edu/~t/qwsgi/qwsgi-demo.cgi/widgets, which is a
+page containing the example form coming with Quixote, a nice small
+Pythonic Web Framework [#]_.
+
+>>> page = urlopen("http://issola.caltech.edu/~t/qwsgi/qwsgi-demo.cgi/widgets",
+...        "name=MICHELE&password=SECRET&time=1118766328.56")
+>>> print page.read()
+<html>
+<head><title>Quixote Widget Demo</title></head>
+<body>
+<h2>You entered the following values:</h2>
+<table>
+  <tr><th align="left">name</th><td>MICHELE</td></tr>
+  <tr><th align="left">password</th><td>SECRET</td></tr>
+  <tr><th align="left">confirmation</th><td>False</td></tr>
+  <tr><th align="left">eye colour</th><td><i>nothing</i></td></tr>
+  <tr><th align="left">pizza size</th><td><i>nothing</i></td></tr>
+  <tr><th align="left">pizza toppings</th><td><i>nothing</i></td></tr>
+</table>
+<p>It took you 163.0 sec to fill out and submit the form</p>
+</body>
+</html>
+
+Now ``page`` will contain the result of your POST. Notice that I had to
+pass explicitly a value for ``time``, which is an hidden widget in
+the form.
+
+That was easy, isn't it?
+
+If the site requires authentication, things are slightly more complicated,
+but not much, at least if you have Python 2.4 installed.
+
+Recipe 2: managing authentication
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+In order to manage cookie-based authentication procedures, 
+you need to import a few utilities from urllib2:
+
+>>> from urllib2 import build_opener, HTTPCookieProcessor, Request
+
+Notice that ``HTTPCookieProcessor`` is new in Python 2.4: if you have
+an older version of Python you need third party libraries
+such as `ClientCookie` [#]_.
+
+``build_opener`` and ``HTTPCookieProcessor`` are used to create an opener 
+object that can manage the cookies sent by the Web server:
+
+>>> opener = build_opener(HTTPCookieProcessor)
+
+The opener object has an ``open`` method that can be used to retrieve
+the Web page corresponding to a given request. The request itself is
+encapsulated in a ``Request`` object, which is built from the
+URL address, the query string, and some HTTP headers information.
+In order togenerate the query string, it is pretty convenient
+to use the ``urlencode`` function defined in ``urllib`` (*not* in ``urllib2``):
+
+>>> from urllib import urlencode
+
+``urlencode`` generates the query string from a dictionary
+or a list of pairs, taking care of the quoting and escaping
+rules required by the HTTP protocol. For instance
+
+>>> urlencode(dict(user="MICHELE", password="SECRET"))
+'password=SECRET&user=MICHELE'
+
+Notice that the order is not preserved when you use a dictionary 
+(quite obviously), but this is usually
+not an issue. Now, let me define a helper function:
+
+
+>>> def urlopen2(url, data=None, user_agent='urlopen2'): 
+...     """Can be used to retrieve cookie-enabled Web pages (when 'data' is
+...     None) and to post Web forms (when 'data' is a list, tuple or dictionary
+...     containing the parameters of the form).
+...     """
+...     if hasattr(data, "__iter__"):
+...         data = urllib.urlencode(data)
+...     headers = {'User-Agent' : user_agent}
+...     return opener.open(urllib2.Request(url, data, headers))
+
+With ``urlopen2``, you can POST your form in just one line. 
+On the other hand, if the page you are posting to does not contain a form, 
+you will get an HTTPError:
+
+>>> urlopen2("http://www.example.com", dict(user="MICHELE", password="SECRET"))
+Traceback (most recent call last):
+  ...  
+HTTPError: HTTP Error 405: Method Not Allowed
+
+If you just need to perform a GET, simply forget about the second argument
+to ``urlopen2``, or use an empty dictionary or tuple. You can even fake a 
+browser by passing a convenient user agent string, such as
+"Mozilla", "Internet Explorer", etc. This is pretty useful if you want
+to make sure that your application works with different browsers.
+
+Using these two recipes it is not that difficilt to write your own web 
+testing framework. But you may be better off by leveraging the work
+of somebody else
+
+Testing web applications the easy way: twill
+----------------------------------------------------
+
+I am a big fan of mini languages, i.e. small languages
+written to perform a specific task (see for instance my O'Reilly article
+on the graph-generation language "dot" [#]_). I was very happy when I 
+discovered that there a nice little language expressely designed to test 
+Web applications. Actually there are two implementations of it: Titus Brown's
+twill [#]_ and Cory Dodt's Python Browser Poseur, PBP  [#]_.
+
+PBP came first, but twill seems to be developing faster. At the time 
+of this writing, twill is still pretty young (I am using 
+version 0.7.1), but it already works pretty well in most situations.
+Both PBP and twill are based on tools by 
+John J. Lee, i.e. mechanize (inspired by Perl), ClientForm and ClientCookie,
+that you may find at http://wwwsearch.sourceforge.net. twill also use
+Paul McGuire's PyParsing [#]_. However, you don't need to install these
+libraries: twill includes them as zipped libraries (leveraging on the 
+new Python 2.3 ``zipimport`` module). As a consequence twill installation 
+is absolutely obvious and painless (nothing more than the usual
+``python setup.py install``).
+
+The simplest way to use twill is interactively from the command line.
+Let me show a simple session example::
+ 
+ $ twill-sh
+  -= Welcome to twill! =-
+
+ current page:  *empty page*
+                  
+ >> go http://www.example.com
+ ==> at http://www.example.com
+ 
+ >> show
+ <HTML>
+ <HEAD>
+   <TITLE>Example Web Page</TITLE>
+ </HEAD>
+ <body>
+ <p>You have reached this web page by typing &quot;example.com&quot;,
+ &quot;example.net&quot;,
+   or &quot;example.org&quot; into your web browser.</p>
+ <p>These domain names are reserved for use in documentation and are not available
+   for registration. See <a href="http://www.rfc-editor.org/rfc/rfc2606.txt">RFC
+   2606</a>, Section 3.</p>
+ </BODY>
+ </HTML>
+
+twill recognizes a few intuitive commands, such as
+
+ ::
+
+  go, show, find, notfind, echo, code, back, reload, agent, follow
+
+and few others. The example shows how you can access
+a particular HTML page and display its content.
+
+The ``find`` command matches the page against a regular
+expression: thus 
+
+::
+
+  >> find("Example Web Page")
+
+is a test asserting that the current page contains what we expect.
+Similarly, the ``notfind`` command asserts that the current page does
+not match the given regular expression.
+
+The other twill commands are pretty obvious: ``echo <message>`` 
+prints a message on standard output, ``code <http_error_code>`` checks 
+that you are getting the right HTTP error code (200 if everything is 
+alright), ``back`` allows you to go back to the previously visited page, 
+``reload`` reloads the current page, ``agent <user-agent>`` allows you 
+to change the current user agent, thus faking different browsers, 
+``follow <regex>`` finds the first matching link on the page and visit it.
+
+The full lists of the commands can be obtained 
+by giving ``help`` at the prompt; ``EOF`` of ``CTRL-D`` allows you to exit.
+
+Once you have tested your application interactively, it is pretty easy
+to cut & paste your twill session and convert it in a twill script.
+Then, you can run your twill script in a batch process::
+
+ $ twill-sh mytests.twill
+
+As you may imagine, you can put more than one script in the command line and
+test many of them at the same time. Since twill is written in Python, you
+can control it from Python entirely, and you can even extends its command
+set just by adding new commands in the ``commands.py`` module.
+
+At the moment, twill is pretty young and it does not have the
+capability to convert scripts in unit tests automatically, so that
+you can easily run entire suites of regression tests. However,
+it is not that difficult to implement that capability yourself,
+and it is not unlikely that twill will gain good integration with 
+unittest and doctest in the future.
+
+Retrieving and submitting web forms
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+twill is especially good at retrieving and submitting web forms. The
+form-related functionality is implemented with the following commands:
+
+* showforms
+* formvalue <form_id> <name> <value>
+* submit <button_id>
+* formclear <form_id>
+
+Explaining the commands is pretty straightforward. 
+
+``showforms`` shows the forms contained in a web page. For instance, try
+the following::
+
+  >> go http://issola.caltech.edu/~t/qwsgi/qwsgi-demo.cgi/widgets
+  >> showforms
+  Form #1
+  ## __Name______ __Type___ __ID________ __Value__________________
+     name         text      (None)
+     password     password  (None)
+     confirm      checkbox  (None)       [] of ['yes']
+     colour       radio     (None)       [] of ['green', 'blue', 'brown', 'ot ...
+     size         select    (None)       ['Medium (10")'] of ['Tiny (4")', 'S ...
+     toppings     select    (None)       ['cheese'] of ['cheese', 'pepperoni' ...
+     time         hidden    (None)       1118768019.17
+  1               submit    (None)       Submit
+  current page: http://issola.caltech.edu/~t/qwsgi/qwsgi-demo.cgi/widgets
+
+Notice that ``twill`` makes a good job at emulating a browser, so it fills
+the hidden ``time`` widget automatically, whereas
+we had to fill it explicitely with ``urlopen``.
+
+Unnamed forms get an ordinal number to be used as form id
+in the ``formvalue`` command, which fill a field
+of the specified form with a given value. You can give many
+formvalue commands in succession; if you are a lazy typist
+you can also use ``fv`` as an alias for ``formvalue``::
+
+  >> fv 1 name MICHELES
+  current page: http://issola.caltech.edu/~t/qwsgi/qwsgi-demo.cgi/widgets
+  >> fv 1 password SECRET
+  current page: http://issola.caltech.edu/~t/qwsgi/qwsgi-demo.cgi/widgets
+
+
+``formclear`` reset all the fields in a form and ``submit`` allows
+you to press a ``submit`` botton, thus submitting the form::
+ 
+  >> submit 1
+  current page: http://issola.caltech.edu/~t/qwsgi/qwsgi-demo.cgi/widgets
+              
+A simple ``show`` will convince you that the forms has been submitted.
+The best way to understand how does it work is just experimenting
+on your own. The base distribution contains a few examples you may
+play with.
+
+Enlarging the horizon
+----------------------------
+
+In this article I have shown two easy ways to test your web 
+application: by hand, using urllib, or with a simple tool such as twill. 
+There is more under the sun. Much more. There are many sophisticated 
+Web testing frameworks out there, including enterprise-oriented ones,
+with lots of functionalities and a steep learning curve. Here, on purpose,
+I have decided to start from the small, and to discuss the topic from a 
+do-it-yourself attitude, since sometimes the simplest things works best: or
+because you don't need the sophistication, or because your preferred
+testing framework lacks the functionality you wish for, or because
+it is just buggy. If you need something more sophisticated, a great source for 
+everything testing-related is Grig Gheorghiu's blog:
+
+http://agiletesting.blogspot.com/2005/02/articles-and-tutorials.html
+
+A new framework which is especially interesting is Selenium, which
+is also used to test Plone applications. Selenium is *really* spectacular,
+since it is Javascript based and it really tests your browser, clicking
+on links, submitting forms, opening popup windows, all in real time. It 
+completely emulates the user experience, at highest possible level. 
+It also gives
+you all kind of bells and whistles, eye candies and colored HTML output
+(which you may like or not, but that surely will impress your customer
+if you are going to demonstrate him that the application is conform to
+the specifications).
+I cannot render justice to Selenium in a few lines and maybe I should write 
+a whole new paper on it, when I find the time. For the moment, however I make
+no promises and I refer you to the available documentation [#]_.
+
+References
+------------------------------------
+
+.. [#] I am an early adopter and supporter of doctests, see for
+       instance my talk at the ACCU conference,
+       http://www.reportlab.org/~andy/accu2005/pyuk2005_simionato_doctest.zip
+       
+
+.. [#] For the ``urllib`` libraries see the Python docs
+       http://docs.python.org/lib/module-urllib2.html
+
+.. [#] For `BeautifulSoup``` see http://www.crummy.com/software/BeautifulSoup
+
+.. [#] For Quixote see http://www.mems-exchange.org/software/quixote
+
+.. [#] For ``mechanize`` and ``ClientCookie`` see  
+       http://wwwsearch.sourceforge.net
+
+.. [#] http://www.linuxdevcenter.com/pub/a/linux/2004/05/06/graphviz_dot.html
+
+.. [#] For ``twill`` see
+       http://darcs.idyll.org/%7Et/projects/twill/README.html
+
+.. [#] For the ``Python Browser Poseur`` see http://pbp.berlios.de
+
+.. [#] For ``PyParsing`` see http://pyparsing.sourceforge.net
+
+.. [#] For ``Selenium`` see http://selenium.thoughtworks.com/index.html

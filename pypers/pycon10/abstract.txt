@@ -1,0 +1,29 @@
+;; This buffer is for notes you don't want to save, and for Lisp evaluation.
+;; If you want to create a file, visit that file with C-x C-f,
+;; then enter the text in that file's own buffer.
+
+Introduzione alla programmazione funzionale
+---------------------------------------------------------
+
+In questo talk interattivo io e Nicola Larosa cercheremo di illustrare
+cosa significa "pensare in maniera funzionale" quando si lavora
+in un linguaggio come Python che funzionale non e'.
+
+In primo luogo cercheremo di sfatare alcuni luoghi comuni sulla
+programmazione funzionale (programmare funzionalmente NON vuol
+dire usare map, filter e reduce). In secondo luogo mostreremo
+vari errori comuni che non si commetterebbero se si pensasse in
+maniera piu' funzionale (mutare variabili globali, basarsi su effetti
+collaterali, eccetera). La terza parte del talk sara' un po' piu'
+esplorativa, mostrando qualche scorcio del vasto mondo funzionale
+che esiste al di fuori di Python: in particolare mostreremo le
+differenze tra un linguaggio con qualche supporto per la
+programmazione funzionale (come Python) ed un "vero" linguaggio funzionale.
+
+Lo scopo del talk e' quello di illustrare tecniche che permettono
+di scrivere codice piu' semplice e piu' manutenibile, non quello
+di decantare le virtu' della programmazione funzionale ad ogni
+costo. Non ci interessa spiegare come convertire tutti i for loop
+in chiamate ricorsive: l'interessante e' discutere come
+utilizzare un design funzionale piuttosto che uno basato su
+mutazione ed effetti collaterali.

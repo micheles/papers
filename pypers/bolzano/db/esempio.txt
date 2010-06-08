@@ -1,0 +1,3 @@
+Magliette       10
+Pantaloni       20
+Berretti        5

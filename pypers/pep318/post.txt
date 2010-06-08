@@ -1,0 +1,21 @@
+Instructions:
+
+1. Download the file ``decorators.zip`` from my home-page:
+
+   http://www.phyast.pitt.edu/~micheles/python/decorators.zip
+
+2. Unzip it in a directory, for instance:
+
+   ``unzip decorators -d decorators``
+
+3. Test that everything works:
+
+  ``cd decorators; python doct.py decorators.txt``
+
+4. Add the decorators directory to your Python path or copy the files 
+   decorators.py, noconflict.py, debugger.py into your Python distribution.
+
+5. It is always a good idea to give a look to the README.txt file.
+
+Notice: Python 2.3 is required. I have tested that it works (at least for
+me) both under Red Hat 7.3 and under Windows 98SE.

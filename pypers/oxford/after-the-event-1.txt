@@ -1,0 +1,104 @@
+This should go in a blog, but I do not have one, nor any intention to
+start one, so I thought I will post here instead.
+
+Warning: this is a long post!
+
+ACCU Conference (PyUK) 2005: a personal view
+=======================================================
+
+Maybe not everybody knows that last week (19-23 of April) we had a
+pretty important event in Oxford: the fifth PyUK conference  - hosted
+by the ACCU association - which is probably the second most important
+Python-related event in Europe after EuroPython.
+
+ACCU means Association of C and C++ Users, so most of the people there 
+were not Python programmers; still it amazed me how much steam Python 
+has gathered in the last years between C++ programmers. 
+
+Ideally, I was there to give just a short presentation on doctest,
+but since Alex Martelli got hired from Google, I had to act as
+replacement of the Martelli & Ravenscroft couple, since it not
+that easy to find somebody crazy enough to take over or a 6-hours 
+guru-level Python course. And, of course, there was some Italian
+mafia involved ;)
+
+It is not easy to act as a replacement for the martellibot,
+especially on short notice, but I tried to do my best. BTW,
+interested people can find my slides somehere on the ACCU website
+https://www.accu.org/conference/ or on my site
+http://www.phyast.pitt.edu/~micheles/python/oxford-lectures.zip
+
+I was actually worried a bit about people deserting the lectures once
+they discovered that Alex & Anna where not coming; it turns out my 
+worries were injustified. We actually had something like 20 persons
+there, so we filled the room pretty well.
+
+The interesting thing was that at least half the people were
+experienced C++ programmers willing to learn Python, and not actual 
+Python programmers. So, I had to correct the scope of the lectures 
+in real time and I could not cover metaclasses, whereas I covered 
+decorators but not as well as they deserve. Next year the tutorial will 
+probably have a title such as "Python for C++ programmers" and the program
+will be changed accordingly. Anyway, people were extremely interested 
+and the session (originally scheduled to end at 4 PM) actually 
+went go until after 6 PM!
+
+It turned out that one of my "students" was Stephen Turner from Microsoft:
+Steve's title is "Developer evangelist" and it is part of his job to
+present to the developers the new cool projects Microsoft is working on:
+in this particular case, he went to the course since he in charge
+of evangelizing Jim Hugunin's brainchild, IronPython, i.e. Python
+running (fast!) on Dot Net, and he wanted to have a good picture
+of CPython capabilities.
+
+Obviously when I discovered that, I immediately asked him if he was
+willing to give a presentation on IronPython. We were lucky, since he 
+accepted, he got some slides from Jim Hugunin's PyCON presentation
+and he gaves us a truly wonderful demonstration of IronPython
+capabilities. *Really* impressive.
+
+One cannot overrate the importance of this development for the future
+of Python. I asked Steve if Microsoft plans to support IronPython as
+part of the DotNet choice of languages: the answer was that there is no
+intention to sell IronPython. IronPython is an OpenSource project based
+on DotNet but it is not part of the DotNet offer and there are no
+plans in this sense.
+
+Some of you may be surprised (I certainly was) but Microsoft has been
+financing various Open Source projects in the last few years, released
+under BSD-style licences. IronPython is just one of these projects. 
+There will probably be more. So stay tuned and keep an eye on what Redmont 
+is doing. What it clear is that now Microsoft knows about the existence of 
+Python and it is actually investing money on it.
+
+This is quite a change, especially with respect to what our keynote
+speaker, Greg Stein, told us about his experience with Microsoft
+7-8 years ago, when he was employed by them: at that time Microsoft's
+reaction to Python was something along the line of "Python what? is
+that a programming language?".
+
+Greg also told has about the programming language policy at Google 
+(his current) employer: Googles uses and acknowledges officially only 
+three mainstream languages: C++, Java, and Python. Python *is* mainstream 
+for them. And judging from the space accorded to Python at the ACCU conference,
+Python is mainstream for the ACCU members too.
+
+An extremely impressive accomplishement for Python, if you think about
+it. And if Microsoft and Google are not enough, know that Nokia
+is offering Python on their mobile phones. Tapio Tallgren gaves us an
+extremely interesting technical talk on how you can program the
+Series 90 mobile using Python. They are targetting Python 2.2
+and most of the standard library just works, the speed is pretty
+good and actually they were surprised of how easy was to make the 
+port.
+
+All in all, pretty good news, people! It seems a pretty good moment
+to be a Python programmer!
+
+I have something else to say, but I will make another post for that.
+
+        Michele Simionato
+
+
+#IronPython
+http://www.gotdotnet.com/workspaces/workspace.aspx?id=ad7acff7-ab1e-4bcb-99c0-57ac5a3a9742

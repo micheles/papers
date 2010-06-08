@@ -1,0 +1,12 @@
+Title: Everything you always wanted to know about the R6RS module
+system, or how to port libraries between different R6RS implementations.
+
+Author:  Michele Simionato
+
+Abstract: The R6RS module systems is quite new and it is the result of
+various compromises. As a consequence, it has some rough edges and
+writing portable code - specially for macro writers - is not
+trivial.  This talk tries to explain how the module system works and
+how I was able to port a library involving nontrivial macros amongst
+multiple R6RS implementations, by discovering all kind of bugs and
+gotchas in the process.

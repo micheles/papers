@@ -1,0 +1,58 @@
+So, command line tools are still at the heart of most applications,
+including graphical applications, where they are most probably hidden 
+under a fancy graphical cover.
+
+
+Are you an old time Unix programmer? Or just a Windows hobbyst?
+Are you having trouble with command line scripts?
+Forget about the old-fashioned and cumbersome getopt module:
+now you have optparse at your disposal, and writing command line
+scripts in Python is a breeze!
+
+I always disliked Python to be called a "scripting" language.
+
+First of all because the definition is reductive, since Python 
+is really a general purpose language; secondly, because I found 
+Python facilities in scripting tasks to be somewhat weaker than its 
+(impressive) facilities in other programming tasks. 
+However, the new additions in Python 2.3 and especially the optparse 
+module, are making me to change my mind. 
+
+Greg Ward's optparse provides an fully fledged Object Oriented API for 
+command line argument parsing, which has the advantage of putting in
+the standard library all the features of its ancestor Optik, a module
+which is probably well known to serious writers of command line scripts.
+
+Writing command line scripts is one of the most common task
+in every day life, since they are invaluable not only as 
+small tools, but as interfaces to complex applications;
+for instance it makes a lot of sense to write a text-only
+interface to a graphics application in the developing phase.
+The script interface allows to test the application quickly
+and is essential in the design phase: once the logic of the
+application is decided after experiments with the command line, 
+you may go on and implement the fancy graphics.
+
+First of all, let me say that optparse comes with a very good 
+documentation that will answer all the questions of the more 
+sophisticated users. There is no point in rewriting the standard 
+documentation here: what I will try to do instead is to show how 
+it works in practice in the simplest cases.
+The aim of this article is make the reader want to read the documentation.
+
+
+
+``optaparse`` is cross-platform and perfectly portable module, 
+written in pure Python, which however by design it favors the
+the good old Unix philosophy for what concerns command line arguments, 
+since
+
+
+Experienced Unix programmers may want to skip this section.
+
+One nice feature of optparse, in my opinion, is that it makes you
+want to use Unix conventions even when you are scripting under 
+Windows. This is not such a bad thing, since Unix philosophy about 
+optional arguments makes a lot of sense. Of course, optparse does
+not force you to follows Unix conventions, but it suggests you
+that this is the Pythonic obvious way to do it.

@@ -1,0 +1,98 @@
+I am pretty happy with the publication process on Artima.  The reason
+why I am so happy is that the user interface for making a post in the
+blog is dead simple. You log in, you post your article the first time,
+you repost it if you need to correct something, and that's it.  
+
+You don't need to specify keywords or a category.  You don't need to
+set a publication date. You don't need to specify a citation.  You
+cannot post pictures, only link to pictures.  The system does not keep
+track of your revisions, or at least the interface for viewing the
+revisions is not exposed to the blog author.
+
+This absense of features is in my opinion the best feature of the 
+Artima blogging platform.
+
+I personally keep my articles on a Subversion repository so I can
+see the history of revisions with my own familiar tools (i.e. the
+command line interface and Trac) and it would not make sense for
+the blogging platform to duplicate (badly) that functionality.
+I have my own website where I can copy my pictures with a simple
+``scp`` command, so I don't need and I don't want to be forced to
+make a manual upload of a file (I *hate* upload forms).
+
+When I write an article containing snippets of code, I just write the code
+with the text of the article contained in the docstring (for articles
+about Python) or in a top-level comment (for articles about Scheme
+and other languages). I have a tool that extracts the text from
+the script and converts it into HTML/Latex or other formats.
+Since Artima does support reStructuredText_ (I *love* reStructuredText,
+everything I write is in that format) I don't even need to convert
+it before posting it. That was a very welcome surprise.
+
+This morning I looked at the structure of the edit page for the posts.
+It is so simple and plain that it took me just 10 minutes to write 
+a script to post my articles
+with Twill_. Now I don't need to cut and paste from
+my editor (Emacs) to the browser. I do have a Makefile which extracts
+the reStructuredText and posts it to the blog.
+Everything is so incredibly simple compared to the publication process
+I was used to.
+
+In the past I have published many articles on Stacktrace_, which is an
+Italian webzine about programming and Internet technology.  Stacktrace
+uses Django_ as its underlying technology. Django is a framework which
+was created *exactly* for publishing articles on the Web so it should
+do that job well, you would think. Perhaps it does a good job for
+non-technical writers, the people it was written for.  But for
+developers, especially GUI impaired ones like myself, it made
+publication much more complex than needed. The edit page (I mean the
+admin page) was so complex that I renonced from the start to scrip
+it. Moreover, I could not submit reStructuredText directly: I had
+first to convert my source file into HTML and then post-process the
+output by stripping many tags inserted by reST. I did so by writing
+and HTML parser for that, spending at least a full morning on the job.
+
+I know that I am not being fair with Django here and that
+there are reStructuredText plugins for Django: unfortunately,
+the editorial board decided to accept only plain HTML submissions.
+But this is beside the point. The point is that neither Django nor the
+Artima blogging platform were intended to be used by as I wanted to:
+nevertheless the simple no-fuss no-nonsense interface of Artima
+could be perverted much more easily than the complex interface
+of Django. Semplicity has its advantages. Always.
+
+Feel free to comment with your thoughts. Did you experienced
+the same *less is more* feeling? In what circumstances?
+
+---
+
+Here is the script I cooked up for posting my articles, for the
+curious guys among you (obviously, you are supposed to change
+<USERNAME> and <PASSWORD> with your credentials)::
+
+ $ echo post.py
+ """
+ A script to post articles on my blog
+ """
+
+ import sys
+ from twill import commands as c
+
+ if __name__ == '__main__':
+    try:
+        rstfile, thread  = sys.argv[1:]
+    except ValueError:
+        sys.exit('Usage: post <rstfile> <artima-thread-number>')
+    text = file(rstfile).read()
+    c.go('http://www.artima.com/sign_in?d=%2Findex.jsp')
+    c.formvalue('1', 'username', '<USERNAME>')
+    c.formvalue('1', 'password', '<PASSWORD>')
+    c.submit()
+    c.go('http://www.artima.com/weblogs/editpost.jsp?thread=%s' % thread)
+    c.formvalue('1', 'body', text)
+    c.submit()
+
+.. _Stacktrace: http://www.stacktrace.it/
+.. _reStructuredText: http://docutils.sourceforge.net/rst.html
+.. _Twill: http://twill.idyll.org/
+.. _Django: http://www.djangoproject.com/

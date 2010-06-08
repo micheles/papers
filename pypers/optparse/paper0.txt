@@ -1,0 +1,457 @@
+The optparse module: writing command line tools the easy way
+=======================================================================
+
+ :Status: Draft
+ :Author: Michele Simionato
+ :E-mail: michelesimionato@libero.it
+ :Date: March 2004
+
+*The optparse module is a powerful, flexible, extensible, easy-to-use 
+command-line parsing library for Python. Using optparse, you can add 
+intelligent, sophisticated handling of command-line options to your 
+scripts with very little overhead.* -- Greg Ward, optparse author
+
+Introduction
+-----------------------------------------------------------------------
+
+Once upon a time, when graphic interfaces were still to be dreamed
+about, command line tools were the body and the soul of all programming
+tools. Many years have passed since then, but some things have not 
+changed: command line tools are still fast, efficient, portable, easy 
+to use and - more importantly - reliable. You can count on them.
+You can expect command line scripts to work in any situation, 
+during the installation phase, in a situation of disaster recovery, when 
+your window manager breaks down and even in systems with severe 
+memory/hardware constraints. When you really need them, command 
+line tools are always there. 
+
+Hence, it is important for a programming language - especially
+one that wants to be called a "scripting" language - to provide 
+facilities to help the programmer in the task of writing command
+line tools. For a long time Python support for this kind of 
+tasks has been devoted to the old fashioned ``getopt`` module. I have
+never been particularly fond of ``getopt``, since it required the programmer 
+to do a sensible amount of boring job even for the parsing of simple 
+argument lines. However, with the coming of Python 2.3 the situation 
+has changed: thanks to the great job of Greg Ward (the author of 
+``optparse`` and ``Optik``, its precursor) now the Python programmer 
+has at her disposal - in the standard library and not as an 
+add-on module - a fully fledged Object Oriented API for command 
+line arguments parsing, which makes writing Unix-style command 
+line tools easy, efficient and fast.
+
+The only "disadvantage" of ``optparse`` is that it is a kind of 
+sophisticated tool, and requires some time to be fully mastered. 
+The purpose of this paper is to help the reader to rapidly get the 
+10% of the features of ``optparse`` that you will use in the 90% of 
+the cases. Taking as an example a real life application - a search and 
+replace tool -  I will guide the reader through (some of) the wonders 
+of ``optparse``, showing how simple is to use it. Also, I will 
+show some trick that will make your life with ``optparse`` much easier. 
+This paper is intended for both Unix and
+Windows programmers - actually I will argue that Windows programmers 
+need ``optparse`` even more than Unix programmers - and does not
+require any particular expertise to be fully appreciated.
+
+A simple example
+---------------------------------------
+
+I will take as pedagogical example a little tool I wrote in real life,
+a multiple files search and replace tool. I needed it because I am 
+not always working under Unix, and not always I have Emacs or 
+another powerful editor installed, so it made sense to have this 
+little Python script in my toolbox. It is only few lines long,
+it can always be modified and extended with a minimal effort,
+works on every platform (including my PDA) and has the advantage 
+of being completely command line driven: 
+it does not require to have any graphics library installed
+and I can use it when I work on a remote machine via ssh.
+
+The tool takes a bunch of files, look for a given regular expression 
+and replace it everywhere in-place; moreover, it saves a backup copy of
+the original un-modified files and give the option to recover 
+them if I want to.  All of this can be done more efficiently in the 
+Unix world with ``sed`` or other tools, but those tools are written 
+in C and they are not as easily customizable as a Python script, that 
+you may change in real time to suit your needs. So, it makes sense 
+to write command line tools in Python, and actually many people 
+(including myself) are actively replacing bash scripts with Python 
+scripts which wraps Unix tools or even replace them, if easy of modification
+is an important requirement. So, in real life, I have hacked
+quite a lot the minimal tool that I am describing here, and my 
+real tool does much more than that.
+
+Also - as a side note - let me notice that I find ``optparse`` 
+to be much more useful in a Windows environment than in the Unix world, 
+including in the term the various flavors of Linux and Mac OS X. 
+The reason is that the pletora 
+of pretty good command line tools which are available under Unix are 
+missing in a Windows environment, or do not have a satisfactory 
+equivalent. Therefore, 
+it makes sense to write a personal collection of command line scripts 
+for your more common task, if you need to work on many platforms and
+portability is an important requirement. 
+Using Python and ``optparse``, you may write your own scripts 
+once and having them to run on every platform running Python, 
+which means in practice any traditional platform and increasingly
+more of the non-traditional ones - notice for instance that Python 
+is expanding to the embedded market too, including PDA's, cellular 
+phones, and more.
+
+The Unix philosophy for command line arguments
+-------------------------------------------------
+
+In order to understand how ``optparse`` works, it is essential
+to understand the Unix terminology about command lines arguments. 
+As Greg Ward puts it:
+
+*The purpose of optparse is to make it very easy to provide the 
+most standard, obvious, straightforward, and user-friendly user 
+interface for Unix command-line programs. The optparse philosophy 
+is heavily influenced by the Unix and GNU toolkits ...*
+
+So, I think my Windows readers will be best served if I put here
+a brier summary of the Unix terminology. Old time Unix programmers may safely 
+skip this section. ``optparse`` could easily be extended to implement 
+other kinds of conventions for optional argument parsing, but very likely
+you *don't want* to do that, since the Unix conventions make a lot of sense.
+
+Here is optparse/Unix/GNU terminology:
+the arguments given to a command line script - *i.e.*  the arguments
+that Python stores in the list ``sys.argv[1:]`` - are classified as 
+positional arguments, options and option arguments. 
+Options can be distinguished since they are prefixed by a dash ``-`` 
+or a double dash ``--``; options can have option arguments or not 
+(there is at most an option argument right after each option); 
+options without arguments are called flags. Positional arguments 
+are what it is left in the command line and it is not an option or
+an option argument.
+
+For instance, in the example of the search/replace tool I was
+talking about, I will have three options, since I want to pass to
+the script a regular expression, a replacement string, and a
+flag specifying if a backup of the original files has to be
+performed or not. Both the regular expression option and the
+replacement string option require an argument, whereas the
+backup option does not require an argument and it is just a
+flag: or it is given, or it is not given. 
+
+Consider - for the sake of the example - the following situations:
+you have a bunch of
+text files in my current directory containing dates in the
+European format DD-MM-YYYY, and that I want to convert them in
+the American format MM-DD-YYYY. If I am sure that all my dates
+are in the correct format, I can match them with a simple regular
+expression such as ``(\d\d)-(\d\d)-(\d\d\d\d)`` . Notice that
+this regular expression can be complicated at will, or can be 
+written differently, but it is enough for the purpose of this 
+paper and has the advantage of being simple enough to be
+understood even by readers with very little familiarity with 
+regexes (it essentially looks for strings composed of the
+groups of digits separated by dashes, with the first and
+second group composed by two digits and the last group
+composed by four digits).
+
+In this particular example it is not so important to make a backup
+copy of the original files, since to reverts to the original
+format it is enough to run again the script: then the position
+of the month will be switched again back to the European 
+convention. So the syntax to use would be something like
+
+ ::
+
+  $> replace.py --nobackup --regx="(\d\d)-(\d\d)-(\d\d\d\d)" --repl="\2-\1-\3" *.txt
+
+
+In order to emphasize the portability, I have used a generic 
+``$>`` promtp, meaning that these examples works equally well both on
+Unix and on Windows. 
+
+The double slash syntax has the advantage of being
+quite clear, but the disadvantage of being quite verbose, and it is
+handier to use abbreviations for the name of the options. For instance, 
+sensible abbreviations can be ``-x`` for ``--regx``, ``-r`` for ``--repl`` 
+and ``-n`` for ``--nobackup``; moreover, the ``=`` sign can safely be
+removed. Then the previous command reads
+
+ ::
+
+  $> replace.py -n -x"(\dd)-(\dd)-(\d\d\d\d)" -r"\2-\1-\3" *.txt
+
+You see here the Unix convention at work: one-letter options
+(a.k.a. short options) are prefixed with a single dash, whereas 
+long options are prefixed with a double dash. The advantage of the 
+convention is that short options can be composed: for instance
+
+ ::
+
+  $> replace.py -nx "(\dd)-(\dd)-(\d\d\d\d)" -r "\2-\1-\3" *.txt
+
+means the same as the previous line, i.e. ``-nx`` is parsed as
+``-n -x``.  You can also freely exchange the order of the options
+(provided option arguments are kept right 
+after their respective options):
+
+ ::
+
+  $> replace.py -nr "\2-\1-\3" *.txt -x "(\dd)-(\dd)-(\d\d\d\d)"
+
+This command will be parsed exactly as before, since options and option 
+arguments are not positional. 
+
+How does it work in practice?
+-----------------------------
+
+So, I have stated the requirements. At this point we may start writing
+our search and replace tool. The first step, and the most important
+one, is to write down the documentation string:
+
+ ::
+
+  #!/usr/bin/env python
+  """
+  Given a sequence of text files, replaces everywhere
+  a regular expression x with a replacement string s.
+
+    usage: %prog files [options]
+    -x, --regx=REGX: regular expression
+    -r, --repl=REPL: replacement string
+    -n, --nobackup: don't make backup copies
+  """
+
+You will have to wait until the last section to understand
+why the docstring is the most important part of this script ;)
+Here I just notice, for the sake of Windows users,
+that the first line is not needed if you work on
+Windows only, where it is just a comment, but in
+the Unix world it is important since it allows the
+shell to recognize the script as a python script.
+So, it is a good habit to use it, it is harmless in Windows
+and helpful in Unix.
+
+The next step is to write down a simple search and replace routine:
+
+ ::
+ 
+  import optparse, re
+
+  def replace(regx,repl,files,backup_option=True):
+      rx=re.compile(regx)
+      for fname in files:
+          txt=file(fname,"U").read()
+          if backup_option:
+              print >> file(fname+".bak", "w"), txt,
+          print >> file(fname,"w"), rx.sub(repl,txt),
+
+This replace routine is entirely unsurprising, the only thing you
+may notice is the usage of the "U" option in the line
+
+ ::
+
+     txt=file(fname,"U").read()
+
+This is a new feature of Python 2.3. Text files open with the "U"
+option are read in "Universal" mode: this means that Python takes
+care for you of the newline pain, i.e. this script will work 
+correctly everywhere, independently by the newline
+conventions of your operating system. Notice that the script
+works by reading the whole file in memory: this is bad practice,
+and here I am assuming that you will use this script only on short 
+files that will fit in you memory, otherwise you should "massage"
+a bit the code.
+Also, a fully fledget script would check if the file exists 
+and can be read, and would do something in the case it is not,
+but I think you will forbid me for skipping on these points,
+since the thing I am really interested in is the ``optparse``
+module that, as I am sure you noticed, I have already imported 
+at the top.
+
+So, how does it work? It is quite simple, really. 
+First you need to instantiate an argument line parser from
+the ``OptionParser`` class provided by ``optparse``:
+
+ ::
+
+  parser = optparse.OptionParser("usage: %prog files [options]")
+
+The string ``"usage: %prog files [options]"`` will be used to
+print an customized usage message,  where %prog will be replaced
+by the name of the script - in this case - ``replace.py``. You
+may safely omit it and ``optparse`` will use a default 
+``"usage: %prog [options]"`` string.
+
+Then, you tell the parser informations about which options
+it must recognize:
+
+ ::
+
+  parser.add_option("-x", "--regx",
+                  help="regular expression")
+  parser.add_option("-r", "--repl",
+                  help="replacement string")
+  parser.add_option("-n", "--nobackup",
+                  action="store_true",
+                  help="do not make backup copies")
+
+The ``help`` keyword argument is intended to document the
+intent of the given option; it is also used by ``optparse`` in the 
+usage message. The ``action=store_true`` keyword argument is
+used to distinguish flags from options with arguments, it tells
+``optparse`` to set the flag ``nobackup`` to ``True`` if ``-n``
+or ``--nobackup`` is given in the command line.
+
+Finally, you tell the parse to do its job and to parse the command line:
+
+ ::
+
+  option, files = parser.parse_args()
+
+The ``.parse_args()`` method returns two values: an object ``option``, 
+which is an instance of the ``optparse.Option`` class, and a list
+of positional arguments
+The ``option`` object has attributes - called *destionations* in 
+``optparse`` terminology - corresponding to the given options.
+In our example, ``option`` will have the attributes ``option.regx``, 
+``option.repl`` and  ``option.nobackup``.
+
+If no options are passed to the command line, all these attributes
+are initialized to ``None``, otherwise they are initialized to 
+the argument option. In particular flag options are initialized to 
+``True`` if they are given, to``None`` otherwise. So, in our example 
+``option.nobackup`` is ``True`` if the flag ``-n`` or ``--nobackup`` 
+is given.
+The list ``files`` in our example contains the files passed
+to the command line that must be replaced (assuming you passed
+the names of accessible files in your system).
+
+At this point, we may dispatch to the right routines according to
+the given command line with a simple ``if`` statement such as the
+following:
+
+ ::
+
+      if not files:
+          print "No files given!"
+      elif option.regx and option.repl:
+          replace(option.regex, option.repl, files, not option.nobackup)
+      else:
+          print "Missing options or unrecognized options."
+	  print __doc__ # documentation on how to use the script
+
+A nice feature of ``optparse`` is that an help option is automatically
+created, so ``replace.py -h`` (or  ``replace.py --help``) will work as
+you may expect:
+
+ ::
+
+  $> replace.py --help
+  usage: replace.py files [options]
+
+
+  options:
+    -h, --help           show this help message and exit
+    -xREGX, --regx=REGX  regular expression
+    -rREPL, --repl=REPL  replacement string
+    -n, --nobackup       do not make backup copies
+
+
+You may programmatically print the usage message by invoking  
+``parser.print_help()``.
+
+At this point you may test your script and see that it works as
+advertised.
+
+How to reduce verbosity and make your life with ``optparse`` happier
+---------------------------------------------------------------------
+
+The approach we followed in the previous example has a disadvantage 
+verbosity/redundance. Suppose for instance we want to add another 
+option to the script, for instance the ability to restore the original file 
+from the backup copy, which is quite handy in the case something goes 
+wrong with the replace.
+Then, we have to change the script in three points: in the docstring,
+in the ``add_option`` list, and in the ``if .. elif .. else ...`` 
+statement. At least one of this is redundant.
+One would be tempted to think that the information in the documentation
+string is redundant, since it is already magically provided in the help
+options: however, I will take the opposite view, that the information
+in the help options is redundant, since it is already contained in
+the docstring.  It is a kind of sacrilege to write a Python script 
+without a docstring explaining what it does, so the docstring cannot 
+be removed or shortened, since it must be available to automatic
+documentation tools such as pydoc. So, the idea is to 
+extract information from the docstring, and to avoid altogether 
+the boring task of writing by hand the ``parser.add_option`` lines. 
+I implemented this idea in a cookbook recipe, by writing an 
+``optionparse`` module which is just a thin wrapper around ``optparse``.
+Interested readers may look at the implementation at ...,
+
+here I just show how the script (including the new restore option)
+will look by using my ``optionparse`` wrapper:
+
+ ::
+
+  #!/usr/bin/env python
+  """
+  Given a sequence of text files, replaces everywhere
+  a regular expression x with a replacement string s.
+  
+    usage: %prog files [options]
+    -x, --regx=REGX: regular expression
+    -r, --repl=REPL: replacement string
+    -n, --nobackup: do not make backup copies
+    -R, --restore: restore the original from the backup
+  """
+  import optionparse, os, shutil, re
+  
+  def replace(regx,repl,files,backup_option=True):
+      rx=re.compile(regx)
+      for fname in files:
+          # you could a test to see if the file exists and can be read here
+          txt=file(fname,"U").read()
+          if backup_option:
+              print >> file(fname+".bak","w"), txt
+          print >> file(fname,"w"), rx.sub(repl,txt)
+  
+  def restore(files):
+      for fname in files:	
+          if os.path.exists(fname+".bak"):
+              shutil.copyfile(fname+".bak",fname)
+          else:
+              print "Sorry, there is no backup copy for %s" % fname
+  
+  if __name__=='__main__':
+      option,files=optionparse.parse(__doc__)
+      # optionparse.parse parses both the docstring and the command line!
+      if not files:
+          optionparse.exit()
+      elif option.regx and option.repl:
+          replace(option.regex, option.repl, files, not option.nobackup)
+      elif option.restore:
+          restore(files)
+      else:
+          print "Missing options or unrecognized options."
+
+Working a bit more, one could also devise various tricks to avoid
+the redundance in the ``if`` statement (for instance using a
+dictionary of functions and dispatching according to the name of
+the given option). However this simple recipe is good enough to
+provide a minimal wrapper to ``optparse`` with requires a minimum effort
+as it works well for the most common case. For instance, the same 
+paper you are reading now, has been written by using it: I used 
+``optionparse`` to write a simple wrapper to docutils - the standard
+Python tools to convert text files to HTML pages - to customize 
+its behavior to my needs. It is also nicer to notice that internally
+docutils itself uses ``optparse`` to do its job, so actually this
+paper has been composed by using ``optparse`` twice!
+ 
+Finally, you should keep in mind that this article only scratch the
+surface of ``optparse``, which is quite sophisticated. 
+For instance you can specify default values, different destinations, 
+a ``store_false`` action and much more, even if often you don't need 
+all this power. Still, it is handy to have it at your disposal when 
+you need it.  So, the serious user of ``optparse`` is strongly 
+encorauged to read the standard documentation coming with it, which 
+is quite good and detailed. I will think that this article has fullfilled
+its function of "appetizer" to ``optparse``, if it has stimulate 
+the reader to dive into ``optparse``.

@@ -1,0 +1,10 @@
+Title: Testing Web Applications with Python
+Author: Michele Simionato, Ph. D.
+Abstract:
+
+In this article Michele writes about his experience in testing Web
+applications and gives a few tips and tricks to do it yourself.
+He briefly discusses the Python libraries to interact with the
+HTTP protocol and he shows the virtues of twill, a little
+command interpreter written in Python with the specific purpose
+of testing Web applications.

@@ -1,0 +1,38 @@
+`Episode #12`_ closed the second cycle of my *Adventures*.  
+
+In that cycle I discussed at length Scheme macros, spending six
+episodes on the subject. However, there is so much to say about macros
+that six episodes are not enough to make them justice. Therefore I
+plan to write a whole new cycle to discuss the deeper aspects of
+macros, such as the hygiene issue, higher order macros and 
+advanced macrology techniques. However, in this moment I think it is
+a good idea if I pause for a while from macros, in order to give to my
+readers some time to digest them.
+
+The third cycle of the *Adventures* will
+concern a completely different topic: the functional features of Scheme. 
+It should be easier to follow than the second cycle since nowadays functional
+programming is becoming popular (all scripting languages have some
+support for functional programming, a lot of functional constructs
+entered in the latest version of C#, Scala is getting traction
+in the Java world, etc.).
+
+Still, there is a substantial difference between an imperative
+language with some support for functional programming and a truly
+functional language.
+A true functional language is based on functional data structures,
+has strong support for recursion (it requires tail call optimization), 
+and for higher order functions, and it features pattern matching. 
+Scheme has all of those things and more, since it is a multiparadigm 
+language.
+
+I will devolve the next episodes of the *Adventures* to the
+exploration of those topics. However, you will need to have patience
+since I have a few Python-related papers to publish first, and the
+third cycle will probably start next year.
+
+Have fun!
+
+.. _Haskell: http://www.haskell.org/
+.. _currying: http://en.wikipedia.org/wiki/Currying
+.. _Episode #12: http://www.artima.com/weblogs/viewpost.jsp?thread=240836

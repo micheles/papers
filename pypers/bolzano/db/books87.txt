@@ -1,0 +1,109 @@
+La sintesi Einsteiniana          OOO  Born         03-01-87  SF  SU
+I robots dell'alba               OOO+ Asimov       08-01-87  FS  SU
+Elementi di Astrofisica          OO+  Santi        14-01-87  AS  IT
+Il mago di Oz                    OOO  Baum         25-01-87  FA  SU
+Il nome della rosa               OOO  Eco          06-02-87  RS  IT
+Figli di domani                  OO   Van Vogt     07-02-87  FS  SU
+Il mondo nuovo                   OO+  Huxley       14-02-87  FS  GB
+Cosmo profondo                   OO+  Tubb         18-02-87  FS  SU
+Ars amatoria                     OOO  Ovidio       26-02-87  LL  IT
+Heroides                         OO   Ovidio       27-02-87  LL  IT
+Orlando Furioso                  OOO  Bignami      27-02-87  FA  IT
+Unico indizio: la Luna piena     OOO  King         27-02-87  TR  SU
+Contact                          OO   Sagan        04-03-87  FS  SU
+Asterix e Cleopatra              OOO  Uderzo       05-03-87  CO  FR
+Il pianeta degli schiavi         OO   Jenifer      05-03-87  FS  SU
+La Regina delle Nevi             OOO  Vinge        08-03-87  FS  SU
+Il cielo                         OOO  Cecchini     18-03-87  AS  IT
+Yargo                            +    Susann       24-03-87  FS  SU
+La civilta' dei Solari           OO   Spinrad      25-03-87  FS  SU
+Logo: ali per la mente           OOO  Reggini      30-03-87  IN  IT
+Fisica Statistica                OO+  U. Berkeley  03-04-87  SF  SU
+Partiranno                       OO+  D'Eramo      16-04-87  FS  SU
+Il popolo dell'Autunno           OOO+ Bradbury     17-04-87  TR  SU
+Racconti incompiuti              OOO  Tolkien      20-04-87  FA  GB
+Meccanica                        OOO  U. Berkeley  02-05-87  SF  SU
+Il vagabondo delle scienze       OOO  Asimov       05-05-87  SG  SU
+Il Rosso e il Nero               OO   Stendhal     05-05-87  LF  FR
+L'assalto al treno               OO   Arpino       20-05-87  FA  IT
+Racconti filosofici              OOO  Voltaire     24-05-87  LF  FR
+La mano sinistra delle tenebre   OOO  Le Guin      25-05-87  FS  SU
+Introduzione alla programmazione OO   Ralston      26-05-87  IN  SU
+Pascal                           OO+  Watt         08-06-87  IN  SU
+Il problema marziano             OO   Vari         09-06-87  FS  SU
+Teoria dei giochi                OO   Morgenstein  16-06-87  SM  SU
+Le avventure di Alice            OOO  Carroll      16-06-87  FA  SU
+Antiche sere                     OO+  Mailer       19-06-87  RS  SU
+Le avventure di Sherlock Holmes  OOO+ Doyle        04-07-87  GI  GB
+Guerra eterna                    OOO  Haldeman     07-07-87  FS  SU
+Noi marziani                     OOO  Dick         08-07-87  FS  SU
+Le vie della Frontiera           OO+  Chandler     09-07-87  FS  SU
+Shock 1                          OOO  Matheson     10-07-87  TR  SU
+Shock 2                          OO+  Matheson     11-07-87  TR  SU
+Fuochi                           OO   Yourcennar   13-07-87  LF  FR
+Il gioco dei pianeti             O+   Bradbury     13-07-87  FS  SU
+Le quattro ore di Satana         OO   Hubbard      14-07-87  TR  SU
+E. T. il libro del Pianeta Verde OOO  Kotzwinkle   15-07-87  FS  SU
+Le armi di Isher                 OOO  Van Vogt     16-07-87  FS  SU
+Le grandi storie della FS 2      OOO+ Vari         19-07-87  FS  SU
+La Fantascienza                  OO+  Montanari    20-07-87  SG  IT
+Shock 3                          OO   Matheson     21-07-87  TR  SU
+Universo a sette incognite       OOO  Vari         21-07-87  FS  SU
+Shock 4                          OO+  Matheson     22-07-87  TR  SU
+La svastica sul sole             OO+  Dick         23-07-87  FS  SU
+I Principi Demoni                OOO  Vance        24-07-87  FS  SU
+Forth                            OO   Vickers      25-07-87  IN  SU
+C                                OO   Wagner       25-07-87  IN  SU
+Robot speciale                   OO+  Vari         26-07-87  FS  SU
+Stella doppia                    OO+  Heinlein     26-07-87  FS  SU
+All'ombra degli dei              OO+  Vari         28-07-87  FS  SU
+Ponte di cenere                  OO+  Zelazny      30-07-87  FS  SU
+Dizionario del Basic             OO+  Lien         30-07-87  IN  SU
+La danzatrice di Atlantide       OO+  Anderson     02-08-87  FS  SU
+Il morbo di San Francesco        OO+  Hughes       03-08-87  FS  SU
+Intervista sul PC                OO+  Didday       03-08-87  IN  SU
+Come si programma in Pascal      OO   Margaroli    04-08-87  IN  IT
+Il giorno del cosmo              +    Malzberg     04-08-87  FS  SU
+Programmare in Assembler         OO   Pinaut       06-08-87  IN  FR
+C'era una volta un pianeta       OO   Iohannis     07-08-87  FS  SU
+La ruota a tre punte             OO+  Anderson     08-08-87  FS  SU
+Il mercante delle stelle         OO+  Anderson     08-08-87  FS  SU
+Pascal                           OO+  Le Beaux     09-08-87  IN  FR
+Guerra al Grande Nulla           OO+  Blish        10-08-87  FS  SU
+Il guerriero del tramonto        OO+  Lusthaden    10-08-87  FS  SU
+Il pianeta dei venti             OOO  Martin       12-08-87  FS  SU
+Le nebbie di Avalon              OOO+ Bradley      14-08-87  FA  SU
+Guerra fredda                    OO   Pohl         16-08-87  FS  SU
+Il mondo di Theodore Sturgeon    OO   Sturgeon     19-08-87  FS  SU
+Robot speciale: antologia        OOO  Van Vogt     22-08-87  FS  SU
+Di terrore si muore              OO+  Lee          24-08-87  TR  SU
+Parapsicosi                      O+   Bunker       24-08-87  TR  SU
+Gummer Street                    OO+  Krohn        24-08-87  CO  SU
+Arturo e Zoe                     OO   Bushmiller   24-08-87  CO  SU
+Avvertite il mondo               OO+  Brunner      25-08-87  FS  SU
+Le tre stimmate di Palmer Dietr. OO   Dick         25-08-87  FS  SU
+Leggende alla fine del tempo     OO   Moorcock     27-08-87  FS  SU
+La legge dei Soal                OO+  Kilworth     30-08-87  FS  SU
+John Carter di Marte             OOO  Burroghs     10-09-87  FS  SU
+La mente di Marte                OOO  Burroghs     12-09-87  FS  SU
+Il dottor Oss                    OO+  Verne        12-09-87  FS  SU
+Il medico delle isole            OO+  Magri        15-09-87  RS  IT
+Comunicare con il computer       OO+  Mauri        16-09-87  IN  IT
+Il computer da scrivere          OOO  Eco          17-09-87  IN  IT
+Il mondo dei quanti              OO   Polkinghorne 17-09-87  SF  IT
+Incontri programmati             OOO  Enstrom      18-09-87  FS  SU
+I Promessi Sposi: sunti e note   OO   Stirati      24-09-87  LI  IT
+Guida ai fantasmi inglesi        OO   Halifax      04-10-87  TR  GB
+Bollettino Universitario         OO+  U. Padova    09-10-87  SF  IT
+I Robot e l'Impero               OOO  Asimov       01-11-87  FS  SU
+Lucrezia Borgia                  OO   Bellonci     01-11-87  ST  SU
+Teorie cosmologiche rivali       OOO  Vari         16-11-87  AS  SU
+Gravitazione                     OO+  Vari         18-11-87  AS  SU
+Frankenstein                     OOO+ Shelley      04-12-87  TR  GB
+Cosmolinea B-1                   OOO  Brown        12-12-87  FS  SU
+Nova SF: l'ultima stella         OO+  Vari         15-12-87  FS  SU
+Fortran 77                       OO+  Page         17-12-87  IN  SU
+Assembler 68000                  OO   Erskine      17-12-87  IN  SU
+Mastro Don Gesualdo              OOO  Verga        23-12-87  LI  IT
+Storia della Fantascienza I      OOO  Vari         28-12-87  FS  SU
+Disputationum Tusculanarum I     OO+  Cicerone     31-12-87  LL  IT

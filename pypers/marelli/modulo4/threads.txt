@@ -1,0 +1,22 @@
+Programming with threads
+=====================================
+
+Issues with threads
+---------------------------------
+
+1. You cannot kill a thread.
+2. Exceptions are harder.
+3. There is always the risk of race conditions and deadlocks.
+4. Threads are not scalable.
+
+Partial solution:
+
+- use Twisted threads.
+
+Use case for threads
+--------------------------------------
+
+1. Exchanging info is easier.
+2. Applications with a mainloop (GUI, WEB)
+3. Threads as observers.
+4. Simulations (ex. simulating many users)

@@ -1,0 +1,824 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+<meta name="generator" content="Docutils 0.5: http://docutils.sourceforge.net/" />
+<meta name="version" content="S5 1.1" />
+<title>Introduction to Functional Programming</title>
+<meta name="date" content="2010-05-08" />
+<style type="text/css">
+
+/*
+:Author: David Goodger (goodger@python.org)
+:Id: $Id: html4css1.css 5196 2007-06-03 20:25:28Z wiemann $
+:Copyright: This stylesheet has been placed in the public domain.
+
+Default cascading style sheet for the HTML output of Docutils.
+
+See http://docutils.sf.net/docs/howto/html-stylesheets.html for how to
+customize this style sheet.
+*/
+
+/* used to remove borders from tables and images */
+.borderless, table.borderless td, table.borderless th {
+  border: 0 }
+
+table.borderless td, table.borderless th {
+  /* Override padding for "table.docutils td" with "! important".
+     The right padding separates the table cells. */
+  padding: 0 0.5em 0 0 ! important }
+
+.first {
+  /* Override more specific margin styles with "! important". */
+  margin-top: 0 ! important }
+
+.last, .with-subtitle {
+  margin-bottom: 0 ! important }
+
+.hidden {
+  display: none }
+
+a.toc-backref {
+  text-decoration: none ;
+  color: black }
+
+blockquote.epigraph {
+  margin: 2em 5em ; }
+
+dl.docutils dd {
+  margin-bottom: 0.5em }
+
+/* Uncomment (and remove this text!) to get bold-faced definition list terms
+dl.docutils dt {
+  font-weight: bold }
+*/
+
+div.abstract {
+  margin: 2em 5em }
+
+div.abstract p.topic-title {
+  font-weight: bold ;
+  text-align: center }
+
+div.admonition, div.attention, div.caution, div.danger, div.error,
+div.hint, div.important, div.note, div.tip, div.warning {
+  margin: 2em ;
+  border: medium outset ;
+  padding: 1em }
+
+div.admonition p.admonition-title, div.hint p.admonition-title,
+div.important p.admonition-title, div.note p.admonition-title,
+div.tip p.admonition-title {
+  font-weight: bold ;
+  font-family: sans-serif }
+
+div.attention p.admonition-title, div.caution p.admonition-title,
+div.danger p.admonition-title, div.error p.admonition-title,
+div.warning p.admonition-title {
+  color: red ;
+  font-weight: bold ;
+  font-family: sans-serif }
+
+/* Uncomment (and remove this text!) to get reduced vertical space in
+   compound paragraphs.
+div.compound .compound-first, div.compound .compound-middle {
+  margin-bottom: 0.5em }
+
+div.compound .compound-last, div.compound .compound-middle {
+  margin-top: 0.5em }
+*/
+
+div.dedication {
+  margin: 2em 5em ;
+  text-align: center ;
+  font-style: italic }
+
+div.dedication p.topic-title {
+  font-weight: bold ;
+  font-style: normal }
+
+div.figure {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+div.footer, div.header {
+  clear: both;
+  font-size: smaller }
+
+div.line-block {
+  display: block ;
+  margin-top: 1em ;
+  margin-bottom: 1em }
+
+div.line-block div.line-block {
+  margin-top: 0 ;
+  margin-bottom: 0 ;
+  margin-left: 1.5em }
+
+div.sidebar {
+  margin: 0 0 0.5em 1em ;
+  border: medium outset ;
+  padding: 1em ;
+  background-color: #ffffee ;
+  width: 40% ;
+  float: right ;
+  clear: right }
+
+div.sidebar p.rubric {
+  font-family: sans-serif ;
+  font-size: medium }
+
+div.system-messages {
+  margin: 5em }
+
+div.system-messages h1 {
+  color: red }
+
+div.system-message {
+  border: medium outset ;
+  padding: 1em }
+
+div.system-message p.system-message-title {
+  color: red ;
+  font-weight: bold }
+
+div.topic {
+  margin: 2em }
+
+h1.section-subtitle, h2.section-subtitle, h3.section-subtitle,
+h4.section-subtitle, h5.section-subtitle, h6.section-subtitle {
+  margin-top: 0.4em }
+
+h1.title {
+  text-align: center }
+
+h2.subtitle {
+  text-align: center }
+
+hr.docutils {
+  width: 75% }
+
+img.align-left {
+  clear: left }
+
+img.align-right {
+  clear: right }
+
+ol.simple, ul.simple {
+  margin-bottom: 1em }
+
+ol.arabic {
+  list-style: decimal }
+
+ol.loweralpha {
+  list-style: lower-alpha }
+
+ol.upperalpha {
+  list-style: upper-alpha }
+
+ol.lowerroman {
+  list-style: lower-roman }
+
+ol.upperroman {
+  list-style: upper-roman }
+
+p.attribution {
+  text-align: right ;
+  margin-left: 50% }
+
+p.caption {
+  font-style: italic }
+
+p.credits {
+  font-style: italic ;
+  font-size: smaller }
+
+p.label {
+  white-space: nowrap }
+
+p.rubric {
+  font-weight: bold ;
+  font-size: larger ;
+  color: maroon ;
+  text-align: center }
+
+p.sidebar-title {
+  font-family: sans-serif ;
+  font-weight: bold ;
+  font-size: larger }
+
+p.sidebar-subtitle {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+p.topic-title {
+  font-weight: bold }
+
+pre.address {
+  margin-bottom: 0 ;
+  margin-top: 0 ;
+  font-family: serif ;
+  font-size: 100% }
+
+pre.literal-block, pre.doctest-block {
+  margin-left: 2em ;
+  margin-right: 2em }
+
+span.classifier {
+  font-family: sans-serif ;
+  font-style: oblique }
+
+span.classifier-delimiter {
+  font-family: sans-serif ;
+  font-weight: bold }
+
+span.interpreted {
+  font-family: sans-serif }
+
+span.option {
+  white-space: nowrap }
+
+span.pre {
+  white-space: pre }
+
+span.problematic {
+  color: red }
+
+span.section-subtitle {
+  /* font-size relative to parent (h1..h6 element) */
+  font-size: 80% }
+
+table.citation {
+  border-left: solid 1px gray;
+  margin-left: 1px }
+
+table.docinfo {
+  margin: 2em 4em }
+
+table.docutils {
+  margin-top: 0.5em ;
+  margin-bottom: 0.5em }
+
+table.footnote {
+  border-left: solid 1px black;
+  margin-left: 1px }
+
+table.docutils td, table.docutils th,
+table.docinfo td, table.docinfo th {
+  padding-left: 0.5em ;
+  padding-right: 0.5em ;
+  vertical-align: top }
+
+table.docutils th.field-name, table.docinfo th.docinfo-name {
+  font-weight: bold ;
+  text-align: left ;
+  white-space: nowrap ;
+  padding-left: 0 }
+
+h1 tt.docutils, h2 tt.docutils, h3 tt.docutils,
+h4 tt.docutils, h5 tt.docutils, h6 tt.docutils {
+  font-size: 100% }
+
+ul.auto-toc {
+  list-style-type: none }
+
+</style>
+<!-- configuration parameters -->
+<meta name="defaultView" content="slideshow" />
+<meta name="controlVis" content="hidden" />
+<!-- style sheet links -->
+<script src="ui/default/slides.js" type="text/javascript"></script>
+<link rel="stylesheet" href="ui/default/slides.css"
+      type="text/css" media="projection" id="slideProj" />
+<link rel="stylesheet" href="ui/default/outline.css"
+      type="text/css" media="screen" id="outlineStyle" />
+<link rel="stylesheet" href="ui/default/print.css"
+      type="text/css" media="print" id="slidePrint" />
+<link rel="stylesheet" href="ui/default/opera.css"
+      type="text/css" media="projection" id="operaFix" />
+
+<style type="text/css">
+#currentSlide {display: none;}
+</style>
+</head>
+<body>
+<div class="layout">
+<div id="controls"></div>
+<div id="currentSlide"></div>
+<div id="header">
+
+</div>
+<div id="footer">
+<h1>Introduction to Functional Programming</h1>
+<h2>PyCon Italia 2010</h2>
+</div>
+</div>
+<div class="presentation">
+<div class="slide" id="slide0">
+<h1 class="title">Introduction to Functional Programming</h1>
+<table class="docinfo" frame="void" rules="none">
+<col class="docinfo-name" />
+<col class="docinfo-content" />
+<tbody valign="top">
+<tr class="field"><th class="docinfo-name">Event:</th><td class="field-body">PyCon Italia 2010</td>
+</tr>
+<tr class="field"><th class="docinfo-name">Presenters:</th><td class="field-body">Michele Simionato, Nicola Larosa</td>
+</tr>
+<tr><th class="docinfo-name">Date:</th>
+<td>2010-05-08</td></tr>
+</tbody>
+</table>
+<!-- Definitions of interpreted text roles (classes) for S5/HTML data. -->
+<!-- This data file has been placed in the public domain. -->
+<!-- Colours
+======= -->
+<!-- Text Sizes
+========== -->
+<!-- Display in Slides (Presentation Mode) Only
+========================================== -->
+<!-- Display in Outline Mode Only
+============================ -->
+<!-- Display in Print Only
+===================== -->
+<!-- Display in Handout Mode Only
+============================ -->
+<!-- Incremental Display
+=================== -->
+
+</div>
+<div class="slide" id="my-goals-for-this-talk">
+<h1>My goals for this talk</h1>
+<ul class="simple">
+<li>this is an introductory talk (no monads, no combinators,
+no pattern matching, no concurrency, no blurb)</li>
+<li>mostly about Python, with 1 or 2 examples in Scheme</li>
+<li>a first part for purists (rebinding and TCO)</li>
+<li>a second part focused on functional <em>design</em> in real life</li>
+<li>also a few remarks about functional aspects in automatic testing
+and database programming</li>
+</ul>
+</div>
+<div class="slide" id="first-two-misconceptions">
+<h1>First: two misconceptions</h1>
+<ul class="simple">
+<li>two extreme viewpoints:</li>
+</ul>
+<blockquote>
+<ol class="arabic simple">
+<li>FP means map, filter, reduce</li>
+<li>FP means Haskell</li>
+</ol>
+</blockquote>
+<ul class="incremental simple">
+<li>I am in between</li>
+<li>readability and maintainability are my first concerns, not purity</li>
+<li>... still purity is attractive</li>
+</ul>
+</div>
+<div class="slide" id="what-functional-means">
+<h1>What functional means</h1>
+<ul>
+<li><p class="first">a lot of emphasis on the functions in the past, nowadays people stress
+more the data structures</p>
+</li>
+<li><p class="first">a language is functional if</p>
+<blockquote>
+<ol class="incremental arabic simple">
+<li><em>variables cannot be re-assigned</em></li>
+<li><em>data structures cannot be modified</em></li>
+<li><em>I/O side effects are confined</em></li>
+</ol>
+</blockquote>
+</li>
+</ul>
+</div>
+<div class="slide" id="less-is-more">
+<h1>Less is more</h1>
+<ul class="simple">
+<li>FP is about having <em>less</em> features, not more!</li>
+</ul>
+<ul class="incremental simple">
+<li>less ways of shooting yourself in the foot</li>
+<li>the functional programmer is often compared to a monk</li>
+<li>the challenge: can we program under such strong constraints??</li>
+</ul>
+</div>
+<div class="slide" id="point-1-immutable-bindings">
+<h1>Point 1: immutable bindings</h1>
+<ul class="simple">
+<li>there are no more variables as we intend them</li>
+<li>what about for loops?</li>
+</ul>
+<pre class="doctest-block">
+&gt;&gt;&gt; for item in sequence:
+        do_something(item)
+</pre>
+<ul class="incremental simple">
+<li>the name <tt class="docutils literal"><span class="pre">item</span></tt> is rebound at each iteration</li>
+<li>(talk about boxes and labels)</li>
+<li>for loops have worked well for 50+ years, it seems impossible to
+live without them</li>
+<li>... but do for loops work really well?</li>
+</ul>
+</div>
+<div class="slide" id="let-s-see">
+<h1>Let's see ...</h1>
+<pre class="literal-block">
+root = Tkinter.Tk()
+text = Tkinter.StringVar()
+label = Tkinter.Label(root, textvariable=text)
+menubar = Tkinter.Menu(root)
+menu = Tkinter.Menu(menubar)
+menubar.add_cascade(label='File', menu=menu)
+for item in ['F1','F2', 'F3']:
+    def showmenu():
+        text.set(text.get() + '\n%s' % item)
+    menu.add_command(label=item, command=showmenu)
+root.config(menu=menubar); label.pack()
+root.mainloop()
+</pre>
+</div>
+<div class="slide" id="the-usual-hack">
+<h1>The usual hack</h1>
+<pre class="literal-block">
+root = Tkinter.Tk()
+text = Tkinter.StringVar()
+label = Tkinter.Label(root, textvariable=text)
+menubar = Tkinter.Menu(root)
+menu = Tkinter.Menu(menubar)
+menubar.add_cascade(label='File', menu=menu)
+for item in ['F1','F2', 'F3']:
+    def showmenu(item=item):
+        text.set(text.get() + '\n%s' % item)
+    menu.add_command(label=item, command=showmenu)
+root.config(menu=menubar); label.pack()
+root.mainloop()
+</pre>
+</div>
+<div class="slide" id="this-is-still-a-hack">
+<h1>This is still a hack</h1>
+<ul class="simple">
+<li>looking at the interaction of for-loops and closures is a good
+test to see if a language is functional</li>
+</ul>
+<ul class="incremental simple">
+<li>this is an example of the difference between a truly functional language
+and an imperative language with some support for FP</li>
+<li>Python, Common Lisp, Go do <em>not</em> pass the test</li>
+<li>Haskell, Scheme, Clojure, Perl <em>do</em> pass the test</li>
+</ul>
+</div>
+<div class="slide" id="a-simpler-example">
+<h1>A simpler example</h1>
+<pre class="literal-block">
+lst = []
+for i in 0, 1, 2:
+    def f():
+        print i
+    lst.append(f)
+
+lst[0]() #=&gt; 2
+lst[1]() #=&gt; 2
+lst[2]() #=&gt; 2
+</pre>
+</div>
+<div class="slide" id="a-partial-solution">
+<h1>A partial solution</h1>
+<pre class="literal-block">
+lst = []
+def append_f(i):
+    def f():
+        print i
+    lst.append(f)
+
+for i in 0, 1, 2: # mutation is still there
+    append_f(i)
+
+lst[0]() #=&gt; 0
+lst[1]() #=&gt; 1
+lst[2]() #=&gt; 2
+</pre>
+</div>
+<div class="slide" id="the-question">
+<h1>The question</h1>
+<p>We need a way to compute a loop <em>without</em> rebinding the loop variable:</p>
+<pre class="literal-block">
+def loop123():
+    for i in 1, 2, 3:
+        &lt;do_something(i)&gt;
+
+loop123()
+</pre>
+<p>Clearly we need to introduce a new scope at each iteration</p>
+</div>
+<div class="slide" id="the-answer-recursion">
+<h1>The answer: recursion</h1>
+<p>Convert the function containing a loop in a recursive function with an
+additional argument (the loop index):</p>
+<pre class="literal-block">
+def loop123(i=1):
+    if i &gt; 3:
+        return
+    else:
+        &lt;do_something(i)&gt;
+        loop123(i+1) # tail call
+
+loop123()
+</pre>
+</div>
+<div class="slide" id="another-example-enumerate">
+<h1>Another example: enumerate</h1>
+<p>Here is an example of a for loop used to build a data structure:</p>
+<pre class="literal-block">
+def enumerate(values, i=0, acc=()):
+   if i &gt;= len(values):
+       return acc
+   else:
+       return enumerate(
+         values, i+1, acc + ((i, values[i]),))
+</pre>
+<p>The trick is to use an (immutable) accumulator</p>
+</div>
+<div class="slide" id="the-importance-of-tail-calls">
+<h1>The importance of tail calls</h1>
+<ul class="simple">
+<li>in a truly functional language all for-loops are implemented as
+recursive functions in tail call form</li>
+</ul>
+<ul class="incremental simple">
+<li>the compiler is able to recognize them and avoids creating
+a new stack per each iteration (TCO): no recursion limit</li>
+<li>for the programmer POV the loop variable is never reassigned</li>
+<li>it seems <em>perverse</em> but it is essential</li>
+<li>expecially for things like pattern matching</li>
+</ul>
+</div>
+<div class="slide" id="a-note-on-pattern-matching">
+<h1>A note on pattern matching</h1>
+<p>Pattern matching is used a lot in functional languages; in Scheme is
+especially used in macro programming; in ML and Haskell is used everywhere,
+even to define functions:</p>
+<pre class="literal-block">
+fun fact n = fact' (n, 1)
+and fact' (0, acc) = acc
+  | fact' (n, acc) = fact' (n-1,  acc*n);
+</pre>
+<p>In Erlang is used to destructure the messages sent to the Erlang lightweight
+processes.</p>
+</div>
+<div class="slide" id="tco-and-debugging">
+<h1>TCO and debugging</h1>
+<p>There has been some heated debate last year due to Guido's dismissal
+of TCO.</p>
+<p class="incremental">In all fairness I must notice that TCO does not prevent debugging:</p>
+<pre class="incremental literal-block">
+;; tco.ss
+(let loop ((x -3))
+  (/ 1 x)
+  (loop (add1 x)))
+</pre>
+<p class="incremental">(but I agree that iterative is better than recursive)</p>
+</div>
+<div class="slide" id="the-pragmatist-voice">
+<h1>The pragmatist voice</h1>
+<p><em>Python programs written in functional style usually won’t go to the
+extreme of avoiding all I/O or all assignments; instead, they’ll
+provide a functional-appearing interface but will use non-functional
+features internally. For example, the implementation of a function
+will still use assignments to local variables, but won’t modify global
+variables or have other side effects.</em> -- Andrew Kuchling</p>
+</div>
+<div class="slide" id="example-collecting-objects">
+<h1>Example: collecting objects</h1>
+<pre class="literal-block">
+def collect_mail(mails):
+    storage = {}
+    for mail in mails:
+        client = mail.getclient()
+        kind = mail.getkind()
+        date = mail.getdate()
+        stored = storage.get((client, kind))
+        if stored is None or stored.date &lt; date:
+            storage[client, kind] = mail
+    return storage
+</pre>
+</div>
+<div class="slide" id="for-purists-at-all-costs">
+<h1>For purists at all costs ...</h1>
+<ul>
+<li><p class="first">you can avoid mutation of the storage by introducting a functional
+update utility:</p>
+<pre class="literal-block">
+def update(d, k, v):
+    newd = d.copy()
+    newd.update({k : v})
+    return newd
+</pre>
+</li>
+</ul>
+</div>
+<div class="slide" id="use-a-helper-function">
+<h1>... use a helper function</h1>
+<pre class="literal-block">
+def _collect_mail(storage, mail):
+   # a left-folding function: acc,obj-&gt;new-acc
+   client = mail.getclient()
+   kind = mail.getkind()
+   date = mail.getdate()
+   stored = storage.get((client, kind))
+   if stored is None or stored.date &lt; date:
+       return update(
+           storage, (client, kind), mail)
+   else:
+       return storage
+</pre>
+</div>
+<div class="slide" id="then-reduce-is-your-friend">
+<h1>... then reduce is your friend</h1>
+<pre class="literal-block">
+def collect_mail(mails):
+   return reduce(_collect_mail, mails, {})
+</pre>
+<ul class="incremental simple">
+<li>except that you should not be <em>perverse</em></li>
+<li>there is no reason to be functional at any cost if you are using a
+non-functional language</li>
+<li>do not fight the language, flow with it</li>
+<li>and this close the discussion about immutable bindings</li>
+</ul>
+</div>
+<div class="slide" id="point-2-immutable-data">
+<h1>Point 2: immutable data</h1>
+<ul class="simple">
+<li>we cannot really get rid of all mutable objects but
+certainly mutable objects are overused</li>
+</ul>
+<ul class="incremental simple">
+<li>mutable objects are often evil
+(globals, example of nosetests changing my sys.path)</li>
+<li>mutable objects can be often avoided
+(functional update may substitute mutation)</li>
+<li>there are smart functional data structures nowadays
+(not much in Python)</li>
+<li>Python has only strings, (named)tuples and frozensets</li>
+</ul>
+</div>
+<div class="slide" id="namedtuple">
+<h1>namedtuple</h1>
+<pre class="doctest-block">
+&gt;&gt;&gt; from collections import namedtuple
+&gt;&gt;&gt; Point = namedtuple('Point', 'x y')
+&gt;&gt;&gt; p1 = Point(0, 0)
+&gt;&gt;&gt; p2 = p1._replace(x=1)
+&gt;&gt;&gt; p2
+(1, 0)
+&gt;&gt;&gt; p1 is p2
+False
+</pre>
+<p>(requires copying the full structure in Python). Python also lacks
+immutable dictionaries (say Red/Black trees).</p>
+</div>
+<div class="slide" id="generators-are-mutable">
+<h1>Generators are mutable</h1>
+<p>Many Python programs (especially the ones using list/generator
+comprehension and the itertools module) are considered in functional
+style even if they are not functional from a purist POV:</p>
+<blockquote>
+<pre class="doctest-block">
+&gt;&gt;&gt; it123 = iter([1, 2, 3])
+&gt;&gt;&gt; for i in it123: print i,
+...
+1 2 3
+&gt;&gt;&gt; for i in it123: print i,
+...
+</pre>
+</blockquote>
+</div>
+<div class="slide" id="the-functional-way-streams">
+<h1>The functional way: streams</h1>
+<p>Looping over a stream does not mutate it:</p>
+<pre class="literal-block">
+&gt; (import (srfi :41 streams))
+&gt; (define str123 (stream-range 1 4))
+&gt; (stream-for-each display str123)
+123
+&gt; (stream-for-each display str123)
+123
+</pre>
+<p>Yet another difference between Python and a true functional language</p>
+</div>
+<div class="slide" id="confined-side-effects">
+<h1>3: confined side effects?</h1>
+<ul>
+<li><p class="first">to be able to distinguish pure functions from
+impure functions is important:</p>
+<pre class="literal-block">
+&#64;memoize
+def do_something():
+   result = long_computation()
+   log.info('Computed %s', result)
+   return result
+</pre>
+</li>
+<li><p class="first">Haskell is the purest language when it comes to
+confining side effects</p>
+</li>
+</ul>
+</div>
+<div class="slide" id="side-effects-and-unittests">
+<h1>Side effects and unittests</h1>
+<ul class="simple">
+<li>in Python keeping the distinction between pure and impure functions is a
+question of good coding style</li>
+</ul>
+<ul class="incremental simple">
+<li>common sense tells you that you should decouple I/O from the
+business logic</li>
+<li>unit testing is arguably the master path to functional design:
+if you want to test a thing, make it a pure function</li>
+<li>if it is difficult to test it is not functional</li>
+</ul>
+</div>
+<div class="slide" id="usual-recommendations">
+<h1>Usual recommendations</h1>
+<p>All the usual recommendations to make code more testable, such as</p>
+<ul class="incremental simple">
+<li>avoid side effects (including the ones at import time)</li>
+<li>do not use special variables (damned them!)</li>
+<li>decouple the system i.e. pass objects around</li>
+<li>write libraries, not frameworks</li>
+<li>feel guilty!</li>
+</ul>
+<p>are recommendations to make code more functional.</p>
+</div>
+<div class="slide" id="database-connections-bad">
+<h1>Database connections (bad)</h1>
+<p>db = DBSession() # singleton</p>
+<dl class="docutils">
+<dt>def read(...):</dt>
+<dd>db.read_data( ... )</dd>
+<dt>def write(data, ...):</dt>
+<dd>db.write_data(data, ...)</dd>
+<dt>if __name__ == '__main__':</dt>
+<dd>db.init(dsn)</dd>
+</dl>
+</div>
+<div class="slide" id="database-connections-good">
+<h1>Database connections (good)</h1>
+<dl class="docutils">
+<dt>def read(db, ...):</dt>
+<dd>db.read_data( ... )</dd>
+<dt>def write(db, data, ...):</dt>
+<dd>db.write_data(data, ...)</dd>
+<dt>if __name__ == '__main__':</dt>
+<dd>db = DBSession(dsn)</dd>
+</dl>
+</div>
+<div class="slide" id="fp-and-databases">
+<h1>FP and databases</h1>
+<ul class="simple">
+<li>operating on a DB looks like the least functional thing you can do
+(ex. <tt class="docutils literal"><span class="pre">importer.import(fileobj,</span> <span class="pre">db)</span></tt>)</li>
+</ul>
+<ul class="incremental">
+<li><p class="first">still can be made functional, at the price of <em>creating the db</em>
+(this is how we write the db tests):</p>
+<pre class="literal-block">
+def import(lines): # this is a pure function!
+    db = create_db()
+    out = importer.import(lines, db)
+    drop_db(db)
+    return out
+</pre>
+</li>
+</ul>
+</div>
+<div class="slide" id="functional-design-and-sql">
+<h1>Functional design and SQL</h1>
+<ul class="simple">
+<li>SQL makes a good functional language once you remove mutation
+(UPDATE and DELETE)</li>
+</ul>
+<ul class="incremental simple">
+<li>SELECTs are not really different from list comprehensions
+(think of LINQ);</li>
+<li>if you can use a view, use it (tell my recent experience making legacy
+SQL code more functional)</li>
+<li>even non-premature optimizations are evil :-(</li>
+</ul>
+</div>
+<div class="slide" id="references">
+<h1>References</h1>
+<p><a class="reference external" href="http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf">http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf</a>
+<a class="reference external" href="http://www.haskell.org/">http://www.haskell.org/</a>
+<a class="reference external" href="http://clojure.org/">http://clojure.org/</a>
+<a class="reference external" href="http://docs.python.org/howto/functional.html">http://docs.python.org/howto/functional.html</a>
+<a class="reference external" href="http://www.defmacro.org/ramblings/fp.html">http://www.defmacro.org/ramblings/fp.html</a>
+<a class="reference external" href="http://www.cs.cmu.edu/~rwh/theses/okasaki.pdf">http://www.cs.cmu.edu/~rwh/theses/okasaki.pdf</a>
+<a class="reference external" href="http://srfi.schemers.org/srfi-41/srfi-41.html">http://srfi.schemers.org/srfi-41/srfi-41.html</a>
+<a class="reference external" href="http://funcall.blogspot.com/2009/05/you-knew-id-say-something-part-iv.html">http://funcall.blogspot.com/2009/05/you-knew-id-say-something-part-iv.html</a></p>
+</div>
+</div>
+</body>
+</html>

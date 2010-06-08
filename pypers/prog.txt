@@ -1,0 +1,482 @@
+THE PROGRAMMABLE PROGRAMMING LANGUAGE
+=========================================================================
+
+  *I think that lisp is a better applications language than Python.
+  However, Python is close enough, or at least so much better than the
+  alternatives, that Python's social and glue language advantages are
+  often decisive.*  -- Andy Freeman on c.l.p.
+
+I go in *really* DEEP BLACK MAGIC here.
+
+Lisp has been called the *programmable programming language* [#]_
+since its macros allow the  programmer to change the *syntax* of
+the language. Python has no macros and the syntax of the language
+cannot be changed. Nevertheless, Python metaclasses allows
+to change the *semantics* of the language. In this sense, they
+are even more powerful and more dangerous than Lisp macros.
+Python metaclass allow the user to customize the language (if not
+its syntax). This is cool enough, however it can make your programs
+unreadable by others. The techniques explained in this
+chapter should be used with care. Nevertheless, I trust the judgement
+of the programmer who has been able to reach this chapter, and I don't
+mind providing him further rope to shoot in his/her foot ;)
+
+.. [#] Paul Graham, 'OnLisp'
+       citing 
+
+Enhancing the Python language
+--------------------------------------------------------------------------
+
+Let me start with some minor usage of metaclasses. In this section I
+will show how the user can implement in few lines features that are
+built-in in other languages, through a minimal usage of metaclasses. 
+
+For instance, suppose one wants to define a class which cannot be 
+derived: in Java this can be done with the "final" keyword. 
+In Python there is no need to add a new keyword to the language: 
+
+ ::
+
+  #<oopp.py>
+
+  class NonDerivableError(Exception): pass
+
+  class Final(type): # better derived from WithCounter,type
+      "Instances of Final cannot be derived"
+      def __new__(meta,name,bases,dic):
+          try:
+              meta.already_called is True
+          except AttributeError: # not already called
+              meta.already_called=True
+              return super(Final,meta).__new__(meta,name,bases,dic)
+          else: #if already called
+              raise NonDerivableError("I cannot derive from %s" % bases)
+
+  #</oopp.py>
+
+Here there is an example of usage:
+
+  >>> from oopp import Final
+  >>> class C:
+  ...    __metaclass__=Final
+  ...
+  >>> class D(C): pass #error
+  ...
+  NonDerivableError: D not created from (<class 'oopp.C'>,)
+
+It is interesting to notice that a similar effect can be reached
+with a ``singletonClass`` class factory: a 'MetaSingleton' inherits
+from ``Singleton`` and from 'type' (therefore it is a metaclass):
+
+ ::
+
+  #<oopp.py>
+
+  class S(Singleton,type): pass
+  singletonClass=ClsFactory[S]
+
+  #</oopp.py>
+
+If we write
+
+  >>> from oopp import singletonClass
+  >>> C=singletonClass()
+  >>> class D(C):
+  ...    pass
+
+
+we see that actually 'D' is not a new instance of 'Singleton', but
+it coincides with 'C', instead:
+
+  >>> id(C),id(D)
+  (135622140, 135622140)
+  >>> C is D
+  True
+  >>> type(C)
+  <class '__main__._Singleton'>
+  >>> type(C).__bases__
+  (<class 'oopp.Singleton'>, <type 'type'>)
+  >>> c=C(); d=D()
+  >>> id(c),id(d)
+  (1075378028, 1075378924)
+
+Notice the order: 'SingletonClass' must inherit from 'Singleton' 
+first and from ``Class`` second, otherwise the ``Class.__new__`` method would
+override the  ``Singleton.__new__``, therefore losing the 'Singleton'
+basic property of having only one instance. On the other hand, in
+the correct order, 'Singleton' first and 'Class' second, the inheritance
+diagram is
+
+ ::
+
+
+                       object   5
+                     (__new__)
+                    /          \
+                   /            \
+        2      WithCounter          type    4
+              (__new__)       (__new__)
+                  |              |
+                  |              |
+        1     Singleton         Class    3
+              (__new__)       (__new__)
+                   \             /
+                    \           /
+                    SingletonClass    0
+                 (Singleton.__new__)
+
+
+ ::
+
+                        object
+                       /     \
+                      /       |
+                  WithCounter     | 
+                      |       |
+                  Singleton  type
+                       \     /
+                        \   /
+                     MetaSingleton
+                          :
+                          :       
+                          :   instantiation
+                          :
+                          :
+                        C = D
+
+
+whereas 'SingletonClass' inherits ``Singleton.__new__`` which, trough
+the ``super`` mechanism, calls 'type.__new__' and therefore creates
+the class 'C'. Notice that class 'D' is never created, it is simply
+an alias for 'C'.
+
+I think it is simpler to write down the class 'Final' explicitely
+(explicit is better than implicit) as I did; however a fanatic of code
+reuse could derive it from 'SingletonClass':
+
+ ::
+
+  #<final.py>
+
+  from oopp import *
+
+  class Final(Singleton,type):
+      "Inherits the 'instance' attribute from Singleton (default None)"
+      def __new__(meta,name,bases,dic):
+          if meta.counter==0: # first call
+              return super(Final,meta).__new__(meta,name,bases,dic)
+          else:
+              raise NonDerivableError("I cannot derive from %s" % bases)
+    
+  class C:  __metaclass__=Final
+
+  try:
+      class D(C): pass
+  except NonDerivableError,e:
+      print e
+  
+  #</final.py>
+
+The reader can check that this script has the correct output 
+"I cannot derive from <class 'oopp.C'>". I leave to the reader
+to understand the issues with trying to implement 'NonDerivable'
+from 'NonInstantiable'. #And why an inner metaclass would not work.
+
+Restricting Python dynamism
+-----------------------------------------------------------
+
+ ::
+
+  #<oopp.py>
+
+  def frozen(self,name,value):
+      if hasattr(self,name):
+          type(self).__bases__[0].__setattr__(self,name,value) 
+      else:
+          raise AttributeError("You cannot add attributes to %s" % self)
+
+  class Frozen(object):
+      """Subclasses of Frozen are frozen, i.e. it is impossibile to add
+       new attributes to them and their instances"""
+      __setattr__ = frozen
+      class __metaclass__(type):
+          __setattr__ = frozen
+
+  #</oopp.py>
+
+
+  #<frozen.py>
+
+  from oopp import *
+
+  class C(Frozen):
+      c=1
+      def __init__(self): 
+          #self.x=5 # won't work anymore, __new__ will be okay
+          pass
+
+  class D(C):
+      d=2
+    
+  C.c=2
+
+  print D().d
+
+  #</frozen.py>
+
+Changing the language without changing the language
+--------------------------------------------------------------------------
+
+In Lisp the user has the possibility of changing the syntax of the 
+language to suit her purposes (or simply to fit her taste). 
+In Python, the user cannot change the basic grammar of the language,
+nevertheless, to a great extent, metaclasses allows to emulate this effect. 
+Notice that using metaclasses to this aim is not necessarely 
+a good idea, since once you start
+changing the Python standard behaviour, it will become impossible for
+others  to understand your programs (which is what happened to Lisp ;).
+
+Let me show how metaclasses can be used to provide notational convenience 
+(i.e. syntactic sugar) for Python.
+
+As first example, I will show how we may use metaclasses to provide some
+convenient notation for staticmethods and classmethods:
+
+ ::
+
+  class MetaSugar(type):
+      def __init__(cls,name,bases,clsdict):
+          for key,value in clsdict.iteritems():
+              if key.startswith("static_"):
+                  setattr(cls,key[7:],staticmethod(value))
+              elif key.startwith("class_"):
+                  setattr(cls,key[6:],classmethod(value))
+        
+The same effect can be obtained trough normal inheritance
+
+ ::
+
+  class SyntacticSugar(object):
+      def __init__(self):
+          for k,v in self.__class__.__dict__.iteritems():
+              if k.startswith('static_'):
+                  self.__class__.__dict__[k[7:]] = staticmethod(v)
+              if k.startswith('static_'):
+                  self.__class__.__dict__[k[7:]] = staticmethod(v)
+
+Let me now implement some syntactic sugar for the __metaclass__ hook.
+
+ ::
+
+  #<oopp.py> #rewrite without eval, please
+
+  import re
+  squarednames=re.compile('\[([A-Za-z_][\w\., ]*)\]')
+
+  #def inferredfromdocstring(name,bases,dic):
+  #    docstring=dic['__doc__']
+  #    match=squarednames.match(docstring)
+  #    if not match: return ClsFactory[Reflective](name,bases,dic)
+  #    metanames=[name.strip() for name in match.group(1).split(',')]
+  #    metaname=''.join(metanames)  
+  #    if len(metanames)>1: # creates a new metaclass
+  #        metaclass=type(metaname,tuple(map(eval,metanames,globals())),{})
+  #    else:
+  #        metaclass=eval(metaname,globals())
+  #    return ClsFactory[metaclass](name,bases,dic)
+
+  #</oopp.py>
+
+  #<sugar.py>
+
+  from oopp import *
+  #__metaclass__ = inferredfromdocstring
+  class B:
+      "Do nothing class"
+
+  class C: 
+      "[Reflective]"
+      " Do nothing class"
+
+  class D:
+      "[WithLogger,Final]"
+      "Do nothing class"
+
+  class E(C):
+      pass
+
+  #</sugar.py>
+
+With output:
+
+ ::
+
+  *****************************************************************************
+  Fri Feb 21 09:35:58 2003
+  Creating class Logged_C descending from (),
+  instance of <class 'oopp.Logged'>
+
+  Logged_C dictionary:
+   __doc__ = Do nothing class
+  *****************************************************************************
+  Fri Feb 21 09:35:58 2003
+  Creating class Logged_Final_D descending from (),
+  instance of <class 'oopp.LoggedFinal'>
+
+  Logged_Final_D dictionary:
+  __doc__ = Do nothing class
+  *****************************************************************************
+  Fri Feb 21 09:35:58 2003
+  Creating class E descending from (<class 'oopp.Logged_C'>,),
+  instance of <class 'oopp.Logged'>
+
+  E dictionary:
+  <EMPTY> 
+
+At the end, let me point out few observations:
+Metaclasses can be used to provide syntactic sugar, as I have shown
+in the previous example. However, I have given the previous
+routines as a proof of concept: I do *not* use these routines in
+my actual code for many good reasons:
+
+1. At the end a convenient notation will be provided in Python 2.4
+2. I don't want to use magic tricks on my code, I want others to
+   be able to understand what the code is doing;
+3. I want to be able myself to understand my own code in six months
+   from today ;)
+
+Anyway, I think it is a good thing to know about this potentiality
+of metaclasses, that can turn out to be very convenient in certain
+applications: but this does not mean that should be blindly used
+and/or abused. In other words: with great powers come 
+great responsabilities ;)
+
+Recognizing magic comments
+--------------------------------------------------------------------------
+
+In this section, I will begin to unravel the secrets of the black magic art 
+of changing Python semantics and I will show that with few lines 
+involving metaclasses
+and the standard library 'inspect' module, even comments can be made
+significant! (let me continue with my series "how to do what should not
+be done").
+
+To this aim, I need a brief digression on regular expressions.
+
+ ::
+
+  class RecognizesMagicComments(object):
+     form=r'def %s(NAME)(args):#!\s?staticmethod'
+     class __metaclass__(type):
+         def __new__(meta,name,bases,dic):
+             code=[]
+             for attr in dic:
+                 source=inspect.getsource(dic[attr]).splitlines()
+                 for line in source:
+                     split=line.split('#!')
+                     if len(split)==2:
+                         descriptor=split[1]; code.append(split[0])
+                     else: code.append(line)
+               
+  class C(RecognizesMagicComments):
+      #!staticmethod
+      def f(x): #!staticmethod
+          return x
+
+Interpreting Python source code on the fly
+---------------------------------------------------------------------------
+
+At this point, I can really go *DEEP* in black magic.
+
+ ::
+
+  import sys, inspect, linecache, re
+
+  def cls_source(name,module):
+      lines = linecache.getlines(inspect.getsourcefile(module))
+      if not lines: raise IOError, 'could not get source code'
+      pat = re.compile(r'^\s*class\s*' + name + r'\b')
+      for i in range(len(lines)):
+          if pat.match(lines[i]): break
+      else: raise IOError, 'could not find class definition'
+      lines, lnum = inspect.getblock(lines[i:]), i + 1
+      return ''.join(lines)
+
+  class Interpreter(object):
+      def __init__(self,CPO): # possible composition of code processing opers
+          self.repl=CPO
+      def __call__(self,name,bases,dic):
+          try:
+             modulename=dic['__module__'] # module where the class is defined
+          except KeyError: # no __module__ attribute
+             raise IOError("Class %s cannot be defined dynamically or in the\n"
+             "interpreter and the source code cannot came from a pipe"% name)
+          module=sys.modules[modulename] 
+          source=self.repl(cls_source(name,module))
+          source=re.sub('__metaclass__=.*','__metaclass__=type',source)
+          #print source
+          loc={}; exec source in vars(module),loc
+          return loc[name]
+
+  regexp_expand=Interpreter(regexp)
+
+Implementing lazy evaluation
+---------------------------------------------------------------------------
+
+At this point of our knowledge, it becomes trivial to implement lazy 
+evaluation and then a ternary operator. (My original, simpler, implementation
+is posted on c.l.p.; see the thread 'PEP 312 (and thus 308) implemented 
+with a black magic trick')
+
+Implementing a ternary operator
+---------------------------------------------------------------------------
+
+ ::
+
+  # module ternary.py
+
+  "PEP 308 and 312 implemented via a metaclass-powered dirty trick"
+
+  import inspect,__main__
+
+  # the ternary operator:
+
+  def if_(cond,f,g):
+      "Short circuiting ternary operator implemented via lambdas"
+      if cond: return f()
+      else: return g()
+
+  # the metaclass black magic:
+
+  class DirtyTrick(type):
+      """Cooperative metaclass that looks at the source code of its instances 
+      and replaces the string '~' with 'lambda :' before the class creation"""
+      def __new__(meta,name,bases,dic):
+          for attr in dic.values():
+              if inspect.isfunction(attr): 
+                  code=inspect.getsource(attr)
+                  if code.find('~')==-1: continue # no '~' found, skip
+                  code=code.replace('~','lambda :')
+                  code=dedent(code)+'\n'
+                  exec code in __main__.__dict__,dic # modifies dic
+          return super(DirtyTrick,meta).__new__(meta,name,bases,dic)
+
+  # a convenient base class:
+
+  class RecognizesImplicitLambdas:
+      "Children of this class do recognize implicit lambdas"
+      __metaclass__=DirtyTrick
+
+Here there is an example of usage:
+
+ ::
+
+  from ternary import if_, RecognizesImplicitLambdas
+  from math import sqrt
+
+  class C(RecognizesImplicitLambdas):
+     def safesqrt(self,x):
+          return if_( x>0, ~sqrt(x), ~0) #short-circuiting ternary operator
+
+  c=C()
+  print c.safesqrt(4), c.safesqrt(-4) 

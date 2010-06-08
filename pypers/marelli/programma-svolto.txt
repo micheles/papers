@@ -1,0 +1,141 @@
+Corso Python Magneti Marelli 
+======================================================
+
+:Data: 19-23 Settembre
+:Docente: Michele Simionato
+
+
+Programma
+---------------------------------------
+
+Si tratta di un corso di 20 ore suddiviso in 5 moduli di 4 ore ciascuno.
+
+Modulo 1: Programmazione di base in Python.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*In questo modulo si ripasseranno molto brevemente le basi di Python e 
+si discuteranno le soluzioni al questionario di ammissione. Lo scopo
+piu' che altro e' quello di conoscersi e di chiarire il livello medio
+dei partecipanti e coprire eventuali buchi nella preparazione di base.*
+
+- correzione esercizi ... OK
+- gestione processi ... OK
+- iteratori e generatori ... OK
+- differenza mutabili/immutabili ... OK
+- python -m <nome module> ... OK
+- set ... OK
+
+Modulo 2: Strumenti di sviluppo, debugging e introspezione.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*In questo modulo discutero' gli strumenti da me utilizzati per sviluppare
+in Python sotto Windows. Parlero' di Cygwin come ambiente di lavoro,
+di Python e di IPython come interpreti interattivi, di Idle e di PythonWin
+come IDE, di pydoc e minidoc come tools di introspezione. Inoltre discutero'
+alcune utili librerie e frameworks per Python (Numeric, matplotlib, gnuplot,
+etc.).*
+
+- cygwin ... OK
+- Idle ... OK
+- PythonWin ... OK
+- WingIDE, Eric/Qt Designer, Komodo, Boa Constructor ... OK
+- Emacs/Vi ... OK
+- help in linea ... OK
+- pydoc ... OK
+- ActiveState help ... OK
+- ipython ... OK
+- matplotlib ... OK
+
+Modulo 3. Tipici errori di programmazione e gestione delle eccezioni.
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Si discuteranno buoni e cattivi esempi di programmazione presi da software 
+reale scritto alla Magneti Marelli.  Si discuteranno alcune tecniche
+per interpretare i tracebacks di Python e per identificare l'origine dei
+problemi.*
+
+- uso di 'assert' ... OK
+- come scrivere le proprie classi di eccezioni ... OK
+- evitare blocchi try grossi ... OK
+- possibilita' di multiple except clause ... OK
+- evitare except nudi .. OK
+- evitare eccezioni di tipo stringa ... OK
+- problemi delle eccezioni con i threads ... OK
+- segreti del try/finally ... OK
+- problemi con exec ... OK
+- __import__ e execfile ... OK
+- analisi del Launcher ... OK
+
+Modulo 4. Sviluppo orientato ai test
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Come scrivere software con tecnologie agili, con lo scopo di ridurre e
+tenere sotto controllo i bugs. Discussione di doctest, py.test e unittest.
+Esempi di programmazione test driven.*
+
+- unittest
+  + setUp/tearDown ... OK
+  + expected exceptions ... OK
+  
+- doctest
+  + doctest in un file separato ... OK
+  + doctest convertiti in unittest ... OK
+  + expected exceptions ... OK
+  
+
+Modulo 5: Design, documentazione e manutenzione di librarie 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Pratiche di programmazione "in the large". Moduli, packages, strumenti di
+documentazione e di installazione. Applicazioni pratiche di principi generali
+quali disaccoppiamento, modularità, non duplicazione del codice.*
+
+- README.txt, HISTORY.txt, ... OK
+- zipimport ... OK
+- docutils  ... OK
+- distutils ...
+- variabili dummies "_" ... OK
+- a volte la docstring puo' rimpiazzare il commento ... OK
+
+- disaccoppiamento (divide et impera)
+   + problemi degli ambienti integrati ... OK
+   + rimuovere o cambiare componenti ... OK
+   + core + estensioni (interfacce grafiche/testuali) ... OK
+   + threads vs. process ... OK
+   + evitare l'ereditarieta' multipla (singola) ...  OK
+
+- modularita' (divide et impera)
+   + moduli, paths ... OK
+   + packages, .pth ... OK
+   + divisione delle responsabilita' ... OK
+   
+- non-duplicazione del codice
+   + come fissare moduli di terze parti ... OK
+   + scriversi funzioni di utilita' riutilizzabili ... OK
+
+- KISS (keep it simple, stupid!) ... OK
+  (non facciamoci del male)
+
+- farsi un prototipo ... OK
+   + ?? do I need it ?? (eliminare l'inessenziale)
+   + il prototipo vi puo' diventare il core
+
+- "andare avanti a lavoro finito" ... OK
+   + scrivi una riga e la testi SUBITO!
+
+Modulo 6: Domande estemporanee
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+*Rispondero' alle domande dell'audience, anche al di fuori dal programma,
+se di interesse generale*.
+
+- come faccio a trovare le informazioni ... OK
+  + newsgroups!
+  + Python Cookbook
+  + Libri
+
+- dove posso trovare esempi di buon codice Python ... OK
+- come funziona 'del' ... OK
+- come funziona 'import', 'reload' ... OK
+- comunicazione tra processi ... OK
+- come funzionano le variabili "__" ... OK

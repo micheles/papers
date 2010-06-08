@@ -1,0 +1,747 @@
+Lecture 2: Objects (delegation & inheritance)
+==============================================
+
+Part I: delegation
++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+Understanding how attribute access works: internal delegation via *descriptors*
+
+Accessing simple attributes
+--------------------------------
+
+>>> class C(object):
+...     a = 2
+...     def __init__(self, x):
+...        self.x = x
+...
+
+>>> c = C(1)
+>>> c.x
+1
+>>> c.a
+2
+
+We are retrieving
+
+>>> c.__dict__["x"]
+1
+
+If there is nothing in c.__dict__, Python looks at C.__dict__:
+
+>>> print c.__dict__.get("a")
+None
+
+>>> C.__dict__["a"]
+2
+
+If there is nothing in C.__dict__, Python looks at the superclasses according
+to the MRO (see part II).
+
+Accessing methods
+--------------------------------------------------------
+
+>>> c.__init__ #doctest: +ELLIPSIS
+<bound method C.__init__ of <__main__.C object at 0x...>>
+
+since __init__ is not in c.__dict__ Python looks in the class dictionary 
+and finds
+
+>>> C.__dict__["__init__"] #doctest: +ELLIPSIS
+<function __init__ at 0x...>
+
+Then it magically converts the function into a method bound to the instance
+"c". 
+
+NOTE: this mechanism works for new-style classes only.
+
+The old-style mechanism is less consistent and the attribute lookup of special
+methods is special: (*)
+
+>>> class C(object): pass
+>>> c = C()
+>>> c.__str__ = lambda : "hello!"
+>>> print c #doctest: +ELLIPSIS
+<__main__.C object at ...>
+
+whereas for old-style classes
+
+>>> class C: pass
+>>> c = C()
+>>> c.__str__ = lambda : "hello!"
+>>> print c 
+hello!
+
+the special method is looked for in the instance dictionary too.
+
+(*) modulo a very subtle difference for __getattr__-delegated special methods,
+see later.
+
+Converting functions into methods
+-------------------------------------
+
+It is possible to convert a function into a bound or unbound method
+by invoking the ``__get__`` special method:
+
+>>> def f(x): pass
+>>> f.__get__ #doctest: +ELLIPSIS
+<method-wrapper object at 0x...>
+
+>>> class C(object): pass
+...
+
+>>> def f(self): pass
+...
+>>> f.__get__(C(), C) #doctest: +ELLIPSIS
+<bound method C.f of <__main__.C object at 0x...>>
+
+>>> f.__get__(None, C)
+<unbound method C.f>
+
+Functions are the simplest example of *descriptors*.
+
+Access to methods works since internally Python transforms 
+
+     ``c.__init__ -> type(c).__dict__['__init__'].__get__(c, type(c))``
+
+
+Note: not *all* functions are descriptors:
+
+>>> from operator import add
+>>> add.__get__
+Traceback (most recent call last):
+  ...
+AttributeError: 'builtin_function_or_method' object has no attribute '__get__'
+
+Hack: a very slick adder
+-----------------------------
+
+The descriptor protocol can be (ab)used as a way to avoid the late binding
+issue in for loops:
+
+>>> def add(x,y):
+...     return x + y
+>>> closures = [add.__get__(i) for i in range(10)]
+>>> closures[5](1000)
+1005
+
+Notice: operator.add will not work.
+
+Descriptor Protocol
+----------------------
+
+Everything at http://users.rcn.com/python/download/Descriptor.htm
+
+Formally::
+
+ descr.__get__(self, obj, type=None) --> value
+ descr.__set__(self, obj, value) --> None
+ descr.__delete__(self, obj) --> None
+
+Examples of custom descriptors::
+
+ #<descriptor.py>
+
+
+ class AttributeDescriptor(object):
+    def __get__(self, obj, cls=None):
+        if obj is None and cls is None:
+            raise TypeError("__get__(None, None) is invalid")
+        elif obj is None:
+            return self.get_from_class(cls)
+        else:
+            return self.get_from_obj(obj)
+    def get_from_class(self, cls):
+        print "Getting %s from %s" % (self, cls)
+    def get_from_obj(self, obj):
+        print "Getting %s from %s" % (self, obj)
+
+
+ class Staticmethod(AttributeDescriptor):
+    def __init__(self, func):
+        self.func = func
+    def get_from_class(self, cls):
+        return self.func
+    get_from_obj = get_from_class
+
+
+ class Classmethod(AttributeDescriptor):
+    def __init__(self, func):
+        self.func = func
+    def get_from_class(self, cls):
+        return self.func.__get__(cls, type(cls))
+    def get_from_obj(self, obj):
+        return self.get_from_class(obj.__class__)
+
+ class C(object):
+    s = Staticmethod(lambda : 1)
+    c = Classmethod(lambda cls : cls.__name__)
+
+ c = C()
+
+ assert C.s() == c.s() == 1
+ assert C.c() == c.c() == "C"
+
+ #</descriptor.py>
+
+Multilingual attribute
+----------------------
+
+Inspirated by a question in the Italian Newsgroup::
+
+ #<multilingual.py>
+
+ import sys
+ from descriptor import AttributeDescriptor
+
+ class MultilingualAttribute(AttributeDescriptor):
+     """When a MultilingualAttribute is accessed, you get the translation 
+     corresponding to the currently selected language.
+     """
+     def __init__(self, **translations):
+         self.trans = translations
+     def get_from_class(self, cls):
+         return self.trans[getattr(cls, "language", None) or
+                          sys.modules[cls.__module__].language]
+     def get_from_obj(self, obj):
+         return self.trans[getattr(obj, "language", None) or
+                          sys.modules[obj.__class__.__module__].language]
+      
+
+ language = "en"
+ 
+ # a dummy User class
+ class DefaultUser(object):
+     def has_permission(self):
+         return False
+    
+ class WebApplication(object):
+     error_msg = MultilingualAttribute(
+         en="You cannot access this page",
+         it="Questa pagina non e' accessibile",
+         fr="Vous ne pouvez pas acceder cette page",)
+     user = DefaultUser()
+     def __init__(self, language=None):
+         self.language = language or getattr(self.__class__, "language", None)
+     def show_page(self):
+         if not self.user.has_permission():
+             return self.error_msg
+
+
+ app = WebApplication()
+ assert app.show_page() == "You cannot access this page"
+
+ app.language = "fr"
+ assert app.show_page() == "Vous ne pouvez pas acceder cette page"
+
+ app.language = "it"
+ assert app.show_page() == "Questa pagina non e' accessibile"
+
+ app.language = "en"
+ assert app.show_page() == "You cannot access this page"
+
+ #</multilingual.py>
+
+The same can be done with properties::
+
+ #<multilingualprop.py>
+
+ language = "en"
+
+ # a dummy User class
+ class DefaultUser(object):
+     def has_permission(self):
+         return False
+    
+ def multilingualProperty(**trans):
+     def get(self):
+         return trans[self.language]
+     def set(self, value):
+         trans[self.language] = value 
+     return property(get, set)
+
+ class WebApplication(object):
+     language = language
+     error_msg = multilingualProperty(
+         en="You cannot access this page",
+         it="Questa pagina non e' accessibile",
+         fr="Vous ne pouvez pas acceder cette page",)
+     user = DefaultUser()
+     def __init__(self, language=None):
+         if language: self.language = self.language
+     def show_page(self):
+         if not self.user.has_permission():
+             return self.error_msg
+ 
+ #</multilingualprop.py>
+
+This also gives the possibility to set the error messages.
+
+The difference with the descriptor approach
+
+>>> from multilingual import WebApplication
+>>> app = WebApplication()
+>>> print app.error_msg
+You cannot access this page
+>>> print WebApplication.error_msg
+You cannot access this page
+
+is that with properties there is no nice access from the class:
+
+>>> from multilingualprop import WebApplication
+>>> WebApplication.error_msg #doctest: +ELLIPSIS
+<property object at ...>
+
+Another use case for properties: storing users
+------------------------------------------------------------
+
+Consider a library providing a simple User class::
+
+ #<crypt_user.py>
+
+ class User(object):
+     def __init__(self, username, password):
+         self.username, self.password = username, password
+
+ #</crypt_user.py>
+
+The User objects are stored in a database as they are.
+For security purpose, in a second version of the library it is
+decided to crypt the password, so that only crypted passwords
+are stored in the database. With properties, it is possible to
+implement this functionality without changing the source code for 
+the User class::
+
+ #<crypt_user.py>
+
+ from crypt import crypt
+
+ def cryptedAttribute(seed="x"):
+     def get(self):
+         return getattr(self, "_pw", None)
+     def set(self, value):
+         self._pw = crypt(value, seed)
+     return property(get, set)
+    
+ User.password = cryptedAttribute()
+
+#</crypt_user.py>
+
+>>> from crypt_user import User
+>>> u = User("michele", "secret")
+>>> print u.password
+xxZREZpkHZpkI
+
+Notice the property factory approach used here.
+
+Low-level delegation via __getattribute__
+------------------------------------------------------------------
+
+Attribute access is managed by the__getattribute__ special method::
+
+ #<tracedaccess.py>
+
+ class TracedAccess(object):
+     def __getattribute__(self, name):
+         print "Accessing %s" % name
+         return object.__getattribute__(self, name)
+
+
+ class C(TracedAccess):
+     s = staticmethod(lambda : 'staticmethod')
+     c = classmethod(lambda cls: 'classmethod')
+     m = lambda self: 'method'
+     a = "hello"
+
+ #</tracedaccess.py>
+
+>>> from tracedaccess import C
+>>> c = C()
+>>> print c.s()
+Accessing s
+staticmethod
+>>> print c.c()
+Accessing c
+classmethod
+>>> print c.m()
+Accessing m
+method
+>>> print c.a
+Accessing a
+hello
+>>> print c.__init__ #doctest: +ELLIPSIS
+Accessing __init__
+<method-wrapper object at 0x...>
+>>> try: c.x
+... except AttributeError, e: print e
+...
+Accessing x
+'C' object has no attribute 'x'
+
+>>> c.y = 'y'
+>>> c.y
+Accessing y
+'y'
+
+You are probably familiar with ``__getattr__`` which is similar 
+to ``__getattribute__``, but it is called *only for missing attributes*.
+
+Traditional delegation via __getattr__
+--------------------------------------------------------
+
+Realistic use case in "object publishing"::
+
+ #<webapp.py>
+
+ class WebApplication(object):
+     def __getattr__(self, name):
+         return name.capitalize()
+
+
+ app = WebApplication()
+
+ assert app.page1 == 'Page1'
+ assert app.page2 == 'Page2'
+
+ #</webapp.py>
+
+Here is another use case in HTML generation::
+
+ #<XMLtag.py>
+
+ def makeattr(dict_or_list_of_pairs):
+     dic = dict(dict_or_list_of_pairs) 
+     return " ".join('%s="%s"' % (k, dic[k]) for k in dic) # simplistic
+
+ class XMLTag(object):
+     def __getattr__(self, name):
+         def tag(value, **attr):
+             """value can be a string or a sequence of strings."""
+             if hasattr(value, "__iter__"): # is iterable
+                 value = " ".join(value)
+             return "<%s %s>%s</%s>" % (name, makeattr(attr), value, name)
+         return tag
+
+ class XMLShortTag(object):
+     def __getattr__(self, name):
+         def tag(**attr):
+             return "<%s %s />" % (name, makeattr(attr))
+         return tag
+
+ tag = XMLTag()
+ tg = XMLShortTag()
+
+ #</XMLtag.py>
+
+>>> from XMLtag import tag, tg
+>>> print tag.a("example.com", href="http://www.example.com")
+<a href="http://www.example.com">example.com</a>
+>>> print tg.br(**{'class':"br_style"})
+<br class="br_style" />
+
+Keyword dictionaries with __getattr__/__setattr__
+---------------------------------------------------
+::
+
+ #<kwdict.py>
+
+ class kwdict(dict): # or UserDict, to make it to work with Zope
+     """A typing shortcut used in place of a keyword dictionary."""
+     def __getattr__(self, name):
+         return self[name]
+     def __setattr__(self, name, value):
+         self[name] = value
+
+ #</kwdict.py>
+
+And now for a completely different solution::
+
+ #<dictwrapper.py>
+
+ class DictWrapper(object): 
+     def __init__(self, **kw):
+         self.__dict__.update(kw)
+
+ #</dictwrapper.py>
+
+
+Delegation to special methods caveat
+--------------------------------------
+
+>>> class ListWrapper(object):
+...     def __init__(self, ls):
+...         self._list = ls
+...     def __getattr__(self, name):
+...         if name == "__getitem__": # special method
+...             return self._list.__getitem__
+...         elif name == "reverse": # regular method
+...             return self._list.reverse
+...         else:
+...             raise AttributeError("%r is not defined" % name)
+... 
+>>> lw = ListWrapper([0,1,2])
+>>> print lw.x
+Traceback (most recent call last):
+  ...
+AttributeError: 'x' is not defined
+
+>>> lw.reverse()
+>>> print lw.__getitem__(0)
+2
+>>> print lw.__getitem__(1)
+1
+>>> print lw.__getitem__(2)
+0
+>>> print lw[0]
+Traceback (most recent call last):
+  ...
+TypeError: unindexable object
+
+
+Part II: Inheritance 
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+The major changes in inheritance from Python 2.1 to 2.2+ are:
+
+1. you can subclass built-in types (as a consequence the constructor__new__ 
+   has been exposed to the user, to help subclassing immutable types);
+2. the Method Resolution Order (MRO) has changed;
+3. now Python allows *cooperative method calls*, i.e. we have *super*.
+
+Why you need to know about MI even if you do not use it
+-----------------------------------------------------------
+
+In principle, the last two changes are relevant only if you use multiple 
+inheritance. If you use single inheritance only, you don't need ``super``:
+you can just name the superclass.
+However, somebody else may want to use your class in a MI hierarchy,
+and you would make her life difficult if you don't use ``super``.
+
+My SI hierarchy::
+
+ #<why_super.py>
+
+ class Base(object):
+     def __init__(self):
+         print "B.__init__"
+
+ class MyClass(Base):
+     "I do not cooperate with others"
+     def __init__(self):
+         print "MyClass.__init__"
+         Base.__init__(self)  #instead of super(MyClass, self).__init__()
+
+ #</why_super.py>
+
+Her MI hierarchy::
+
+ #<why_super.py>
+
+ class Mixin(Base):
+     "I am cooperative with others"
+     def __init__(self):
+         print "Mixin.__init__"
+         super(Mixin, self).__init__()
+
+ class HerClass(MyClass, Mixin):
+     "I am supposed to be cooperative too"
+     def __init__(self):
+         print "HerClass.__init__"
+         super(HerClass, self).__init__()
+
+ #</why_super.py>
+
+>>> from why_super import HerClass
+>>> h = HerClass() # Mixin.__init__ is not called!
+HerClass.__init__
+MyClass.__init__
+B.__init__
+
+ ::
+
+                  4 object  
+                      |
+                   3 Base
+                  /      \
+            1 MyClass  2 Mixin
+                   \     /
+                 0 HerClass
+
+>>> [ancestor.__name__ for ancestor in HerClass.mro()]
+['HerClass', 'MyClass', 'Mixin', 'Base', 'object']
+
+In order to be polite versus your future users, you should use ``super`` 
+always. This adds a cognitive burden even for people not using MI :-(
+
+Notice that there is no good comprehensive reference on ``super`` (yet)
+Your best bet is still http://www.python.org/2.2.3/descrintro.html#cooperation
+
+The MRO instead is explained here: http://www.python.org/2.3/mro.html
+
+Notice that I DO NOT recommand Multiple Inheritance.
+
+More often than not you are better off using composition/delegation/wrapping, 
+etc.
+
+See Zope 2 -> Zope 3 experience.
+
+A few details about ``super`` (not the whole truth)
+------------------------------------------------------------------------------
+
+>>> class B(object):
+...     def __init__(self): print "B.__init__"
+...
+>>> class C(B):
+...     def __init__(self): print "C.__init__"
+...
+>>> c = C()
+C.__init__
+
+``super(cls, instance)``, where ``instance`` is an instance of ``cls`` or of
+a subclass of ``cls``, retrieves the right method in the MRO:
+
+>>> super(C, c).__init__ #doctest: +ELLIPSIS
+<bound method C.__init__ of <__main__.C object at 0x...>>
+
+>>> super(C, c).__init__.im_func is B.__init__.im_func
+True
+
+>>> super(C, c).__init__()
+B.__init__
+
+``super(cls, subclass)`` works for unbound methods:
+
+>>> super(C, C).__init__
+<unbound method C.__init__>
+
+>>> super(C, C).__init__.im_func is B.__init__.im_func
+True
+>>> super(C, C).__init__(c)
+B.__init__
+
+``super(cls, subclass)`` is also necessary for classmethods and staticmethods. 
+Properties and custom descriptorsw works too::
+
+ #<super_ex.py>
+
+ from descriptor import AttributeDescriptor
+
+ class B(object):
+    @staticmethod
+    def sm(): return "staticmethod"
+
+    @classmethod
+    def cm(cls): return cls.__name__
+
+    p = property()
+    a = AttributeDescriptor()
+
+ class C(B): pass
+
+ #</super_ex.py>
+
+>>> from super_ex import C
+
+Staticmethod usage:
+
+>>> super(C, C).sm #doctest: +ELLIPSIS
+<function sm at 0x...>
+>>> super(C, C).sm()
+'staticmethod'
+
+Classmethod usage:
+
+>>> super(C, C()).cm
+<bound method type.cm of <class 'super_ex.C'>>
+>>> super(C, C).cm() # C is automatically passed
+'C'
+
+Property usage:
+
+>>> print super(C, C).p #doctest: +ELLIPSIS
+<property object at 0x...>
+>>> super(C, C).a #doctest: +ELLIPSIS
+Getting <descriptor.AttributeDescriptor object at 0x...> from <class 'super_ex.C'>
+
+``super`` does not work with old-style classes, however you can use the
+following trick::
+
+ #<super_old_new.py>
+ class O:
+     def __init__(self):
+         print "O.__init__"
+
+ class N(O, object):
+     def __init__(self):
+         print "N.__init__"
+         super(N, self).__init__()
+
+ #</super_old_new.py>
+
+>>> from super_old_new import N
+>>> new = N()
+N.__init__
+O.__init__
+
+There are dozens of tricky points concerning ``super``, be warned!
+
+Subclassing built-in types; __new__ vs. __init__
+-----------------------------------------------------
+
+::
+
+ #<point.py>
+
+ class NotWorkingPoint(tuple):
+     def __init__(self, x, y):
+         super(NotWorkingPoint, self).__init__((x,y))
+         self.x, self.y = x, y
+
+ #</point.py>
+
+>>> from point import NotWorkingPoint
+>>> p = NotWorkingPoint(2,3)
+Traceback (most recent call last):
+  ...
+TypeError: tuple() takes at most 1 argument (2 given)
+
+::
+
+ #<point.py>
+
+ class Point(tuple):
+     def __new__(cls, x, y):
+         return super(Point, cls).__new__(cls, (x,y))
+     def __init__(self, x, y):
+         super(Point, self).__init__((x, y))
+         self.x, self.y = x, y
+
+ #</point.py>
+
+Notice that__new__ is a staticmethod, not a classmethod, so one needs
+to pass the class explicitely.
+
+>>> from point import Point
+>>> p = Point(2,3)
+>>> print p, p.x, p.y
+(2, 3) 2 3
+
+Be careful when using __new__ with mutable types
+------------------------------------------------
+
+>>> class ListWithDefault(list):
+...     def __new__(cls):
+...         return super(ListWithDefault, cls).__new__(cls, ["hello"])
+...
+>>> print ListWithDefault() # beware! NOT ["hello"]!
+[]
+
+Reason: lists are re-initialized to empty lists in list.__init__!
+
+Instead
+
+>>> class ListWithDefault(list):
+...     def __init__(self):
+...         super(ListWithDefault, self).__init__(["hello"])
+...
+>>> print ListWithDefault() # works!
+['hello']

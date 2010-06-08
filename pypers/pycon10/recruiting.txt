@@ -1,0 +1,145 @@
+StatPro
+----------------------------------
+
+.. image:: statpro-home-page.png
+
+Cloc
+--------------------------
+
+::
+   
+   ~$ cloc trunk
+      11719 text files.
+      11356 unique files.                                          
+      41343 files ignored.
+   
+   http://cloc.sourceforge.net v 1.08  T=125.0 s (73.9 files/s, 17064.8 lines/s)
+   --------------------------------------------------------------------------------
+   Language           files     blank   comment      code    scale   3rd gen. equiv
+   --------------------------------------------------------------------------------
+   C++                 1694     77757     53011    340336 x   1.51 =      513907.36
+   XML                  574      2940      2554    249269 x   1.90 =      473611.10
+   ASP                  788     45807      4748    245940 x   1.29 =      317262.60
+   Python              1986     38493     44093    176747 x   4.20 =      742337.40
+   C/C++ Header        2349     57741     78168    160979 x   1.00 =      160979.00
+   Javascript           173     26941     10581    121496 x   1.48 =      179814.08
+   SQL                  452     20768      4852    104580 x   2.29 =      239488.20
+   C                    334     14465     12988     99273 x   0.77 =       76440.21
+   C#                   104      4454      2502     27524 x   1.36 =       37432.64
+   CSS                  116      1618      1087     23786 x   1.00 =       23786.00
+   Visual Basic          33      4130      5800     14136 x   2.76 =       39015.36
+   make                 269      1714       752      8978 x   2.50 =       22445.00
+   Bourne Shell          51       598      1284      6556 x   3.81 =       24978.36
+   m4                    27       591       627      5552 x   1.00 =        5552.00
+   MSBuild scripts        9         2         7      4878 x   1.90 =        9268.20
+   IDL                   23       592         0      3784 x   3.80 =       14379.20
+   HTML                  32       330        76      3767 x   1.90 =        7157.30
+   Lisp                  33       561       648      2702 x   1.25 =        3377.50
+   DOS Batch             83       915       463      1159 x   0.63 =         730.17
+   Ruby                  13       272        97      1141 x   4.20 =        4792.20
+   Perl                   6       104       131       922 x   4.00 =        3688.00
+   Java                   3       131       173       534 x   1.36 =         726.24
+   XSD                    6         0         0       506 x   1.90 =         961.40
+   awk                    5        65        17       366 x   3.81 =        1394.46
+   DTD                    4       117        50       351 x   1.90 =         666.90
+   ASP.Net               45       186       714       330 x   1.29 =         425.70
+   Bourne Again Shell    12        63         8       245 x   3.81 =         933.45
+   XSLT                   1        15        14       196 x   1.90 =         372.40
+   NAnt scripts           3        27         0       119 x   1.90 =         226.10
+   Teamcenter def        10        16         0        93 x   1.00 =          93.00
+   --------------------------------------------------------------------------------
+   SUM:                9238    301413    225445   1606245 x   1.81 =     2906241.53
+   --------------------------------------------------------------------------------
+   
+Tecnologie che usiamo
+---------------------
+
+*troppe!*
+
+.. class:: incremental
+
+  + Python (2.5)
+  + SQLAlchemy
+  + Pylons
+  + Mako
+  + Zope/Plone
+  + Twisted
+
+... lato python
+---------------
+
+.. class:: incremental
+
+  + ipython
+  + virtualenv
+  + easy_install
+  + nosetests
+  + pylint/pyflakes
+  + matplotlib
+  + tutti quelli che ha menzionato Raymond e non solo
+
+Non di solo Python ...
+-----------------------
+
+  + C++
+  + swig
+ 
+  + ExtJS
+  + JQuery
+  + Flash
+
+  + XML
+  + SQLite
+
+Lato Linux
+----------
+
+  + PostgreSQL
+  + Grid engine
+  + sfs
+  + emacs
+  + vi
+  + ...
+
+Lato Windows
+------------
+
+  + SQLServer
+  + CORBA
+  + COM
+  + VB6/ASP
+  + VC++
+  + ...
+
+Organigramma di Milano
+-------------------------------------
+ 
+.. class:: incremental
+
++ Quants 3 (+1)
++ Techs 5 (+1)
++ BCD 2
++ SysAdmin 1
++ Customer support 1
++ Data Management Team 6
++ venditori, manager, segretaria, etc
+
+Requisiti
+-------------------------
+
+- sul sito c'e' la descrizione ufficiale della figura professionale ricercata:
+  ignoratela!
+ 
+.. class:: incremental
+
+- basta che sia bravo!
+
+- non si fanno distinzioni di genere, razza o nazionalita'
+
+Non siate timiti
+-----------------------------
+
+- se avete collaborato/collaborate a progetti open source, ditelo
+- se siete esperti di qualunque linguaggio esotico, ditelo
+- mandate i curriculum a luca.fittabile@statpro.com
+- se siete esperti di finanza invece a marco.marchioro@statpro.com
