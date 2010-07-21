@@ -1,0 +1,86 @@
+Parsing the command line
+=========================
+
+The module optparse was a great addition to Python 2.3, since it is much more 
+powerful and easier to use than getopt. Using optparse, writing command-line
+tools is a breeze. However, the power of optparse comes together with a certain
+verbosity. This recipe allows to use optparse with a minimum of boilerplate, 
+trading flexibility for easy of use. Still, it covers 95% of my common needs, 
+so I think it may be useful to others.
+
+The following script is an example of how to use the recipe.
+
+<pre>
+
+"""An example script invoking optionparse, my wrapper around optparse.
+
+  usage: %prog [options] args
+  -p, --positional: print positional arguments
+  -1, --option1=OPTION1: print option1
+  -2, --option2=OPTION2: print option2
+"""
+
+import optionparse
+opt, args = optionparse.parse(__doc__)
+if not opt and not args:
+    optionparse.exit()
+if opt.positional:
+    print args
+if opt.option1:
+    print opt.option1
+if opt.option2:
+    print opt.option2
+
+</pre>
+
+The optionparse.parse() function parses the docstring and internally builds
+an option parser object using optparse; then it uses that parser to
+parse the command line arguments (please do not confuse parsing the 
+docstring with parsing the command line!) It returns an object containing
+the given options and a list of positional arguments. 
+
+If no options and no positional arguments are given, the script
+exits and returns an helpful message:
+
+<pre>
+
+$ python example.py
+An example script invoking optionparse.
+
+  usage: example.py [options] args
+  -p, --positional: print positional arguments
+  -1, --option1=OPTION1: print option1
+  -2, --option2=OPTION2: print option2
+
+</pre>
+
+A similar message is also obtained if the -h or --help option is
+passed.
+
+If the -p flag is passed, the list of positional arguments is displayed:
+
+<pre>
+
+$ python example.py -p *.txt
+[<the list of text files in the current directory>]
+
+</pre>
+
+
+If the option argument 1 or 2 are passed, they are displayed:
+
+<pre>
+
+$ python example.py -1hello -2world
+hello
+world
+
+</pre>
+
+I think you get the idea. Within the current implementation
+there are restrictions with the format of the usage block in the 
+docstring: for instance it cannot contain blank lines and one must
+be careful with characters such as ":" "," "=". It is up to you
+to build up a more sophisticated parser, if you care enough.
+The purpose of this recipe is just to give the idea.
+

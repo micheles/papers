@@ -1,0 +1,403 @@
+Automatic testing in Python: wonderful doctest!
+===============================================
+
+<center>
+
+      ACCU Conference 2005 <br/> <br/>
+
+        22 Apr 2005 <br/> <br/>
+
+      Michele Simionato <br/> <br/>
+
+      michele.simionato@gmail.com <br/> <br/>
+
+</center>
+
+
+Summary
+------------
+
+<ul>
+ <li> What is automatic testing? </li>
+ <li> Why automatic testing is better? </li>
+ <li> Which kind of automatic testing? </li>
+ <li> How does it work, in practice? </li>
+ <li> What's the message?</li>
+<ul>
+
+
+What is automatic testing
+-------------------------
+
+Any methodology that allows you to test
+your application mechanically, repeatedly
+and in a <em>controlled reproducible</em> way.
+
+
+Automatic testing is better (1)
+-----------------------------------
+
+When doing manual testing typically you spend
+
+<center><h2>
+  
+  1 hour of coding + 10 hours of testing/debugging
+
+</center></h2>
+
+on the other hand ...
+
+
+Automatic testing is better (2)
+-----------------------------------
+
+... when doing automatic testing typically you spend
+
+<br/> <br/>
+<center><h2>
+  
+  1 hour of coding + 10 hours of testing/debugging !
+
+</center></h2>
+
+
+However ...
+---------------------------------------
+
+Think about six month later!
+ <br/><br/>
+<center><em>
+  
+  there is a difference</em>
+
+  <h2><u>Refactoring!</u><h2>
+
+</center>
+
+
+Automatic testing in Python
+-------------------------------
+
+There are two standard testing frameworks in Python:
+
+<ol>
+ <li> unittest </li>
+ <li> doctest </li>
+</ol>
+
+Which one should I use?
+
+
+Well,
+-------------------------
+
+since my talk has <em>doctest</em> in the title ...
+
+  ;-)
+
+
+More seriously ...
+--------------------------
+
+Use different testing frameworks; each one has advantages
+and disadvantages; use combinations of them; invent your
+own testing procedure.
+
+I use combinations of 
+
+<ul>
+ <li> unittest </li>
+ <li> doctest </li>
+ <li> custom tests </li>
+ <li> Makefile driven tests </li>
+ <li> et al. </li>
+</ul>
+
+doctest emphasis is on <em>documentation</em>
+
+
+What is doctest?
+--------------------------------
+
+In its simplest form (which I do not use that much) doctest allows
+you to include tests in the docstrings of your application.
+
+
+Example
+-------
+
+.. include:: split.py
+
+
+Running doctest in verbose mode
+--------------------------------------------------------------------
+
+<pre>
+$ python split.py -v
+Running __main__.__doc__
+0 of 0 examples failed in __main__.__doc__
+Running __main__.split.__doc__
+Trying: from split import split
+Expecting: nothing
+ok
+Trying: split("hello, world!; welcome to Oxford!")
+Expecting: ['hello', 'world!', 'welcome to Oxford!']
+ok
+0 of 2 examples failed in __main__.split.__doc__
+1 items had no tests:
+    __main__
+1 items passed all tests:
+   2 tests in __main__.split
+2 tests in 2 items.
+2 passed and 0 failed.
+Test passed.
+</pre>
+
+
+Why I do not use the docstring approach
+-------------------------------------------------------
+
+<ul>
+<li> It makes you end up with very large docstrings</li>
+
+<li> It abuses the original purpose of docstrings</li>
+
+<li> It conflates two different aspects (code and tests on the code)</li>
+
+<li> It is much easier to write the documentation in a separate
+     text file </li>
+
+<li> Testing should be done by an external tool anyway </li>
+</ul>
+
+
+How I use doctest
+---------------------
+
+I hacked inside doctest and wrote a custom utility 
+to extract doctests from documentation files since
+
+<ul>
+ <li>I like keeping the documentation on a separate rst file</li>
+
+ <li>there is no sync problem since you run the tests all the time</li>
+
+ <li>it is useful for writing articles ...</li>
+
+ <li> ... but also documentation for internal usage in the company</li>
+</ul>
+
+http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/410052
+
+<pre>
+$ python -m doctester < split.txt
+doctest: run 4 tests, failed 0
+</pre>
+
+
+Testing the doctester frontend
+--------------------------------------------------
+
+<pre>
+>>> from ms.webtester import start_server, stop_server
+>>> from ms.http_utils import urlopen
+>>> baseurl = "http://localhost:7080/"
+>>> home = "/home/micheles/md/python/quixote/"
+
+>>> start_server(home + "doctester_frontend.py")
+>>> import time; time.sleep(2) # wait a bit
+
+Making a POST:
+
+>>> res = urlopen(baseurl, dict(txt=">>> 1 + 1\n2")).read()
+>>> assert "tests" in res
+>>> stop_server()
+
+</pre>
+
+
+Managing exceptions
+--------------------------------------------------------------
+
+It is possible to test that your program raises the exception you
+expect:
+
+<pre>
+
+$ echo "# split cannot work on a list
+>>> from split import split
+>>> split([])
+Traceback (most recent call last):
+  ... 
+TypeError: expected string or buffer
+" > x.txt
+
+$ doct x.txt
+x.txt: 2 tests passed in 0.01 seconds
+
+</pre>
+
+(notice however that relying on exception messages may be risky)
+
+
+When tests fail
+-----------------------------------------------------------------
+
+<pre>
+
+$ cat split-failure.txt
+An example of failed text:
+
+>>> from split import split
+>>> split("hello, world")
+['hello', ' world']
+
+$ doct split-failure.txt
+*****************************************************************
+Failure in example: split("hello, world")
+from line #5 of split-failure.txt
+Expected: ['hello', ' world']
+Got: ['hello', 'world']
+
+</pre>
+
+
+Converting doctests to unittests
+------------------------------------------------------------------
+
+<pre>
+    import unittest
+    import doctest
+    import my_module_with_doctests
+
+    suite = doctest.DocTestSuite(my_module_with_doctests)
+    runner = unittest.TextTestRunner()
+    runner.run(suite)
+</pre>
+
+<h2>For Python 2.3+<h2>
+
+
+doctest is becoming even better
+----------------------------------------------------
+
+With Python 2.4 you can run doctests on external text files:
+
+<pre>
+  import doctest, unittest
+  doctest.testfile(my_documentation_file, package=mypackage)
+</pre>
+
+you can also convert these doctests into unittests:
+
+<pre>
+  import doctest, unittest
+  suite = doctest.DocFileSuite(my_documentation_file, package=mypackage)
+  unittest.TextTestRunner().run(suite)
+</pre>
+
+
+Python 2.4 recognizes blank lines
+--------------------------------------------------------------
+
+Blank lines can be marked with &lt;BLANKLINE&gt;  :
+<pre>
+>>> print 'foo\n\nbar\n'
+foo
+&lt;BLANKLINE&gt;
+bar
+&lt;BLANKLINE&gt;
+
+</pre>
+
+
+Python 2.4 recognizes flags!
+--------------------------------------------------------------
+
+<ul>
+<li>                If the ellipsis flag is used, then '...' can be used to
+                elide substrings in the desired output: <pre>
+>>> print range(1000) #doctest: +ELLIPSIS
+[0, 1, 2, ..., 999]
+
+</pre></li>  
+
+<li>  
+                If the whitespace normalization flag is used, then
+                differences in whitespace are ignored.<pre>
+>>> print range(20) #doctest: +NORMALIZE_WHITESPACE
+[0,  1,  2, 3,         4,  5, 6, 7, 8, 9, 10, 11, 
+12, 13, 14,  15, 16,  17, 18,  19]
+          
+</pre></li>  
+
+</ul>
+
+
+Zope experience
+----------------------------------------------------------------
+
+Literal quote from the PyCON doctest talk:
+
+<ul>
+<li> ~ 5600 tests (~3500 in Zope 3, ~1300 in ZODB, ~800 in Zope 2)</li>
+<li> we wrote lots of tests before we knew what we were doing</li>
+<li> debugging failed tests is really hard when intent is unclear</li>
+<li> often refactor or reimplement tests to make them clearer</li>
+<li> most new tests are doctest based</li>
+</ul>
+
+
+Conclusion (1): good reasons to use doctest
+-----------------------------------------------------------
+
+<quote>
+"Test coverage is important, but test readability is much more important"
+</quote>
+
+<em>-- Tim Peters and Jim Fulton</em> <br/> <br/>
+
+doctest is good since:
+
+<ol>
+ <li> it is easy to understand, to explain and to use </li>
+
+ <li> it makes you improve the quality of your documentation </li>
+
+ <li> it can be converted to unittest anyway </li>
+
+</ol>
+
+
+Conclusion (2): the message of this talk
+-----------------------------------------------------------
+
+Automatic testing is good for tons of practical reasons, but also
+because:
+
+<ol>
+
+<li>It teaches you <em>discipline</em> </li>
+
+<li>It makes you
+ <em>think differently</em> </li>
+
+<li>It is more <em>fun!</em> </li>
+
+</ol>
+
+
+References
+-----------------------------------------------------------
+
+<ul>
+
+<li>The standard library documentation
+http://docs.python.org/lib/module-doctest.html </li>
+
+<li> The doctest talk by Tim Peters and Jim Fulton 
+http://www.python.org/pycon/dc2004/papers/4/</li>
+
+<li> doctest.py  <em>(use the source, Luke!)</em></li>
+</ul>
+

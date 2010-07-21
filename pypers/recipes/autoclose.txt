@@ -1,0 +1,89 @@
+Semi-automatic resource management with AutoClose
+---------------------------------------------------
+
+I have read in my life code where the release of a resource was done 
+in the destructor method, relying on Python reference counting garbage
+collector. This kind of code is very fragile, since Python does not
+make any guarantee at all about *when* the destructor will be called.
+Consider for instance this code (coming from a real life case):
+
+<pre>
+$ cat deallocating.py
+import logging
+
+class C(object):
+    def __init__(self):
+        logging.warn('Allocating resource ...')
+
+    def __del__(self):
+        logging.warn('De-allocating resource ...')
+        print 'THIS IS NEVER REACHED!'
+
+if __name__ == '__main__':
+    c = C()
+
+$ python deallocating.py
+WARNING:root:Allocating resource ...
+Exception exceptions.AttributeError: "'NoneType' object has no
+attribute 'warn'" in <bound method C.__del__ of <__main__.C object at
+0xb7b9436c>> ignored 
+</pre>
+
+The issue here is that the destructor is called *too late*, when the
+cleanup mechanism (see http://www.python.org/doc/essays/cleanup) has 
+already set logging to None. This recipe 
+
+1) gets rid of the destructor, and put the responsibility of deallocating
+   the resource in a .close method (which is IMO opinion much clearer);
+2) used in conjunction with the contextlib.closing class (new in Python 2.5)
+   it allows to perform explicit resource deallocation with the 'with' 
+   statement, which is the preferred way to do that in Python 2.5;
+3) at the end of the program, it automatically closes the resources which 
+   were not closed explicitely before.
+
+The usage is pretty simple. You should just import from the autoclose module 
+the AutoClose class and you should add it to the list of your base classes.
+Then you should override the .close method making sure it calls the base
+class .close.
+
+Here is an example:
+
+<pre>
+
+$ cat autoclose_ex.py
+import logging
+from autoclose import AutoClose
+
+class C(AutoClose):
+   def __init__(self, id):
+       self.id = id
+   def close(self):
+       logging.warn('closing object %s' % self.id)
+       super(C, self).close()
+
+class D(C):
+   pass
+
+c1 = C(1)
+c2 = C(2)
+d3 = D(3)
+
+$ python autoclose_ex.py
+Closing instances of <class 'autoclose.AutoClose'>
+Closing instances of <class '__main__.C'>
+WARNING:root:closing object 1
+WARNING:root:closing object 2
+Closing instances of <class '__main__.D'>
+WARNING:root:closing object 3
+
+</pre>
+
+Notice that AutoClose keeps in memory a potentially large lists of instances,
+therefore your are advised to explicitly close your objects as soon as 
+possible, to keep the list short. You can remove all the instances of a 
+given class (and its subclasses) with the (meta)method <Class>.closeall().
+The implementation below should answer all your questions about how this
+is done exactly. In particular the call to atexit.register(AutoClose.closeall)
+is the one that ensures correct finalization (unlikely destructors methods,
+functions registered in atexit do not rely on the garbage collector and 
+are called before the cleanup mechanism).

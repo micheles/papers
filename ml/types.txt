@@ -1,0 +1,369 @@
+Functional Programming For Dynamic Programmers - Part 5
+=======================================================
+
+:author: Michele Simionato
+:date: December 2007
+
+This is the fifth of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers, i.e. 
+for programmers with a background in dynamically typed languages, such as Perl, 
+Python, Ruby, or languages in the Lisp family. The approch is eminently practical
+and example-based; the main goal is to see if we can stole some good idea from
+statically typed languages. In order to be concrete, I will consider languages
+in the ML family, because they are pretty nice and much easier to understand
+that Haskell.
+
+The Standard ML type system
+-------------------------------------------------------------------
+
+You, the dynamic programmer, are surely familiar with the object
+system of languages such as Python and Ruby, or Common Lisp and
+Smalltalk.  In such languages you here often the mantra *everything is
+an object* meaning that everything is a first class value which can
+created and inspected at runtime. Moreover, any object has a class,
+and classes themselves are objects, i.e. they are instances of
+metaclasses.  The first step in order to learn the SML type system is to forget
+everything you know about object systems. 
+SML has a type system which is completely different from
+the object system of dynamic language. There a lots of things which
+are not first class values (structures, exceptions, signatures, ...)
+and even types are such: in SML any value has a type, but types itself
+are not values.  Therefore passing the name of a type to the prompt
+gives an error::
+
+  - string;
+  1.0-1.6: unknown value or constructor `string'
+
+Just as structures  types live in a separated namespace.  
+SML types are not classes in any OO sense of the term,
+you cannot introspect them, there are no methods and no inheritance.
+Having said that, you can certainly
+program in an OO style in ML,  but you don't use types for OOP, types are used
+internally by the compiler, but from the user's point of view they are just
+labels attached to values.
+
+The type system of SML is extensible, and the user can define new types (i.e.
+new labels) in terms of primitive types. The labels are just that; but together
+with a new label, the definition of a new type includes the definition
+of one or more functions, the *constructors* of the type, which are first class
+values and extremely useful for pattern matching.
+Let me give a concrete example: an
+``int_or_string`` datatype with two constructors ``INT`` and ``STR``, defined
+as follows::
+
+ - datatype int_or_string = INT of int | STR of string;
+ datatype int_or_string = INT of int | STR of string
+
+This definitions tells the compiler that the label ``int_or_string``
+has to be used when showing the signature of objects of the newly
+defined types; but the important things are the constructors, which
+are able to convert (or *cast*) primitive values to values of the new
+type::
+
+ - val v1 = INT 1;
+ val v1 : int_or_string = INT 1
+ -  val v2 = STR "1";
+ val v2 : int_or_string = STR "1"
+
+Actually the constructors are perfectly ordinary functions::
+
+ - INT;
+ val it : int -> int_or_string = _fn
+ - STR;
+ val it : string -> int_or_string = _fn
+
+Constructors are essential since you can use them in *pattern matching*.
+For instance, suppose you want to define an utility function casting integer to strings.
+You can do so as follows::
+
+ - fun valueToString (INT x) = Int.toString x
+     | valueToString (STR x) = x;
+ val valueToString : int_or_string -> string = _fn
+
+Let me check that it works::
+
+ - valueToString (INT 1);
+ val it : string = "1"
+ - valueToString (STR "1");
+ val it : string = "1"
+
+In essence, we have just implemented type dispatching: ``valueToString``
+is now emulating a C++ overloaded function (or a Lisp generic function) which 
+accepts both integers and strings and behaves differently according to the type.
+This in spirit, but technically ``valueToString`` is just an ordinary SML function
+which takes in input the ``int_or_string`` type, so we are somewhat cheating,
+but it works ;)
+
+Consider for instance the issue of defining heterogeneous collections, i.e.
+collections containing different types; in SML we cannot define a list containing
+an integer and a string::
+
+ - [1, "two"];
+  1.0-1.2: ill-typed constructor argument:
+    int * string list
+ does not match argument type
+    int * int list
+ because type
+    string
+ does not unify with
+    int
+
+but we can define::
+
+ - [INT 1, STR "two"];
+ val it : int_or_string list = [INT 1, STR "two"]
+
+As Harper puts it, *heterogenity is a special case of homogenity* [#]_.
+
+.. [#] "Programming in Standard ML", section 10.4
+
+Composite types and recursive types
+--------------------------------------------------
+
+We may define composite types, i.e. types with
+*syntactic arity* greater than one, like the following::
+
+ - datatype string_int = STRING_INT of string * int;
+ datatype string_int = STRING_INT of string * int
+
+The uppercase identifier is called the constructors of the datatype, and can
+be used to make concrete instances of the type::
+
+ - STRING_INT("hello",  1);
+ val it : string_int = STRING_INT ("hello", 1)
+
+where the constructor is a first class value, being simply a function taking
+a pair ``(string, int)`` as input::
+
+ - STRING_INT;
+ val it  : string * int -> string_int = _fn
+
+Moreover, SML allows to define recursive types. For instance, a file
+system is a typical example of recursive data structure, since
+directories can contains directories at any level of nesting. It can
+modeled with the following recursive datatype::
+
+  - datatype file_or_dir = File of string | Dir of string * file_or_dir list
+  datatype file_or_dir = Dir of string * file_or_dir list | File of string
+
+Here a file is identified by its pathname, whereas a directory is identified by
+its pathname and its contents, a list of files or directories. Here are a few
+example of usages::
+
+ - val f1 = File "file1";
+ val f1 : file_or_dir = File "file1"
+ -val f2 = File "file2"; 
+ val f2 : file_or_dir = File "file2"
+ - val d = Dir("dir", [f1, f2]);
+ val d : file_or_dir = Dir ("dir", [File "file1", File "file2"])
+ - val p = Dir("parent", [d, File "file3"]);
+  val p : file_or_dir =
+   Dir ("parent", [Dir ("dir", [File "file1", File "file2"]), File "file3"])
+
+Recursive datatypes are naturally associated with recursive functions;
+for instance you can pretty print the content of a directory with the
+following function::
+
+ val prettyPrint = let
+     val rec prettyPrint' = 
+      fn (File name, spaces) => print (spaces ^ name ^ "\n")
+       | (Dir (name, contents), spaces) => (
+         print (spaces ^ name ^ "\n"); 
+         app (fn c => prettyPrint'(c, spaces ^ "  ")) contents)
+ in 
+     fn f_or_d => prettyPrint' (f_or_d, "")
+ end
+
+ - do prettyPrint p
+ parent
+   dir
+     file1
+     file2
+   file3
+
+SML also allows to define types with syntactic arity zero, i.e.
+enumeration types, like the following one::
+
+ - datatype color = RED|GREEN|BLUE;
+ datatype color = BLUE | GREEN | RED
+
+For enumeration types the name "constructor" is rather improper, since
+constructor are just values::
+
+ - RED;
+ val it : color = RED
+
+ - GREEN;
+ val it : color = GREEN
+
+ - BLUE;
+ val it : color = BLUE
+
+Parametric types 
+---------------------------------------
+
+By far, the most interesting types in SML are the parametric types,
+where the constructor(s) can accept any type as argument. The simplest
+parametric type is the box type::
+
+ - datatype 'a box = Box of 'a;
+ datatype 'a box = Box of 'a
+
+ - Box
+ val it : 'a -> 'a box = _fn 
+
+``box`` is a parametric type with constructor ``Box`` and parameter ``'a`` 
+(to be read *alpha*), which corresponds to a generic type, so that you
+can define ::
+
+  - Box(1);
+     val it : int box = Box 1
+  - Box("hello");
+     val it : string box = Box "hello"
+  - Box(fn x =>  2*x);
+  val it : (int -> int) box = Box (_fn)
+
+In technical terms, we say that SML support *parametric polymorphism*.
+
+Notice that it is pretty easy to define a function extracting the
+inner value from a box::
+
+  - fun unbox (Box x) = x;
+
+The builtin ``ref`` type works as a box and the builtin``!`` function works
+as ``unbox``, the different is that our ``Box`` is immutable, i.e. we do not
+have an equivalent of the assigment function ``:=``.
+
+A more interesting example of parametric type
+could be a *named_function* type corresponding
+to a pair *(function, name)*, where *function* can be of any functions, whereas 
+*name* is a string. 
+We can define it as follows::
+
+ - datatype ('a, 'b) named_function = NAMED_FUNCTION of ('a->'b) * string;
+ datatype ('a, 'b) named_function = NAMED_FUNCTION of ('a -> 'b) * string
+
+*named_function* is a parametric type with parameter 'a (to be read *alpha*),
+which corresponds to a generic type, and NAMED_FUNCTION is its associated 
+constructor::
+
+ - NAMED_FUNCTION;
+ val it : ('a -> 'b) * string -> ('a, 'b) named_function = _fn
+
+In other words, NAMED_FUNCTION is a function converting a pair (value, name),
+where *value* can be of any type, into a *named_function* parametric type.
+Here is an example::
+
+ - NAMED_FUNCTION (fn x=>2*x, "double");
+  (* giving a  name to the function x=>2*x *)
+ val it = NAMED_FUNCTION (fn,"double") : (int,int) named_function
+
+Finally, SML let you define aliases for previously defined types,
+or builtin types, by using the ``type`` keyword::
+
+ - type c = color;
+ type c = color
+
+ - type func=named_function;
+    type func=named_function
+ - type ls = List.list;
+    type ls = List.list
+
+This is especially convenient when writing (abstract) signatures.
+
+Runtime polymorphism
+-----------------------------------------------------------------
+
+Possibly the most used word in statically typed languages is *polymorphism*.
+The word does not exist in dynamic languages, since dynamically typed languages
+are polymorphic by design, whereas in statically typed languages you have
+to work to achieve polymorphism, i.e. the ability to define functions accepting 
+generic types. In order to give a poor man example, suppose we want to
+define a few polymorphic utilities accepting both lists and vectors. We could
+do so by defining a ``ListOrVector`` structure associated with a
+``list_or_vector`` datatype::
+
+ - structure ListOrVector = struct
+      datatype 'a list_or_vector = LST of 'a list | VEC of 'a vector
+      type t =  list_or_vector
+      fun length (LST x) = List.length x
+          | length (VEC x) = Vector.length x
+      fun sub (LST x, i) = List.sub (x,i)
+          | sub (VEC x, i) = Vector.sub (x,i)   
+    end;
+    sig
+       datatype 'a list_or_vector = LST of 'a list | VEC of 'a vector
+       type t = ListOrVector.list_or_vector
+       val length : 'a ListOrVector.list_or_vector -> int
+       val sub : 'a ListOrVector.list_or_vector * int -> 'a
+    end
+
+The structure ``ListOrVector`` is associated to the parametric datatype  
+``'a list_or_vector`` and contains the two constructors ``ListOrVector.LST``
+and ``ListOrVector.VEC``. Moreover we defined the label ``ListOrVector.t``
+to be an alias for ``ListOrVector.list_or_vector``, for a reason that will become
+clear in the next paragraph. Here are two examples of usage::
+
+ -  ListOrVector.length (ListOrVector.LST [1,2,3]);
+ val it : int = 3
+
+ - ListOrVector.length (ListOrVector.VEC #[1,2,3]);
+ val it : int = 3
+
+This approach to polymorphism works for simple things, but it is not practical, 
+nor extensible: this is the reason why SML provides an industrial strenght
+mechanism to support polymorphism, *functors*.
+
+Input and Output revisited
+--------------------------------------------------------------
+
+In accordance with the example-oriented spirit of this series, I will
+introduce functors with a motivating example, again in the arena of
+input and output. 
+We saw in an earlier installament that the standard library provides two
+structures ``TextIO`` and ``BinIO`` for managing text files and binary
+files respectively; we also saw that the two structures have many things
+in common, and it is possibile to define a (sub)signature matching both.
+
+
+Structures are not first class objects and 
+they cannot be passed to and returned from regular functions.
+To circumvent this restriction, the authors of ML invented
+the concept of *functor*, which is basically a *sui generis* function
+taking structures in input and returning structures in output. Functors
+are not-first-class objects themselves and therefore they require a specific
+declaration ``functor Name(Struct:SIGNATURE) = funct ... end``.
+
+.. include:: simple-io.aml
+   :literal:
+
+The functor here is important, since it shows how it is possible to write
+generic code in SML. In this case, I have just written a library which is
+able to wrap *any* structure matching the ``SimpleIO`` interface, and I have
+avoided a potentially infinite code duplication.
+
+The specification of which specific structure to use will be the job of the client
+code, not of the library author; in particular a particular user of the library
+may be interested in specializing it both for ``TextIO`` and ``BinIO``
+by writing::
+
+ - structure T = ManagedIO(TextIO)
+ - structure B = ManagedIO(BinIO)
+
+The operation of specializing a functor is also called *functor
+instantiation*; since it happens in a structure declaration it is
+performed by the compiler *at compile time*. The advantage is that the
+compiler can generate different optimized code for the structures
+``T`` and ``B`` in the *client* program.
+
+ ``- T.withInputFile "three-lines.txt" (print o T.inputAll)``
+
+----
+
+ *Such things are called individuals because each of them consists 
+ of characteristics the collection of which will never be the 
+ same for anything else. For the characteristics of Socrates will
+ never be in any other particular. But the characteristics of man — 
+ I mean of the man that is general — will be the same in 
+ several things, or rather in all particular men insofar as they 
+ are men.*  -- Porphyry

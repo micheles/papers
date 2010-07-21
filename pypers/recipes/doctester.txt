@@ -1,0 +1,124 @@
+I use this little script a lot: to test my posts to
+c.l.py, to test my articles, and to test my libraries.
+Since the script is extremely simple and useful, I thought I
+will share it.
+
+The first thing you need is a text like this, with
+cut and pasted interpreter sessions:
+
+>>> 1 + 1
+2
+
+The doctester will look for snippets of this form and will
+test them. The magic is performed by the doctest module in the
+standard library. I have just added the possibity of inserting
+named modules in the text file, like this one::
+
+ #<example_module.py>
+
+ a = 1
+
+ #</example_module.py>
+
+The doctester will extract code like this and save it in your
+current directory, under the name ``example_module.py``,
+*before* running the tests. In this way you can import
+the module in your tests:
+
+>>> from example_module import a
+>>> print a
+1
+
+You may define any number of modules in the same way. 
+You can also add code to a previously defined module, simply by
+repeating the module name::
+
+ #<example_module.py>
+
+ b = 2
+
+ #</example_module.py>
+
+>>> from example_module import b
+>>> print b
+2
+
+Ideally, in future extensions, it will be possible to insert snippets
+of code in other languages (for instance bash).
+
+The doctester can be used from the command line or called from
+an external program. For instance, you could pass to the doctester
+this text you are reading now: suppose it is stored in a file
+called doctester.txt, you will get
+
+::
+
+ $ python doctester.py < doctester.txt
+ doctest: 0 failed of 5
+
+or, if you prefer a more explicit output,
+
+::
+
+ $ python doctester.py -v < doctester.txt
+ Trying:
+     1 + 1
+ Expecting:
+     2
+ ok
+ Trying:
+     from example_module import a
+ Expecting nothing
+ ok
+ Trying:
+     print a
+ Expecting:
+     1
+ ok
+ Trying:
+     from example_module import b
+ Expecting nothing
+ ok
+ Trying:
+     print b
+ Expecting:
+     2
+ ok
+ 1 items passed all tests:
+    5 tests in <current-buffer>
+ 5 tests in 1 items.
+ 5 passed and 0 failed.
+ Test passed.
+
+The message says that the tests were defined in '<current-buffer>': the
+reason is that I usually call the doctester from Emacs, when I am editing
+the text. If you have Python 2.4 and the doctester in installed in
+your current Python path, you can just put the following in your .emacs::
+
+ ;; passing the current buffer to an external tool
+ (defun run-doctest ()
+   (interactive)
+   (shell-command-on-region (beginning-of-buffer)
+                            (end-of-buffer)
+                            "python2.4 -m doctester"
+                            current-prefix-arg
+                            current-prefix-arg))
+
+ (defun run-doctest-verbose ()
+   (interactive)
+   (shell-command-on-region (beginning-of-buffer)
+                            (end-of-buffer)
+                            "python2.4 -m doctester -v"
+                            current-prefix-arg
+                            current-prefix-arg))
+
+ ;; F6 for regular output, SHIFT-F6 for verbose output
+ (global-set-key [f6] 'run-doctest)
+ (global-set-key [(shift f6)] 'run-doctest-verbose)
+
+
+If you have Python 2.3 you may have to work a bit more, or 
+may just insert the full pathname of the doctester script. 
+Obviously you may change the keybindings to whatever you like.
+I am pretty sure you can invoke the doctester from the Other Editor 
+(TM) too ;)

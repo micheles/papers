@@ -1,0 +1,77 @@
+In the previous post I have talked only about the PyPy project.
+But there was very interesting things even for people living in
+the real world. So, let's talk about them.
+       
+ACCU Conference (PyUK) 2005: a personal view (part 3)
+=======================================================
+
+Installation & Deployment of Python applications
+------------------------------------------------------
+
+I should really thank Andy Robinson for the great job he
+did as chairman and organizer of the Python track, as well
+for the choice of the talks. He really covered everything
+from the most abstract and suble matters to the most concrete
+and real life practical things. So we had a couple of talks
+on installing and deploying Python applications.
+
+I really liked the one by Nathan Yergler, presenting his work 
+on Creatives Common applications. His talk was 0% marketing and
+100% sound advice and very concrete help on what works and what 
+does not work if you are trying to distribute a multiplatform
+application based on wxPython.
+
+In the same vein, Andy Robinson gave a talk on the challenges
+Reportlab faced with the installation and maintenance of their
+toolkit on many platforms. The message I got is that distutils is 
+not enough, and that at the end they had to develop your own 
+installation software.
+
+This is sad, but I recognized the truth in what Nathan and
+Yergler were saying: installation and deployement are
+higly non-trivial and time-consuming activities which
+are now more complex than needed. Andy said he took
+inspiration from what Ant did in the Java world, when
+writing his own installation tools and he made a made
+strong advocacy for Ant, saying that we should have something like that 
+in standard library. I do not know Ant personally, but I have
+use distutils recently and I must say that whereas is quite
+at some things, it is not that easy to build on top of it.
+In practice, it is just faster to write a custom tool than
+to use distutils.
+
+ 
+Comparison of Graphics Toolkits
+-------------------------------------------------
+
+We got a really nice demonstration about Qt Designer by 
+John Pinner, supplemented by a lightening talk by Trolltech
+(which must have the youngest and prettiest girl-engineers
+out there). I am not really capable of using such tools
+(I would probably be more at home with an s-expression 
+representation of the widgets) but still I was pretty
+impressed by the easy of use. Plus, after a few click,
+you get an impressively clean piece of Python code
+with all the classes and the objects corresponding
+to the pictures you just drawn.
+
+There was also a comparable presentation by Alex Tweedly about
+PythonCard, but I missed it since I attended a Agile talk by
+an Italian friend I met there.
+
+Web Frameworks
+-------------------------------------------------
+
+There was a talk about Zope3 which I was very interested in,
+and a lightening talk about CherryPy by Ron Collins.
+Plus Andy Robinsons discussing the Reportlab hand-made
+Web framework, and the problems they got testing it.
+
+This is a subject I was very interested to hear about,
+since I have been experimenting with the subject. Unfortunately,
+it looks like everybody is trying to solve the issue in
+similar ways (essentially building custom tools on top of urllib).
+I discovered various simple applications to do Web scripting
+but nothing standard or widely used. This is certainly an area
+where the standard library could be extended.
+

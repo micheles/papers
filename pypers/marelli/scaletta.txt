@@ -1,0 +1,55 @@
+- cygwin
+- pythonwin doc
+- pydoc
+- minidoc
+- python help
+- ipython
+- dot and dot_utils
+- matplotlib
+- gnuplot
+
+- python as glue language: subprocess and Popen
+- show tkplayer and microplayer
+
+
+- solutions to the questionary
+- sort_ci exercise
+- mutable-immutable
+
+- style guide
+- launcher with exec
+- pdb
+- exc_debugger.py
+- try .. finally
+- Graphics/stderr.py
+- logging to an HTTP server
+
+
+- mostrare doctest, le lezioni di Oxford, e il modulo dei decoratori
+. mostrare il doctester
+- mostrare py.test
+- qualche cenno su unittest
+- come scrivere un interprete di comandi per gestire i tests
+- simulatori di molti utenti di un'applicazione Web (?)
+
+USE SHORT FUNCTIONS (less comments needed, simplify a posteriori fixes)
+
+- example of OptionParser
+
+DO NOT CHANGE THE SOURCE CODE!!
+
+- how to fix bugs with dynamic overriding (example in quixote_utils)
+
+DECOUPLE LOGIC FROM USER INTERFACE
+
+- example of OptionParser
+
+COMPOSITION IS OFTEN BETTER THAN INHERITANCE
+
+- example of OptionParser
+
+###########
+
+ADVANCED OOP TIPS AND TRICKS
+
+- protected variables

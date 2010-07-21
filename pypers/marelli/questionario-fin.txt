@@ -1,0 +1,6 @@
+Questionario finale
+------------------------------------
+
+- ordinare in maniera case-insensitive;
+- print a nested list with indentation;
+- define chop;

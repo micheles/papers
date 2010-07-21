@@ -1,0 +1,38 @@
+(*
+A library implementing a very simple string interpolation facility. 
+An example of usage is 
+
+   print(format "The square of $ is $\n" ["3", "9"])
+*)
+
+signature FORMAT = sig
+  val format : string -> string list -> string
+end
+
+structure Format = struct
+  exception ArityError of string
+
+  fun checkArity(templN1, argsN) = let
+    val n1 = Int.toString (length templN1 - 1)
+    val n = Int.toString (length argsN)
+  in
+    if n1=n then () else raise ArityError("Expected "^n1^" arguments, got"^n)
+  end
+
+  val rec interp' =
+   fn ([t], [], acc) => concat(rev (t :: acc))
+    | (t :: templ, a :: args, acc) => interp'(templ, args, t :: a :: acc)
+    | _ => raise ArityError "This should never happen"
+
+  and interp'' = 
+   fn (templN1, argsN) => (
+      checkArity (templN1, argsN); interp' (templN1, argsN, []))
+
+  and format = 
+   fn templ => let
+          val templN1 = String.fields (fn c => c = #"$") templ
+      in
+          fn args => interp'' (templN1, args)
+      end
+
+end: FORMAT

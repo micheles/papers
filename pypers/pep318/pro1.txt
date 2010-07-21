@@ -1,0 +1,10 @@
+#<pro1.py>
+import sys
+f=sys.stdout
+a='ciao'
+def prn():
+    print >> f, a
+#</pro1.py>
+>>> import pro1
+>>> pro1.prn()
+ciao

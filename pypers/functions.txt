@@ -1,0 +1,1142 @@
+THE CONVENIENCE OF FUNCTIONS
+============================================================================
+
+Functions are the most basic Python objects. They are also the simplest
+objects where one can apply the  metaprogramming techniques that are
+the subject of this book. The tricks used in this chapter and the utility
+functions defined here will be used over all the book. Therefore this
+is an *essential* chapter.
+
+Since it is intended to be a gentle introduction, the tone will be
+informal.
+
+Introduction
+-------------
+
+One could be surprised that a text on OOP begins with a chapter on the
+well known old-fashioned functions. In some sense, this is also
+against the spirit of an important trend in OOP, which tries to
+shift the focus from functions to data. In pure OOP languages,
+there are no more functions, only methods. [#]_
+
+However, there are good reasons for that:
+
+1. In Python,  functions  *are* objects. And particularly useful ones.
+2. Python functions are pretty powerful and all their secrets are probably
+   *not* well known to the average Python programmer.
+3. In the solutions of many problems, you don't need the full apparatus
+   of OOP: good old functions can be enough.
+
+Moreover, I am a believer in the multiparadigm approach to programming, 
+in which you choose your tools according to your problem. 
+With a  bazooka you can kill a mosquito, yes, but this does not mean 
+that you must use the bazooka *always*. 
+In certain languages, you have no choice, and you must define
+a class (involving a lot of boiler plate code) even for the most trivial
+application. Python's philosophy is to keep simple things simple, but
+having the capability of doing even difficult things with a reasonable
+amount of effort. The message of this chapter will be: "use functions when 
+you don't need classes". Functions are good because:
+
+1. They are easy to write (no boiler plate);
+2. They are easy to understand;
+3. They can be reused in your code;
+4. Functions are an essential building block in the construction of objects.
+
+Even if I think that OOP is an extremely effective strategy, with
+enormous advantages on design, maintanibility and reusability of code,
+nevertheless this book is *not* intended to be a panegyric of OOP. There
+are cases in which you don't need OOP. I think the critical parameter is
+the size of the program. These are the rules I follows usually (to be
+taken as indicative):
+
+1. If I have to write a short script of 20-30 lines, that copies two or 
+   three files and prints some message, I use fast and dirty spaghetti-code; 
+   there is no use for OOP.
+2. If your script grows to one-hundred lines or more, I structure
+   it  write a few routines and a main program: but still I can live
+   without OOP.
+3. If the script goes beyond the two hundred lines, I start
+   collecting my routines in few classes.
+4. If the script goes beyond the five hundred lines, I split the program
+   in various files and modules and convert it to a package.
+5. I never write a function longer than 50 lines, since 50 lines is more
+   or less the size of a page in my editor, and I need to be able to
+   see the entire function in a page.
+
+Of course your taste could be different and you could prefer to write a 
+monolitic program of five thousand lines; however the average size of 
+the modules in the Python standard library is of 111 lines.
+I think this is a *strong* suggestion towards 
+a modular style of programming, which
+is *very* well supported in Python.
+
+The point is that OOP is especially useful for *large* programs: if you
+only use Python for short system administration scripts you may well
+live without OOP. Unfortunaly, as everybody knows, short scripts have
+an evil tendency to become medium size scripts, and medium size scripts
+have the even more evil tendency to become large scripts and possible
+even full featured applications ! For this reason it is very probable
+that at a certain moment you will feel the need for OOP.
+
+I remember my first big program, a long time ago: I wrote a program
+to draw mathematical functions in AmigaBasic. It was good and nice
+until it had size of few hundred lines; but when it passed a thousand
+of lines, it became rapidly unmanageable and unmaintenable. There where
+three problems:
+
+1. I could not split the program in modules, as I wanted, due to the
+   limitations of AmigaBasic;
+
+2. I was missing OOP to keep the logic of the program all together, but
+   at the time I didn't know that;
+
+3. I was missing effective debugging techniques.
+
+4. I was missing effective refactoring tools.
+
+I am sure anybody who has ever written a large program has run in these
+limitations: and the biggest help of OOP is in overcoming these limitations.
+Obviously, miracles are impossible, and even object oriented programs can
+grow to a size where they become unmaintanable: the point is that the
+critical limit is much higher than the thousand lines of structured programs.
+I haven't yet reached the limit of unmanageability with Python. The fact
+that the standard library is 66492 lines long (as result from the total
+number of lines in ``/usr/local/lib/python2.2/``), but it is still manageable,
+give me an hope ;-)
+
+ .. [#] However, one could argue that having functions distinguished from 
+        methods is the best thing to do, even in a strongly object-oriented 
+        world. For instance, generic functions can be used to implement 
+        multimethods. See for instance Lisp, Dylan and MultiJava. This latter 
+        is forced to introduce the concept of function outside a class, 
+        foreign to traditional Java, just to implement multimethods.
+  
+A few useful functions
+------------------------------------------------------------------------------
+
+It is always a good idea to have a set of useful function collected in
+a user defined module. The first function we want to have in our module
+is the ``do_nothing`` function:
+
+ ::
+
+  #<oopp.py>
+
+  def do_nothing(*args,**kw): pass
+
+  #</oopp.py>
+
+This function accept a variable number of arguments and keywords (I
+defer the reader to the standard documentation if she is unfamiliar
+with these concept; this is *not* another Python tutorial ;-) and
+return ``None``. It is very useful for debugging purposes, when in a
+complex program you may want concentrate your attention to few crucial
+functions and set the non-relevant functions to ``do_nothing`` functions.
+
+A second function which is useful in developing programs is a timer
+function. Very ofter indeed,  we may want to determine the bottleneck
+parts of a program, we are interested in profiling them and in seeing 
+if we can improve the speed by improving the algorithm, or by using
+a Python "compiler" such as Psyco, or if really we need to write a C 
+extension. In my experience, I never needed to write a C extension,
+since Python is fast enough. Nevertheless, to profile a program is
+always a good idea and Python provides a profiler module in the 
+stardard library with this aim. Still, it is convenient to have
+a set of user defined functions to test the execution speed of
+few selected routines (whereas the standard profiler profiles everything).
+
+We see from the standard library documentation that
+the current time can be retrieved from the ``time`` module: [#]_
+
+  >>> import time
+  >>> time.asctime()
+  'Wed Jan 15 12:46:03 2003'
+
+Since we are not interested in the date but only in the time, we need
+a function to extract it. This is easily implemented:
+
+ ::
+
+  #<oopp.py>
+
+  import time
+
+  def get_time():
+      "Return the time of the system in the format HH:MM:SS"
+      return time.asctime().split()[3]
+
+  #</oopp.py>
+
+  >>> from oopp import get_time
+  >>> get_time()
+  '13:03:49'
+
+Suppose, for instance, we want to know how much it takes to Python
+to write a Gigabyte of data. This can be a quite useful benchmark
+to have an idea of the I/O bottlenecks in our system. Since to take in memory
+a file of a Gigabyte can be quite problematic, let me compute the
+time spent in writing 1024 files of one Megabyte each. To this
+aim we need a ``writefile`` function
+
+ ::
+
+  #<oopp.py>
+
+  def writefile(fname,data):
+      f=file(fname,'w')
+      f.write(data)
+      f.close()
+
+  #</oopp.py>
+
+and timing function. The idea is to wrap the ``writefile`` function in
+a ``with_clock`` function as follows:
+
+ ::
+
+  #<oopp.py>
+
+  def with_clock(func,n=1):
+      def _(*args,**kw): # this is a closure
+          print "Process started on",get_time()
+          print ' .. please wait ..'
+          for i in range(n): func(*args,**kw)
+          print "Process ended on",get_time()
+      return _
+
+  #</oopp.py>
+
+The wrapper function ``with_clock`` has converted the function ``writefile`` 
+in a function ``with_clock(writefile)`` which has the same arguments
+of ``writefile``, but contains additional features: in this case
+timing capabilities. Technically speaking, the internal function ``_``
+is called a *closure*. Closures are very common in functional languages 
+and can be used in Python too, with very little effort [#]_.
+
+I will use closures very often in the following, and I will use
+the convention of denoting with "_" the inner 
+function in the closure, since there is no reason of giving to it a 
+descriptive name (the name 'with_clock' in the outer function 
+is descriptive enough). For the same, reason I do not use a 
+docstring for "_". If Python would allow multistatement lambda
+functions, "_" would be a good candidate for an anonymous function.
+
+Here is an example of usage:
+
+  >>> from oopp import *
+  >>> data='*'*1024*1024 #one megabyte
+  >>> with_clock(writefile,n=1024)('datafile',data) #.
+  Process started on 21:20:01
+   .. please wait ..
+  Process ended on 21:20:57
+
+This example shows that Python has written one Gigabyte of data (splitted in
+1024 chunks of one Megabyte each) in less than a minute. However,the 
+result depends very much on the filesystem. I always suggest people
+to profile their programs, since one *always* find surprises.
+For instance, I have checked the performance of my laptop, 
+a dual machine Windows 98 SE/ Red Hat Linux 7.3.
+The results are collected in the following table:
+
+  ================= ===================== ========================
+                        Laptop                                  
+   Linux ext-3       FAT under Linux       FAT under Windows 98 
+  ================= ===================== ========================
+       24-25 s           56-58 s                86-88 s 
+  ================= ===================== ========================            
+
+
+We see that Linux is *much* faster: more than three times faster than
+Windows, using the same machine! Notice that the FAT filesystem under
+Linux (where it is *not* native) is remarkably faster than the FAT
+under Windows 98, where it is native !! I think that now my readers
+can begin to understand why this book has been written under Linux 
+and why I *never* use Windows for programming (actually I use it only 
+to see the DVD's ;-).
+
+I leave as an exercise for the reader to check the results on this
+script on their machine. Since my laptop is quite old, you will probably
+have much better performances (for instance on my linux desktop I can
+write a Gigabyte in less than 12 seconds!). However, there are *always*
+surprises: my desktop is a dual Windows 2000 machine with three different
+filesystems, Linux ext-2, FAT and NTFS. Surprisingly enough, the NT
+filesystem is the more inefficient for writing, *ten times slower* 
+than Linux!
+
+  ================= ===================== ========================
+                      Desktop
+  Linux ext-2       FAT under Win2000      NTFS under Win2000
+  ================= ===================== ========================
+  11-12 s           95-97 s                117-120 s
+  ================= ===================== ========================
+
+.. [#] Users of Python 2.3 can give a look to the new ``datetime`` module,
+       if they are looking for a sophisticated clock/calendar.
+
+.. [#] There are good references on functional programming in Python; 
+       I suggest the Python Cookbook and the articles by David Mertz
+       www.IBM.dW.
+
+
+Functions are objects
+---------------------------------------------------------------------------
+
+As we said in the first chapter, objects have attributes accessible with the 
+dot notation. This is not surprising at all. However, it could be
+surprising to realize that since Python functions are objects, they
+can have attributes, too. This could be surprising since this feature is quite 
+uncommon: typically or i) the language is
+not object-oriented, and therefore functions are not objects, or ii)
+the language is strongly object-oriented and does not have functions, only 
+methods. Python is a multiparadigm language (which I prefer to the
+term "hybrid" language), therefore it has functions that are objects,
+as in Lisp and other functional languages. 
+Consider for instance the ``get_time`` function.
+That function has at least an useful attribute, its doctring:
+
+  >>> from oopp import get_time
+  >>> print get_time.func_doc
+  Return the time of the system in the format HH:MM:SS
+
+The docstring can also be obtained with the ``help`` function:
+
+  >>> help(get_time)
+  Help on function get_time in module oopp:
+  get_time()
+      Return the time of the system in the format HH:MM:SS
+
+Therefore ``help`` works on user-defined functions, too, not only on
+built-in functions. Notice that ``help`` also returns the argument list of 
+the function. For instance, this is
+the help message on the ``round`` function that we will use in the
+following:
+
+  >>> help(round)
+  Help on built-in function round:
+  round(...)
+      round(number[, ndigits]) -> floating point number
+      Round a number to a given precision in decimal digits (default 0 
+      digits).This always returns a floating point number.  Precision may 
+      be negative.
+
+I strongly recommend Python programmers to use docstrings, not
+only for clarity sake during the development, but especially because
+it is possible to automatically generate nice HTML documentation from 
+the docstrings, by using the standard tool "pydoc".
+
+One can easily add attributes to a function. For instance:
+
+  >>> get_time.more_doc='get_time invokes the function time.asctime'
+  >>> print get_time.more_doc
+  get_time invokes the function time.asctime
+
+Attributes can be functions, too:
+
+  >>> def IamAfunction(): print "I am a function attached to a function"
+  >>> get_time.f=IamAfunction
+  >>> get_time.f()
+  I am a function attached to a function
+
+This is a quite impressive potentiality of Python functions, which has
+no direct equivalent in most other languages.
+
+One possible application is to fake C "static" variables. Suppose
+for instance we need a function remembering how may times it is
+called: we can simply use
+
+ ::
+
+  #<double.py>
+
+  def double(x):
+      try: #look if double.counter is defined
+          double.counter
+      except AttributeError:
+          double.counter=0 #first call
+      double.counter+=1
+      return 2*x
+
+  double(double(2))
+  print "double has been called %s times" % double.counter
+
+  #</double.py>
+
+with output ``double has been called 2 times``.
+A more elegant approach involves closures. A closure can enhance an
+ordinary function, providing to it the capability of remembering 
+the results of its previous calls and avoiding the duplication of
+computations:
+
+::
+ 
+  #<oopp.py>
+
+  def withmemory(f):
+      """This closure invokes the callable object f only if need there is"""
+      argskw=[]; result=[]
+      def _(*args,**kw): 
+          akw=args,kw
+          try: # returns a previously stored result
+              i=argskw.index(akw)
+          except ValueError: # there is no previously stored result
+              res=f(*args,**kw)  # returns the new result
+              argskw.append(akw) # update argskw
+              result.append(res) # update result
+              return res
+          else:
+              return result[i]  
+      _.argskw=argskw #makes the argskw list accessible outside
+      _.result=result #makes the result list accessible outside
+      return _
+
+  def memoize(f):
+      """This closure remembers all f invocations"""
+      argskw,result = [],[]
+      def _(*args,**kw): 
+          akw=args,kw
+          try: # returns a previously stored result
+              return result[argskw.index(akw)]
+          except ValueError: # there is no previously stored result
+              argskw.append(akw) # update argskw
+              result.append(f(*args,**kw)) # update result
+              return result[-1] # return the new result
+      _.argskw=argskw #makes the argskw list accessible outside
+      _.result=result #makes the result list accessible outside
+      return _
+ 
+  #</oopp.py>
+
+Now, if we call the wrapped function ``f``  twice with the same arguments, 
+Python can give the result without repeating the (possibly very long) 
+computation.
+
+  >>> def f(x):
+  ...    print 'called f'
+  ...    return x*x
+  >>> wrapped_f=withmemory(f)
+  >>> wrapped_f(2) #first call with the argument 2; executes the computation
+  called f
+  4
+  >>> wrapped_f(2) #does not repeat the computation
+  4
+  >>> wrapped_f.result
+  [4]
+  >>> wrapped_f.argskw
+  [((2,), {})]
+
+Profiling functions
+---------------------------------------------------------------------------
+
+The ``with_clock`` function provided before was intended to be
+pedagogical; as such it is a quite poor solution to the
+problem of profiling a Python routine. A better solution involves
+using two others functions in the time library, ``time.time()`` 
+that gives that time in seconds elapsed from a given date, and 
+``time.clock()`` that gives the time spent by the CPU in a given 
+computation. Notice that ``time.clock()`` has not an infinite
+precision (the precision depends on the system) and one 
+should expect relatively big errors if the function runs in
+a very short time. That's the reason why it is convenient
+to execute multiple times short functions and divide the total
+time by the number of repetitions. Moreover, one should subtract the
+overhead do to the looping. This can be computed with the following
+routine:
+
+ :: 
+
+  #<oopp.py>
+
+  def loop_overhead(N):
+      "Computes the time spent in empty loop of N iterations"
+      t0=time.clock()
+      for i in xrange(N): pass
+      return time.clock()-t0
+
+  #</oopp.py>
+
+For instance, on my laptop an empty loop of one million of iterations
+is performed in 1.3 seconds. Typically the loop overhead is negligible,
+whereas the real problem is the function overhead.
+
+Using the attribute trick discussed above, we may
+define a ``with_timer`` function that enhances quite a bit 
+``with_clock``:
+
+ ::
+
+  #<oopp.py>
+
+  def with_timer(func, modulename='__main__', n=1, logfile=sys.stdout):
+      """Wraps the function func and executes it n times (default n=1). 
+      The average time spent in one iteration, express in milliseconds, 
+      is stored in the attributes func.time and func.CPUtime, and saved 
+      in a log file which defaults to the standard output.
+      """
+      def _(*args,**kw): # anonymous function
+          time1=time.time()
+          CPUtime1=time.clock()
+          print 'Executing %s.%s ...' % (modulename,func.__name__),
+          for i in xrange(n): res=func(*args,**kw) # executes func n times
+          time2=time.time()
+          CPUtime2=time.clock()
+          func.time=1000*(time2-time1)/n
+          func.CPUtime=1000*(CPUtime2-CPUtime1-loop_overhead(n))/n
+          if func.CPUtime<10: r=3 #better rounding
+          else: r=1 #default rounding
+          print >> logfile, 'Real time: %s ms' % round(func.time,r),
+          print >> logfile, ' CPU time: %s ms' % round(func.CPUtime,r)
+          return res
+      return _
+
+  #</oopp.py>
+
+Here it is an example of application:
+
+  >>> from oopp import with_timer,writefile
+  >>> data='*'*1024*1024 #one megabyte
+  >>> with_timer(writefile,n=1024)('datafile',data) #.
+  Executing writefile ... Real time: 60.0 ms  CPU time: 42.2 ms
+  
+The CPU time can be quite different from the real time, 
+as you can see in the following example:
+
+  >>> import time
+  >>> def sleep(): time.sleep(1)
+  ...
+  >>> with_timer(sleep)() #.
+  Executing sleep ... Real time: 999.7 ms  CPU time: 0.0 ms
+ 
+We see that Python has run for 999.7 ms (i.e. 1 second, up to
+approximation errors in the system clock) during which the CPU has 
+worked for 0.0 ms (i.e. the CPU took a rest ;-).
+The CPU time is the relevant time to use with the purpose of
+benchmarking Python speed.
+
+I should notice that the approach pursued in ``with_timer`` is still
+quite simple. A better approach would be to
+plot the time versus the number of iteration, do a linear interpolation
+and extract the typical time for iteration from that. This allows
+to check visually that the machine is not doing something strange
+during the execution time and it is what
+I do in my personal benchmark routine; doing something similar is
+left as an exercise for the reader ;-).
+
+Another approach is to use the ``timeit.py`` module (new in Python 2.3,
+but works also with Python 2.2):
+
+ ::
+
+  #<oopp.py>
+
+  import timeit,__main__,warnings
+
+  warnings.filterwarnings('ignore',
+  'import \* only allowed at module level',SyntaxWarning)
+
+  def timeit_(stmt,setup='from __main__ import *',n=1000):
+      t=timeit.Timer(stmt,setup)
+      try: print t.repeat(number=n) # class timeit 3 times
+      except: t.print_exc()
+
+  #</oopp.py>
+
+It is often stated that Python is slow and quite ineffective
+in application involving hard computations. This is generally speaking
+true, but how bad is the situation ? To test the (in)efficiency of
+Python on number crunching, let me give a function to compute the
+Mandelbrot set, which I have found in the Python Frequently Asked
+Question (FAQ 4.15. *Is it possible to write obfuscated one-liners 
+in Python?*).
+This function is due to Ulf Bartelt and you should ask him to know how
+does it work ;-)
+
+ ::
+
+  #<oopp.py>
+
+  def mandelbrot(row,col):
+      "Computes the Mandelbrot set in one line"
+      return (lambda Ru,Ro,Iu,Io,IM,Sx,Sy:reduce(
+          lambda x,y:x+y,map(lambda y,Iu=Iu,Io=Io,Ru=Ru,Ro=Ro,Sy=Sy,L=
+          lambda yc,Iu=Iu,Io=Io,Ru=Ru,Ro=Ro,i=IM, Sx=Sx,Sy=Sy:reduce(
+          lambda x,y:x+y,map(lambda x,xc=Ru,yc=yc,Ru=Ru,Ro=Ro, i=i,
+          Sx=Sx,F=lambda xc,yc,x,y,k,f=lambda xc,yc,x,y,k,f:(k<=0)
+          or (x*x+y*y>=4.0) or 1+f(xc,yc,x*x-y*y+xc,2.0*x*y+yc,k-1,f):
+          f(xc,yc,x,y,k,f):chr(64+F(Ru+x*(Ro-Ru)/Sx,yc,0,0,i)),
+          range(Sx))):L(Iu+y*(Io-Iu)/Sy),range(Sy))))(
+          -2.1, 0.7, -1.2, 1.2, 30, col, row)
+      #    \___ ___/  \___ ___/  |   |    |_ lines on screen
+      #        V          V      |   |______ columns on screen
+      #        |          |      |__________ maximum of "iterations"
+      #        |          |_________________ range on y axis
+      #        |____________________________ range on x axis
+      
+  #</oopp.py>
+
+Here there is the benchmark on my laptop:
+
+  >>> from oopp import mandelbrot,with_timer
+  >>> row,col=24,75
+  >>> output=with_timer(mandelbrot,n=1)(row,col)
+  Executing __main__.mandelbrot ... Real time: 427.9 ms  CPU time: 410.0 ms
+  >>> for r in range(row): print output[r*col:(r+1)*col]
+  ...
+  BBBBBBBBBBBBBBCCCCCCCCCCCCDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDDCCCCCCCCCCCCCC
+  BBBBBBBBBBBBCCCCCCCCCDDDDDDDDDDDDDDDDDDDDDDEEEEEEFGYLFFFEEEEEDDDDDCCCCCCCCC
+  BBBBBBBBBBCCCCCCCDDDDDDDDDDDDDDDDDDDDDEEEEEEEEEFFFGIKNJLLGEEEEEEDDDDDDCCCCC
+  BBBBBBBBBCCCCCDDDDDDDDDDDDDDDDDDDDDEEEEEEEEEFFFFGHJJR^QLIHGFFEEEEEEDDDDDDCC
+  BBBBBBBBCCCDDDDDDDDDDDDDDDDDDDDDEEEEEEEEEFFFGGGHIK_______LHGFFFFFEEEEDDDDDD
+  BBBBBBBCCDDDDDDDDDDDDDDDDDDDDEEEEEEEFFFGHILIIIJJKMS_____PLJJIHGGGHJFEEDDDDD
+  BBBBBBCDDDDDDDDDDDDDDDDDDEEEEEFFFFFFGGGHMQ__T________________QLOUP[OGFEDDDD
+  BBBBBCDDDDDDDDDDDDDDDEEEFFFFFFFFFGGGGHJNM________________________XLHGFFEEDD
+  BBBBCDDDDDDDDDEEEEEFFGJKHHHHHHHHHHHHIKN[__________________________MJKGFEEDD
+  BBBBDDDDEEEEEEEEFFFFGHIKPVPMNU_QMJJKKZ_____________________________PIGFEEED
+  BBBCDEEEEEEEEFFFFFFHHHML___________PQ_______________________________TGFEEEE
+  BBBDEEEEEEFGGGGHHHJPNQP^___________________________________________IGFFEEEE
+  BBB_____________________________________________________________OKIHGFFEEEE
+  BBBDEEEEEEFGGGGHHHJPNQP^___________________________________________IGFFEEEE
+  BBBCDEEEEEEEEFFFFFFHHHML___________PQ_______________________________TGFEEEE
+  BBBBDDDDEEEEEEEEFFFFGHIKPVPMNU_QMJJKKZ_____________________________PIGFEEED
+  BBBBCDDDDDDDDDEEEEEFFGJKHHHHHHHHHHHHIKN[__________________________MJKGFEEDD
+  BBBBBCDDDDDDDDDDDDDDDEEEFFFFFFFFFGGGGHJNM________________________XLHGFFEEDD
+  BBBBBBCDDDDDDDDDDDDDDDDDDEEEEEFFFFFFGGGHMQ__T________________QLOUP[OGFEDDDD
+  BBBBBBBCCDDDDDDDDDDDDDDDDDDDDEEEEEEEFFFGHILIIIJJKMS_____PLJJIHGGGHJFEEDDDDD
+  BBBBBBBBCCCDDDDDDDDDDDDDDDDDDDDDEEEEEEEEEFFFGGGHIK_______LHGFFFFFEEEEDDDDDD
+  BBBBBBBBBCCCCCDDDDDDDDDDDDDDDDDDDDDEEEEEEEEEFFFFGHJJR^QLIHGFFEEEEEEDDDDDDCC
+  BBBBBBBBBBCCCCCCCDDDDDDDDDDDDDDDDDDDDDEEEEEEEEEFFFGIKNJLLGEEEEEEDDDDDDCCCCC
+  BBBBBBBBBBBBCCCCCCCCCDDDDDDDDDDDDDDDDDDDDDDEEEEEEFGYLFFFEEEEEDDDDDCCCCCCCCC
+
+I am willing to concede that this code is not typical Python code and
+actually it could be an example of *bad* code, but I wanted a nice ASCII 
+picture on my book ... :) Also, this prove that Python is not necessarily 
+readable and easy to understand ;-)
+I leave for the courageous reader to convert the previous algorithm to C and
+measure the difference in speed ;-) 
+
+
+About Python speed
+---------------------------------------------------
+
+The best way to improved the speed is to improve the algorithm; in
+this sense Python is an ideal language since it allows you to test
+many algorithms in an incredibly short time: in other words, the time you 
+would spend fighting with the compiler in other languages, in Python
+can be used to improve the algorithm. 
+However in some cases, there is little to do: for instance, in many
+problems one has to run lots of loops, and Python loops are horribly
+inefficients as compared to C loops. In this case the simplest possibility 
+is to use Psyco. Psyco is a specialing Python compiler written by Armin
+Rigo. It works for 386 based processors and allows Python to run loops at 
+C speed. Installing Psyco requires $0.00 and ten minutes of your time:
+nine minutes to find the program, download it, and install it; one
+minute to understand how to use it.
+
+The following script explains both the usage and the advantages of Psyco:
+
+ ::
+
+  #<psyco1.py>
+
+  import oopp,sys
+
+  def measure_loop_overhead(n):
+      without=oopp.loop_overhead(n) 
+      print "Without Psyco:",without
+
+      psyco.bind(oopp.loop_overhead) #compile the empty_loop
+
+      with=oopp.loop_overhead(n) 
+      print "With Psyco:",with
+
+      print 'Speedup = %sx' % round(without/with,1)
+
+  try: 
+      import psyco
+      measure_loop_overhead(1000000)
+  except ImportError: 
+      print "Psyco is not installed, sorry."
+
+  #</psyco1.py>
+
+The output is impressive:
+
+ ::
+
+  Without Psyco: 1.3
+  With Psyco: 0.02
+  Speedup = 65.0x
+
+
+Notice that repeating the test, you will obtain different speedups.
+On my laptop, the speedup for an empty loop of 10,000,000 of
+iteration is of the order of 70x, which is the same speed of a C loop, 
+actually (I checked it). On my desktop, I have even found a speedup of
+94x !
+
+However, I must say that Psyco has some limitations. The problem is
+the function call overhead. Psyco enhances the overhead and in some
+programs it can even *worsen* the performance (this is way you should
+*never* use the ``psyco.jit()`` function that wraps all the functions of
+your program: you should only wrap the bottleneck loops). Generally 
+speaking,  you should expect a much more modest improvement, a 
+factor of 2 or 3 is what I obtain usually in my programs.
+
+Look at this second example, which essentially measure the function 
+call overhead by invoking the ``do_nothing`` function:
+
+ ::
+
+  #<psyco2.py>
+
+  import oopp
+
+  def measure2(n):
+ 
+      def do_nothing_loop(n):
+          for i in xrange(n): oopp.do_nothing()
+
+      print "Without Psyco:"
+      oopp.with_timer(do_nothing_loop,n=5)(n) #50,000 times 
+      print
+
+      without=do_nothing_loop.CPUtime
+
+      psyco.bind(do_nothing_loop)
+ 
+      print "With Psyco:"
+      oopp.with_timer(do_nothing_loop,n=5)(n) #50,000 times
+
+      with=do_nothing_loop.CPUtime
+
+      print 'Speedup = %sx' % round(without/with,1)
+
+  try: 
+      import psyco
+      measure2(10000)
+  except ImportError:
+      print "Psyco is not installed, sorry."
+
+  #</psyco2.py>
+
+The output is less incredible:
+
+ ::
+
+  Without Psyco:
+  Executing do_nothing_loop ... Real time: 138.2 ms  CPU time: 130.0 ms
+  With Psyco:
+  Executing do_nothing_loop ... Real time: 70.0 ms  CPU time: 68.0 ms
+  Speedup = 1.9x
+
+
+However, this is still impressive, if you think that you can double 
+the speed of your program by adding *a line* of code! Moreover this
+example is not fair since Psyco cannot improve very much the performance 
+for loops invoking functions with a variable number of arguments. On the
+other hand, it can do quite a lot for loops invoking functions with 
+a fixed number of arguments. I have checked that you can easily reach 
+speedups of 20x (!). The only disadvantage is that a program invoking
+Psyco takes much more memory, than a normal Python program, but this
+is not a problem for most applications in nowadays computers. 
+Therefore, often Psyco
+can save you the effort of going trough a C extension. In some cases,
+however, there is no hope: I leave as an exercise for the reader
+to check (at least the version 0.4.1 I am using now) is unable to
+improve the performance on the Mandelbrot set example. This proves
+that in the case bad code, there is no point in using a compiler:
+you have to improve the algorithm first ! 
+
+  #<erf.py>
+
+  import math
+  import psyco
+  psyco.full()
+
+  def erfc(x):
+      exp = math.exp
+
+      p  =  0.3275911
+      a1 =  0.254829592
+      a2 = -0.284496736
+      a3 =  1.421413741
+      a4 = -1.453152027
+      a5 =  1.061405429
+
+      t = 1.0 / (1.0 + p*x)
+      erfcx = ( (a1 + (a2 + (a3 +
+                            (a4 + a5*t)*t)*t)*t)*t ) * exp(-x*x)
+      return erfcx
+
+  def main():
+      erg = 0.0
+
+      for i in xrange(1000000):
+          erg += erfc(0.456)
+
+      print "%f" % erg
+
+  main()
+
+  #</erf.py>
+
+By the way, if you really want to go trough a C extension with a minimal
+departure from Python, you can use Pyrex by Greg Ewing. A Pyrex program
+is essentially a Python program with variable declarations that is
+automatically converted to C code. Alternatively, you can inline
+C functions is Python with ``weave`` of ... 
+Finally, if you want to access C/C++ libraries, there tools
+like Swig, Booster and others. 
+
+Tracing functions
+---------------------------------------------------------------------------
+
+Typically, a script contains many functions that call themselves each
+other when some conditions are satisfied. Also, typically during
+debugging things do not work the way we would like and it is not
+clear which functions are called, in which order they are called,
+and which parameters are passed. The best way to know all these
+informations, is to trace the functions in our script, and to write
+all the relevant informations in a log file. In order to keep the
+distinction between the traced functions and the original one, it
+is convenient to collect all the wrapped functions in a separate dictionary. 
+The tracing of a single function can be done with a closure 
+like this:
+
+::
+  
+  #<oopp.py>
+
+  def with_tracer(function,namespace='__main__',output=sys.stdout, indent=[0]):
+      """Closure returning traced functions. It is typically invoked
+      trough an auxiliary function fixing the parameters of with_tracer."""
+      def _(*args,**kw):
+          name=function.__name__
+          i=' '*indent[0]; indent[0]+=4 # increases indentation
+          output.write("%s[%s] Calling '%s' with arguments\n" % 
+                                                   (i,namespace,name))
+          output.write("%s %s ...\n" % (i,str(args)+str(kw)))
+          res=function(*args,**kw)
+          output.write("%s[%s.%s] called with result: %s\n"
+                           % (i,namespace,name,str(res)))
+          indent[0]-=4 # restores indentation
+          return res
+      return _ # the traced function
+
+  #</oopp.py>
+
+Here is an example of usage:
+
+  >>> from oopp import with_tracer
+  >>> def fact(n): # factorial function
+  ...     if n==1: return 1
+  ...     else: return n*fact(n-1)
+  >>> fact=with_tracer(fact)
+  >>> fact(3)
+  [__main__] Calling 'fact' with arguments
+   (3,){} ...
+      [__main__] Calling 'fact' with arguments
+       (2,){} ...
+          [__main__] Calling 'fact' with arguments
+           (1,){} ...
+          [__main__.fact] called with result: 1
+      [__main__.fact] called with result: 2
+  [__main__.fact] called with result: 6
+  6
+
+The logic behind ``with_tracer`` should be clear; the only trick is the
+usage of a default list as a way to store a global indentation parameter.
+Since ``indent`` is mutable, the value of ``indent[0]`` changes at any
+recursive call of the traced function, resulting in a nested display.
+
+Typically, one wants to trace all the functions in a given module; 
+this can be done trough the following function:
+
+ ::
+
+  #<oopp.py>
+
+  from types import *
+
+  isfunction=lambda f: isinstance(f,(FunctionType,BuiltinFunctionType))
+
+  def wrapfunctions(obj,wrapper,err=None,**options):
+      "Traces the callable objects in an object with a dictionary"
+      namespace=options.get('namespace',getattr(obj,'__name__',''))
+      output=options.get('output',sys.stdout)
+      dic=dict([(k,wrapper(v,namespace,output)) 
+                for k,v in attributes(obj).items() if isfunction(v)])
+      customize(obj,err,**dic)
+
+  #</oopp.py>
+
+Notice that 'wrapfunctions' accepts as first argument an object with 
+a ``__dict__`` attribute (such as a module or a class) or with some 
+explicit attributes (such as a simple object) and modifies it. One can 
+trace a module as in this example:
+
+ ::
+
+  #<tracemodule.py>
+
+  import oopp,random
+
+  oopp.wrapfunctions(random,oopp.with_tracer) 
+
+  random.random()
+
+  #</tracemodule.py>
+
+with output
+
+ ::
+
+  [random] Calling 'random' with arguments
+  (){} ...
+  -> 'random.random' called with result: 0.175450439202
+
+The beauty of the present approach is its generality: 'wrap' can be
+used to add any kind of capabilities to a pre-existing module.
+For instance, we could time the functions in a module, with the
+purpose of looking at the bottlenecks. To this aim, it is enough
+to use a 'timer' nested closure:
+
+An example of calling is  ``wrapfunction(obj,timer,iterations=1)``.
+
+We may also compose our closures; for instance one could define a 
+``with_timer_and_tracer`` closure:
+
+  >>> with_timer_and_tracer=lambda f: with_timer(with_tracer(f))
+
+It should be noticed that Python comes with a standard profiler
+(in my system it is located in ``/usr/local/lib/python2.2/profile.py``)
+that allows to profile a script or a module (try 
+python /usr/local/lib/python2.2/profile.py oopp.py)
+
+or 
+
+  >>> import profile; help(profile)
+
+and see the on-line documentation.
+
+Tracing objects
+----------------------------------------------------------------------
+
+In this section, I will give a more sophisticated example, in which 
+one can easily understand why the Python ability of changing methods and 
+attributes during run-time, is so useful.
+As a preparation to the real example, let me
+first introduce an utility routine that allows the user
+to add tracing capabilities to a given object.
+Needless to say, this feature can be invaluable during debugging, or in trying
+to understand the behaviour of a program written by others.
+
+This routine is a little complex and needs some explanation.
+
+1. The routine looks in the attributes of the object and try to access them.
+
+2. If the access is possible, the routines looks for methods (methods
+   are recognized trough the ``inspect.isroutine`` function in the
+   standard library) and ignores regular attributes;
+
+3. The routine try to override the original methods with improved ones,
+   that possess tracing capabilities;
+
+4. the traced method is obtained with the wrapping trick discussed before.
+
+I give  now the real life example that I have anticipated before.
+Improvements and elaborations of this example can be useful to the
+professional programmer, too. Suppose you have an XML text you want
+to parse. Python provides excellent support for this kind of operation
+and various standard modules. One of the most common is the ``expat``
+module (see the standard library documentation for more).
+
+If you are just starting using the module, it is certainly useful
+to have a way of tracing its behaviour; this is especially true if
+you you find some unexpected error during the parsing of a document
+(and this may happens even if you are an experience programmer ;-).
+
+The tracing routine just defined can be used to trace the parser, as
+it is exemplified in the following short script:
+
+ ::
+
+  #<expat.py>
+
+  import oopp, xml.parsers.expat, sys
+
+  # text to be parsed
+  text_xml="""\
+  <?xml version="1.0"?>
+  <parent id="dad">
+  <child name="kid">Text goes here</child>
+  </parent>"""
+
+  # a few do nothing functions
+  def start(*args): pass
+  def end(*args): pass
+  def handler(*args): pass
+
+  # a parser object
+  p = xml.parsers.expat.ParserCreate()
+
+  p.StartElementHandler = start
+  p.EndElementHandler = end
+  p.CharacterDataHandler = handler
+
+  #adds tracing capabilities to p
+  oopp.wrapfunctions(p,oopp.with_tracer, err=sys.stdout)
+
+  p.Parse(text_xml)
+
+  #</expat.py>
+
+The output is:
+
+ ::
+
+  Error: SetBase cannot be set
+  Error: Parse cannot be set
+  Error: ParseFile cannot be set
+  Error: GetBase cannot be set
+  Error: SetParamEntityParsing cannot be set
+  Error: ExternalEntityParserCreate cannot be set
+  Error: GetInputContext cannot be set
+  [] Calling 'start' with arguments
+   (u'parent', {u'id': u'dad'}){} ...
+  [.start] called with result: None
+  [] Calling 'handler' with arguments
+   (u'\n',){} ...
+  [.handler] called with result: None
+  [] Calling 'start' with arguments
+   (u'child', {u'name': u'kid'}){} ...
+  [.start] called with result: None
+  [] Calling 'handler' with arguments
+   (u'Text goes here',){} ...
+  [.handler] called with result: None
+  [] Calling 'end' with arguments
+   (u'child',){} ...
+  [.end] called with result: None
+  [] Calling 'handler' with arguments
+   (u'\n',){} ...
+  [.handler] called with result: None
+  [] Calling 'end' with arguments
+   (u'parent',){} ...
+  [.end] called with result: None
+
+
+This is a case where certain methods cannot be managed with 
+``getattr/setattr``, because they are internally coded in C: this
+explain the error messages at the beginning. I leave as an exercise 
+for the reader to understand the rest ;-)
+
+Inspecting functions
+----------------------------------------------------------------------
+
+Python wonderful introspection features are really impressive when applied
+to functions. It is possible to extract a big deal of informations
+from a Python function, by looking at its associated *code object*.
+For instance, let me consider  my, ``do_nothing`` function: its associated
+code object can be extracted from the ``func_code`` attribute:
+
+  >>> from oopp import *
+  >>> co=do_nothing.func_code # extracts the code object
+  >>> co
+  <code object do_nothing at 0x402c5d20, file "oopp.py", line 48>
+  >>> type(co)
+  <type 'code'>
+
+The code object is far being trivial: the docstring says it all:
+
+  >>> print type(co).__doc__
+  code(argcount, nlocals, stacksize, flags, codestring, constants, names,
+        varnames, filename, name, firstlineno, lnotab[, freevars[, cellvars]])
+  Create a code object.  Not for the faint of heart.
+
+In the case of my ``do_nothing`` function, the code object 
+possesses the following attributes:
+
+  >>> print pretty(attributes(co))
+  co_argcount = 0
+  co_cellvars = ()
+  co_code = dS
+  co_consts = (None,)
+  co_filename = oopp.py
+  co_firstlineno = 48
+  co_flags = 15
+  co_freevars = ()
+  co_lnotab =
+  co_name = do_nothing
+  co_names = ()
+  co_nlocals = 2
+  co_stacksize = 1
+  co_varnames = ('args', 'kw')
+
+Some of these arguments are pretty technical and implementation dependent;
+however, some of these are pretty clear and useful:
+
+ - co_argcount is the total number of arguments
+ - co_filename is the name of the file where the function is defined
+ - co_firstlineno is the line number where the function is defined
+ - co_name is the name of the function
+ - co_varnames are the names
+
+The programmer that it is not a "faint of heart" can study
+the built-in documentation on code objects; s/he should try
+
+ ::
+
+  for k,v in attributes(co).iteritems(): print k,':',v.__doc__,'\n'
+
+ ::
+
+  add=[lambda x,i=i: x+i for i in range(10)]
+
+  >>> def f(y):
+  ...    return lambda x: x+y
+  ...
+  >>> f(1).func_closure #closure cell object
+  (<cell at 0x402b56bc: int object at 0x811d6c8>,)
+
+func.defaults, closure, etc.
+
+#how to extract (non-default) arguments as help does.
+
+print (lambda:None).func_code.co_filename
+
+One cannot change the name of a function:
+
+  >>> def f(): pass
+  ...
+  >>> f.__name__='ciao' # error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: readonly attribute
+
+However, one can create a copy with a different name:
+
+ ::
+
+  #<oopp.py>
+
+  def copyfunc(f,newname=None): # works under Python 2.3
+      if newname is None: newname=f.func_name # same name
+      return FunctionType(f.func_code, globals(), newname, 
+                           f.func_defaults, f.func_closure)
+
+  #</oopp.py>
+
+  >>> copyfunc(f,newname='f2')
+  <function f2 at 0x403e233c>
+
+Notice that the ``copy`` module would not do the job:
+
+  >>> import copy
+  >>> copy.copy(f) # error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+    File "/usr/local/lib/python2.3/copy.py", line 84, in copy
+      y = _reconstruct(x, reductor(), 0)
+    File "/usr/local/lib/python2.3/copy_reg.py", line 57, in _reduce
+      raise TypeError, "can't pickle %s objects" % base.__name__
+  TypeError: can't pickle function objects

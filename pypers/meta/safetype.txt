@@ -1,0 +1,160 @@
+SOLVING THE METACLASS CONFLICT
+=========================================================================
+
+Summary:
+------------------------------------------------------------------------
+
+Any serious user of metaclasses has been bitten at least once by the 
+infamous metaclass/metatype conflict. The module ``safetype`` is the solution.
+
+Discussion
+---------------------------------------------------------
+
+I think that not too many programmers are familiar with metaclasses and 
+metatype conflicts, therefore let me be pedagogical ;) 
+
+The simplest case where a metatype conflict happens is the following.
+Consider a class ``A`` with metaclass ``M_A`` and a class ``B`` with
+an independent metaclass ``M_B``; suppose we derive ``C`` from ``A`` 
+and ``B``. The question is: what is the metaclass of ``C`` ? 
+Is it ``M_A`` or ``M_B`` ?
+
+  >>> class M_A(type): 
+  ...     pass
+  >>> class M_B(type): 
+  ...     pass
+  >>> class A(object):
+  ...     __metaclass__=M_A
+  >>> class B(object):
+  ...     __metaclass__=M_B
+  >>> class C(A,B): 
+  ...     pass 
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+The correct answer (see the book "Putting metaclasses to work" for a 
+thought discussion) is ``M_C``, where ``M_C`` is a metaclass that inherits 
+from ``M_A`` and ``M_B``, as in the following graph, where instantiation 
+is denoted by colon lines:
+
+  ::
+
+
+             M_A     M_B
+              : \   / :
+              :  \ /  :
+              A  M_C  B
+               \  :  /
+                \ : /
+                  C
+
+
+However, Python is not that magic, and it does not automatically create 
+``M_C``. Instead, it raises a ``TypeError``, warning the programmer of
+the possible confusion. The metatype conflict can be avoided 
+by assegning the correct metaclass to ``C`` by hand:
+
+  >>> class M_AM_B(M_A,M_B): pass
+  ...
+  >>> class C(A,B): 
+  ...     __metaclass__=M_AM_B
+  >>> C,type(C)
+  (<class 'C'>, <class 'M_AM_B'>)
+
+In general, a class ``A(B, C, D , ...)`` can be generated without conflicts 
+only if ``type(A)`` is a subclass of each of ``type(B), type(C), ...``
+
+
+Another example where the conflict arise is the
+following:
+
+  >>> class D(A):
+  ...     __metaclass__=M_B
+  Traceback (most recent call last):
+    File "<string>", line 1, in ?
+  TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+Here the problem is that since ``D`` inherits from ``A``, its metaclass must 
+inherit from ``M_A`` and cannot be ``M_B``. 
+
+It is possible to automatically avoid conflicts, by deriving the metaclasses
+from the ``safetype`` metaclass:
+
+  >>> from safetype import safetype as type
+  >>> class M_A(type): 
+  ...     pass
+  >>> class M_B(type): 
+  ...     pass
+  >>> class A(object):
+  ...     __metaclass__=M_A
+  >>> class B(object):
+  ...     __metaclass__=M_B
+  >>> class C(A,B): 
+  ...     pass 
+  >>> C 
+  <class 'C'>
+  >>> type(C) # automatically generated metaclass
+  <class 'safetype.M_AM_B'>
+
+In order to avoid to generate twice the same metaclass,,
+they are stored in a dictionary. In particular, when ``_generatemetaclass`` 
+is invoked with the same arguments it returns the same metaclass.
+
+  >>> class D(A,B):
+  ...     pass
+  >>> type(D) 
+  <class 'safetype.M_AM_B'>
+  >>> type(C) is type(D)
+  True
+
+``safetype`` solves the problem by automatically inheriting both from
+``M_A`` and ``M_B``:
+
+  >>> class D(A):
+  ...     __metaclass__=M_B
+  >>> type(D)
+  <class 'safetype.M_BM_A'>
+
+``generatemetaclass`` automatically skips unneeded metaclasses,
+
+  >>> class M0(type): pass
+  ...
+  >>> class M1(M0): pass
+  ...
+  >>> class B: __metaclass__=M0
+  ...
+  >>> class C(B): __metaclass__=M1
+  ...
+  >>> print C,type(C)
+  <class 'C'> <class 'M1'>
+
+i.e. in this example where ``M1`` is a subclass of ``M0``, it
+returns ``M1`` and does not generate a redundant metaclass ``M0M1``.
+
+``makecls`` also solves the meta-metaclass conflict, and generic higher
+order conflicts:
+
+  >>> class MM1(type): pass
+  ...
+  >>> class MM2(type): pass
+  ...
+  >>> class M1(type): __metaclass__=MM1
+  ...
+  >>> class M2(type): __metaclass__=MM2
+  ...
+  >>> class A: __metaclass__=M1
+  ...
+  >>> class B: __metaclass__=M2
+  ...
+  >>> class C(A,B): pass
+  ...
+  >>> print C,type(C),type(type(C))
+  <class 'C'> <class 'safetype.M1M2'> <class 'safetype.MM1MM2'>
+
+----
+
+I thank David Mertz for help in polishing the original version of the code. 
+This version has largerly profited from discussion with Phillip J. Eby.
+
+These examples here have been checked with doctest on Python 2.3.

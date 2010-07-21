@@ -1,0 +1,54 @@
+In the first cycle - the introductory episodes - my goal was to reach
+the great public: everybody could read the episodes without knowing
+Scheme at all. The topics I discussed, such as the difference between
+iteration and recursion and the dangers of the benchmarks, where
+language-independent and (hopefully) interesting for all readers.
+
+However, now I will begin to discuss the peculiar features of
+Scheme. The second cycle will be a six-part introduction to Scheme
+macros, whereas the next one will discuss many functional techiques.
+Actually, Scheme allows a whole set of programming techniques with no
+equivalent in Python or in *any other language*: that means that you
+cannot rely on previous knowledge and that you have to make an effort
+in order to understand them.
+
+If you want to follow the next *Adventures*, reading the articles
+will not be enough: you will need to *write* too. I expect
+my reader to download a Scheme implementation and to start writing
+down toy programs. The series will give some hints and code challenges,
+but it will be up to you to implement them.
+
+I expect to lose a few readers, since many people will not have the time
+to follow the series closely, but so be it. I do not want to follow
+the approach of dumbing down the language and therefore
+losing the point of it. I will make an effort to make things
+as simple as possible, but not simplest.
+
+Scheme is not a language for everybody, yet the series is not
+meant to be elitist, and actually it should be much easier to follow
+than a textbook or the R6RS document itself.
+
+I have a note for my Italian readers, the ones who read the
+original version of this series. Whereas the articles in the first
+cycle are a close translation of the originals, the articles in
+the second cycle (starting from episode #9) are quite different.
+
+The reason is that I have decided to change my presentation
+about macros and not to talk about ``syntax-rules`` macros
+directly, for pedagogical purposes. Therefore, you
+may want to read the English version even if you have already
+read the Italian version.
+
+Conversely, people reading the English version may want to give a
+look at the Italian version too (you can use Google Translator or
+just look at the code) since it describes more advanced
+techniques that in the English version will be discussed in a
+future cycle.
+
+If you have comments of any kind (did you like the series so far?)
+you are invited to post them here.
+
+I will see you in episode #7, if you are interested in list processing!
+
+
+                         *Michele Simionato*

@@ -1,0 +1,27 @@
+#<chop.py>
+
+def chop(iterable, n):
+    bin = []
+    for i, el in enumerate(iterable):
+        bin.append(el)
+        if i % n == n-1:
+            yield bin; bin = []
+    if bin:
+        yield bin
+
+#</chop.py>
+
+>>> from chop import chop
+>>> ls = ["a", "b", "c", "d", "e", "f"]
+
+>>> print list(chop(ls, 2))
+[['a', 'b'], ['c', 'd'], ['e', 'f']]
+
+>>> print list(chop(ls, 3))
+[['a', 'b', 'c'], ['d', 'e', 'f']]
+
+>>> print list(chop(ls, 1)) 
+[['a'], ['b'], ['c'], ['d'], ['e'], ['f']]
+
+>>> print list(chop("abcdefg", 2))
+[['a', 'b'], ['c', 'd'], ['e', 'f'], ['g']]

@@ -1,0 +1,5633 @@
+%PDF-1.3
+%“Œ‹ž ReportLab Generated PDF document http://www.reportlab.com
+% 'BasicFonts': class PDFDictionary 
+1 0 obj
+% The standard fonts dictionary
+<< /F1 2 0 R
+ /F2 3 0 R
+ /F3 4 0 R
+ /F4 8 0 R
+ /F5 9 0 R >>
+endobj
+% 'F1': class PDFType1Font 
+2 0 obj
+% Font Helvetica
+<< /BaseFont /Helvetica
+ /Encoding /WinAnsiEncoding
+ /Name /F1
+ /Subtype /Type1
+ /Type /Font >>
+endobj
+% 'F2': class PDFType1Font 
+3 0 obj
+% Font Helvetica-Bold
+<< /BaseFont /Helvetica-Bold
+ /Encoding /WinAnsiEncoding
+ /Name /F2
+ /Subtype /Type1
+ /Type /Font >>
+endobj
+% 'F3': class PDFType1Font 
+4 0 obj
+% Font Times-Roman
+<< /BaseFont /Times-Roman
+ /Encoding /WinAnsiEncoding
+ /Name /F3
+ /Subtype /Type1
+ /Type /Font >>
+endobj
+% 'Annot.NUMBER1': class PDFDictionary 
+5 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (mailto:michele.simionato@gmail.com) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 153.7323
+ 707.5936
+ 526.5827
+ 719.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER2': class PDFDictionary 
+6 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 153.7323
+ 677.5936
+ 526.5827
+ 689.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER3': class PDFDictionary 
+7 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://micheles.googlecode.com/hg/plac/doc/plac.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 153.7323
+ 650.5936
+ 526.5827
+ 662.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'F4': class PDFType1Font 
+8 0 obj
+% Font Courier
+<< /BaseFont /Courier
+ /Encoding /WinAnsiEncoding
+ /Name /F4
+ /Subtype /Type1
+ /Type /Font >>
+endobj
+% 'F5': class PDFType1Font 
+9 0 obj
+% Font Helvetica-Oblique
+<< /BaseFont /Helvetica-Oblique
+ /Encoding /WinAnsiEncoding
+ /Name /F5
+ /Subtype /Type1
+ /Type /Font >>
+endobj
+% 'Annot.NUMBER4': class LinkAnnotation 
+10 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 45 0 R
+ /XYZ
+ 62.69291
+ 236.0236
+ 0 ]
+ /Rect [ 62.69291
+ 506.5936
+ 121.0229
+ 518.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER5': class LinkAnnotation 
+11 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 45 0 R
+ /XYZ
+ 62.69291
+ 236.0236
+ 0 ]
+ /Rect [ 527.0227
+ 506.5936
+ 532.5827
+ 518.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER6': class LinkAnnotation 
+12 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 49 0 R
+ /XYZ
+ 62.69291
+ 717.0236
+ 0 ]
+ /Rect [ 62.69291
+ 488.5936
+ 249.4129
+ 500.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER7': class LinkAnnotation 
+13 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 49 0 R
+ /XYZ
+ 62.69291
+ 717.0236
+ 0 ]
+ /Rect [ 527.0227
+ 488.5936
+ 532.5827
+ 500.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER8': class LinkAnnotation 
+14 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 51 0 R
+ /XYZ
+ 62.69291
+ 259.4236
+ 0 ]
+ /Rect [ 62.69291
+ 470.5936
+ 184.9529
+ 482.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER9': class LinkAnnotation 
+15 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 51 0 R
+ /XYZ
+ 62.69291
+ 259.4236
+ 0 ]
+ /Rect [ 527.0227
+ 470.5936
+ 532.5827
+ 482.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER10': class LinkAnnotation 
+16 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 52 0 R
+ /XYZ
+ 62.69291
+ 222.6236
+ 0 ]
+ /Rect [ 62.69291
+ 452.5936
+ 134.4029
+ 464.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER11': class LinkAnnotation 
+17 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 52 0 R
+ /XYZ
+ 62.69291
+ 222.6236
+ 0 ]
+ /Rect [ 527.0227
+ 452.5936
+ 532.5827
+ 464.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER12': class LinkAnnotation 
+18 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 66 0 R
+ /XYZ
+ 62.69291
+ 588.7757
+ 0 ]
+ /Rect [ 62.69291
+ 434.5936
+ 148.2829
+ 446.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER13': class LinkAnnotation 
+19 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 66 0 R
+ /XYZ
+ 62.69291
+ 588.7757
+ 0 ]
+ /Rect [ 527.0227
+ 434.5936
+ 532.5827
+ 446.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER14': class LinkAnnotation 
+20 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 71 0 R
+ /XYZ
+ 62.69291
+ 671.8236
+ 0 ]
+ /Rect [ 62.69291
+ 416.5936
+ 201.0529
+ 428.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER15': class LinkAnnotation 
+21 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 71 0 R
+ /XYZ
+ 62.69291
+ 671.8236
+ 0 ]
+ /Rect [ 527.0227
+ 416.5936
+ 532.5827
+ 428.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER16': class LinkAnnotation 
+22 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 77 0 R
+ /XYZ
+ 62.69291
+ 562.2269
+ 0 ]
+ /Rect [ 62.69291
+ 398.5936
+ 144.3729
+ 410.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER17': class LinkAnnotation 
+23 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 77 0 R
+ /XYZ
+ 62.69291
+ 562.2269
+ 0 ]
+ /Rect [ 527.0227
+ 398.5936
+ 532.5827
+ 410.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER18': class LinkAnnotation 
+24 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 93 0 R
+ /XYZ
+ 62.69291
+ 715.8236
+ 0 ]
+ /Rect [ 62.69291
+ 380.5936
+ 137.7129
+ 392.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER19': class LinkAnnotation 
+25 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 93 0 R
+ /XYZ
+ 62.69291
+ 715.8236
+ 0 ]
+ /Rect [ 521.4627
+ 380.5936
+ 532.5827
+ 392.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER20': class LinkAnnotation 
+26 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 96 0 R
+ /XYZ
+ 62.69291
+ 242.2236
+ 0 ]
+ /Rect [ 62.69291
+ 362.5936
+ 193.8529
+ 374.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER21': class LinkAnnotation 
+27 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 96 0 R
+ /XYZ
+ 62.69291
+ 242.2236
+ 0 ]
+ /Rect [ 521.4627
+ 362.5936
+ 532.5827
+ 374.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER22': class LinkAnnotation 
+28 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 99 0 R
+ /XYZ
+ 62.69291
+ 253.4236
+ 0 ]
+ /Rect [ 62.69291
+ 344.5936
+ 201.6029
+ 356.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER23': class LinkAnnotation 
+29 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 99 0 R
+ /XYZ
+ 62.69291
+ 253.4236
+ 0 ]
+ /Rect [ 521.4627
+ 344.5936
+ 532.5827
+ 356.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER24': class LinkAnnotation 
+30 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 104 0 R
+ /XYZ
+ 62.69291
+ 765.0236
+ 0 ]
+ /Rect [ 62.69291
+ 326.5936
+ 182.7029
+ 338.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER25': class LinkAnnotation 
+31 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 104 0 R
+ /XYZ
+ 62.69291
+ 765.0236
+ 0 ]
+ /Rect [ 521.4627
+ 326.5936
+ 532.5827
+ 338.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER26': class LinkAnnotation 
+32 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 104 0 R
+ /XYZ
+ 62.69291
+ 223.6236
+ 0 ]
+ /Rect [ 62.69291
+ 308.5936
+ 163.2729
+ 320.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER27': class LinkAnnotation 
+33 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 104 0 R
+ /XYZ
+ 62.69291
+ 223.6236
+ 0 ]
+ /Rect [ 521.4627
+ 308.5936
+ 532.5827
+ 320.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER28': class LinkAnnotation 
+34 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 109 0 R
+ /XYZ
+ 62.69291
+ 419.8236
+ 0 ]
+ /Rect [ 62.69291
+ 290.5936
+ 266.0929
+ 302.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER29': class LinkAnnotation 
+35 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 109 0 R
+ /XYZ
+ 62.69291
+ 419.8236
+ 0 ]
+ /Rect [ 521.4627
+ 290.5936
+ 532.5827
+ 302.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER30': class LinkAnnotation 
+36 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 112 0 R
+ /XYZ
+ 62.69291
+ 621.0236
+ 0 ]
+ /Rect [ 62.69291
+ 272.5936
+ 108.2629
+ 284.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER31': class LinkAnnotation 
+37 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 112 0 R
+ /XYZ
+ 62.69291
+ 621.0236
+ 0 ]
+ /Rect [ 521.4627
+ 272.5936
+ 532.5827
+ 284.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER32': class LinkAnnotation 
+38 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 112 0 R
+ /XYZ
+ 62.69291
+ 354.0236
+ 0 ]
+ /Rect [ 62.69291
+ 254.5936
+ 241.6029
+ 266.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER33': class LinkAnnotation 
+39 0 obj
+<< /Border [ 0
+ 0
+ 0 ]
+ /Contents ()
+ /Dest [ 112 0 R
+ /XYZ
+ 62.69291
+ 354.0236
+ 0 ]
+ /Rect [ 521.4627
+ 254.5936
+ 532.5827
+ 266.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER34': class PDFDictionary 
+40 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 185.4471
+ 200.5936
+ 207.1062
+ 212.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER35': class PDFDictionary 
+41 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 177.6784
+ 188.5936
+ 199.6123
+ 200.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER36': class PDFDictionary 
+42 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 62.69291
+ 134.5936
+ 83.81291
+ 146.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER37': class PDFDictionary 
+43 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 278.4678
+ 116.5936
+ 300.0328
+ 128.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER38': class PDFDictionary 
+44 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 117.3573
+ 104.5936
+ 138.5845
+ 116.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page1': class PDFPage 
+45 0 obj
+% Page dictionary
+<< /Annots [ 5 0 R
+ 6 0 R
+ 7 0 R
+ 10 0 R
+ 11 0 R
+ 12 0 R
+ 13 0 R
+ 14 0 R
+ 15 0 R
+ 16 0 R
+ 17 0 R
+ 18 0 R
+ 19 0 R
+ 20 0 R
+ 21 0 R
+ 22 0 R
+ 23 0 R
+ 24 0 R
+ 25 0 R
+ 26 0 R
+ 27 0 R
+ 28 0 R
+ 29 0 R
+ 30 0 R
+ 31 0 R
+ 32 0 R
+ 33 0 R
+ 34 0 R
+ 35 0 R
+ 36 0 R
+ 37 0 R
+ 38 0 R
+ 39 0 R
+ 40 0 R
+ 41 0 R
+ 42 0 R
+ 43 0 R
+ 44 0 R ]
+ /Contents 133 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER39': class PDFDictionary 
+46 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://twill.idyll.org/) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 83.20457
+ 744.5936
+ 105.3762
+ 756.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER40': class PDFDictionary 
+47 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 128.6679
+ 744.5936
+ 147.0079
+ 756.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER41': class PDFDictionary 
+48 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://micheles.googlecode.com/hg/plac/doc/plac.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 62.69291
+ 585.5936
+ 157.1829
+ 597.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page2': class PDFPage 
+49 0 obj
+% Page dictionary
+<< /Annots [ 46 0 R
+ 47 0 R
+ 48 0 R ]
+ /Contents 134 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER42': class PDFDictionary 
+50 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 383.9329
+ 304.9936
+ 405.0529
+ 316.9936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page3': class PDFPage 
+51 0 obj
+% Page dictionary
+<< /Annots [ 50 0 R ]
+ /Contents 135 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Page4': class PDFPage 
+52 0 obj
+% Page dictionary
+<< /Contents 136 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER43': class PDFDictionary 
+53 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 370.6785
+ 579.3936
+ 392.4956
+ 591.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER44': class PDFDictionary 
+54 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 455.8742
+ 579.3936
+ 477.6913
+ 591.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER45': class PDFDictionary 
+55 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 185.9351
+ 364.6093
+ 207.4695
+ 376.6093 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER46': class PDFDictionary 
+56 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/library/shlex.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 369.8905
+ 364.6093
+ 396.425
+ 376.6093 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER47': class PDFDictionary 
+57 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 408.8916
+ 352.6093
+ 427.2316
+ 364.6093 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER48': class PDFDictionary 
+58 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/library/shlex.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 62.69291
+ 340.6093
+ 86.03291
+ 352.6093 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER49': class PDFDictionary 
+59 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 92.4689
+ 340.6093
+ 114.4649
+ 352.6093 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER50': class PDFDictionary 
+60 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/library/shlex.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 143.2929
+ 328.6093
+ 169.4129
+ 340.6093 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER51': class PDFDictionary 
+61 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 129.6923
+ 256.6093
+ 151.4655
+ 268.6093 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER52': class PDFDictionary 
+62 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 173.8529
+ 244.6093
+ 194.9729
+ 256.6093 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page5': class PDFPage 
+63 0 obj
+% Page dictionary
+<< /Annots [ 53 0 R
+ 54 0 R
+ 55 0 R
+ 56 0 R
+ 57 0 R
+ 58 0 R
+ 59 0 R
+ 60 0 R
+ 61 0 R
+ 62 0 R ]
+ /Contents 137 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER53': class PDFDictionary 
+64 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 460.388
+ 541.3457
+ 482.0127
+ 553.3457 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER54': class PDFDictionary 
+65 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 95.32996
+ 475.3457
+ 116.857
+ 487.3457 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page6': class PDFPage 
+66 0 obj
+% Page dictionary
+<< /Annots [ 64 0 R
+ 65 0 R ]
+ /Contents 138 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER55': class PDFDictionary 
+67 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://micheles.googlecode.com/hg/plac/doc/plac.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 316.3528
+ 636.3936
+ 409.2453
+ 648.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER56': class PDFDictionary 
+68 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 419.1694
+ 624.3936
+ 440.4061
+ 636.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER57': class PDFDictionary 
+69 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 62.69291
+ 594.3936
+ 84.70395
+ 606.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER58': class PDFDictionary 
+70 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 293.2359
+ 516.3936
+ 316.4697
+ 528.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page7': class PDFPage 
+71 0 obj
+% Page dictionary
+<< /Annots [ 67 0 R
+ 68 0 R
+ 69 0 R
+ 70 0 R ]
+ /Contents 139 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER59': class PDFDictionary 
+72 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 431.7904
+ 531.3936
+ 453.7245
+ 543.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER60': class PDFDictionary 
+73 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 255.5885
+ 501.3936
+ 278.2757
+ 513.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER61': class PDFDictionary 
+74 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/library/cmd.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 513.6927
+ 477.3936
+ 532.1846
+ 489.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page8': class PDFPage 
+75 0 obj
+% Page dictionary
+<< /Annots [ 72 0 R
+ 73 0 R
+ 74 0 R ]
+ /Contents 140 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER62': class PDFDictionary 
+76 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 179.0529
+ 526.7969
+ 201.1953
+ 538.7969 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page9': class PDFPage 
+77 0 obj
+% Page dictionary
+<< /Annots [ 76 0 R ]
+ /Contents 141 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER63': class PDFDictionary 
+78 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://freshmeat.net/projects/rlwrap/) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 377.8504
+ 621.3936
+ 409.861
+ 633.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER64': class PDFDictionary 
+79 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 242.4466
+ 609.3936
+ 263.7922
+ 621.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER65': class PDFDictionary 
+80 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 62.69291
+ 585.3936
+ 85.67624
+ 597.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER66': class PDFDictionary 
+81 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 211.9062
+ 573.3936
+ 236.7428
+ 585.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER67': class PDFDictionary 
+82 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/library/cmd.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 366.9454
+ 543.3936
+ 388.8033
+ 555.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER68': class PDFDictionary 
+83 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/library/cmd.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 170.8855
+ 531.3936
+ 189.7755
+ 543.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER69': class PDFDictionary 
+84 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://argparse.googlecode.com) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 390.8027
+ 190.1936
+ 435.0027
+ 202.1936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER70': class PDFDictionary 
+85 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 213.451
+ 178.1936
+ 237.5255
+ 190.1936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER71': class PDFDictionary 
+86 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://argparse.googlecode.com) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 114.9429
+ 154.1936
+ 157.1829
+ 166.1936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER72': class PDFDictionary 
+87 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 385.0429
+ 154.1936
+ 403.3829
+ 166.1936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER73': class PDFDictionary 
+88 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 514.2427
+ 124.1936
+ 532.3264
+ 136.1936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER74': class PDFDictionary 
+89 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 256.6729
+ 94.19362
+ 277.7929
+ 106.1936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page10': class PDFPage 
+90 0 obj
+% Page dictionary
+<< /Annots [ 78 0 R
+ 79 0 R
+ 80 0 R
+ 81 0 R
+ 82 0 R
+ 83 0 R
+ 84 0 R
+ 85 0 R
+ 86 0 R
+ 87 0 R
+ 88 0 R
+ 89 0 R ]
+ /Contents 142 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER75': class PDFDictionary 
+91 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 149.5469
+ 680.3936
+ 172.1982
+ 692.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER76': class PDFDictionary 
+92 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/distutils/) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 224.3178
+ 668.3936
+ 260.8853
+ 680.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page11': class PDFPage 
+93 0 obj
+% Page dictionary
+<< /Annots [ 91 0 R
+ 92 0 R ]
+ /Contents 143 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER77': class PDFDictionary 
+94 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://argparse.googlecode.com) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 381.1529
+ 615.3936
+ 423.3929
+ 627.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER78': class PDFDictionary 
+95 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 62.69291
+ 206.7936
+ 84.72012
+ 218.7936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page12': class PDFPage 
+96 0 obj
+% Page dictionary
+<< /Annots [ 94 0 R
+ 95 0 R ]
+ /Contents 144 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Page13': class PDFPage 
+97 0 obj
+% Page dictionary
+<< /Contents 145 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER79': class PDFDictionary 
+98 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 182.479
+ 217.9936
+ 203.7662
+ 229.9936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page14': class PDFPage 
+99 0 obj
+% Page dictionary
+<< /Annots [ 98 0 R ]
+ /Contents 146 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER80': class PDFDictionary 
+100 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/library/multiprocessing.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 295.0229
+ 134.9936
+ 367.2629
+ 146.9936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page15': class PDFPage 
+101 0 obj
+% Page dictionary
+<< /Annots [ 100 0 R ]
+ /Contents 147 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER81': class PDFDictionary 
+102 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 179.1295
+ 729.5936
+ 201.6839
+ 741.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER82': class PDFDictionary 
+103 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 414.8874
+ 251.1936
+ 436.9487
+ 263.1936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page16': class PDFPage 
+104 0 obj
+% Page dictionary
+<< /Annots [ 102 0 R
+ 103 0 R ]
+ /Contents 148 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER83': class PDFDictionary 
+105 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 122.7054
+ 756.5936
+ 145.2085
+ 768.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page17': class PDFPage 
+106 0 obj
+% Page dictionary
+<< /Annots [ 105 0 R ]
+ /Contents 149 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER84': class PDFDictionary 
+107 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 183.3657
+ 372.3936
+ 207.8364
+ 384.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER85': class PDFDictionary 
+108 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://docs.python.org/library/multiprocessing.html) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 254.9929
+ 348.3936
+ 327.2329
+ 360.3936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page18': class PDFPage 
+109 0 obj
+% Page dictionary
+<< /Annots [ 107 0 R
+ 108 0 R ]
+ /Contents 150 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Annot.NUMBER86': class PDFDictionary 
+110 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 91.57623
+ 585.5936
+ 114.8995
+ 597.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Annot.NUMBER87': class PDFDictionary 
+111 0 obj
+<< /A << /S /URI
+ /Type /Action
+ /URI (http://pypi.python.org/pypi/plac) >>
+ /Border [ 0
+ 0
+ 0 ]
+ /Rect [ 106.6216
+ 318.5936
+ 128.3202
+ 330.5936 ]
+ /Subtype /Link
+ /Type /Annot >>
+endobj
+% 'Page19': class PDFPage 
+112 0 obj
+% Page dictionary
+<< /Annots [ 110 0 R
+ 111 0 R ]
+ /Contents 151 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'Page20': class PDFPage 
+113 0 obj
+% Page dictionary
+<< /Contents 152 0 R
+ /MediaBox [ 0
+ 0
+ 595.2756
+ 841.8898 ]
+ /Parent 132 0 R
+ /Resources << /Font 1 0 R
+ /ProcSet [ /PDF
+ /Text
+ /ImageB
+ /ImageC
+ /ImageI ] >>
+ /Rotate 0
+ /Trans <<  >>
+ /Type /Page >>
+endobj
+% 'R114': class PDFCatalog 
+114 0 obj
+% Document Root
+<< /Outlines 116 0 R
+ /PageLabels 153 0 R
+ /PageMode /UseNone
+ /Pages 132 0 R
+ /Type /Catalog >>
+endobj
+% 'R115': class PDFInfo 
+115 0 obj
+<< /Author (Michele Simionato)
+ /CreationDate (D:20100710083035-01'00')
+ /Keywords ()
+ /Producer (ReportLab http://www.reportlab.com)
+ /Subject (\(unspecified\))
+ /Title (Advanced usages of plac) >>
+endobj
+% 'R116': class PDFOutlines 
+116 0 obj
+<< /Count 15
+ /First 117 0 R
+ /Last 131 0 R
+ /Type /Outlines >>
+endobj
+% 'Outline.0': class OutlineEntryObject 
+117 0 obj
+<< /Dest [ 45 0 R
+ /XYZ
+ 62.69291
+ 236.0236
+ 0 ]
+ /Next 118 0 R
+ /Parent 116 0 R
+ /Title (Introduction) >>
+endobj
+% 'Outline.1': class OutlineEntryObject 
+118 0 obj
+<< /Dest [ 49 0 R
+ /XYZ
+ 62.69291
+ 717.0236
+ 0 ]
+ /Next 119 0 R
+ /Parent 116 0 R
+ /Prev 117 0 R
+ /Title (From scripts to interactive applications) >>
+endobj
+% 'Outline.2': class OutlineEntryObject 
+119 0 obj
+<< /Dest [ 51 0 R
+ /XYZ
+ 62.69291
+ 259.4236
+ 0 ]
+ /Next 120 0 R
+ /Parent 116 0 R
+ /Prev 118 0 R
+ /Title (Testing a plac application) >>
+endobj
+% 'Outline.3': class OutlineEntryObject 
+120 0 obj
+<< /Dest [ 52 0 R
+ /XYZ
+ 62.69291
+ 222.6236
+ 0 ]
+ /Next 121 0 R
+ /Parent 116 0 R
+ /Prev 119 0 R
+ /Title (Plac easy tests) >>
+endobj
+% 'Outline.4': class OutlineEntryObject 
+121 0 obj
+<< /Dest [ 66 0 R
+ /XYZ
+ 62.69291
+ 588.7757
+ 0 ]
+ /Next 122 0 R
+ /Parent 116 0 R
+ /Prev 120 0 R
+ /Title (Plac batch scripts) >>
+endobj
+% 'Outline.5': class OutlineEntryObject 
+122 0 obj
+<< /Dest [ 71 0 R
+ /XYZ
+ 62.69291
+ 671.8236
+ 0 ]
+ /Next 123 0 R
+ /Parent 116 0 R
+ /Prev 121 0 R
+ /Title (Implementing subcommands) >>
+endobj
+% 'Outline.6': class OutlineEntryObject 
+123 0 obj
+<< /Dest [ 77 0 R
+ /XYZ
+ 62.69291
+ 562.2269
+ 0 ]
+ /Next 124 0 R
+ /Parent 116 0 R
+ /Prev 122 0 R
+ /Title (Readline support) >>
+endobj
+% 'Outline.7': class OutlineEntryObject 
+124 0 obj
+<< /Dest [ 93 0 R
+ /XYZ
+ 62.69291
+ 715.8236
+ 0 ]
+ /Next 125 0 R
+ /Parent 116 0 R
+ /Prev 123 0 R
+ /Title (The plac runner) >>
+endobj
+% 'Outline.8': class OutlineEntryObject 
+125 0 obj
+<< /Dest [ 96 0 R
+ /XYZ
+ 62.69291
+ 242.2236
+ 0 ]
+ /Next 126 0 R
+ /Parent 116 0 R
+ /Prev 124 0 R
+ /Title (A non class-based example) >>
+endobj
+% 'Outline.9': class OutlineEntryObject 
+126 0 obj
+<< /Dest [ 99 0 R
+ /XYZ
+ 62.69291
+ 253.4236
+ 0 ]
+ /Next 127 0 R
+ /Parent 116 0 R
+ /Prev 125 0 R
+ /Title (Writing your own plac runner) >>
+endobj
+% 'Outline.10': class OutlineEntryObject 
+127 0 obj
+<< /Dest [ 104 0 R
+ /XYZ
+ 62.69291
+ 765.0236
+ 0 ]
+ /Next 128 0 R
+ /Parent 116 0 R
+ /Prev 126 0 R
+ /Title (Long running commands) >>
+endobj
+% 'Outline.11': class OutlineEntryObject 
+128 0 obj
+<< /Dest [ 104 0 R
+ /XYZ
+ 62.69291
+ 223.6236
+ 0 ]
+ /Next 129 0 R
+ /Parent 116 0 R
+ /Prev 127 0 R
+ /Title (Threaded commands) >>
+endobj
+% 'Outline.12': class OutlineEntryObject 
+129 0 obj
+<< /Dest [ 109 0 R
+ /XYZ
+ 62.69291
+ 419.8236
+ 0 ]
+ /Next 130 0 R
+ /Parent 116 0 R
+ /Prev 128 0 R
+ /Title (Running commands as external processes) >>
+endobj
+% 'Outline.13': class OutlineEntryObject 
+130 0 obj
+<< /Dest [ 112 0 R
+ /XYZ
+ 62.69291
+ 621.0236
+ 0 ]
+ /Next 131 0 R
+ /Parent 116 0 R
+ /Prev 129 0 R
+ /Title (Summary) >>
+endobj
+% 'Outline.14': class OutlineEntryObject 
+131 0 obj
+<< /Dest [ 112 0 R
+ /XYZ
+ 62.69291
+ 354.0236
+ 0 ]
+ /Parent 116 0 R
+ /Prev 130 0 R
+ /Title (Appendix: custom annotation objects) >>
+endobj
+% 'R132': class PDFPages 
+132 0 obj
+% page tree
+<< /Count 20
+ /Kids [ 45 0 R
+ 49 0 R
+ 51 0 R
+ 52 0 R
+ 63 0 R
+ 66 0 R
+ 71 0 R
+ 75 0 R
+ 77 0 R
+ 90 0 R
+ 93 0 R
+ 96 0 R
+ 97 0 R
+ 99 0 R
+ 101 0 R
+ 104 0 R
+ 106 0 R
+ 109 0 R
+ 112 0 R
+ 113 0 R ]
+ /Type /Pages >>
+endobj
+% 'R133': class PDFStream 
+133 0 obj
+% page stream
+<< /Length 9046 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 741.0236 cm
+q
+BT 1 0 0 1 0 9.64 Tm 114.9049 0 Td 24 TL /F2 20 Tf 0 0 0 rg (Advanced usages of plac) Tj T* -114.9049 0 Td ET
+Q
+Q
+q
+1 0 0 1 62.69291 716.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 36.93937 0 Td (Author:) Tj T* -36.93937 0 Td ET
+Q
+Q
+q
+1 0 0 1 91.03937 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Michele Simionato) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 701.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 39.69937 0 Td (E-mail:) Tj T* -39.69937 0 Td ET
+Q
+Q
+q
+1 0 0 1 91.03937 3 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (michele.simionato@gmail.com) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 686.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 48.03937 0 Td (Date:) Tj T* -48.03937 0 Td ET
+Q
+Q
+q
+1 0 0 1 91.03937 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (July 2010) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 659.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F2 10 Tf 12 TL 25.25937 0 Td (Download) Tj T* 21.11 0 Td (page:) Tj T* -46.36937 0 Td ET
+Q
+Q
+q
+1 0 0 1 91.03937 15 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (http://pypi.python.org/pypi/plac) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 644.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 9.68937 0 Td (Project page:) Tj T* -9.68937 0 Td ET
+Q
+Q
+q
+1 0 0 1 91.03937 3 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (http://micheles.googlecode.com/hg/plac/doc/plac.html) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 629.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 16.91937 0 Td (Installation:) Tj T* -16.91937 0 Td ET
+Q
+Q
+q
+1 0 0 1 91.03937 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL (easy_install -U plac) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 614.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 32.46937 0 Td (License:) Tj T* -32.46937 0 Td ET
+Q
+Q
+q
+1 0 0 1 91.03937 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (BSD license) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 599.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 26.91937 0 Td (Requires:) Tj T* -26.91937 0 Td ET
+Q
+Q
+q
+1 0 0 1 91.03937 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Python 2.5+) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 557.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 28.82 Tm /F5 10 Tf 12 TL 2.399986 Tw (The present document discusses a few of the advanced use cases for plac. It shows how to write) Tj T* 0 Tw 2.164651 Tw (interactive and non-interactive interpreters with plac, and how to use plac for testing and scripting a) Tj T* 0 Tw (generic application. It assumes you have already read an understood the basic documentation.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 524.0236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Contents) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 248.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 0 255 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Introduction) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 255 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 66.44 0 Td (1) Tj T* -66.44 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 237 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (From scripts to interactive applications) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 237 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 66.44 0 Td (2) Tj T* -66.44 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 219 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Testing a plac application) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 219 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 66.44 0 Td (3) Tj T* -66.44 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 201 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Plac easy tests) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 201 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 66.44 0 Td (4) Tj T* -66.44 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 183 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Plac batch scripts) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 183 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 66.44 0 Td (6) Tj T* -66.44 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 165 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Implementing subcommands) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 165 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 66.44 0 Td (7) Tj T* -66.44 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 147 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Readline support) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 147 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 66.44 0 Td (9) Tj T* -66.44 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 129 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (The plac runner) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 129 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 60.88 0 Td (11) Tj T* -60.88 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 111 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (A non class-based example) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 111 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 60.88 0 Td (12) Tj T* -60.88 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 93 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Writing your own plac runner) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 93 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 60.88 0 Td (14) Tj T* -60.88 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 75 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Long running commands) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 75 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 60.88 0 Td (16) Tj T* -60.88 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 57 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Threaded commands) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 57 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 60.88 0 Td (16) Tj T* -60.88 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 39 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Running commands as external processes) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 39 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 60.88 0 Td (18) Tj T* -60.88 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 21 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Summary) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 21 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 60.88 0 Td (19) Tj T* -60.88 0 Td ET
+Q
+Q
+q
+1 0 0 1 0 3 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F2 10 Tf 0 0 .501961 rg (Appendix: custom annotation objects) Tj T* ET
+Q
+Q
+q
+1 0 0 1 397.8898 3 cm
+q
+0 0 .501961 rg
+0 0 .501961 RG
+BT 1 0 0 1 0 4.82 Tm /F2 10 Tf 12 TL 60.88 0 Td (19) Tj T* -60.88 0 Td ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 215.0236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Introduction) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 173.0236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .539036 Tw 12 TL /F1 10 Tf 0 0 0 rg (One of the design goals of ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (is to make it dead easy to write a scriptable and testable interface for an) Tj T* 0 Tw .813876 Tw (application. You can use ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (whenever you have an API with strings in input and strings in output, and) Tj T* 0 Tw (that includes a ) Tj /F5 10 Tf (huge ) Tj /F1 10 Tf (domain of applications.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 131.0236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 1.756651 Tw 12 TL /F1 10 Tf 0 0 0 rg (A string-oriented interface is a scriptable interface by construction. That means that you can define a) Tj T* 0 Tw .918735 Tw (command language for your application and that it is possible to write scripts which are interpretable by) Tj T* 0 Tw 0 0 .501961 rg (plac ) Tj 0 0 0 rg (and can be run as batch scripts.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 89.02362 cm
+q
+BT 1 0 0 1 0 28.82 Tm .444987 Tw 12 TL /F1 10 Tf 0 0 0 rg (Actually, at the most general level, you can see ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (as a generic tool to write domain specific languages) Tj T* 0 Tw .107209 Tw (\(DSL\). With ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (you can test your application interactively as well as with batch scripts, and even with the) Tj T* 0 Tw (analogous of Python doctests for your defined language.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (1) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R134': class PDFStream 
+134 0 obj
+% page stream
+<< /Length 4496 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 729.0236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .694104 Tw 12 TL /F1 10 Tf 0 0 0 rg (You can easily replace the ) Tj /F4 10 Tf (cmd ) Tj /F1 10 Tf (module of the standard library and you could easily write an application) Tj T* 0 Tw 2.731654 Tw (like ) Tj 0 0 .501961 rg (twill ) Tj 0 0 0 rg (with ) Tj 0 0 .501961 rg (plac) Tj 0 0 0 rg (. Or you could use it to script your building procedure. Or any other thing, your) Tj T* 0 Tw (imagination is the only limit!) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 696.0236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (From scripts to interactive applications) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 642.0236 cm
+q
+BT 1 0 0 1 0 40.82 Tm 3.215814 Tw 12 TL /F1 10 Tf 0 0 0 rg (Command-line scripts have many advantages, but are no substitute for interactive applications. In) Tj T* 0 Tw .088171 Tw (particular, if you have a script with a large startup time which must be run multiple times, it is best to turn it) Tj T* 0 Tw 4.582126 Tw (into an interactive application, so that the startup is performed only once. ) Tj /F4 10 Tf (plac ) Tj /F1 10 Tf (provides an) Tj T* 0 Tw /F4 10 Tf (Interpreter ) Tj /F1 10 Tf (class just for this purpose.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 612.0236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.293984 Tw 12 TL /F1 10 Tf 0 0 0 rg (The ) Tj /F4 10 Tf (Interpreter ) Tj /F1 10 Tf (class wraps the main function of a script and provides an ) Tj /F4 10 Tf (.interact ) Tj /F1 10 Tf (method to) Tj T* 0 Tw (start an interactive interpreter reading commands from the console.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 582.0236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.49436 Tw 12 TL /F1 10 Tf 0 0 0 rg (For instance, you can define an interactive interpreter on top of the ) Tj /F4 10 Tf (ishelve ) Tj /F1 10 Tf (script introduced in the) Tj T* 0 Tw 0 0 .501961 rg (basic documentation ) Tj 0 0 0 rg (as follows:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 332.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 240 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 221.71 Tm /F4 10 Tf 12 TL (# shelve_interpreter.py) Tj T* (import plac, ishelve) Tj T*  T* (@plac.annotations\() Tj T* (    interactive=\('start interactive interface', 'flag'\),) Tj T* (    subcommands='the commands of the underlying ishelve interpreter'\)) Tj T* (def main\(interactive, *subcommands\):) Tj T* (    """) Tj T* (    This script works both interactively and non-interactively.) Tj T* (    Use .help to see the internal commands.) Tj T* (    """) Tj T* (    if interactive:) Tj T* (        plac.Interpreter\(ishelve.main\).interact\(\)) Tj T* (    else:) Tj T* (        for out in plac.call\(ishelve.main, subcommands\):) Tj T* (            print\(out\)) Tj T*  T* (if __name__ == '__main__':) Tj T* (    plac.call\(main\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 288.8236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 2.200651 Tw 12 TL /F1 10 Tf 0 0 0 rg (A trick has been used here: the ishelve command-line interface has been hidden inside an external) Tj T* 0 Tw .917674 Tw (interface. They are distinct: for instance the external interface recognizes the ) Tj /F4 10 Tf (-h/--help ) Tj /F1 10 Tf (flag whereas) Tj T* 0 Tw (the internal interface only recognizes the ) Tj /F4 10 Tf (.help ) Tj /F1 10 Tf (command:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 255.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL ($ python shelve_interpreter.py -h) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 90.42362 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 156 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 137.71 Tm /F4 10 Tf 12 TL (usage: shelve_interpreter.py [-h] [-interactive]) Tj T* (                             [subcommands [subcommands ...]]) Tj T*  T* (    This script works both interactively and non-interactively.) Tj T* (    Use .help to see the internal commands.) Tj T* (    ) Tj T*  T* (positional arguments:) Tj T* (  subcommands   the commands of the underlying ishelve interpreter) Tj T*  T* (optional arguments:) Tj T* (  -h, --help    show this help message and exit) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (2) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R135': class PDFStream 
+135 0 obj
+% page stream
+<< /Length 4451 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 739.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL (  -interactive  start interactive interface) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 719.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Thanks to this ingenuous trick, the script can be run both interactively and non-interactively:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 674.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 17.71 Tm /F4 10 Tf 12 TL ($ python shelve_interpreter.py .clear # non-interactive use) Tj T* (cleared the shelve) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 654.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Here is an usage session:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 369.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 276 re B*
+Q
+q
+BT 1 0 0 1 0 257.71 Tm 12 TL /F4 10 Tf 0 0 0 rg ($ python shelve_interpreter.py -i # interactive use) Tj T* (A simple interface to a shelve. Use .help to see the available commands.) Tj T* (i) Tj (>) Tj ( .help) Tj T* (Commands: .help, .showall, .clear, .delete) Tj T* (<) Tj (param) Tj (>) Tj ( ...) Tj T* (<) Tj (param=value) Tj (>) Tj ( ...) Tj T* (i) Tj (>) Tj ( a=1) Tj T* (setting a=1) Tj T* (i) Tj (>) Tj ( a) Tj T* (1) Tj T* (i) Tj (>) Tj ( b=2) Tj T* (setting b=2) Tj T* (i) Tj (>) Tj ( a b) Tj T* (1) Tj T* (2) Tj T* (i) Tj (>) Tj ( .del a) Tj T* (deleted a) Tj T* (i) Tj (>) Tj ( a) Tj T* (a: not found) Tj T* (i) Tj (>) Tj ( .show) Tj T* (b=2) Tj T* (i) Tj (>) Tj ( [CTRL-D]) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 301.4236 cm
+q
+BT 1 0 0 1 0 52.82 Tm .256412 Tw 12 TL /F1 10 Tf 0 0 0 rg (The ) Tj /F4 10 Tf (.interact ) Tj /F1 10 Tf (method reads commands from the console and send them to the underlying interpreter,) Tj T* 0 Tw .065984 Tw (until the user send a CTRL-D command \(CTRL-Z in Windows\). There is a default argument ) Tj /F4 10 Tf (prompt='i) Tj (>) Tj T* 0 Tw .41832 Tw (' ) Tj /F1 10 Tf (which can be used to change the prompt. The text displayed at the beginning of the interactive session) Tj T* 0 Tw 1.407126 Tw (is the docstring of the main function. ) Tj /F4 10 Tf (plac ) Tj /F1 10 Tf (also understands command abbreviations: in this example) Tj T* 0 Tw /F4 10 Tf (del ) Tj /F1 10 Tf (is an abbreviation for ) Tj /F4 10 Tf (delete) Tj /F1 10 Tf (. In case of ambiguous abbreviations ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (raises a ) Tj /F4 10 Tf (NameError) Tj /F1 10 Tf (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 271.4236 cm
+q
+BT 1 0 0 1 0 16.82 Tm .847045 Tw 12 TL /F1 10 Tf 0 0 0 rg (Finally I must notice that the ) Tj /F4 10 Tf (plac.Interpreter ) Tj /F1 10 Tf (is available only if you are using a recent version of) Tj T* 0 Tw (Python \() Tj (>) Tj (= 2.5\), because it is a context manager object which uses extended generators internally.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 238.4236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Testing a plac application) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 208.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL 3.034269 Tw (You can conveniently test your application in interactive mode. However manual testing is a poor) Tj T* 0 Tw (substitute for automatic testing.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 190.4236 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (In principle, one could write automatic tests for the ) Tj /F4 10 Tf (ishelve ) Tj /F1 10 Tf (application by using ) Tj /F4 10 Tf (plac.call ) Tj /F1 10 Tf (directly:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 97.22362 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 84 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 65.71 Tm /F4 10 Tf 12 TL (# test_ishelve.py) Tj T* (import plac, ishelve) Tj T*  T* (def test\(\):) Tj T* (    assert plac.call\(ishelve.main, ['.clear']\) == ['cleared the shelve']) Tj T* (    assert plac.call\(ishelve.main, ['a=1']\) == ['setting a=1']) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (3) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R136': class PDFStream 
+136 0 obj
+% page stream
+<< /Length 6154 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 679.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 84 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 65.71 Tm /F4 10 Tf 12 TL (    assert plac.call\(ishelve.main, ['a']\) == ['1']) Tj T* (    assert plac.call\(ishelve.main, ['.delete=a']\) == ['deleted a']) Tj T* (    assert plac.call\(ishelve.main, ['a']\) == ['a: not found']) Tj T*  T* (if __name__ == '__main__':) Tj T* (    test\(\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 635.8236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .390651 Tw 12 TL /F1 10 Tf 0 0 0 rg (However, using ) Tj /F4 10 Tf (plac.call ) Tj /F1 10 Tf (is not especially nice. The big issue is that ) Tj /F4 10 Tf (plac.call ) Tj /F1 10 Tf (responds to invalid) Tj T* 0 Tw 1.249987 Tw (input by printing an error message on stderr and by raising a ) Tj /F4 10 Tf (SystemExit) Tj /F1 10 Tf (: this is certainly not a nice) Tj T* 0 Tw (thing to do in a test.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 593.8236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 1.616457 Tw 12 TL /F1 10 Tf 0 0 0 rg (As a consequence of this behavior it is impossible to test for invalid commands, unless you wrap the) Tj T* 0 Tw .259985 Tw /F4 10 Tf (SystemExit ) Tj /F1 10 Tf (exception by hand each time \(a possibly you do something with the error message in stderr) Tj T* 0 Tw (too\). Luckily, ) Tj /F4 10 Tf (plac ) Tj /F1 10 Tf (offers a better testing support through the ) Tj /F4 10 Tf (check ) Tj /F1 10 Tf (method of ) Tj /F4 10 Tf (Interpreter ) Tj /F1 10 Tf (objects:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 440.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 144 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 125.71 Tm /F4 10 Tf 12 TL (# test_ishelve_more.py) Tj T* (from __future__ import with_statement) Tj T* (import plac, ishelve) Tj T*  T* (def test\(\):) Tj T* (    with plac.Interpreter\(ishelve.main\) as i:) Tj T* (        i.check\('.clear', 'cleared the shelve'\)) Tj T* (        i.check\('a=1', 'setting a=1'\)) Tj T* (        i.check\('a', '1'\)) Tj T* (        i.check\('.delete=a', 'deleted a'\)) Tj T* (        i.check\('a', 'a: not found'\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 384.6236 cm
+q
+BT 1 0 0 1 0 40.82 Tm 6.299974 Tw 12 TL /F1 10 Tf 0 0 0 rg (The method ) Tj /F4 10 Tf (.check\(given_input, expected_output\) ) Tj /F1 10 Tf (works on strings and raises an) Tj T* 0 Tw .971318 Tw /F4 10 Tf (AssertionError ) Tj /F1 10 Tf (if the output produced by the interpreter is different from the expected output for the) Tj T* 0 Tw 2.186905 Tw (given input. Notice that ) Tj /F4 10 Tf (AssertionError ) Tj /F1 10 Tf (is catched by tools like ) Tj /F4 10 Tf (py.test ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (nosetests ) Tj /F1 10 Tf (and) Tj T* 0 Tw (actually ) Tj /F4 10 Tf (plac ) Tj /F1 10 Tf (tests are intended to be run with such tools.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 330.6236 cm
+q
+BT 1 0 0 1 0 40.82 Tm .239984 Tw 12 TL /F1 10 Tf 0 0 0 rg (Interpreters offer a minor syntactic advantage with respect to calling ) Tj /F4 10 Tf (plac.call ) Tj /F1 10 Tf (directly, but they offer a) Tj T* 0 Tw .96748 Tw /F5 10 Tf (major ) Tj /F1 10 Tf (semantic advantage when things go wrong \(read exceptions\): an ) Tj /F4 10 Tf (Interpreter ) Tj /F1 10 Tf (object internally) Tj T* 0 Tw 1.181318 Tw (invokes something like ) Tj /F4 10 Tf (plac.call) Tj /F1 10 Tf (, but it wraps all exceptions, so that ) Tj /F4 10 Tf (i.check ) Tj /F1 10 Tf (is guaranteed not to) Tj T* 0 Tw (raise any exception except ) Tj /F4 10 Tf (AssertionError) Tj /F1 10 Tf (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 312.6236 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (Even the ) Tj /F4 10 Tf (SystemExit ) Tj /F1 10 Tf (exception is captured and you can write your test as) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 306.6236 cm
+Q
+q
+1 0 0 1 62.69291 294.6236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL (i.check\('-cler', 'SystemExit: unrecognized arguments: -cler'\)) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 294.6236 cm
+Q
+q
+1 0 0 1 62.69291 276.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (without risk of exiting from the Python interpreter.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 234.6236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 1.422651 Tw 12 TL /F1 10 Tf 0 0 0 rg (There is a second advantage of interpreters: if the main function contains some initialization code and) Tj T* 0 Tw .454651 Tw (finalization code \() Tj /F4 10 Tf (__enter__ ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (__exit__ ) Tj /F1 10 Tf (functions\) they will be run only once at the beginning and) Tj T* 0 Tw (at the end of the interpreter loop. ) Tj /F4 10 Tf (plac.call ) Tj /F1 10 Tf (instead ignores the initialization/finalization code.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 201.6236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Plac easy tests) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 159.6236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 1.517126 Tw 12 TL /F1 10 Tf 0 0 0 rg (Writing your tests in terms of ) Tj /F4 10 Tf (Interpreter.check ) Tj /F1 10 Tf (is certainly an improvement over writing them in) Tj T* 0 Tw 1.807318 Tw (terms of ) Tj /F4 10 Tf (plac.call) Tj /F1 10 Tf (, but they are still too low-level for my taste. The ) Tj /F4 10 Tf (Interpreter ) Tj /F1 10 Tf (class provides) Tj T* 0 Tw (support for doctest-style tests, a.k.a. ) Tj /F5 10 Tf (plac easy tests) Tj /F1 10 Tf (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 117.6236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 2.142209 Tw 12 TL /F1 10 Tf 0 0 0 rg (By using plac easy tests you can cut and paste your interactive session and turn it into a runnable) Tj T* 0 Tw .519213 Tw (automatics test. Consider for instance the following file ) Tj /F4 10 Tf (ishelve.placet ) Tj /F1 10 Tf (\(the ) Tj /F4 10 Tf (.placet ) Tj /F1 10 Tf (extension is a) Tj T* 0 Tw (mnemonic for plac easy tests\):) Tj T* ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (4) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R137': class PDFStream 
+137 0 obj
+% page stream
+<< /Length 5781 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 595.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 168 re B*
+Q
+q
+BT 1 0 0 1 0 149.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (#!ishelve.py) Tj T* (i) Tj (>) Tj ( .clear # start from a clean state) Tj T* (cleared the shelve) Tj T* (i) Tj (>) Tj ( a=1) Tj T* (setting a=1) Tj T* (i) Tj (>) Tj ( a) Tj T* (1) Tj T* (i) Tj (>) Tj ( .del a) Tj T* (deleted a) Tj T* (i) Tj (>) Tj ( a) Tj T* (a: not found) Tj T* (i) Tj (>) Tj ( .cler # spelling error) Tj T* (.cler: not found) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 539.8236 cm
+q
+BT 1 0 0 1 0 40.82 Tm .697132 Tw 12 TL /F1 10 Tf 0 0 0 rg (Notice the precence of the shebang line containing the name of the ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (tool to test \(a ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (tool is just a) Tj T* 0 Tw 1.511751 Tw (Python module with a function called ) Tj /F4 10 Tf (main) Tj /F1 10 Tf (\). The shebang is ignored by the interpreter \(it looks like a) Tj T* 0 Tw .487608 Tw (comment to it\) but it is there so that external tools \(say a test runner\) can infer the plac interpreter to use) Tj T* 0 Tw (to test the file.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 509.8236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 2.419984 Tw 12 TL /F1 10 Tf 0 0 0 rg (You can test ) Tj /F4 10 Tf (ishelve.placet ) Tj /F1 10 Tf (file by calling the ) Tj /F4 10 Tf (.doctest ) Tj /F1 10 Tf (method of the interpreter, as in this) Tj T* 0 Tw (example:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 465.0393 cm
+q
+q
+.988825 0 0 .988825 0 0 cm
+q
+1 0 0 1 6.6 6.674587 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 474 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 17.71 Tm /F4 10 Tf 12 TL ($ python -c"import plac, ishelve) Tj T* (plac.Interpreter\(ishelve.main\).doctest\(open\('ishelve.placet'\), verbose=True\)") Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 421.0393 cm
+q
+BT 1 0 0 1 0 28.82 Tm 4.007109 Tw 12 TL /F1 10 Tf 0 0 0 rg (Internally ) Tj /F4 10 Tf (Interpreter.doctests ) Tj /F1 10 Tf (invokes something like ) Tj /F4 10 Tf (Interpreter.check ) Tj /F1 10 Tf (multiple times) Tj T* 0 Tw .226654 Tw (inside the same context and compare the output with the expected output: if even a check fails, the whole) Tj T* 0 Tw (test fail.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 379.0393 cm
+q
+BT 1 0 0 1 0 28.82 Tm .175868 Tw 12 TL /F1 10 Tf 0 0 0 rg (You should realize tha the easy tests supported by ) Tj /F4 10 Tf (plac ) Tj /F1 10 Tf (are ) Tj /F5 10 Tf (not ) Tj /F1 10 Tf (unittests: they are functional tests. They) Tj T* 0 Tw 1.22936 Tw (model then user interaction and the order of the operations generally matters. The single subtests in a) Tj T* 0 Tw /F4 10 Tf (.placet ) Tj /F1 10 Tf (file are not independent and it makes sense to exit immediately at the first failure.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 325.0393 cm
+q
+BT 1 0 0 1 0 40.82 Tm .414431 Tw 12 TL /F1 10 Tf 0 0 0 rg (The support for doctests in ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (comes nearly for free, thanks to the ) Tj 0 0 .501961 rg (shlex ) Tj 0 0 0 rg (module in the standard library,) Tj T* 0 Tw .352765 Tw (which is able to parse simple languages as the ones you can implement with ) Tj 0 0 .501961 rg (plac) Tj 0 0 0 rg (. In particular, thanks to) Tj T* 0 Tw .875984 Tw 0 0 .501961 rg (shlex) Tj 0 0 0 rg (, ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (is able to recognize comments \(the default comment character is ) Tj /F4 10 Tf (#) Tj /F1 10 Tf (\), escape sequences and) Tj T* 0 Tw (more. Look at the ) Tj 0 0 .501961 rg (shlex ) Tj 0 0 0 rg (documentation if you need to customize how the language is interpreted.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 271.0393 cm
+q
+BT 1 0 0 1 0 40.82 Tm .136654 Tw 12 TL /F1 10 Tf 0 0 0 rg (In addition, I have implemented from scratch some support for line number recognition, so that if a test fail) Tj T* 0 Tw .042093 Tw (you get the line number of the failing command. This is especially useful if your tests are stored in external) Tj T* 0 Tw .610898 Tw (files, even if plac easy tests does not need to be in a file: you can just pass to the ) Tj /F4 10 Tf (.doctest ) Tj /F1 10 Tf (method a) Tj T* 0 Tw (list of strings corresponding to the lines of the file.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 241.0393 cm
+q
+BT 1 0 0 1 0 16.82 Tm .653145 Tw 12 TL /F1 10 Tf 0 0 0 rg (At the present ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (does not use any code from the doctest module, but the situation may change in the) Tj T* 0 Tw (future \(it would be nice if ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (could reuse doctests directives like ELLIPSIS\).) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 211.0393 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.447318 Tw 12 TL /F1 10 Tf 0 0 0 rg (It is straighforward to integrate your ) Tj /F4 10 Tf (.placet ) Tj /F1 10 Tf (tests with standard testing tools. For instance, you can) Tj T* 0 Tw (integrate your doctests with ) Tj /F4 10 Tf (nose ) Tj /F1 10 Tf (or ) Tj /F4 10 Tf (py.test ) Tj /F1 10 Tf (as follow:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 93.83932 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 108 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 89.71 Tm /F4 10 Tf 12 TL (import os, shlex, plac) Tj T*  T* (def test_doct\(\):) Tj T* (   """) Tj T* (   Find all the doctests in the current directory and run them with the) Tj T* (   corresponding plac interpreter \(the shebang rules!\)) Tj T* (   """) Tj T* (   placets = [f for f in os.listdir\('.'\) if f.endswith\('.placet'\)]) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (5) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R138': class PDFStream 
+138 0 obj
+% page stream
+<< /Length 4789 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 680.7757 cm
+q
+q
+.988825 0 0 .988825 0 0 cm
+q
+1 0 0 1 6.6 6.674587 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 474 84 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 65.71 Tm /F4 10 Tf 12 TL (   for placet in placets:) Tj T* (       lines = list\(open\(placet\)\)) Tj T* (       assert lines[0].startswith\('#!'\), 'Missing or incorrect shebang line!') Tj T* (       firstline = lines[0][2:] # strip the shebang) Tj T* (       main = plac.import_main\(*shlex.split\(firstline\)\)) Tj T* (       yield plac.Interpreter\(main\).doctest, lines[1:]) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 600.7757 cm
+q
+BT 1 0 0 1 0 64.82 Tm 1.44811 Tw 12 TL /F1 10 Tf 0 0 0 rg (Here you should notice that usage of ) Tj /F4 10 Tf (plac.import_main) Tj /F1 10 Tf (, an utility which is able to import the main) Tj T* 0 Tw .775703 Tw (function of the script specified in the shebang line. You can use both the full path name of the tool, or a) Tj T* 0 Tw .87686 Tw (relative path name. In this case the runner look at the environment variable ) Tj /F4 10 Tf (PLACPATH ) Tj /F1 10 Tf (and it searches) Tj T* 0 Tw 1.900651 Tw (the plac tool in the directories specified there \() Tj /F4 10 Tf (PLACPATH ) Tj /F1 10 Tf (is just a string containing directory names) Tj T* 0 Tw .56332 Tw (separated by colons\). If the variable ) Tj /F4 10 Tf (PLACPATH ) Tj /F1 10 Tf (is not defined, it just looks in the current directory. If the) Tj T* 0 Tw (plac tool is not found, an ) Tj /F4 10 Tf (ImportError ) Tj /F1 10 Tf (is raised.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 567.7757 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Plac batch scripts) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 525.7757 cm
+q
+BT 1 0 0 1 0 28.82 Tm .772093 Tw 12 TL /F1 10 Tf 0 0 0 rg (It is pretty easy to realize that an interactive interpreter can also be used to run batch scripts: instead of) Tj T* 0 Tw .504692 Tw (reading the commands from the console, it is enough to read the commands from a file. ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (interpreters) Tj T* 0 Tw (provide an ) Tj /F4 10 Tf (.execute ) Tj /F1 10 Tf (method to perform just that.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 459.7757 cm
+q
+BT 1 0 0 1 0 52.82 Tm .098935 Tw 12 TL /F1 10 Tf 0 0 0 rg (There is just a subtle point to notice: whereas in an interactive loop one wants to manage all exceptions, a) Tj T* 0 Tw 3.866412 Tw (batch script should not in the background in case of unexpected errors. The implementation of) Tj T* 0 Tw .103059 Tw /F4 10 Tf (Interpreter.execute ) Tj /F1 10 Tf (makes sure that any error raised by ) Tj /F4 10 Tf (plac.call ) Tj /F1 10 Tf (internally is re-raised. In other) Tj T* 0 Tw .407045 Tw (words, ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (interpreters ) Tj /F5 10 Tf (wrap the errors, but does not eat them) Tj /F1 10 Tf (: the errors are always accessible and can) Tj T* 0 Tw (be re-raised on demand.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 429.7757 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.239318 Tw 12 TL /F1 10 Tf 0 0 0 rg (The exception is the case of invalid commands, which are skipped. Consider for instance the following) Tj T* 0 Tw (batch file, which contains a mispelled command \() Tj /F4 10 Tf (.dl ) Tj /F1 10 Tf (instead of ) Tj /F4 10 Tf (.del) Tj /F1 10 Tf (\):) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 324.5757 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 96 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 77.71 Tm /F4 10 Tf 12 TL (#!ishelve.py) Tj T* (.clear ) Tj T* (a=1 b=2) Tj T* (.show) Tj T* (.del a) Tj T* (.dl b) Tj T* (.show) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 292.5757 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.939461 Tw 12 TL /F1 10 Tf 0 0 0 rg (If you execute the batch file, the interpreter will print a ) Tj /F4 10 Tf (.dl: not found ) Tj /F1 10 Tf (at the ) Tj /F4 10 Tf (.dl ) Tj /F1 10 Tf (line and will) Tj T* 0 Tw (continue:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 91.37571 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 192 re B*
+Q
+q
+BT 1 0 0 1 0 173.71 Tm 12 TL /F4 10 Tf 0 0 0 rg ($ python -c "import plac, ishelve) Tj T* (plac.Interpreter\(ishelve.main\).execute\(open\('ishelve.plac'\), verbose=True\)") Tj T* (i) Tj (>) Tj ( .clear) Tj T* (cleared the shelve) Tj T* (i) Tj (>) Tj ( a=1 b=2) Tj T* (setting a=1) Tj T* (setting b=2) Tj T* (i) Tj (>) Tj ( .show) Tj T* (b=2) Tj T* (a=1) Tj T* (i) Tj (>) Tj ( .del a) Tj T* (deleted a) Tj T* (i) Tj (>) Tj ( .dl b) Tj T* (2) Tj T* (.dl: not found) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (6) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R139': class PDFStream 
+139 0 obj
+% page stream
+<< /Length 4588 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 727.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+BT 1 0 0 1 0 17.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( .show) Tj T* (b=2) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 683.8236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .159988 Tw 12 TL /F1 10 Tf 0 0 0 rg (The ) Tj /F4 10 Tf (verbose ) Tj /F1 10 Tf (flag is there to show the lines which are being interpreted \(prefixed by ) Tj /F4 10 Tf (i) Tj (>) Tj /F1 10 Tf (\). This is done on) Tj T* 0 Tw 1.359988 Tw (purpose, so that you can cut and paste the output of the batch script and turn it into a ) Tj /F4 10 Tf (.placet ) Tj /F1 10 Tf (test) Tj T* 0 Tw (\(cool, isn't it?\).) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 650.8236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Implementing subcommands) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 608.8236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 1.182485 Tw 12 TL /F1 10 Tf 0 0 0 rg (When I discussed the ) Tj /F4 10 Tf (ishelve ) Tj /F1 10 Tf (implementation in the ) Tj 0 0 .501961 rg (basic documentation) Tj 0 0 0 rg (, I said that it looked like a) Tj T* 0 Tw .116655 Tw (poor man implementation of an object system as a chain of elifs; I also said that ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (was able to do much) Tj T* 0 Tw (better than that. Here I will substantiate my claim.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 566.8236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .89104 Tw 12 TL /F1 10 Tf 0 0 .501961 rg (plac ) Tj 0 0 0 rg (is actually able to infer a set of subparsers from a generic container of commands. This is useful if) Tj T* 0 Tw 3.125814 Tw (you want to implement ) Tj /F5 10 Tf (subcommands ) Tj /F1 10 Tf (\(a familiar example of a command-line application featuring) Tj T* 0 Tw (subcommands is subversion\).) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 500.8236 cm
+q
+BT 1 0 0 1 0 52.82 Tm .015868 Tw 12 TL /F1 10 Tf 0 0 0 rg (Technically a container of commands is any object with a ) Tj /F4 10 Tf (.commands ) Tj /F1 10 Tf (attribute listing a set of functions or) Tj T* 0 Tw 2.550888 Tw (methods which are valid commands. A command container may have initialization/finalization hooks) Tj T* 0 Tw 2.55664 Tw (\() Tj /F4 10 Tf (__enter__/__exit__) Tj /F1 10 Tf (\) and dispatch hooks \() Tj /F4 10 Tf (__missing__) Tj /F1 10 Tf (, invoked for invalid command names\).) Tj T* 0 Tw 2.113828 Tw (Moreover, only when using command containers ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (is able to provide automatic autocompletion of) Tj T* 0 Tw (commands.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 482.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Rhe shelve interface can be rewritten in an object-oriented way as follows:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 89.62362 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 384 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 365.71 Tm /F4 10 Tf 12 TL (# ishelve2.py) Tj T* (import shelve, os, sys, plac) Tj T*  T* (class ShelveInterface\(object\):) Tj T* (    "A minimal interface over a shelve object.") Tj T* (    commands = 'set', 'show', 'showall', 'delete') Tj T* (    @plac.annotations\() Tj T* (        configfile=\('path name of the shelve', 'option'\)\)) Tj T* (    def __init__\(self, configfile='~/conf.shelve'\):) Tj T* (        self.fname = os.path.expanduser\(configfile\)) Tj T* (        self.__doc__ += '\\nOperating on %s.\\n.help to see '\\) Tj T* (            'the available commands.\\n'  % self.fname) Tj T* (    def __enter__\(self\):) Tj T* (        self.sh = shelve.open\(self.fname\)) Tj T* (        return self) Tj T* (    def __exit__\(self, etype, exc, tb\):) Tj T* (        self.sh.close\(\)) Tj T* (    def set\(self, name, value\):) Tj T* (        "set name value") Tj T* (        yield 'setting %s=%s' % \(name, value\)) Tj T* (        self.sh[name] = value) Tj T* (    def show\(self, *names\):) Tj T* (        "show given parameters") Tj T* (        for name in names:) Tj T* (            yield '%s = %s' % \(name, self.sh[name]\) # no error checking) Tj T* (    def showall\(self\):) Tj T* (        "show all parameters") Tj T* (        for name in self.sh:) Tj T* (            yield '%s = %s' % \(name, self.sh[name]\)) Tj T* (    def delete\(self, name=None\):) Tj T* (        "delete given parameter \(or everything\)") Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (7) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R140': class PDFStream 
+140 0 obj
+% page stream
+<< /Length 4077 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 607.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 156 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 137.71 Tm /F4 10 Tf 12 TL (        if name is None:) Tj T* (            yield 'deleting everything') Tj T* (            self.sh.clear\(\)) Tj T* (        else:) Tj T* (            yield 'deleting %s' % name) Tj T* (            del self.sh[name] # no error checking) Tj T*  T* (main = ShelveInterface # the main 'function' can also be a class!) Tj T*  T* (if __name__ == '__main__':) Tj T* (    shelve_interface = plac.call\(main\)) Tj T* (    plac.Interpreter\(shelve_interface\).interact\(\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 515.8236 cm
+q
+BT 1 0 0 1 0 76.82 Tm .885366 Tw 12 TL /F4 10 Tf 0 0 0 rg (plac.Interpreter ) Tj /F1 10 Tf (objects wrap context manager objects consistently. In other words, if you wrap an) Tj T* 0 Tw 2.323828 Tw (object with ) Tj /F4 10 Tf (__enter__ ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (__exit__ ) Tj /F1 10 Tf (methods, they are invoked in the right order \() Tj /F4 10 Tf (__enter__) Tj T* 0 Tw .23528 Tw /F1 10 Tf (before the interpreter loop starts and ) Tj /F4 10 Tf (__exit__ ) Tj /F1 10 Tf (after the interpreter loop ends, both in the regular and in) Tj T* 0 Tw 1.916412 Tw (the exceptional case\). In our example, the methods ) Tj /F4 10 Tf (__enter__ ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (__exit__ ) Tj /F1 10 Tf (make sure the the) Tj T* 0 Tw .339398 Tw (shelve is opened and closed correctly even in the case of exceptions. Notice that I have not implemented) Tj T* 0 Tw .814104 Tw (any error checking in the ) Tj /F4 10 Tf (show ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (delete ) Tj /F1 10 Tf (methods on purpose, to verify that ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (works correctly in) Tj T* 0 Tw (the presence of exceptions.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 437.8236 cm
+q
+BT 1 0 0 1 0 64.82 Tm 1.567126 Tw 12 TL /F1 10 Tf 0 0 0 rg (When working with command containers, ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (automatically adds two special commands to the set of) Tj T* 0 Tw 1.176136 Tw (provided commands: ) Tj /F4 10 Tf (.help ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (.last_tb) Tj /F1 10 Tf (. The ) Tj /F4 10 Tf (.help ) Tj /F1 10 Tf (command is the easier to understand: when) Tj T* 0 Tw .39811 Tw (invoked without arguments it displays the list of available commands with the same formatting of the ) Tj 0 0 .501961 rg (cmd) Tj T* 0 Tw 1.19561 Tw 0 0 0 rg (module; when invoked with the name of a command it displays the usage message for that command.) Tj T* 0 Tw 2.33686 Tw (The ) Tj /F4 10 Tf (.last_tb ) Tj /F1 10 Tf (command is useful when debugging: in case of errors, it allows you to display the) Tj T* 0 Tw (traceback of the last executed command.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 419.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Here is a session of usage on an Unix-like operating system:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 98.62362 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 312 re B*
+Q
+q
+BT 1 0 0 1 0 293.71 Tm 12 TL /F4 10 Tf 0 0 0 rg ($ python ishelve2.py) Tj T* (A minimal interface over a shelve object.) Tj T* (Operating on /home/micheles/conf.shelve.) Tj T* (.help to see the available commands.) Tj T* (i) Tj (>) Tj ( .help) Tj T*  T* (special commands) Tj T* (================) Tj T* (.help .last_tb) Tj T*  T* (custom commands) Tj T* (===============) Tj T* (delete  set  show  showall) Tj T*  T* (i) Tj (>) Tj ( delete) Tj T* (deleting everything) Tj T* (i) Tj (>) Tj ( set a pippo) Tj T* (setting a=pippo) Tj T* (i) Tj (>) Tj ( set b lippo) Tj T* (setting b=lippo) Tj T* (i) Tj (>) Tj ( showall) Tj T* (b = lippo) Tj T* (a = pippo) Tj T* (i) Tj (>) Tj ( show a b) Tj T* (a = pippo) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (8) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R141': class PDFStream 
+141 0 obj
+% page stream
+<< /Length 3815 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 606.2269 cm
+q
+q
+.773863 0 0 .773863 0 0 cm
+q
+1 0 0 1 6.6 8.528639 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 606 204 re B*
+Q
+q
+BT 1 0 0 1 0 185.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (b = lippo) Tj T* (i) Tj (>) Tj ( del a) Tj T* (deleting a) Tj T* (i) Tj (>) Tj ( showall) Tj T* (b = lippo) Tj T* (i) Tj (>) Tj ( delete a) Tj T* (deleting a) Tj T* (KeyError: 'a') Tj T* (i) Tj (>) Tj ( .last_tb) Tj T* ( File "/usr/local/lib/python2.6/dist-packages/plac-0.6.0-py2.6.egg/plac_ext.py", line 190, in _wrap) Tj T* (    for value in genobj:) Tj T* (  File "./ishelve2.py", line 37, in delete) Tj T* (    del self.sh[name] # no error checking) Tj T* (  File "/usr/lib/python2.6/shelve.py", line 136, in __delitem__) Tj T* (    del self.dict[key]) Tj T* (i) Tj (>) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 574.2269 cm
+q
+BT 1 0 0 1 0 16.82 Tm 2.571235 Tw 12 TL /F1 10 Tf 0 0 0 rg (Notice that in interactive mode the traceback is hidden, unless you pass the ) Tj /F4 10 Tf (verbose ) Tj /F1 10 Tf (flag to the) Tj T* 0 Tw /F4 10 Tf (Interpreter.interact ) Tj /F1 10 Tf (method.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 541.2269 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Readline support) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 463.2269 cm
+q
+BT 1 0 0 1 0 64.82 Tm 1.022485 Tw 12 TL /F1 10 Tf 0 0 0 rg (Starting from release 0.6 ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (offers full readline support. That means that if your Python was compiled) Tj T* 0 Tw 2.120697 Tw (with readline support you get autocompletion and persistent command history for free. By default all) Tj T* 0 Tw .144104 Tw (commands are autocomplete in a case sensitive way. If you want to add new words to the autocompletion) Tj T* 0 Tw 1.14683 Tw (set, or you want to change the location of the ) Tj /F4 10 Tf (.history ) Tj /F1 10 Tf (file, or to change the case sensitivirt, or you) Tj T* 0 Tw .162209 Tw (want to change the prompt, the way to do it is to pass a ) Tj /F4 10 Tf (plac.ReadlineInput ) Tj /F1 10 Tf (object to the interpreter.) Tj T* 0 Tw (Here is an example, assuming you want to build a database interface understanding SQL commands:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 153.1549 cm
+q
+q
+.96447 0 0 .96447 0 0 cm
+q
+1 0 0 1 6.6 6.843137 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 486 312 re B*
+Q
+q
+BT 1 0 0 1 0 293.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (import os, plac) Tj T* (from sqlalchemy.ext.sqlsoup import SqlSoup) Tj T*  T* (SQLKEYWORDS = set\(['select', 'from', 'inner', 'join', 'outer', 'left', 'right']) Tj T* (                  \) # and many others) Tj T* (DBTABLES = set\(['table1', 'table2']\) # you can read them from the db schema) Tj T*  T* (COMPLETIONS = SQLKEYWORDS | DBTABLES) Tj T*  T* (class SqlInterface\(object\):) Tj T* (    commands = ['SELECT']) Tj T* (    def __init__\(self, dsn\):) Tj T* (        self.soup = SqlSoup\(dsn\)) Tj T* (    def SELECT\(self, *args\):) Tj T* (        sql = 'SELECT ' + ' '.join\(args\)) Tj T* (        for row in self.soup.bind.execute\(sql\):) Tj T* (            yield str\(row\) # the formatting can be much improved) Tj T*  T* (rl_input = plac.ReadlineInput\() Tj T* (    COMPLETIONS, prompt='sql) Tj (>) Tj ( ', ) Tj T* (    histfile=os.path.expanduser\('~/.sql_interface.history'\), ) Tj T* (    case_sensitive=False\)) Tj T*  T* (if __name__ == '__main__':) Tj T* (    plac.Interpreter\(plac.call\(SqlInterface\)\).interact\(rl_input\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 133.1549 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Here is an example of usage:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 238.1649 0 Td (9) Tj T* -238.1649 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R142': class PDFStream 
+142 0 obj
+% page stream
+<< /Length 5061 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 715.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 48 re B*
+Q
+q
+BT 1 0 0 1 0 29.71 Tm 12 TL /F4 10 Tf 0 0 0 rg ($ python sql_interface.py ) Tj (<) Tj (some dsn) Tj (>) Tj  T* (sql) Tj (>) Tj ( SELECT a.* FROM TABLE1 AS a INNER JOIN TABLE2 AS b ON a.id = b.id) Tj T* (...) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 635.8236 cm
+q
+BT 1 0 0 1 0 64.82 Tm 1.951318 Tw 12 TL /F1 10 Tf 0 0 0 rg (You can check that entering just ) Tj /F4 10 Tf (sel ) Tj /F1 10 Tf (and pressing TAB the readline library completes the ) Tj /F4 10 Tf (SELECT) Tj T* 0 Tw .797356 Tw /F1 10 Tf (keyword for you and makes it upper case; idem for ) Tj /F4 10 Tf (FROM) Tj /F1 10 Tf (, ) Tj /F4 10 Tf (INNER) Tj /F1 10 Tf (, ) Tj /F4 10 Tf (JOIN ) Tj /F1 10 Tf (and even for the names of the) Tj T* 0 Tw .256235 Tw (tables. An obvious improvement is to read the names of the tables by introspecting the database: actually) Tj T* 0 Tw 1.616654 Tw (you can even read the names of the views and of the columns, and have full autocompletion. All the) Tj T* 0 Tw 2.047251 Tw (entered commands and recorded and saved in the file ) Tj /F4 10 Tf (~/.sql_interface.history ) Tj /F1 10 Tf (when exiting) Tj T* 0 Tw (from the command-line interface.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 557.8236 cm
+q
+BT 1 0 0 1 0 64.82 Tm 2.010574 Tw 12 TL /F1 10 Tf 0 0 0 rg (If the readline library is not available, my suggestion is to use the ) Tj 0 0 .501961 rg (rlwrap ) Tj 0 0 0 rg (tool which provides similar) Tj T* 0 Tw .22561 Tw (features, at least on Unix-like platforms. ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (should also work fine on Windows with the pyreadline library) Tj T* 0 Tw .068488 Tw (\(I do not use Windows, so this part is very little tested\). For people worried about licenses, I will notice that) Tj T* 0 Tw 1.863322 Tw 0 0 .501961 rg (plac ) Tj 0 0 0 rg (uses the readline library only if available, it does not include it and it does not rely on it in any) Tj T* 0 Tw 3.716654 Tw (fundamental way, so that the ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (licence does not need to be the GPL \(actually it is a BSD) Tj T* 0 Tw (do-whatever-you-want-with-it licence\).) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 515.8236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .187882 Tw 12 TL /F1 10 Tf 0 0 0 rg (The interactive mode of ) Tj /F4 10 Tf (plac ) Tj /F1 10 Tf (can be used as a replacement of the ) Tj 0 0 .501961 rg (cmd ) Tj 0 0 0 rg (module in the standard library. It) Tj T* 0 Tw 2.730651 Tw (is actually better than ) Tj 0 0 .501961 rg (cmd) Tj 0 0 0 rg (: for instance, the ) Tj /F4 10 Tf (.help ) Tj /F1 10 Tf (command is more powerful, since it provides) Tj T* 0 Tw (information about the arguments accepted by the given command:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 206.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 300 re B*
+Q
+q
+BT 1 0 0 1 0 281.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( .help set) Tj T* (usage:  set name value) Tj T*  T* (set name value) Tj T*  T* (positional arguments:) Tj T* (  name) Tj T* (  value) Tj T*  T* (i) Tj (>) Tj ( .help delete) Tj T* (usage:  delete [name]) Tj T*  T* (delete given parameter \(or everything\)) Tj T*  T* (positional arguments:) Tj T* (  name) Tj T*  T* (i) Tj (>) Tj ( .help show) Tj T* (usage:  show [names [names ...]]) Tj T*  T* (show given parameters) Tj T*  T* (positional arguments:) Tj T* (  names) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 150.6236 cm
+q
+BT 1 0 0 1 0 40.82 Tm 1.959985 Tw 12 TL /F1 10 Tf 0 0 0 rg (As you can imagine, the help message is provided by the underlying ) Tj 0 0 .501961 rg (argparse ) Tj 0 0 0 rg (subparser \(there is a) Tj T* 0 Tw 2.954524 Tw (subparser for each command\). ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (commands accept options, flags, varargs, keyword arguments,) Tj T* 0 Tw .719318 Tw (arguments with defaults, arguments with a fixed number of choices, type conversion and all the features) Tj T* 0 Tw (provided of ) Tj 0 0 .501961 rg (argparse ) Tj 0 0 0 rg (which should be reimplemented from scratch using ) Tj 0 0 .501961 rg (plac) Tj 0 0 0 rg (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 108.6236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .901647 Tw 12 TL /F1 10 Tf 0 0 0 rg (Moreover at the moment ) Tj /F4 10 Tf (plac ) Tj /F1 10 Tf (also understands command abbreviations. However, this feature should) Tj T* 0 Tw .256235 Tw (be considered deprecated and may disappear in future releases. It was meaningful in the past, when ) Tj 0 0 .501961 rg (plac) Tj T* 0 Tw 0 0 0 rg (did not support readline.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 90.62362 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (Notice that if an abbreviation is ambiguous, ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (warns you:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (10) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R143': class PDFStream 
+143 0 obj
+% page stream
+<< /Length 5053 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 727.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+BT 1 0 0 1 0 17.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( sh) Tj T* (NameError: Ambiguous command 'sh': matching ['showall', 'show']) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 694.8236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (The plac runner) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 628.8236 cm
+q
+BT 1 0 0 1 0 52.82 Tm 1.531318 Tw 12 TL /F1 10 Tf 0 0 0 rg (The distribution of ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (includes a runner script named ) Tj /F4 10 Tf (plac_runner.py) Tj /F1 10 Tf (, which will be installed in a) Tj T* 0 Tw .44748 Tw (suitable directory in your system by ) Tj 0 0 .501961 rg (distutils ) Tj 0 0 0 rg (\(say in ) Tj /F4 10 Tf (\\usr\\local\\bin\\plac_runner.py ) Tj /F1 10 Tf (in a Unix-like) Tj T* 0 Tw .680651 Tw (operative system\). The runner provides many facilities to run ) Tj /F4 10 Tf (.plac ) Tj /F1 10 Tf (scripts and ) Tj /F4 10 Tf (.placet ) Tj /F1 10 Tf (files, as well) Tj T* 0 Tw 1.47311 Tw (as Python modules containg a ) Tj /F4 10 Tf (main ) Tj /F1 10 Tf (object, which can be a function, a command container object or) Tj T* 0 Tw (even a command container class.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 598.8236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.994269 Tw 12 TL /F1 10 Tf 0 0 0 rg (For instance, suppose you want to execute a script containing commands defined in the ) Tj /F4 10 Tf (ishelve2) Tj T* 0 Tw /F1 10 Tf (module like the following one:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 529.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 60 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 41.71 Tm /F4 10 Tf 12 TL (#!ishelve2.py -c ~/conf.shelve) Tj T* (set a 1) Tj T* (del a) Tj T* (del a # intentional error) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 485.6236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .575868 Tw 12 TL /F1 10 Tf 0 0 0 rg (The first line of the ) Tj /F4 10 Tf (.plac ) Tj /F1 10 Tf (script contains the name of the python module containing the plac interpreter) Tj T* 0 Tw 2.327209 Tw (and the arguments which must be passed to its main function in order to be able to instantiate an) Tj T* 0 Tw (interpreter object. The other lines contains commands. Then you can run the script as follows:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 396.4505 cm
+q
+q
+.952737 0 0 .952737 0 0 cm
+q
+1 0 0 1 6.6 6.927412 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 492 84 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 65.71 Tm /F4 10 Tf 12 TL ($ plac_runner.py --batch ishelve2.plac) Tj T* (setting a=1) Tj T* (deleting a) Tj T* (Traceback \(most recent call last\):) Tj T* (  ...) Tj T* (_bsddb.DBNotFoundError: \(-30988, 'DB_NOTFOUND: No matching key/data pair found'\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 364.4505 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL 2.79186 Tw (The last command intentionally contained an error, to show that the plac runner does not eat the) Tj T* 0 Tw (traceback.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 334.4505 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL .437633 Tw (The runner can also be used to run Python modules in interactive mode and non-interactive mode. If you) Tj T* 0 Tw (put this alias in your bashrc) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 328.4505 cm
+Q
+q
+1 0 0 1 62.69291 316.4505 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL (alias plac="plac_runner.py") Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 316.4505 cm
+Q
+q
+1 0 0 1 62.69291 286.4505 cm
+q
+BT 1 0 0 1 0 16.82 Tm 2.955318 Tw 12 TL /F1 10 Tf 0 0 0 rg (\(or you define a suitable ) Tj /F4 10 Tf (plac.bat ) Tj /F1 10 Tf (script in Windows\) you can run the ) Tj /F4 10 Tf (ishelve2.py ) Tj /F1 10 Tf (script in) Tj T* 0 Tw (interactive mode as follows:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 109.2505 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 168 re B*
+Q
+q
+BT 1 0 0 1 0 149.71 Tm 12 TL /F4 10 Tf 0 0 0 rg ($ plac -i ishelve2.py) Tj T* (A minimal interface over a shelve object.) Tj T* (Operating on /home/micheles/conf.shelve.) Tj T* (.help to see the available commands.) Tj T*  T* (i) Tj (>) Tj ( del) Tj T* (deleting everything) Tj T* (i) Tj (>) Tj ( set a 1) Tj T* (setting a=1) Tj T* (i) Tj (>) Tj ( set b 2) Tj T* (setting b=2) Tj T* (i) Tj (>) Tj ( show b) Tj T* (b = 2) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 89.25045 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (Now you can cut and paste the interactive session an turns into into a ) Tj /F4 10 Tf (.placet ) Tj /F1 10 Tf (file like the following:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (11) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R144': class PDFStream 
+144 0 obj
+% page stream
+<< /Length 5476 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 643.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 120 re B*
+Q
+q
+BT 1 0 0 1 0 101.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (#!ishelve2.py -configfile=~/test.shelve) Tj T* (i) Tj (>) Tj ( del) Tj T* (deleting everything) Tj T* (i) Tj (>) Tj ( set a 1) Tj T* (setting a=1) Tj T* (i) Tj (>) Tj ( set b 2) Tj T* (setting b=2) Tj T* (i) Tj (>) Tj ( show a) Tj T* (a = 1) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 611.8236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 2.145697 Tw 12 TL /F1 10 Tf 0 0 0 rg (Notice that the first line specifies a test database ) Tj /F4 10 Tf (~/test.shelve) Tj /F1 10 Tf (, to avoid clobbering your default) Tj T* 0 Tw (shelve. If you mispell the arguments in the first line plac will give you an ) Tj 0 0 .501961 rg (argparse ) Tj 0 0 0 rg (error message \(just try\).) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 593.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (You can run placets following the shebang convention directly with the plac runner:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 548.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 17.71 Tm /F4 10 Tf 12 TL ($ plac --test ishelve2.placet) Tj T* (run 1 plac test\(s\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 504.6236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .32104 Tw 12 TL /F1 10 Tf 0 0 0 rg (If you want to see the output of the tests, pass the ) Tj /F4 10 Tf (-v/--verbose ) Tj /F1 10 Tf (flag. Notice that he runner ignore the) Tj T* 0 Tw .24856 Tw (extension, so you can actually use any extension your like, but ) Tj /F5 10 Tf (it relies on the first line of the file to invoke) Tj T* 0 Tw (the corresponding plac tool with the given arguments) Tj /F1 10 Tf (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 474.6236 cm
+q
+BT 1 0 0 1 0 16.82 Tm .537209 Tw 12 TL /F1 10 Tf 0 0 0 rg (The plac runner does not provide any test discovery facility, but you can use standard Unix tools to help.) Tj T* 0 Tw (For instance, you can run all the ) Tj /F4 10 Tf (.placet ) Tj /F1 10 Tf (files into a directory and its subdirectories as follows:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 441.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 24 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL ($ find . -name \\*.placet | xargs plac_runner.py -t) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 409.4236 cm
+q
+BT 1 0 0 1 0 16.82 Tm .760988 Tw 12 TL /F1 10 Tf 0 0 0 rg (The plac runner expects the main function of your script to return a plac tool, i.e. a function or an object) Tj T* 0 Tw (with a ) Tj /F4 10 Tf (.commands ) Tj /F1 10 Tf (attribute. It this is not the case the runner gracefully exits.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 391.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (It also works in non-interactive mode, if you call it as) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 385.4236 cm
+Q
+q
+1 0 0 1 62.69291 373.4236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL ($ plac module.py args ...) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 373.4236 cm
+Q
+q
+1 0 0 1 62.69291 355.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Here is an example:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 286.2236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 60 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 41.71 Tm /F4 10 Tf 12 TL ($ plac ishelve.py a=1) Tj T* (setting a=1) Tj T* ($ plac ishelve.py .show) Tj T* (a=1) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 254.2236 cm
+q
+BT 1 0 0 1 0 16.82 Tm .18936 Tw 12 TL /F1 10 Tf 0 0 0 rg (Notice that it non-interactive mode the runner just invokes ) Tj /F4 10 Tf (plac.call ) Tj /F1 10 Tf (on the ) Tj /F4 10 Tf (main ) Tj /F1 10 Tf (object of the Python) Tj T* 0 Tw (module.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 221.2236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (A non class-based example) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 179.2236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .907209 Tw 12 TL /F1 10 Tf 0 0 .501961 rg (plac ) Tj 0 0 0 rg (does not force you to use classes to define command containers. Even a simple function can be a) Tj T* 0 Tw 1.796651 Tw (valid command container, it is enough to add to it a ) Tj /F4 10 Tf (.commands ) Tj /F1 10 Tf (attribute and possibly ) Tj /F4 10 Tf (__enter__) Tj T* 0 Tw /F1 10 Tf (and/or ) Tj /F4 10 Tf (__exit__ ) Tj /F1 10 Tf (attributes.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 149.2236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL .327485 Tw (In particular, a Python module is a perfect container of commands. As an example, consider the following) Tj T* 0 Tw (module implementing a fake Version Control System:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 92.02362 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 48 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 29.71 Tm /F4 10 Tf 12 TL ("A Fake Version Control System") Tj T*  T* (import plac) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (12) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R145': class PDFStream 
+145 0 obj
+% page stream
+<< /Length 3414 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 427.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 336 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 317.71 Tm /F4 10 Tf 12 TL  T* (commands = 'checkout', 'commit', 'status') Tj T*  T* (@plac.annotations\(url='url of the source code'\)) Tj T* (def checkout\(url\):) Tj T* (    "A fake checkout command") Tj T* (    return \('checkout ', url\)) Tj T*  T* (@plac.annotations\(message=\('commit message', 'option'\)\)) Tj T* (def commit\(message\):) Tj T* (    "A fake commit command") Tj T* (    return \('commit ', message\)) Tj T*  T* (@plac.annotations\(quiet=\('summary information', 'flag', 'q'\)\)) Tj T* (def status\(quiet\):) Tj T* (    "A fake status command") Tj T* (    return \('status ', quiet\)) Tj T*  T* (def __missing__\(name\):) Tj T* (    return 'Command %r does not exist' % name) Tj T*  T* (def __exit__\(etype, exc, tb\):) Tj T* (    "Will be called automatically at the end of the call/cmdloop") Tj T* (    if etype in \(None, GeneratorExit\): # success) Tj T* (        print\('ok'\)) Tj T*  T* (main = __import__\(__name__\) # the module imports itself!) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 383.8236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .431318 Tw 12 TL /F1 10 Tf 0 0 0 rg (Notice that I have defined both an ) Tj /F4 10 Tf (__exit__ ) Tj /F1 10 Tf (hook and a ) Tj /F4 10 Tf (__missing__ ) Tj /F1 10 Tf (hook, invoked for non-existing) Tj T* 0 Tw .592651 Tw (commands. The real trick here is the line ) Tj /F4 10 Tf (main = __import__\(__name__\)) Tj /F1 10 Tf (, which define ) Tj /F4 10 Tf (main ) Tj /F1 10 Tf (to be) Tj T* 0 Tw (an alias for the current module.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 353.8236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.259986 Tw 12 TL /F1 10 Tf 0 0 0 rg (The ) Tj /F4 10 Tf (vcs ) Tj /F1 10 Tf (module does not contain an ) Tj /F4 10 Tf (if __name__ == '__main__' ) Tj /F1 10 Tf (block, but you can still run it) Tj T* 0 Tw (through the plac runner \(try ) Tj /F4 10 Tf (plac vcs.py -h) Tj /F1 10 Tf (\):) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 212.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 132 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 113.71 Tm /F4 10 Tf 12 TL (usage: plac_runner.py vcs.py [-h] {status,commit,checkout} ...) Tj T*  T* (A Fake Version Control System) Tj T*  T* (optional arguments:) Tj T* (  -h, --help            show this help message and exit) Tj T*  T* (subcommands:) Tj T* (  {status,commit,checkout}) Tj T* (                        -h to get additional help) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 192.6236 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (You can get help for the subcommands by postponing ) Tj /F4 10 Tf (-h ) Tj /F1 10 Tf (after the name of the command:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 99.42362 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 84 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 65.71 Tm /F4 10 Tf 12 TL ($ plac vcs.py status -h) Tj T* (usage: vcs.py status [-h] [-q]) Tj T*  T* (A fake status command) Tj T*  T* (optional arguments:) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (13) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R146': class PDFStream 
+146 0 obj
+% page stream
+<< /Length 5361 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 727.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 17.71 Tm /F4 10 Tf 12 TL (  -h, --help   show this help message and exit) Tj T* (  -q, --quiet  summary information) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 695.8236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 2.064985 Tw 12 TL /F1 10 Tf 0 0 0 rg (Notice how the docstring of the command is automatically shown in usage message, as well as the) Tj T* 0 Tw (documentation for the sub flag ) Tj /F4 10 Tf (-q) Tj /F1 10 Tf (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 677.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Here is an example of a non-interactive session:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 548.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 120 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 101.71 Tm /F4 10 Tf 12 TL ($ plac vcs.py check url) Tj T* (checkout) Tj T* (url) Tj T* ($ plac vcs.py st -q) Tj T* (status) Tj T* (True) Tj T* ($ plac vcs.py co) Tj T* (commit) Tj T* (None) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 528.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (and here is an interactive session:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 327.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 192 re B*
+Q
+q
+BT 1 0 0 1 0 173.71 Tm 12 TL /F4 10 Tf 0 0 0 rg ($ plac -i vcs.py) Tj T* (usage: plac_runner.py vcs.py [-h] {status,commit,checkout} ...) Tj T* (i) Tj (>) Tj ( check url) Tj T* (checkout) Tj T* (url) Tj T* (i) Tj (>) Tj ( st -q) Tj T* (status) Tj T* (True) Tj T* (i) Tj (>) Tj ( co) Tj T* (commit) Tj T* (None) Tj T* (i) Tj (>) Tj ( sto) Tj T* (Command 'sto' does not exist) Tj T* (i) Tj (>) Tj ( [CTRL-D]) Tj T* (ok) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 295.4236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 2.986905 Tw 12 TL /F1 10 Tf 0 0 0 rg (Notice the invocation of the ) Tj /F4 10 Tf (__missing__ ) Tj /F1 10 Tf (hook for non-existing commands. Notice also that the) Tj T* 0 Tw /F4 10 Tf (__exit__ ) Tj /F1 10 Tf (hook gets called only in interactive mode.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 265.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL 1.614104 Tw (If the commands are completely independent, a module is a good fit for a method container. In other) Tj T* 0 Tw (situations, it is best to use a custom class.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 232.4236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Writing your own plac runner) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 178.4236 cm
+q
+BT 1 0 0 1 0 40.82 Tm .167209 Tw 12 TL /F1 10 Tf 0 0 0 rg (The runner included in the ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (distribution is intentionally kept small \(around 50 lines of code\) so that you) Tj T* 0 Tw .081294 Tw (can study it and write your own runner if want to. If you need to go to such level of detail, you should know) Tj T* 0 Tw .42061 Tw (that the most important method of the ) Tj /F4 10 Tf (Interpreter ) Tj /F1 10 Tf (class is the ) Tj /F4 10 Tf (.send ) Tj /F1 10 Tf (method, which takes strings in) Tj T* 0 Tw (input and returns a four-tuple with attributes ) Tj /F4 10 Tf (.str) Tj /F1 10 Tf (, ) Tj /F4 10 Tf (.etype) Tj /F1 10 Tf (, ) Tj /F4 10 Tf (.exc ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (.tb) Tj /F1 10 Tf (:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 172.4236 cm
+Q
+q
+1 0 0 1 62.69291 172.4236 cm
+Q
+q
+1 0 0 1 62.69291 154.4236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F4 10 Tf 0 0 0 rg (.str ) Tj /F1 10 Tf (is the output of the command, if successful \(a string\);) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 154.4236 cm
+Q
+q
+1 0 0 1 62.69291 154.4236 cm
+Q
+q
+1 0 0 1 62.69291 136.4236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F4 10 Tf 0 0 0 rg (.etype ) Tj /F1 10 Tf (is the class of the exception, if the command fail;) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 136.4236 cm
+Q
+q
+1 0 0 1 62.69291 136.4236 cm
+Q
+q
+1 0 0 1 62.69291 118.4236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F4 10 Tf 0 0 0 rg (.exc ) Tj /F1 10 Tf (is the exception instance;) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 118.4236 cm
+Q
+q
+1 0 0 1 62.69291 118.4236 cm
+Q
+q
+1 0 0 1 62.69291 100.4236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F4 10 Tf 0 0 0 rg (.tb ) Tj /F1 10 Tf (is the traceback.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 100.4236 cm
+Q
+q
+1 0 0 1 62.69291 100.4236 cm
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (14) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R147': class PDFStream 
+147 0 obj
+% page stream
+<< /Length 4689 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 729.0236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .937485 Tw 12 TL /F1 10 Tf 0 0 0 rg (Moreover the ) Tj /F4 10 Tf (__str__ ) Tj /F1 10 Tf (representation of the output object is redefined to return the output string if the) Tj T* 0 Tw 2.686651 Tw (command was successful or the error message if the command failed \(actually it returns the error) Tj T* 0 Tw (message preceded by the name of the exception class\).) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 711.0236 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (For instance, if you send a mispelled option to the interpreter a ) Tj /F4 10 Tf (SystemExit ) Tj /F1 10 Tf (will be trapped:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 617.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 84 re B*
+Q
+q
+BT 1 0 0 1 0 65.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (>) Tj (>) Tj (>) Tj ( import plac) Tj T* (>) Tj (>) Tj (>) Tj ( from ishelve import ishelve) Tj T* (>) Tj (>) Tj (>) Tj ( with plac.Interpreter\(ishelve\) as i:) Tj T* (...     print\(i.send\('.cler'\)\)) Tj T* (...) Tj T* (SystemExit: unrecognized arguments: .cler) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 585.8236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 2.90561 Tw 12 TL /F1 10 Tf 0 0 0 rg (It is important to invoke the ) Tj /F4 10 Tf (.send ) Tj /F1 10 Tf (method inside the context manager, otherwise you will get a) Tj T* 0 Tw /F4 10 Tf (RuntimeError) Tj /F1 10 Tf (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 543.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 28.82 Tm /F1 10 Tf 12 TL .29311 Tw (For instance, suppose you want to implement a graphical runner for a plac-based interpreter with two text) Tj T* 0 Tw 1.548221 Tw (widgets: one to enter the commands and one to display the results. Suppose you want to display the) Tj T* 0 Tw (errors with tracebacks in red. You will need to code something like that \(pseudocode follows\):) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 306.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 228 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 209.71 Tm /F4 10 Tf 12 TL (input_widget = WidgetReadingInput\(\)) Tj T* (output_widget = WidgetDisplayingOutput\(\)) Tj T*  T* (def send\(interpreter, line\):) Tj T* (    out = interpreter.send\(line\)) Tj T* (    if out.tb: # there was an error) Tj T* (        output_widget.display\(out.tb, color='red'\)) Tj T* (    else:) Tj T* (        output_widget.display\(out.str\)) Tj T*  T* (main = plac.import_main\(tool_path\) # get the main object) Tj T*  T* (with plac.Interpreter\(main\) as i:) Tj T* (   def callback\(event\):) Tj T* (      if event.user_pressed_ENTER\(\):) Tj T* (           send\(i, input_widget.last_line\)) Tj T* (   input_widget.addcallback\(callback\)) Tj T* (   gui_mainloop.start\(\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 274.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL .102765 Tw (You can adapt the pseudocode to your GUI toolkit of choice and you can also change the file associations) Tj T* 0 Tw (in such a way that clicking on a plac tool file the graphical user interface starts.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 220.6236 cm
+q
+BT 1 0 0 1 0 40.82 Tm 2.090651 Tw 12 TL /F1 10 Tf 0 0 0 rg (There is a final ) Tj /F5 10 Tf (caveat) Tj /F1 10 Tf (: since the plac interpreter loop is implemented via extended generators, plac) Tj T* 0 Tw .988651 Tw (interpreters are single threaded: you will get an error if you ) Tj /F4 10 Tf (.send ) Tj /F1 10 Tf (commands from separated threads.) Tj T* 0 Tw .947882 Tw (You can circumvent the problem by using a queue. If EXIT is a sentinel value to signal exiting from the) Tj T* 0 Tw (interpreter look, you can write code like this:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 163.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 48 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 29.71 Tm /F4 10 Tf 12 TL (with interpreter:) Tj T* (    for input_value in iter\(input_queue.get, EXIT\):) Tj T* (        output_queue.put\(interpreter.send\(input_value\)\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 131.4236 cm
+q
+BT 1 0 0 1 0 16.82 Tm .106098 Tw 12 TL /F1 10 Tf 0 0 0 rg (The same trick also work for processes; you could run the interpreter loop in a separate process and send) Tj T* 0 Tw (commands to it via the Queue class provided by the ) Tj 0 0 .501961 rg (multiprocessing ) Tj 0 0 0 rg (module.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (15) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R148': class PDFStream 
+148 0 obj
+% page stream
+<< /Length 4115 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 744.0236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Long running commands) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 702.0236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 1.434431 Tw 12 TL /F1 10 Tf 0 0 0 rg (As we saw, by default a ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (interpreter blocks until the command terminates. This is an issue, in the) Tj T* 0 Tw 1.201318 Tw (sense that it makes the interactive experience quite painful for long running commands. An example is) Tj T* 0 Tw (better than a thousand words, so consider the following fake importer:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 440.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 252 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 233.71 Tm /F4 10 Tf 12 TL (import time) Tj T* (import plac) Tj T*  T* (class FakeImporter\(object\):) Tj T* (    "A fake importer with an import_file command") Tj T* (    commands = ['import_file']) Tj T* (    def __init__\(self, dsn\):) Tj T* (        self.dsn = dsn) Tj T* (    def import_file\(self, fname\):) Tj T* (        "Import a file into the database") Tj T* (        try:) Tj T* (            for n in range\(10000\):) Tj T* (                time.sleep\(.01\)) Tj T* (                if n % 100 == 99:) Tj T* (                    yield 'Imported %d lines' % \(n+1\)) Tj T* (        finally:) Tj T* (            print\('closing the file'\)) Tj T*  T* (if __name__ == '__main__':) Tj T* (    plac.Interpreter\(plac.call\(FakeImporter\)\).interact\(\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 408.8236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.466457 Tw 12 TL /F1 10 Tf 0 0 0 rg (If you run the ) Tj /F4 10 Tf (import_file ) Tj /F1 10 Tf (command, you will have to wait for 200 seconds before entering a new) Tj T* 0 Tw (command:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 279.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 120 re B*
+Q
+q
+BT 1 0 0 1 0 101.71 Tm 12 TL /F4 10 Tf 0 0 0 rg ($ python importer1.py dsn) Tj T* (A fake importer with an import_file command) Tj T* (i) Tj (>) Tj ( import_file file1) Tj T* (Imported 100 lines) Tj T* (Imported 200 lines) Tj T* (Imported 300 lines) Tj T* (... ) Tj (<) Tj (wait 3+ minutes) Tj (>) Tj  T* (Imported 10000 lines) Tj T* (closing the file) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 235.6236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .96832 Tw 12 TL /F1 10 Tf 0 0 0 rg (Being unable to enter any other command is quite annoying: in such situation one would like to run the) Tj T* 0 Tw .941318 Tw (long running commands in the background, to keep the interface responsive. ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (provides two ways to) Tj T* 0 Tw (reach this goal: threads and processes.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 202.6236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Threaded commands) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 172.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL .317988 Tw (The most familiar way to execute a task in the background \(even if not necessarily the best way\) is to run) Tj T* 0 Tw (it into a separated thread. In our example it is sufficient to replace the line) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 166.6236 cm
+Q
+q
+1 0 0 1 62.69291 154.6236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL (commands = ['import_file']) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 154.6236 cm
+Q
+q
+1 0 0 1 62.69291 136.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (with) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 130.6236 cm
+Q
+q
+1 0 0 1 62.69291 118.6236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL (thcommands = ['import_file']) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 118.6236 cm
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (16) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R149': class PDFStream 
+149 0 obj
+% page stream
+<< /Length 4990 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 741.0236 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.38311 Tw 12 TL /F1 10 Tf 0 0 0 rg (to tell to the ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (interpreter that the command ) Tj /F4 10 Tf (import_file ) Tj /F1 10 Tf (should be run into a separated thread.) Tj T* 0 Tw (Here is an example session:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 695.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+BT 1 0 0 1 0 17.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( import_file file1) Tj T* (<) Tj (ThreadedTask 1 [import_file file1] RUNNING) Tj (>) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 663.8236 cm
+q
+BT 1 0 0 1 0 16.82 Tm .595777 Tw 12 TL /F1 10 Tf 0 0 0 rg (The import task started in a separated thread. You can see the progress of the task by using the special) Tj T* 0 Tw (command ) Tj /F4 10 Tf (.output) Tj /F1 10 Tf (:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 594.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 60 re B*
+Q
+q
+BT 1 0 0 1 0 41.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( .output 1) Tj T* (<) Tj (ThreadedTask 1 [import_file file1] RUNNING) Tj (>) Tj  T* (Imported 100 lines) Tj T* (Imported 200 lines) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 574.6236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (If you look after a while, you will get more lines of output:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 481.4236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 84 re B*
+Q
+q
+BT 1 0 0 1 0 65.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( .output 1) Tj T* (<) Tj (ThreadedTask 1 [import_file file1] RUNNING) Tj (>) Tj  T* (Imported 100 lines) Tj T* (Imported 200 lines) Tj T* (Imported 300 lines) Tj T* (Imported 400 lines) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 461.4236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (If you look after a time long enough, the task will be finished:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 416.2236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 36 re B*
+Q
+q
+BT 1 0 0 1 0 17.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( .output 1) Tj T* (<) Tj (ThreadedTask 1 [import_file file1] FINISHED) Tj (>) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 396.2236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (You can launch many tasks one after the other:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 327.0236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 60 re B*
+Q
+q
+BT 1 0 0 1 0 41.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( import_file file2) Tj T* (<) Tj (ThreadedTask 5 [import_file file2] RUNNING) Tj (>) Tj  T* (i) Tj (>) Tj ( import_file file3) Tj T* (<) Tj (ThreadedTask 6 [import_file file3] RUNNING) Tj (>) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 307.0236 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (The ) Tj /F4 10 Tf (.list ) Tj /F1 10 Tf (command displays all the running tasks:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 249.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 48 re B*
+Q
+q
+BT 1 0 0 1 0 29.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( .list) Tj T* (<) Tj (ThreadedTask 5 [import_file file2] RUNNING) Tj (>) Tj  T* (<) Tj (ThreadedTask 6 [import_file file3] RUNNING) Tj (>) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 229.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (It is even possible to kill a task:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 136.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 84 re B*
+Q
+q
+BT 1 0 0 1 0 65.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( .kill 5) Tj T* (<) Tj (ThreadedTask 5 [import_file file2] TOBEKILLED) Tj (>) Tj  T* (# wait a bit ...) Tj T* (closing the file) Tj T* (i) Tj (>) Tj ( .output 5) Tj T* (<) Tj (ThreadedTask 5 [import_file file2] KILLED) Tj (>) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 92.62362 cm
+q
+BT 1 0 0 1 0 28.82 Tm 1.100542 Tw 12 TL /F1 10 Tf 0 0 0 rg (You should notice that since at the Python level it is impossible to kill a thread, the ) Tj /F4 10 Tf (.kill ) Tj /F1 10 Tf (commands ) Tj T* 0 Tw 1.793984 Tw (works by setting the status of the task to ) Tj /F4 10 Tf (TOBEKILLED) Tj /F1 10 Tf (. Internally the generator corresponding to the ) Tj T* 0 Tw .632927 Tw (command is executed in the thread and the status is checked at each iteration: when the status become) Tj T* 0 Tw ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (17) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R150': class PDFStream 
+150 0 obj
+% page stream
+<< /Length 4477 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 717.0236 cm
+q
+BT 1 0 0 1 0 40.82 Tm 2.578443 Tw 12 TL /F4 10 Tf 0 0 0 rg (TOBEKILLED ) Tj /F1 10 Tf (a ) Tj /F4 10 Tf (GeneratorExit ) Tj /F1 10 Tf (exception is raised and the thread terminates \(softly, so that the) Tj T* 0 Tw 2.328651 Tw /F4 10 Tf (finally ) Tj /F1 10 Tf (clause is honored\). In our example the generator is yielding back control once every 100) Tj T* 0 Tw 1.152619 Tw (iterations, i.e. every two seconds \(not much\). In order to get a responsive interface it is a good idea to) Tj T* 0 Tw (yield more often, for instance every 10 iterations \(i.e. 5 times per second\), as in the following code:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 431.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 276 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 257.71 Tm /F4 10 Tf 12 TL (import time) Tj T* (import plac) Tj T*  T* (class FakeImporter\(object\):) Tj T* (    "A fake importer with an import_file command") Tj T* (    thcommands = ['import_file']) Tj T* (    def __init__\(self, dsn\):) Tj T* (        self.dsn = dsn) Tj T* (    def import_file\(self, fname\):) Tj T* (        "Import a file into the database") Tj T* (        try:) Tj T* (            for n in range\(10000\):) Tj T* (                time.sleep\(.02\)) Tj T* (                if n % 100 == 99: # every two seconds) Tj T* (                    yield 'Imported %d lines' % \(n+1\)) Tj T* (                if n % 10 == 9: # every 0.2 seconds) Tj T* (                    yield # go back and check the TOBEKILLED status) Tj T* (        finally:) Tj T* (            print\('closing the file'\)) Tj T*  T* (if __name__ == '__main__':) Tj T* (    plac.Interpreter\(plac.call\(FakeImporter\)\).interact\(\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 398.8236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Running commands as external processes) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 344.8236 cm
+q
+BT 1 0 0 1 0 40.82 Tm 2.30686 Tw 12 TL /F1 10 Tf 0 0 0 rg (Threads are not loved much in the Python world and actually most people prefer to use processes) Tj T* 0 Tw 3.350697 Tw (instead. For this reason ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (provides the option to execute long running commands as external) Tj T* 0 Tw .632706 Tw (processes. Unfortunately the current implementation only works in Unix-like operating systems \(including) Tj T* 0 Tw (Mac OS X\) because it relies on fork via the ) Tj 0 0 .501961 rg (multiprocessing ) Tj 0 0 0 rg (module.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 326.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (In our example, to enable the feature it is sufficient to replace the line) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 320.8236 cm
+Q
+q
+1 0 0 1 62.69291 308.8236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 5.71 Tm /F4 10 Tf 12 TL (thcommands = ['import_file']) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 308.8236 cm
+Q
+q
+1 0 0 1 62.69291 290.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (with) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 284.8236 cm
+Q
+q
+1 0 0 1 62.69291 272.8236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+BT 1 0 0 1 0 2 Tm  T* ET
+q
+1 0 0 1 20 0 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F4 10 Tf 0 0 0 rg (mpcommands = ['import_file']) Tj /F1 10 Tf (.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 272.8236 cm
+Q
+q
+1 0 0 1 62.69291 242.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL .772619 Tw (The user experience is exactly the same as with threads and you will not see any difference at the user) Tj T* 0 Tw (interface level:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 101.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 132 re B*
+Q
+q
+BT 1 0 0 1 0 113.71 Tm 12 TL /F4 10 Tf 0 0 0 rg (i) Tj (>) Tj ( import_file file3) Tj T* (<) Tj (MPTask 1 [import_file file3] SUBMITTED) Tj (>) Tj  T* (i) Tj (>) Tj ( .kill 1) Tj T* (<) Tj (MPTask 1 [import_file file3] RUNNING) Tj (>) Tj  T* (closing the file) Tj T* (i) Tj (>) Tj ( .o 1) Tj T* (<) Tj (MPTask 1 [import_file file3] KILLED) Tj (>) Tj  T* (Imported 100 lines) Tj T* (Imported 200 lines) Tj T* (i) Tj (>) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (18) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R151': class PDFStream 
+151 0 obj
+% page stream
+<< /Length 7386 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 717.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 40.82 Tm /F1 10 Tf 12 TL 1.201318 Tw (Still, using processes is quite different than using threads: in particular, when using processes you can) Tj T* 0 Tw 2.313318 Tw (only yield pickleable values and you cannot re-raise an exception first raised in a different process,) Tj T* 0 Tw 1.445697 Tw (because traceback objects are not pickleable. Moreover, you cannot rely on automatic sharing of your) Tj T* 0 Tw (objects.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 663.0236 cm
+q
+BT 1 0 0 1 0 40.82 Tm .128935 Tw 12 TL /F1 10 Tf 0 0 0 rg (On the plus side, when using processes you do not need to worry about killing a command: they are killed) Tj T* 0 Tw .466412 Tw (immediately using a SIGTERM signal, and there is not a ) Tj /F4 10 Tf (TOBEKILLED ) Tj /F1 10 Tf (mechanism. Moreover, the killing) Tj T* 0 Tw 1.50229 Tw (is guaranteed to be soft: internally a command receiving a SIGTERM raises a ) Tj /F4 10 Tf (TerminatedProcess) Tj T* 0 Tw /F1 10 Tf (exception which is trapped in the generator loop, so that the command is closed properly.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 633.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL .242927 Tw (Using processes allows to take full advantage of multicore machines and it is safer than using threads, so) Tj T* 0 Tw (it is the recommended approach unless you are working on Windows.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 600.0236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Summary) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 558.0236 cm
+q
+BT 1 0 0 1 0 28.82 Tm 2.203318 Tw 12 TL /F1 10 Tf 0 0 0 rg (Once ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (claimed to be the easiest command-line arguments parser in the world. Having read this) Tj T* 0 Tw .673322 Tw (document you may think that it is not so easy after all. But it is a false impression. Actually the rules are) Tj T* 0 Tw (quite simple:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 552.0236 cm
+Q
+q
+1 0 0 1 62.69291 552.0236 cm
+Q
+q
+1 0 0 1 62.69291 534.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 5.66 0 Td (1.) Tj T* -5.66 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (if you want to implement a command-line script, use ) Tj /F4 10 Tf (plac.call) Tj /F1 10 Tf (;) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 534.0236 cm
+Q
+q
+1 0 0 1 62.69291 534.0236 cm
+Q
+q
+1 0 0 1 62.69291 474.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 45 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 5.66 0 Td (2.) Tj T* -5.66 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 45 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (if you want to implement a command interpreter, use ) Tj /F4 10 Tf (plac.Interpreter) Tj /F1 10 Tf (:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 23 39 cm
+Q
+q
+1 0 0 1 23 39 cm
+Q
+q
+1 0 0 1 23 21 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (for an interactive interpreter, call the ) Tj /F4 10 Tf (.interact ) Tj /F1 10 Tf (method;) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 23 21 cm
+Q
+q
+1 0 0 1 23 21 cm
+Q
+q
+1 0 0 1 23 3 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 3 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 10.5 0 Td (\177) Tj T* -10.5 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (for an batch interpreter, call the ) Tj /F4 10 Tf (.execute ) Tj /F1 10 Tf (method;) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 23 3 cm
+Q
+q
+1 0 0 1 23 3 cm
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 474.0236 cm
+Q
+q
+1 0 0 1 62.69291 474.0236 cm
+Q
+q
+1 0 0 1 62.69291 444.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 15 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 5.66 0 Td (3.) Tj T* -5.66 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 16.82 Tm 5.126647 Tw 12 TL /F1 10 Tf 0 0 0 rg (for testing call the ) Tj /F4 10 Tf (Interpreter.check ) Tj /F1 10 Tf (method in the appropriate context or use the) Tj T* 0 Tw /F4 10 Tf (Interpreter.doctest ) Tj /F1 10 Tf (feature;) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 444.0236 cm
+Q
+q
+1 0 0 1 62.69291 444.0236 cm
+Q
+q
+1 0 0 1 62.69291 414.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 15 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 5.66 0 Td (4.) Tj T* -5.66 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.356457 Tw 12 TL /F1 10 Tf 0 0 0 rg (if you need to go at a lower level, you may need to call the ) Tj /F4 10 Tf (Interpreter.send ) Tj /F1 10 Tf (method which) Tj T* 0 Tw (returns a \(finished\) ) Tj /F4 10 Tf (Task ) Tj /F1 10 Tf (object.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 414.0236 cm
+Q
+q
+1 0 0 1 62.69291 414.0236 cm
+Q
+q
+1 0 0 1 62.69291 384.0236 cm
+0 0 0 rg
+BT /F3 10 Tf 12 TL ET
+q
+1 0 0 1 6 15 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 5.66 0 Td (5.) Tj T* -5.66 0 Td ET
+Q
+Q
+q
+1 0 0 1 23 3 cm
+q
+BT 1 0 0 1 0 16.82 Tm 1.469269 Tw 12 TL /F1 10 Tf 0 0 0 rg (long running command can be executed in the background as threads or processes: just declare) Tj T* 0 Tw (them in the lists ) Tj /F4 10 Tf (thcommands ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (mpcommands ) Tj /F1 10 Tf (respectively.) Tj T* ET
+Q
+Q
+q
+Q
+Q
+q
+1 0 0 1 62.69291 384.0236 cm
+Q
+q
+1 0 0 1 62.69291 384.0236 cm
+Q
+q
+1 0 0 1 62.69291 366.0236 cm
+q
+BT 1 0 0 1 0 4.82 Tm 12 TL /F1 10 Tf 0 0 0 rg (Moreover, remember that ) Tj /F4 10 Tf (plac_runner.py ) Tj /F1 10 Tf (is your friend.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 333.0236 cm
+q
+BT 1 0 0 1 0 8.435 Tm 21 TL /F2 17.5 Tf 0 0 0 rg (Appendix: custom annotation objects) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 303.0236 cm
+q
+BT 1 0 0 1 0 16.82 Tm .578651 Tw 12 TL /F1 10 Tf 0 0 0 rg (Internally ) Tj 0 0 .501961 rg (plac ) Tj 0 0 0 rg (uses an ) Tj /F4 10 Tf (Annotation ) Tj /F1 10 Tf (class to convert the tuples in the function signature into annotation) Tj T* 0 Tw (objects, i.e. objects with six attributes ) Tj /F4 10 Tf (help, kind, short, type, choices, metavar) Tj /F1 10 Tf (.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 273.0236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 16.82 Tm /F1 10 Tf 12 TL .083735 Tw (Advanced users can implement their own annotation objects. For instance, here is an example of how you) Tj T* 0 Tw (could implement annotations for positional arguments:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 143.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 120 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 101.71 Tm /F4 10 Tf 12 TL (# annotations.py) Tj T* (class Positional\(object\):) Tj T* (    def __init__\(self, help='', type=None, choices=None, metavar=None\):) Tj T* (        self.help = help) Tj T* (        self.kind = 'positional') Tj T* (        self.abbrev = None) Tj T* (        self.type = type) Tj T* (        self.choices = choices) Tj T* (        self.metavar = metavar) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 123.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (You can use such annotations objects as follows:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (19) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R152': class PDFStream 
+152 0 obj
+% page stream
+<< /Length 2033 >>
+stream
+1 0 0 1 0 0 cm BT /F1 12 Tf 14.4 TL ET
+q
+1 0 0 1 62.69291 595.8236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 168 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 149.71 Tm /F4 10 Tf 12 TL (# example11.py) Tj T* (import plac) Tj T* (from annotations import Positional) Tj T*  T* (@plac.annotations\() Tj T* (    i=Positional\("This is an int", int\),) Tj T* (    n=Positional\("This is a float", float\),) Tj T* (    rest=Positional\("Other arguments"\)\)) Tj T* (def main\(i, n, *rest\):) Tj T* (    print\(i, n, rest\)) Tj T*  T* (if __name__ == '__main__':) Tj T* (    import plac; plac.call\(main\)) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 575.8236 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL (Here is the usage message you get:) Tj T* ET
+Q
+Q
+q
+1 0 0 1 62.69291 446.6236 cm
+q
+q
+1 0 0 1 0 0 cm
+q
+1 0 0 1 6.6 6.6 cm
+q
+.662745 .662745 .662745 RG
+.5 w
+.960784 .960784 .862745 rg
+n -6 -6 468.6898 120 re B*
+Q
+q
+0 0 0 rg
+BT 1 0 0 1 0 101.71 Tm /F4 10 Tf 12 TL (usage: example11.py [-h] i n [rest [rest ...]]) Tj T*  T* (positional arguments:) Tj T* (  i           This is an int) Tj T* (  n           This is a float) Tj T* (  rest        Other arguments) Tj T*  T* (optional arguments:) Tj T* (  -h, --help  show this help message and exit) Tj T* ET
+Q
+Q
+Q
+Q
+Q
+q
+1 0 0 1 62.69291 402.6236 cm
+q
+BT 1 0 0 1 0 28.82 Tm .713516 Tw 12 TL /F1 10 Tf 0 0 0 rg (You can go on and define ) Tj /F4 10 Tf (Option ) Tj /F1 10 Tf (and ) Tj /F4 10 Tf (Flag ) Tj /F1 10 Tf (classes, if you like. Using custom annotation objects you) Tj T* 0 Tw .17528 Tw (could do advanced things like extracting the annotations from a configuration file or from a database, but I) Tj T* 0 Tw (expect such use cases to be quite rare: the default mechanism should work pretty well for most users.) Tj T* ET
+Q
+Q
+q
+1 0 0 1 56.69291 56.69291 cm
+q
+0 0 0 rg
+BT 1 0 0 1 0 4.82 Tm /F1 10 Tf 12 TL 235.3849 0 Td (20) Tj T* -235.3849 0 Td ET
+Q
+Q
+ 
+endstream
+
+endobj
+% 'R153': class PDFPageLabels 
+153 0 obj
+% Document Root
+<< /Nums [ 0
+ 154 0 R
+ 1
+ 155 0 R
+ 2
+ 156 0 R
+ 3
+ 157 0 R
+ 4
+ 158 0 R
+ 5
+ 159 0 R
+ 6
+ 160 0 R
+ 7
+ 161 0 R
+ 8
+ 162 0 R
+ 9
+ 163 0 R
+ 10
+ 164 0 R
+ 11
+ 165 0 R
+ 12
+ 166 0 R
+ 13
+ 167 0 R
+ 14
+ 168 0 R
+ 15
+ 169 0 R
+ 16
+ 170 0 R
+ 17
+ 171 0 R
+ 18
+ 172 0 R
+ 19
+ 173 0 R ] >>
+endobj
+% 'R154': class PDFPageLabel 
+154 0 obj
+% None
+<< /S /D
+ /St 1 >>
+endobj
+% 'R155': class PDFPageLabel 
+155 0 obj
+% None
+<< /S /D
+ /St 2 >>
+endobj
+% 'R156': class PDFPageLabel 
+156 0 obj
+% None
+<< /S /D
+ /St 3 >>
+endobj
+% 'R157': class PDFPageLabel 
+157 0 obj
+% None
+<< /S /D
+ /St 4 >>
+endobj
+% 'R158': class PDFPageLabel 
+158 0 obj
+% None
+<< /S /D
+ /St 5 >>
+endobj
+% 'R159': class PDFPageLabel 
+159 0 obj
+% None
+<< /S /D
+ /St 6 >>
+endobj
+% 'R160': class PDFPageLabel 
+160 0 obj
+% None
+<< /S /D
+ /St 7 >>
+endobj
+% 'R161': class PDFPageLabel 
+161 0 obj
+% None
+<< /S /D
+ /St 8 >>
+endobj
+% 'R162': class PDFPageLabel 
+162 0 obj
+% None
+<< /S /D
+ /St 9 >>
+endobj
+% 'R163': class PDFPageLabel 
+163 0 obj
+% None
+<< /S /D
+ /St 10 >>
+endobj
+% 'R164': class PDFPageLabel 
+164 0 obj
+% None
+<< /S /D
+ /St 11 >>
+endobj
+% 'R165': class PDFPageLabel 
+165 0 obj
+% None
+<< /S /D
+ /St 12 >>
+endobj
+% 'R166': class PDFPageLabel 
+166 0 obj
+% None
+<< /S /D
+ /St 13 >>
+endobj
+% 'R167': class PDFPageLabel 
+167 0 obj
+% None
+<< /S /D
+ /St 14 >>
+endobj
+% 'R168': class PDFPageLabel 
+168 0 obj
+% None
+<< /S /D
+ /St 15 >>
+endobj
+% 'R169': class PDFPageLabel 
+169 0 obj
+% None
+<< /S /D
+ /St 16 >>
+endobj
+% 'R170': class PDFPageLabel 
+170 0 obj
+% None
+<< /S /D
+ /St 17 >>
+endobj
+% 'R171': class PDFPageLabel 
+171 0 obj
+% None
+<< /S /D
+ /St 18 >>
+endobj
+% 'R172': class PDFPageLabel 
+172 0 obj
+% None
+<< /S /D
+ /St 19 >>
+endobj
+% 'R173': class PDFPageLabel 
+173 0 obj
+% None
+<< /S /D
+ /St 20 >>
+endobj
+xref
+0 174
+0000000000 65535 f
+0000000113 00000 n
+0000000257 00000 n
+0000000422 00000 n
+0000000597 00000 n
+0000000778 00000 n
+0000001030 00000 n
+0000001280 00000 n
+0000001538 00000 n
+0000001699 00000 n
+0000001893 00000 n
+0000002135 00000 n
+0000002377 00000 n
+0000002619 00000 n
+0000002861 00000 n
+0000003103 00000 n
+0000003346 00000 n
+0000003589 00000 n
+0000003832 00000 n
+0000004075 00000 n
+0000004318 00000 n
+0000004561 00000 n
+0000004804 00000 n
+0000005047 00000 n
+0000005290 00000 n
+0000005533 00000 n
+0000005776 00000 n
+0000006019 00000 n
+0000006262 00000 n
+0000006505 00000 n
+0000006748 00000 n
+0000006992 00000 n
+0000007236 00000 n
+0000007480 00000 n
+0000007724 00000 n
+0000007968 00000 n
+0000008212 00000 n
+0000008456 00000 n
+0000008700 00000 n
+0000008944 00000 n
+0000009187 00000 n
+0000009439 00000 n
+0000009691 00000 n
+0000009943 00000 n
+0000010195 00000 n
+0000010432 00000 n
+0000011080 00000 n
+0000011323 00000 n
+0000011575 00000 n
+0000011832 00000 n
+0000012168 00000 n
+0000012405 00000 n
+0000012708 00000 n
+0000013005 00000 n
+0000013257 00000 n
+0000013509 00000 n
+0000013761 00000 n
+0000014021 00000 n
+0000014273 00000 n
+0000014534 00000 n
+0000014785 00000 n
+0000015046 00000 n
+0000015298 00000 n
+0000015535 00000 n
+0000015934 00000 n
+0000016185 00000 n
+0000016421 00000 n
+0000016748 00000 n
+0000017020 00000 n
+0000017272 00000 n
+0000017524 00000 n
+0000017761 00000 n
+0000018106 00000 n
+0000018358 00000 n
+0000018610 00000 n
+0000018854 00000 n
+0000019190 00000 n
+0000019427 00000 n
+0000019745 00000 n
+0000020001 00000 n
+0000020253 00000 n
+0000020505 00000 n
+0000020757 00000 n
+0000021016 00000 n
+0000021275 00000 n
+0000021525 00000 n
+0000021776 00000 n
+0000022026 00000 n
+0000022278 00000 n
+0000022530 00000 n
+0000022768 00000 n
+0000023185 00000 n
+0000023437 00000 n
+0000023676 00000 n
+0000024003 00000 n
+0000024253 00000 n
+0000024491 00000 n
+0000024804 00000 n
+0000025101 00000 n
+0000025338 00000 n
+0000025656 00000 n
+0000025914 00000 n
+0000026234 00000 n
+0000026487 00000 n
+0000026726 00000 n
+0000027056 00000 n
+0000027295 00000 n
+0000027615 00000 n
+0000027868 00000 n
+0000028126 00000 n
+0000028456 00000 n
+0000028709 00000 n
+0000028948 00000 n
+0000029264 00000 n
+0000029549 00000 n
+0000029713 00000 n
+0000029967 00000 n
+0000030096 00000 n
+0000030272 00000 n
+0000030492 00000 n
+0000030698 00000 n
+0000030893 00000 n
+0000031091 00000 n
+0000031295 00000 n
+0000031491 00000 n
+0000031686 00000 n
+0000031891 00000 n
+0000032100 00000 n
+0000032303 00000 n
+0000032502 00000 n
+0000032722 00000 n
+0000032911 00000 n
+0000033096 00000 n
+0000033384 00000 n
+0000042533 00000 n
+0000047132 00000 n
+0000051686 00000 n
+0000057943 00000 n
+0000063827 00000 n
+0000068719 00000 n
+0000073410 00000 n
+0000077590 00000 n
+0000081508 00000 n
+0000086672 00000 n
+0000091828 00000 n
+0000097407 00000 n
+0000100924 00000 n
+0000106388 00000 n
+0000111180 00000 n
+0000115398 00000 n
+0000120491 00000 n
+0000125071 00000 n
+0000132560 00000 n
+0000134700 00000 n
+0000135072 00000 n
+0000135151 00000 n
+0000135230 00000 n
+0000135309 00000 n
+0000135388 00000 n
+0000135467 00000 n
+0000135546 00000 n
+0000135625 00000 n
+0000135704 00000 n
+0000135783 00000 n
+0000135863 00000 n
+0000135943 00000 n
+0000136023 00000 n
+0000136103 00000 n
+0000136183 00000 n
+0000136263 00000 n
+0000136343 00000 n
+0000136423 00000 n
+0000136503 00000 n
+0000136583 00000 n
+trailer
+<< /ID 
+ % ReportLab generated PDF document -- digest (http://www.reportlab.com) 
+ [(\317\011\333\344\342}}2\233\022:\30301\344\211) (\317\011\333\344\342}}2\233\022:\30301\344\211)] 
+
+ /Info 115 0 R
+ /Root 114 0 R
+ /Size 174 >>
+startxref
+136632
+%%EOF

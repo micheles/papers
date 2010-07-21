@@ -1,0 +1,973 @@
+THE SOPHISTICATION OF DESCRIPTORS
+===========================================================================
+
+Attribute descriptors are important metaprogramming tools that allows 
+the user to customize the behavior of attributes in custom classes.
+For instance, attribute descriptors (or descriptors for short) 
+can be used as method wrappers, 
+to modify or enhance methods (this is the case for the well
+known staticmethods and classmethods attribute descriptors); they
+can also be used as attribute wrappers, to change or restrict the access to 
+attributes (this is the case for properties). Finally, descriptors 
+allows the user to play with the resolution order of attributes: 
+for instance, the ``super`` built-in object used in (multiple) inheritance 
+hierarchies, is implemented as an attribute descriptor.
+
+In this chapter, I will show how the user can define its own attribute 
+descriptors and I will give some example of useful things you can do with 
+them (in particular to add tracing and timing capabilities).
+
+Motivation
+---------------------------------------------------------------------------
+Attribute descriptors are a recent idea (they where first introduced in 
+Python 2.2) nevertheless, under the hood, are everywhere in Python. It is 
+a tribute to Guido's ability of hiding Python complications that
+the average user can easily miss they existence.
+If you need to do simple things, you can very well live without 
+the knowledge of descriptors. On the other hand, if you need difficult 
+things (such as tracing all the attribute access of your modules) 
+attribute descriptors, allow you to perform 
+impressive things. 
+Let me start by showing why the knowledge of attribute descriptors is 
+essential for any user seriously interested  in metaprogramming applications.
+Suppose I  want to trace the methods of a clock:
+
+  >>> import oopp
+  >>> clock=oopp.Clock()
+
+This is easily done with the ``with_tracer`` closure of chapter 2:
+
+  >>> oopp.wrapfunctions(clock,oopp.with_tracer)
+  <oopp.Clock object at 0x4044c54c>
+  >>> clock.get_time()
+  [] Calling 'get_time' with arguments
+  (){} ...
+  -> '.get_time' called with result: 19:55:07
+  '19:55:07'
+
+However, this approach fails if I try to trace the entire class:
+
+  >>> oopp.wrapfunctions(oopp.Clock,oopp.with_tracer)
+  <class 'oopp.Clock'>
+  >>> oopp.Clock.get_time() # error
+  Traceback (most recent call last):
+    File "<stdin>", line 6, in ?
+  TypeError: unbound method _() must be called with Clock instance 
+  as first argument (got nothing instead)
+
+The reason is that ``wrapfunctions`` sets the attributes of 'Clock'
+by invoking ``customize``, which uses ``setattr``. This converts
+'_' (i.e. the traced version of ``get_time``) in a regular method, not in 
+a staticmethod!
+In order to trace staticmethods, one has to understand the nature 
+of attribute descriptors.
+
+Functions versus methods
+----------------------------------------------------------------------
+
+Attribute descriptors are essential for the implementation 
+of one of the most basic Python features: the automatic conversion 
+of functions in methods. As I already anticipated in chapter 1, there is 
+a sort of magic when one writes ``Clock.get_time=lambda self: get_time()``
+and Python automagically converts the right hand side, that is a
+function, to a left hand side that is a (unbound) method. In order to 
+understand this magic, one needs a better comprehension of the
+relation between functions and methods.
+Actually, this relationship is quite subtle 
+and has no analogous in mainstream programming languages.
+For instance, C is not OOP and has only functions, lacking the concept
+of method, whereas Java (as other OOP languages) 
+has no functions,  only methods.
+C++ has functions and methods, but functions are completely
+different from methods On the other hand, in Python, 
+functions and methods can be transformed both ways.
+
+To show how it works, let me start by defining a simple printing 
+function:
+
+ ::
+
+  #<oopp.py>
+
+  import __main__ # gives access to the __main__ namespace from the module
+
+  def prn(s):
+      """Given an evaluable string, print its value and its object reference.
+      Notice that the evaluation is done in the __main__ dictionary."""
+      try: obj=eval(s,__main__.__dict__)
+      except: print 'problems in evaluating',s
+      else: print s,'=',obj,'at',hex(id(obj))
+
+  #</oopp.py>
+
+Now, let me define a class with a method ``m`` equals to the identity
+function ``f``:
+
+  >>> def f(x): "Identity function"; return x
+  ...
+  >>> class C(object):
+  ...    m=f
+  ...    print m #here m is the function f
+  <function f at 0x401c2b1c>
+
+We see that *inside* its defining class, ``m`` coincides with the function 
+``f`` (the object reference is the same):
+
+  >>> f
+  <function f at 0x401c2b1c>
+
+We may retrieve ``m`` from *outside* the class via the class dictionary [#]_:
+
+  >>> C.__dict__['m']
+  <function prn at 0x401c2b1c>
+
+However, if we invoke ``m`` with
+the syntax ``C.m``, then it (magically) becomes a (unbound) method:
+
+  >>> C.m #here m has become a method!
+  <unbound method C.f>
+
+But why it is so? How comes that in the second syntax the function 
+``f`` is transformed in a (unbound) method? To answer that question, we have
+to understand how attributes are really invoked in Python, i.e. via
+attribute descriptors.
+
+Methods versus functions
+-----------------------------------------------------------------------------
+
+First of all, let me point out the differences between methods and
+functions. Here, ``C.m`` does *not* coincides with ``C.__dict__['m']``
+i.e. ``f``, since its object reference is different:
+
+  >>> from oopp import prn,attributes
+  >>> prn('C.m')
+  C.m = <unbound method C.prn> at 0x81109b4
+
+The difference is clear since methods and functions have different attributes:
+
+  >>> attributes(f).keys()
+  ['func_closure', 'func_dict', 'func_defaults', 'func_name', 
+  'func_code', 'func_doc', 'func_globals']
+
+whereas
+
+  >>> attributes(C.m).keys()
+  ['im_func', 'im_class', 'im_self']
+
+We discussed few of the functions attributes in the chapter
+on functions. The instance method attributes are simpler: ``im_self`` 
+returns the object to which the method is attached,
+
+  >>> print C.m.im_self #unbound method, attached to the class
+  None
+  >>> C().m.im_self #bound method, attached to C()
+  <__main__.C object at 0x81bf4ec> 
+
+``im_class`` returns the class to which the
+method is attached 
+
+  >>> C.m.im_class #class of the unbound method
+  <class '__main__.C'>
+  >>> C().m.im_class #class of the bound method,
+  <class '__main__.C'>
+
+and ``im_func`` returns the function equivalent to
+the method.
+
+  >>> C.m.im_func
+  <function m at 0x8157f44>
+  >>> C().m.im_func # the same
+  <function m at 0x8157f44>
+
+As the reference manual states, calling 
+``m(*args,**kw)`` is completely equivalent to calling 
+``m.im_func(m.im_self, *args,**kw)``". 
+
+As a general rule, an attribute descriptor is an object with a ``__get__`` 
+special method. The most used descriptors are the good old functions:
+they have a ``__get__`` special  method returning a *method-wrapper object*
+
+  >>> f.__get__
+  <method-wrapper object at 0x815cdc4>
+
+method-wrapper objects can be transformed in (both bound and unbound) methods:
+
+  >>> f.__get__(None,C)
+  <unbound method C.f>
+  >>> f.__get__(C(),C)
+  <bound method C.f of <__main__.C object at 0x815cdc4>>
+
+The general calling syntax for method-wrapper objects is 
+``.__get__(obj,cls=None)``, where the first argument is an
+instance object or None and the second (optional) argument is the class (or a
+generic superclass) of the first one. 
+
+Now we see what happens when we use the syntax ``C.m``: Python interprets
+this as a shortcut for ``C.__dict['m'].__get__(None,C)`` (if ``m`` is
+in the 'C' dictionary, otherwise it looks for ancestor dictionaries). 
+We may check that everything is correct by observing that
+``f.__get__(None,C)`` has exactly the same object reference than ``C.m``,
+therefore they are the same object:
+
+  >>> hex(id(f.__get__(None,C))) # same as hex(id(C.m))
+  '0x811095c'
+
+The process works equally well for the syntax ``getattr``:
+
+  >>> print getattr(C,'m'), hex(id(getattr(C,'m')))
+  <unbound method C.f> 0x811095c
+
+and for bound methods: if
+
+  >>> c=C()
+
+is an instance of the class C, then the syntax
+
+  >>> getattr(c,'m') #same as c.m
+  <bound method C.f of <__main__.C object at 0x815cdc4>>
+
+is a shortcut for
+
+  >>> type(c).__dict__['m'].__get__(c,C) # or f.__get__(c,C)
+  <bound method C.f of <__main__.C object at 0x815cdc4>>
+
+(notice that the object reference for ``c.m`` and ``f.__get__(c,C)`` is
+the same, they are *exactly* the same object).
+
+Both the unbound method C.m and the bound method c.m refer to the same 
+object at hexadecimal address 0x811095c. This object is common to all other
+instances of C:
+
+  >>> c2=C()
+  >>> print c2.m,hex(id(c2.m)) #always the same method
+  <bound method C.m of <__main__.C object at 0x815768c>> 0x811095c
+
+One can also omit the second argument:
+
+  >>> c.m.__get__(c)
+  <bound method ?.m of <__main__.C object at 0x81597dc>>
+
+Finally, let me point out that methods are attribute descriptors too,
+since they have a ``__get__`` attribute returning a method-wrapper
+object:
+
+  >>> C.m.__get__
+  <method-wrapper object at 0x815d51c>
+
+Notice that this method wrapper is *not* the same than the ``f.__get__``
+method wrapper.
+
+ .. [#] If ``C.__dict['m']`` is not defined, Python looks if ``m`` is defined
+        in some ancestor of C. For instance if `B` is the base of `C`, it
+        looks in ``B.__dict['m']``, etc., by following the MRO.
+
+Static methods and class methods
+--------------------------------------------------------------------------
+
+Whereas functions and methods are implicit attribute descriptors,
+static methods and class methods are examples of explicit
+descriptors. They allow to convert regular functions to 
+specific descriptor objects. Let me show a trivial example. 
+Given the identity function
+
+  >>> def f(x): return x
+
+we may convert it to a staticmethod object
+
+  >>> sm=staticmethod(f)
+  >>> sm
+  <staticmethod object at 0x4018a0a0>
+
+or to a classmethod object
+
+  >>> cm=classmethod(f)
+  >>> cm
+  <classmethod object at 0x4018a0b0>
+
+In both cases the ``__get__`` special method returns a method-wrapper object
+
+  >>> sm.__get__
+  <method-wrapper object at 0x401751ec>
+  >>> cm.__get__
+  <method-wrapper object at 0x4017524c>
+
+However the static method wrapper is quite different from the class
+method wrapper. In the first case the wrapper returns a function:
+
+  >>> sm.__get__(C(),C)
+  <function f at 0x4027a8b4>
+  >>> sm.__get__(C())
+  <function f at 0x4027a8b4>
+
+in the second case it returns a method
+
+  >>> cm.__get__(C(),C)
+  <bound method type.f of <class '__main__.C'>>
+
+Let me discuss more in detail the static methods, first. 
+
+It is always possible to extract the function from the static method
+via the syntaxes ``sm.__get__(a)`` and ``sm.__get__(a,b)`` with *ANY* valid
+a and b, i.e. the result does not depend on a and b. This is correct,
+since static methods are actually function that have nothing to do
+with the class and the instances to which they are bound.
+
+This behaviour of the method wrapper makes clear why the relation between 
+methods and functions is inversed for static methods with respect to
+regular methods:
+
+  >>> class C(object):
+  ...     s=staticmethod(lambda : None)
+  ...     print s
+  ...
+  <staticmethod object at 0x8158ec8>
+
+Static methods are non-trivial objects *inside* the class, whereas 
+they are regular functions *outside* the class:
+
+  >>> C.s
+  <function <lambda> at 0x8158e7c>
+  >>> C().s
+  <function <lambda> at 0x8158e7c>
+
+The situation is different for classmethods: inside the class they
+are non-trivial objects, just as static methods,
+
+  >>> class C(object):
+  ...     cm=classmethod(lambda cls: None)
+  ...     print cm
+  ...
+  <classmethod object at 0x8156100>
+
+but outside the class they are methods bound to the class,
+
+  >>> c=C()
+  >>> prn('c.cm') 
+  <bound method type.<lambda> of <class '__main__.C'>> 
+  0x811095c
+
+and not to the instance 'c'. The reason is that the ``__get__`` wrapper method
+can be invoked with the syntax  ``__get__(a,cls)`` which 
+is only sensitive to the second argument or with the syntax
+``__get__(obj)`` which is only sensitive to the type of the first
+argument:
+
+  >>> cm.__get__('whatever',C) # the first argument is ignored
+  <bound method type.f of <class '__main__.C'>>
+
+sensitive to the type of 'whatever':
+
+  >>> cm.__get__('whatever') # in Python 2.2 would give a serious error
+  <bound method type.f of <type 'str'>>
+
+Notice that the class method is actually bound to C's class, i.e.
+to 'type'.
+
+Just as regular methods (and differently
+from static methods) classmethods have attributes ``im_class``, ``im_func``, 
+and ``im_self``. In particular one can retrieve the function wrapped inside
+the classmethod with
+
+  >>> cm.__get__('whatever','whatever').im_func 
+  <function f at 0x402c2534>
+
+The difference with regular methods is that ``im_class`` returns the
+class of 'C' whereas ``im_self`` returns 'C' itself.
+
+  >>> C.cm.im_self # a classmethod is attached to the class
+  <class '__main__.C'>
+  >>> C.cm.im_class #the class of C
+  <type 'type'>
+
+Remark: Python 2.2.0 has a bug in classmethods (fixed in newer versions):
+when the first argument of __get__ is None, then one must specify 
+the second argument (otherwise segmentation fault :-() 
+
+Properties
+----------------------------------------------------------------------
+
+Properties are a more general kind of attribute descriptors than 
+staticmethods and classmethods, since their effect can be customized
+trough arbitrary get/set/del functions. Let me give an example:
+
+  >>> def getp(self): return 'property' # get function
+  ...
+  >>> p=property(getp) # property object
+  >>> p
+  <property object at 0x815855c>
+
+``p`` has a ``__get__`` special method returning a method-wrapper
+object, just as it happens for other descriptors:
+
+  >>> p.__get__
+  <method-wrapper object at 0x8158a7c>
+
+The difference is that 
+
+  >>> p.__get__(None,type(p))
+  <property object at 0x4017016c>
+  >>> p.__get__('whatever')
+  'property'
+  >>> p.__get__('whatever','whatever')
+  'property'
+
+As for static methods, the ``__get__`` method wrapper is independent from
+its arguments, unless the first one is None: in such a case it returns
+the property object, in all other circumstances it returns the result
+of ``getp``. This explains the behavior
+
+  >>> class C(object): p=p
+  >>> C.p
+  <property object at 0x815855c>
+  >>> C().p
+  'property'
+
+Properties are a dangerous feature, since they change the semantics
+of the language. This means that apparently trivial operations can have 
+any kind of side effects:
+
+  >>> def get(self):return 'You gave me the order to destroy your hard disk!!'
+  >>> class C(object): x=property(get) 
+  >>> C().x
+  'You gave me the order to destroy your hard disk!!'
+
+Invoking 'C.x' could very well invoke an external program who is going
+to do anything! It is up to the programmer to not abuse properties.
+The same is true for user defined attribute descriptors.
+
+There are situations in which they are quite handy, however. For
+instance, properties can be used to trace the access data attributes.
+This can be especially useful during debugging, or for logging
+purposes.
+
+Notice that this approach has the problem that now data attributes cannot 
+no more be called trough their class, but only though their instances.
+Moreover properties do not work well with ``super`` in cooperative
+methods.
+
+User-defined attribute descriptors
+----------------------------------------------------------------------
+
+As we have seen, there are plenty of predefined attribute descriptors,
+such as staticmethods, classmethods and properties (the built-in
+``super`` is also an attribute descriptor which, for sake of
+convenience, will be discussed in the next section).
+In addition to them, the user can also define customized attribute 
+descriptors, simply trough classes with a ``__get__`` special method.
+Let me give an example:
+
+ ::
+
+  #<simpledescr.py>
+
+  class ChattyAttr(object):
+      """Chatty descriptor class; descriptor objects are intended to be 
+      used as attributes in other classes"""
+      def __get__(self, obj, cls=None):
+          binding=obj is not None
+          if  binding:
+              return 'You are binding %s to %s' % (self,obj)
+          else:
+              return 'Calling %s from %s' % (self,cls)
+
+  class C(object):
+      d=ChattyAttr()
+
+  c=C()
+
+  print c.d # <=> type(c).__dict__['d'].__get__(c,type(c))
+  print C.d # <=> C.__dict__['d'].__get__(None,C)
+
+  #</simpledescr.py>
+
+with output:
+
+ ::
+
+  You are binding <ChattyAttr object at 0x401bc1cc> to 
+  <C object at 0x401bc2ec>
+  Calling <ChattyAttr object at 0x401bc1cc> from <class 'C'>
+
+
+Invoking a method with the syntax ``C.d`` or ``c.d`` involves calling
+``__get__``. The ``__get__`` signature is fixed: it is
+`` __get__=__get__(self,obj,cls=None)``, since the notation
+``self.descr_attr`` automatically passes ``self`` and ``self.__class__`` to 
+``__get__``.
+
+Custom descriptors can be used to restrict the access to objects in a
+more general way than trough properties. For instance, suppose one
+wants to raise an error if a given attribute 'a' is accessed, both
+from the class and from the instance: a property cannot help here,
+since it works only from the instance. The solution is the following
+custom descriptor:
+
+ ::
+
+  #<oopp.py>
+
+  class AccessError(object):
+      """Descriptor raising an AttributeError when the attribute is 
+      accessed""" #could be done with a property
+      def __init__(self,errormessage):
+          self.msg=errormessage
+      def __get__(self,obj,cls=None):
+          raise AttributeError(self.msg)
+
+  #</oopp.py>
+  
+  >>> from oopp import AccessError
+  >>> class C(object):
+  ...    a=AccessError("'a' cannot be accessed")
+  >>> c=C()
+  >>> c.a #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+    File "oopp.py", line 313, in __get__
+      raise AttributeError(self.msg)
+  AttributeError: 'a' cannot be accessed
+  >>> C.a #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+    File "oopp.py", line 313, in __get__
+      raise AttributeError(self.msg)
+  AttributeError: 'a' cannot be accessed
+
+It is always possibile to convert plain attributes (i.e. attributes
+without a "__get__" method) to descriptor objects:
+
+ ::
+
+  #<oopp.py>
+
+  class convert2descriptor(object):
+      """To all practical means, this class acts as a function that, given an
+      object, adds to it a __get__ method if it is not already there. The 
+      added __get__ method is trivial and simply returns the original object, 
+      independently from obj and cls."""
+      def __new__(cls,a):
+          if hasattr(a,"__get__"): # do nothing
+              return a # a is already a descriptor
+          else: # creates a trivial attribute descriptor
+              cls.a=a
+              return object.__new__(cls)
+      def __get__(self,obj,cls=None):
+          "Returns self.a independently from obj and cls"
+          return self.a
+  
+  #</oopp.py>
+
+This example also shows the magic of ``__new__``, that allows to use a
+class as a function. The output of 'convert2descriptor(a)' can be both 
+an instance of 'convert2descriptor' (in this case 'convert2descriptor' acts as 
+a normal class, i.e. as an object factory) or 'a' itself 
+(if 'a' is already a descriptor): in this case 'convert2descriptor' acts 
+as a function.
+
+For instance, a string is converted to a descriptor
+
+  >>> from oopp import convert2descriptor
+  >>> a2=convert2descriptor('a')
+  >>> a2
+  <oopp.convert2descriptor object at 0x4017506c>
+  >>> a2.__get__('whatever')
+  'a'
+
+whereas a function is untouched:
+
+  >>> def f(): pass
+  >>> f2=convert2descriptor(f) # does nothing
+  >>> f2
+  <function f at 0x4019110c>
+
+Data descriptors
+-------------------------------------------------------------------------
+
+It is also possible to specify a ``__set__`` method (descriptors
+with a ``__set__`` method are typically data descriptors) with
+the signature ``__set__(self,obj,value)`` as in the following
+example:
+
+ ::
+
+  #<datadescr.py>
+
+  class DataDescriptor(object):
+      value=None
+      def __get__(self, obj, cls=None):
+          if obj is None: obj=cls
+          print "Getting",obj,"value =",self.value
+          return self.value
+      def __set__(self, obj, value):
+          self.value=value
+          print "Setting",obj,"value =",value
+
+  class C(object):
+      d=DataDescriptor()
+
+  c=C()
+ 
+  c.d=1 #calls C.__dict__['d'].__set__(c,1)
+  c.d   #calls C.__dict__['d'].__get__(c,C)
+  C.d   #calls C.__dict__['d'].__get__(None,C)
+  C.d=0 #does *not* call __set__
+  print "C.d =",C.d
+
+  #</datadescr.py>
+
+With output:
+
+ ::
+
+  Setting <C object at 0x401bc1ec> value = 1
+  Getting <C object at 0x401bc42c> value = 1
+  Getting <class 'C'> value = 1      
+  C.d = 0
+
+With this knowledge, we may now reconsider the clock example given 
+in chapter 3. #NO!??
+
+  >>> import oopp
+  >>> class Clock(object): pass
+  >>> myclock=Clock()
+  ...
+  >>> myclock.get_time=oopp.get_time # this is a function
+  >>> Clock.get_time=lambda self : oopp.get_time() # this is a method 
+
+In this example, ``myclock.get_time``, which is attached to the ``myclock`` 
+object, is a function, whereas ``Clock.get_time``, which is attached to 
+the ``Clock`` class is a method. We may also check this by using the ``type`` 
+function:
+
+  >>> type(myclock.get_time)
+  <type 'function'>
+
+whereas
+
+  >>> type(Clock.get_time) 
+  <type 'instance method'>
+
+
+It must be remarked that user-defined attribute descriptors, just as
+properties, allow to arbitrarily change the semantics of the language
+and should be used with care.
+
+The ``super`` attribute descriptor
+------------------------------------------------------------------------
+
+
+super has also a second form, where it is more used as a descriptor.
+
+``super`` objects are attribute descriptors, too, with a ``__get__``
+method returning a method-wrapper object:
+
+  >>> super(C,C()).__get__
+  <method-wrapper object at 0x8161074>
+
+Here I give some example of acceptable call:
+
+  >>> super(C,C()).__get__('whatever')
+  <super: <class 'C'>, <C object>>
+  >>> super(C,C()).__get__('whatever','whatever')
+  <super: <class 'C'>, <C object>>
+
+
+Unfortunately, for the time being 
+(i.e. for Python 2.3), the ``super`` mechanism  has various limitations. 
+To show the issues, let me start by  considering the following base class:
+
+ ::
+
+  #<oopp.py>
+
+  class ExampleBaseClass(PrettyPrinted):
+      """Contains a regular method 'm', a staticmethod 's', a classmethod 
+      'c', a property 'p' and a data attribute 'd'."""
+      m=lambda self: 'regular method of %s' % self
+      s=staticmethod(lambda : 'staticmethod')
+      c=classmethod(lambda cls: 'classmethod of %s' % cls)
+      p=property(lambda self: 'property of %s' % self)
+      a=AccessError('Expected error')
+      d='data'
+
+  #</oopp.py>
+
+Now, let me derive a new class C from ExampleBaseClass:
+
+  >>> from oopp import ExampleBaseClass
+  >>> class C(ExampleBaseClass): pass
+  >>> c=C()
+
+Ideally, we would like to retrieve the methods and attributes of 
+ExampleBaseClass from C, by using the ``super`` mechanism.
+
+1. We see that ``super`` works without problems for regular methods, 
+   staticmethods and classmethods:
+
+  >>> super(C,c).m()
+  'regular method of <C>'
+  >>> super(C,c).s()
+  'staticmethod'
+  >>> super(C,c).c()
+  "classmethod of <class '__main__.C'>"
+
+It also works for user defined attribute descriptors:
+
+  >>> super(C,c).a # access error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+    File "oopp.py", line 340, in __get__
+      raise AttributeError(self.msg)
+  AttributeError: Expected error
+  
+and for properties (only for Python 2.3+):
+
+  >>> ExampleBaseClass.p
+  <property object at 0x81b30fc>
+
+In Python 2.2 one would get an error, instead
+
+  >>> super(C,c).p #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  AttributeError: 'super' object has no attribute 'p'
+
+3. Moreover, certain attributes of the superclass, such as its
+``__name__``, cannot be retrieved:
+
+  >>> ExampleBaseClass.__name__
+  'ExampleBaseClass'
+  >>> super(C,c).__name__ #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  AttributeError: 'super' object has no attribute '__name__'
+
+4. There is no direct way to retrieve the methods of the super-superclass 
+   (i.e. the grandmother class, if you wish) or in general the furthest 
+   ancestors, since ``super`` does not chain.
+
+5. Finally, there are some subtle issues with the ``super(cls)`` syntax:
+
+
+  >>> super(C).m #(2) error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  AttributeError: 'super' object has no attribute 'm'
+
+means ``super(C).__get__(None,C)``, but only 
+``super(C).__get__(c,C).m==super(C,c)`` works.
+
+   On the other hand,
+
+  >>> super(C).__init__  #(1) 
+  <built-in method __init__ of type object at 0x80e6fc0>
+  >>> super(C).__new__  #(1) 
+  <built-in method __init__ of type object at 0x80e6fc0>
+
+
+   seems to work, whereas in reality does not. The reason is that since 
+   ``super`` objects are instances 
+   of ``object``, they inherit object's methods, and in particular 
+   ``__init__`` ; therefore the ``__init__`` method in (1) is *not* 
+   the ``ExampleBaseClass.__init__`` method. The point is that ``super`` 
+   objects are attribute descriptors and not references to the superclass.
+
+Probably, in future versions of Python the ``super`` mechanism will be 
+improved. However, for the time being, one must provide a workaround for 
+dealing with these issues. This will be discussed in the next chapter.
+
+Method wrappers
+----------------------------------------------------------------------
+
+One of the most typical applications of attribute descriptors is their
+usage as *method wrappers*.
+
+Suppose, for instance, one wants to add tracing capabilities to 
+the methods of a class for debugging purposes. The problem
+can be solved with a custom descriptor class:
+
+ ::
+
+  #<oopp.py>
+ 
+  import inspect
+
+  class wrappedmethod(Customizable):
+      """Customizable method factory intended for derivation.
+      The wrapper method is overridden in the children."""
+
+      logfile=sys.stdout # default
+      namespace='' # default
+
+      def __new__(cls,meth): # meth is a descriptor
+          if isinstance(meth,FunctionType):
+              kind=0 # regular method
+              func=meth
+          elif isinstance(meth,staticmethod):
+              kind=1 # static method
+              func=meth.__get__('whatever')
+          elif isinstance(meth,classmethod):
+              kind=2 # class method
+              func=meth.__get__('whatever','whatever').im_func 
+          elif isinstance(meth,wrappedmethod): # already wrapped
+              return meth # do nothing
+          elif inspect.ismethoddescriptor(meth):
+              kind=0; func=meth # for many builtin methods 
+          else:
+              return meth # do nothing
+          self=super(wrappedmethod,cls).__new__(cls)
+          self.kind=kind; self.func=func # pre-initialize
+          return self
+
+      def __init__(self,meth): # meth not used
+          self.logfile=self.logfile # default values
+          self.namespace=self.namespace # copy the current
+
+      def __get__(self,obj,cls): # closure 
+          def _(*args,**kw):
+              if obj is None: o=() # unbound method call
+              else: o=(obj,) # bound method call
+              allargs=[o,(),(cls,)][self.kind]+args 
+              return self.wrapper()(*allargs,**kw)
+          return _ # the wrapped function
+          # allargs is the only nontrivial line in _; it adds
+          # 0 - obj if meth is a regular method
+          # 1 - nothing if meth is a static method
+          # 2 - cls if meth is a class method
+
+      def wrapper(self): return self.func # do nothing, to be overridden
+  
+  #</oopp.py>
+
+This class is intended for derivation: the wrapper method has to be overridden
+in the children in order to introduce the wanted feature. If I want to 
+implement the capability of tracing methods, I can reuse the ``with_tracer``
+closure introduced in chapter 2:
+
+ ::
+
+  #<oopp.py>
+
+  class tracedmethod(wrappedmethod):
+      def wrapper(self):
+          return with_tracer(self.func,self.namespace,self.logfile)
+          
+  #</oopp.py>
+
+Nothing prevents me from introducing timing features by reusing the 
+``with_timer`` closure:
+
+ ::
+
+  #<oopp.py>
+
+  class timedmethod(wrappedmethod):
+      iterations=1 # additional default parameter
+
+      def __init__(self,meth):
+          super(timedmethod,self).__init__(self,meth)
+          self.iterations=self.iterations # copy
+
+      def wrapper(self):
+          return with_timer(self.func,self.namespace,
+                            self.iterations,self.logfile)
+
+  #</oopp.py>
+
+Here there is an example of usage:
+
+The dictionary of wrapped functions is then built from an utility function
+
+ ::
+
+  #<oopp.py>
+
+  def wrap(obj,wrapped,condition=lambda k,v: True, err=None):
+      "Retrieves obj's dictionary and wraps it"
+      if isinstance(obj,dict): # obj is a dictionary 
+          dic=obj
+      else: 
+          dic=getattr(obj,'__dict__',{}).copy() # avoids dictproxy objects
+          if not dic: dic=attributes(obj) # for simple objects
+      wrapped.namespace=getattr(obj,'__name__','')
+      for name,attr in dic.iteritems(): # modify dic
+          if condition(name,attr): dic[name]=wrapped(attr)
+      if not isinstance(obj,dict): # modify obj
+          customize(obj,err,**dic) 
+
+  #</oopp.py>
+
+ ::
+
+  #<tracingmethods.py>
+
+  from oopp import *
+  
+  class C(object): 
+      "Class with traced methods"
+
+      def f(self): return self 
+      f=tracedmethod(f)
+
+      g=staticmethod(lambda:None)
+      g=tracedmethod(g)
+  
+      h=classmethod(do_nothing)
+      h=tracedmethod(h)
+  
+  c=C()
+
+  #unbound calls
+  C.f(c) 
+  C.g()
+  C.h()
+  
+  #bound calls
+  c.f()  
+  c.g()
+  c.h()
+
+  #</tracingmethods.py>
+
+Output:
+
+ ::
+
+  [C] Calling 'f' with arguments
+  (<C object at 0x402042cc>,){} ...
+  -> 'C.f' called with result: <C object at 0x402042cc>
+
+  [C] Calling '<lambda>' with arguments
+  (){} ...
+  -> 'C.<lambda>' called with result: None
+
+  [C] Calling 'do_nothing' with arguments
+  (<class 'C'>,){} ...
+  -> 'C.do_nothing' called with result: None
+
+  [C] Calling 'f' with arguments
+  (<C object at 0x402042cc>,){} ...
+  -> 'C.f' called with result: <C object at 0x402042cc>
+
+  [C] Calling '<lambda>' with arguments
+  (){} ...
+  -> 'C.<lambda>' called with result: None
+
+  [C] Calling 'do_nothing' with arguments
+  (<class 'C'>,){} ...
+  -> 'C.do_nothing' called with result: None
+
+
+The approach in 'tracingmethods.py' works, but it is far from
+being elegant, since I had to explicitly wrap each method in the
+class by hand. 
+
+Both problems can be avoided.
+
+  >>> from oopp import *
+  >>> wrap(Clock,tracedmethod)
+  >>> Clock.get_time()
+  [Clock] Calling 'get_time' with arguments
+  (){} ...
+  -> 'Clock.get_time' called with result: 21:56:52
+  '21:56:52'

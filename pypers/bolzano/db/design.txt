@@ -1,0 +1,13 @@
+FIELDS
+  titolo
+  giudizio
+  autore
+  data
+  genere
+  nazionalita
+
+FEATURES
+  add_book
+  add_from_text_file
+  edit_book
+  delete_book

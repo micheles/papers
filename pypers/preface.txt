@@ -1,0 +1,660 @@
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+OBJECT ORIENTED PROGRAMMING IN PYTHON
+:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+:Version: 0.5
+:Author: Michele Simionato
+:E-mail: mis6@pitt.edu
+:Home-page: http://www.phyast.pitt.edu/~micheles/
+
+:Disclaimer: I release this book to the general public. 
+  It can be freely distributed if unchanged.
+  As usual, I don't give any warranty: while I have tried hard to ensure the
+  correctness of what follows, I disclaim any responsability in case of
+  errors . Use it at your own risk and peril !
+
+.. contents::
+
+.. raw:: latex
+
+  \setcounter{chapter}{-1}
+
+Preface
+============
+
+ .. line-block::
+
+  *There is only one way to learn: trough examples*
+
+The philosophy of this book
+---------------------------
+
+This book is written with the intent to help the programmer going trough
+the fascinating concepts of Object Oriented Programming (OOP), in their
+Python incarnation. Notice that I say to help, not to teach. Actually,
+I do not think that a book can teach OOP or any other non-trivial matter 
+in Computer Science or other disciplines. Only the
+practice can teach: practice, then practice, and practice again. 
+You must learn yourself from your experiments, not from the books. 
+Nevertheless, books are useful. They cannot teach, but they can help. 
+They should give you new ideas that you was not thinking about, they should
+show tricks you do not find in the manual, and in general they should be of
+some guidance in the uphill road to knowledge. That is the philosophy
+of this book. For this reason
+
+1. It is not comprehensive, not systematic; 
+it is intended to give ideas and basis: from
+that the reader is expected to cover the missing part on his own,
+browsing the documentation, other sources and other books, and finally
+the definite autority, the source itself.
+
+2. It will not even try to teach the *best* practices. I will show what you can
+do with Python, not what you "should" do. Often I will show solutions that are
+not recommended. I am not a mammy saying this is
+good, this is bad, do this do that.  
+
+
+3. You can only learn from your failures. If you think "it should work, if I do
+X and Y" and it works, then you have learned nothing new. 
+You have merely verified
+that your previous knowledge was correct, but you haven't create a new
+knowledge. On the other hand, when you think "it should work, if I do
+X and Y" and it doesn't, then you have learned that your previous knowlegde
+was wrong or incomplete, and you are forced to learn something new to
+overcome the difficulty. For this reason, I think it is useful to report
+not only how to do something, but also to report how not to do something, 
+showing the pitfalls of wrong approaches.
+
+That's in my opinion is the goal of a good book. I don't know if have
+reached this goal or not (the decision is up to the reader), but at least
+I have tried to follow these guidelines.
+
+Moreover, this is not a book on OOP, 
+it is a book on OOP *in Python*. 
+
+In other words, the point of view of this book is not 
+to emphasize general topics of OOP that are exportable to other languages, 
+but exactly the opposite: I want to emphasize specific techniques that one
+can only use in Python, or that are difficult to translate to other 
+languages. Moreover, I will not provide comparisons with other 
+languages (except for the section "Why Python?" in this introduction and
+in few selected other places), 
+in order to keep the discussion focused. 
+
+This choice comes from the initial motivation for this book, which was 
+to fulfill a gap in the (otherwise excellent) Python documentation. 
+The problem is that the available documentation still lacks an accessible 
+reference of the new Python 2.2+ object-oriented features.
+Since myself I have learned Python and OOP from scratch, 
+I have decided to write this book in order to fill that gap and
+help others. 
+
+The emphasis in this book is not in giving 
+solutions to specific problems (even if most of the recipes of this book
+can easily be tailored to solve real life concrete problems), it is in 
+teaching  how does it work, why it does work in some cases and why does 
+not work in some other cases. Avoiding too specific problems has an
+additional bonus, since it allows me to use *short* examples (the majority 
+of the scripts presented here is under 20-30 lines) which I think are 
+best suited to teach a new matter [#]_ . Notice, however, that whereas
+the majority of the scripts in this book are short, it is also true
+that they are pretty *dense*. The density is due to various reasons:
+
+1. I am defining a lot of helper functions and classes, that are
+   reused and enhanced during all the book.
+
+2. I am doing a strong use of inheritance, therefore a script at the
+   end of the book can inherits from the classes defined through all
+   the book;
+
+3. A ten line script involving metaclasses can easily perform the equivalent 
+   of generating hundreds of lines of code in a language without metaclasses 
+   such as Java or C++.
+
+To my knowledge, there are no other books covering the same topics with
+the same focus (be warned, however, that I haven't read so many Python 
+books ;-). The two references that come closest to the present book are
+the ``Python Cookbook`` by Alex Martelli and David Ascher, and
+Alex Martelli's ``Python in a Nutshell``. They are quite recent books and 
+therefore it covers (in much less detail) some of the 2.2 features that are 
+the central topics to this book. 
+However, the Cookbook reserves to OOP only one chapter and has a quite 
+different philosophy from the present book, therefore there is 
+practically no overlapping. Also ``Python in a Nutshell`` covers 
+metaclasses in few pages, whereas half of this book is essentially
+dedied to them. This means that you can read both ;-)
+ 
+
+.. [#] Readers that prefer the  opposite philosophy of using longer, 
+       real life-like, examples, have already the excellent "Dive into 
+       Python" book http://diveintopython.org/ at their disposal. This is 
+       a very good book that I certainly recommend to any (experienced) 
+       Python programmer; it is also freely available (just like this ;-).
+       However, the choice of arguments is quite different and there is 
+       essentially no overlap between my book and "Dive into Python" 
+       (therefore you can read both ;-).
+
+For who this book in intended
+-----------------------------
+
+I have tried to make this tutorial useful to a large public of Pythonistas, 
+i.e. both people with no previous experience of Object Oriented Programming
+and people with experience on OOP, but unfamiliar with the most
+recent Python 2.2-2.3 features (such as attribute descriptors,
+metaclasses, change of the MRO in multiple inheritance, etc). 
+However, this is not a book for beginners: the non-experienced reader should 
+check (at least) the Internet sites www.python.org/newbies.com and 
+www.awaretek.com, that provide a nice collection of resources for Python 
+newbies.
+
+These are my recommendations for the reader, according to her/his level:
+
+1. If you are an absolute beginner, with no experience on programming,
+   this book is *not* for you (yet ;-). Go to 
+   http://www.python.org/doc/Newbies.html and read one of the introductive 
+   texts listed there, then come back here. I recommend "How to Think Like 
+   a Computer Scientist", available for free on the net (see 
+   http://www.ibiblio.org/obp/thinkCSpy/); I found it useful myself when 
+   I started learning Python; be warned, however, that it refers to the rather 
+   old Python version 1.5.2. There are also excellent books 
+   on the market (see http://www.awaretek.com/plf.html). 
+   http://www.uselesspython.com/ is a good resource to find recensions 
+   about available Python books. For free books, look at
+   http://www.tcfb.com/freetechbooks/bookphyton.html .
+   This is *not* another Python tutorial.
+
+2. If you know already (at least) another programming language, but you don't
+   know Python, then this book is *not* for you (again ;-). Read the FAQ, the
+   Python Tutorial and play a little with the Standard Library (all this
+   material can be downloaded for free from  http://www.python.org), then
+   come back here. 
+
+3. If you have passed steps 1 and 2, and you are confortable with Python
+   at the level of simple procedural programming, but have no clue about
+   objects and classes, *then* this book is for you. Read this book till
+   the end and your knowledge of OOP will pass from zero to a quite advanced 
+   level (hopefully). Of course, you will have to play with the code in 
+   this book and write a lot of code on your own, first ;-)    
+
+4. If you are confortable with Python and you also known OOP from other
+   languages or from earlier version of Python, then this book is for
+   you, too: you are ready to read the more advanced chapters.
+
+5. If you are a Python guru, then you should read the book, too. I expect
+   you will find the errors and send me feedback, helping me to improve
+   this tutorial.
+
+About the scripts in this book
+-----------------------------------------------------------------------------
+
+All the scripts  in this book are free. You are expected to play
+with them, to modify them and to improve them. 
+
+In order to facilitate the extraction of the scripts from the main text, both
+visually for the reader and automatically for Python, I use the
+convention of sandwiching the body of the example scripts in blocks like this
+
+ ::
+
+  #<myfirstscript.py>
+ 
+  print "Here Starts the Python Way to Object Oriented Programming !"
+
+  #</myfirstscript.py>
+
+You may extract the source of this script with the a Python program
+called "test.py" and provided in the distribution. Simply give the 
+following command:
+
+ ::
+
+  $ python test.py myfirstscript.py
+
+This will create a file called "myfirstscript.py", containing the
+source of ``myfirstscript.py``; moreover it will execute the script 
+and write its output in a file called "output.txt". I have tested
+all the scripts in this tutorial under Red Hat Linux 7.x and 
+Windows 98SE. You should not have any problem in running them,
+but if a problem is there, "test.py" will probably discover it,
+even if, unfortunately, it will not provide the solution :-(.
+Notice that test.py requires Python 2.3+ to work, since most of
+the examples in this book heavily depends on the new features
+introduced in Python 2.2-2.3. Since the installation of Python 
+2.3 is simple, quick and free, I think I am requiring to my readers
+who haven't upgraded yet a very little effort. This is well worth
+the pain since Python 2.3 fixes few bugs of 2.2 (notably in the subject of
+attribute descriptors and the ``super`` built-in) that makes
+
+You may give more arguments to test.py, as in this example:
+
+ ::
+
+  $ python test.py myfirstscript.py mysecondscript.py
+
+The output of both scripts will still be placed in the file "output.txt".
+Notice that if you give an argument which is not the name of a script in the
+book, it will be simply ignored. Morever, if you will not give any argument,
+"test.py" will automatically executes all the tutorial scripts, writing their 
+output in "output.txt" [#]_ . You may want to give a look at this file, once 
+you have finished the tutorial. It also contains the source code of 
+the scripts, for better readability.
+
+Many examples of this tutorial depend on utility functions defined
+in a external module called ``oopp`` (``oopp`` is an obvious abbreviation 
+for the title of the tutorial). The module ``oopp`` is automatically generated 
+by "test.py", which works by extracting from the tutorial 
+text blocks of code of the form ``#<oopp.py> something #</oopp.py>`` 
+and saving them in a file called "oopp.py". 
+Let me give an example. A very recent enhancement to Python (in 
+Python 2.3) has been the addition of a built-in boolean type with
+values True and False:
+
+ ::
+
+  $ python
+  Python 2.3a1 (#1, Jan  6 2003, 10:31:14)
+  [GCC 2.96 20000731 (Red Hat Linux 7.2 2.96-108.7.2)] on linux2
+  Type "help", "copyright", "credits" or "license" for more information.
+  >>> 1+1==2
+  True
+  >>> 1+1==3
+  False
+  >>> type(True)
+  <type 'bool'>
+  >>> type(False)
+  <type 'bool'>
+
+
+However, previous version of Python use the integers 1 and 0 for 
+True and False respectively. 
+
+ ::
+
+  $ python
+  Python 2.2 (#1, Apr 12 2002, 15:29:57)
+  [GCC 2.96 20000731 (Red Hat Linux 7.2 2.96-109)] on linux2
+  Type "help", "copyright", "credits" or "license" for more information.
+  >>> 1+1==2
+  1
+  >>> 1+1==3 
+  0
+
+Following the 2.3 convension, in this tutorial I will use the names 
+``True`` and ``False`` to denotes the numbers 1 and 0 respectively. 
+This is automatic in Python 2.2.1+, but not in Python 2.2. Therefore, 
+for sake of compatibility, it is convenient to set the values ``True`` 
+and ``False`` in our utility module:
+
+ ::
+
+  #<oopp.py>
+
+  import __builtin__
+  try: 
+      __builtin__.True   #look if True is already defined
+  except AttributeError: # if not add True and False to the builtins
+      __builtin__.True = 1
+      __builtin__.False = 0
+
+  #</oopp.py>
+
+
+Here there is an example of usage:
+
+ ::
+
+  #<mysecondscript.py>
+
+  import oopp
+  print "True =",True,
+  print "False =",False
+
+  #</mysecondscript.py>
+
+The output is "True = 1 False = 0" under Python 2.2 and 
+"True = True False = False" under Python 2.3+.
+
+.. [#] "test.py", invoked without arguments, does not create '.py' files, 
+       since I don't want to kludge the distribution with dozens of ten-line
+       scripts. I expect you may want to save only few scripts as standalone
+       programs, and cut and paste the others.
+       
+Conventions used in this book
+----------------------------------------------------------------------
+
+Python expressions are denoted with monospaced fonts when in the text.
+Sections marked with an asterisk can be skipped in a first reading.
+Typically they have the purpose of clarifying some subtle point and
+are not needed for the rest of the book. These sections are intended
+for the advanced reader, but could confuse the beginner.
+An example is the section about the difference between methods and
+functions, or the difference between the inheritance constraint and
+the metaclass constraint.
+
+Introduction
+===========================================================================
+       
+ .. line-block::
+
+  *A language that doesn't affect the way you think about programming,
+  is not worth knowing.* -- Alan Perlis
+
+
+Why OOP ?
+----------------------------
+
+I guess some of my readers, like me, have started programming in the mid-80's,
+when traditional (i.e. non object-oriented) Basic and Pascal where popular as 
+first languages. At the time OOP was not as pervasive in software development 
+how it is now, most of the mainstream languages were non-object-oriented and 
+C++ was just being released. That was a time when the transition from 
+spaghetti-code to structured code was already well accomplished, but 
+the transition from structured programming to (the first phase of) 
+OOP was at the beginning. 
+
+Nowaydays, we live in a similar time of transition . Today, the transition 
+to (the first phase of) OOP is well accomplished and essentially all 
+mainstream
+languages support some elementary form of OOP. To be clear, when I say
+mainstream langauges, I have in mind Java and C++: C is a remarkable 
+exception to the  rule, since it is mainstream but not object-oriented. 
+
+However, both Java an C++ (I mean standard Java and C++, not special
+extension like DTS C++, that have quite powerful object oriented features)
+are quite poor object-oriented languages: they provides only the most 
+elementary aspects of OOP, the features of the *first phase* of OOP.
+
+Hence, today the transition to the *second phase* of OOP is only at the 
+beginning, i.e mainstream language are not yet really OO, but they will
+become OOP in the near future. 
+
+By second phase of OOP I mean the phase in which the primary
+objects of concern for the programmer are no more the objects, but the
+metaobjects. In elementary OOP one works on objects, which have attributes
+and methods (the evolution of old-fashioned data and functions)  defined
+by their classes; in the second phase of OOP one works on classes 
+which behavior is described by metaclasses. We no more modify objects 
+trough classes: nowadays we modify classes and class hierarchies 
+through metaclasses and multiple inheritance. 
+
+It would be tempting to represent the history of programming in the last
+quarter of century with an evolutionary table like that:
+
+======================== ==================== ====================== =======
+         ~1975                  ~1985                 ~1995           ~2005
+======================== ==================== ====================== =======
+  procedural programming   OOP1                 OOP2                    ?
+  data,functions           objects,classes      classes,metaclasses     ?
+======================== ==================== ====================== =======
+
+The problem is that table would be simply wrong, since in truth
+Smalltalk had metaclasses already 25 years ago! And also Lisp
+had *in nuce* everything a long *long* time ago.
+The truth is that certains languages where too much ahead of their 
+time ;-)
+
+Therefore, today we already have all the ideas 
+and the conceptual tools to go beyond the first phase of OOP 
+(they where invented 20-30 years ago), nevertheless those ideas are  
+not yet universally known, nor implemented in mainstream languages. 
+
+Fortunately, there are good languages
+where you can access the bonus of the second phase of OOP (Smalltalk, CLOS,
+Dylan, ...): unfortunately
+most of them are academic and/or little known in the real world
+(often for purely commercial reasons, since typically languages are not
+chosen accordingly to their merits, helas!). Python is an exception to this
+rule, in the sense that it is an eminently practical language (it started
+as a scripting language to do Operating System administrative jobs), 
+which is relatively known and used in that application niche (even if some
+people *wrongly* think that should not be used for 'serious' things).
+
+There are various reasons why most mainstream languages are rather
+poor languages, i.e. underfeatured languages (as Java) or powerful, but too
+tricky to use, as C++. Some are good reasons (for instance *efficiency*: if
+efficiency is the first concern, then poor languages can be much
+better suited to the goal: for instance Fortran for number crunching
+and C for system programming), some are less good (economical 
+monopoly). There is nothing to do against these reasons: if you
+need efficiency, or if you are forced to use a proprietary language
+because it is the language used by your employer. However, if you
+are free from these restrictions, there is another reason why you
+could not choose to use a poweful language. The reason is that, 
+till now, programmers working in the industrial world mostly had simple 
+problems (I mean conceptually simple problems). In order to solve
+simple problems one does not need a powerful language, and the effort
+spent in learning it is not worth.
+
+However, nowadays the situations has changed. Now, with Internet and graphics
+programming everywhere, and object-oriented languages so widespread,
+now it is the time when actually people *needs* metaprogramming, the
+ability to changing classes and programs. Now everybody is programming
+in the large.
+
+In this situation, it is justified to spend some time to learn better
+way of programming. And of course, it is convenient to start from
+the language with the flattest learning curve of all.
+
+Why Python ?
+-----------------------------------------------------------------------
+
+ .. line-block::
+
+  *In many ways, it's a dull language, borrowing solid old concepts from 
+  many other languages & styles:  boring syntax, unsurprising semantics,
+  few automatic coercions, etc etc.  But that's one of the things I like
+  about it.*  --Tim Peters on Python, 16 Sep 93
+
+If you are reading this book, I assume you already  have some experience
+with Python. If this is the case, you already know the obvious advantages
+of Python such as readability, easy of use and short development time.
+Nevertheless, you could only have used Python as a fast and simple
+scripting language. If you are in this situation, then your risk to
+have an incorrect opinion on the language like "it is a nice little
+language, but too simple to be useful in 'real' applications". The
+truth is that Python is designed to be *simple*, and actually it
+is; but by no means it is a "shallow" language. Actually, it goes
+quite *deep*, but it takes some time to appreciate this fact.
+
+Let me contrast Python with Lisp, for instance. From the beginning,
+Lisp was intended to be a language for experts, for people with difficult 
+problems to solve. The first
+users of Lisp were academicians, professors of CS and scientists.
+On the contrary, from the beginning Python 
+was intended to be language for everybody (Python predecessor was ABC, 
+a language invented to teach CS to children). Python makes great a first 
+language for everybody, whereas Lisp would require especially
+clever and motivated students (and we all know that there is lack
+of them ;-)
+
+From this difference of origins, Python inherits an easy to learn syntax,
+whereas Lisp syntax is horrible for the beginner (even if not as
+horrible as C++ syntax ;-)
+
+
+ .. line-block::
+   
+    *Macros are a powerful extension to weak languages.
+    Powerful languages don't need macros by definition.* 
+    -- Christian Tismer on c.l.p. (referring to C)
+
+Despite the differences, Python borrows quite a lot from Lisp and it
+is nearly as expressive as it (I say nearly since Python is 
+not as powerful as Lisp: by tradition, Lisp has always been on the top of 
+hierarchy of programming language with respect to power of abstraction).
+It is true that Python lacks some powerful Lisp features: for instance 
+Python object model lacks multiple dispatching (for the time being ;-) 
+and the language lacks Lisp macros (but this unlikely to change in the 
+near future since Pythonistas see the lack of macro as a Good Thing [#]_): 
+nevertheless, the point is that Python is much *much* easier to learn. 
+You have (nearly) all the power, but without the complexity.
+
+One of the reasons, is that Python
+try to be as *less* innovative as
+possible: it takes the proven good things from others, more innovative
+languages, and avoids their pitfalls. If you are an experienced
+programmer , it will be even  easier to you to learn Python, since
+there is more or less nothing which is really original to Python.
+For instance:
+
+1. the object model is took from languages that are good at it, such
+   as Smalltalk; 
+2. multiple inheritance has been modeled from languages good in it. such
+   as CLOS and Dylan;
+3. regular expression follows the road opened by Perl;
+4. functional features are borrowed from functional languages;
+5. the idea of documentation strings come from Lisp;
+6. list comprehension come from Haskell; 
+7. iterators and generators come from Icon;
+8. etc. etc. (many other points here)
+
+I thinks the really distinctive feature of Python with respect to
+any other serious language I know, is that Python is *easy*. You have the 
+power (I mean power in conceptual sense, not computational power: in
+the sense of computational power the best languages are
+non-object-oriented ones) 
+of the most powerful languages with a very little investement.
+In addition to that, Python has a relatively large user base 
+(as compared to Smalltalk or Ruby, or the various fragmented Lisp
+communities). Of course, 
+there is quite a difference between the user base of Python with
+respect to the user base of, let say, VisualBasic or Perl. But 
+I would never take in consideration VisualBasic for anything serious, 
+whereas Perl is too ugly for my taste ;-).  
+Finally, Python is *practical*. With this I mean the fact that 
+Python has libraries that
+allow the user to do nearly everything, since you can access all the C/C++ 
+libraries with little or no effort, and all the Java libraries, though the
+Python implementation known as Jython. In particular, one has the choice
+between many excellent GUI's trough PyQt, wxPython, Tkinter, etc.
+
+Python started as an Object Oriented Programming
+Languages from the beginning, nevertheless is was never intended to be
+a *pure* OOPL as SmallTalk or, more recently, Ruby. Python is a 
+*multiparadigm*
+language such a Lisp, that you choose your programming style according
+to your problem: spaghetti-code, structured programming, functional
+programming, object-oriented programming are all supported. You can
+even write bad code in Python, even if it is less simple than in other
+languages ;-). Python is a language which has quite evolved in its twelve
+years of life (the first public release was released in February 1991)
+and many new features have been integrated in the language with time. 
+In particular, Python 2.2 (released in 2002) was a major breakthrough 
+in the history of the language
+for what concerns support to Object Oriented Programming (OOP). 
+Before the 2.2 revolution, Python Object
+Orientation was good; now it is *excellent*. All the fundamental features
+of OOP, including pretty sophisticated ones, as metaclasses and multiple
+inheritance, have now a very good support (the only missing thing is
+multiple dispatching).
+
+.. [#] 
+       Python lacks macros for an intentional design choice: many people
+       in the community (including Guido itself) feel that macros are 
+       "too powerful". If you give the user the freedom to create her
+       own language, you must face at least three problems: i) the risk
+       to split the original language in dozens of different dialects;
+       ii) in collaborative projects, the individual programmer must 
+       spend an huge amount of time and effort would be spent in learning
+       macro systems written by others; iii) not all users are good
+       language designers: the programmer will have to fight with badly
+       designed macro systems. Due to these problems, it seems unlikely
+       that macros will be added to Python in the future.
+
+.. [#] 
+       For a good comparison between Python and Lisp I remind the reader to
+       the excellent Peter Norvig's article in
+       http://www.norvig.com/python-lisp.html
+
+Further thoughts 
+---------------------------------------------------------------------------
+
+Actually, the principal reasons why I begun studying 
+Python was the documentation and the newsgroup: Python has an outstanding 
+freely available documentation and an incredibly helpful newsgroup that
+make extremely easy to learn the language. If I had found a comparable 
+free documentation/newsgroup for C++ or Lisp, I would have studied that
+languages instead. 
+
+Unfortunately, the enormous development at the software level, had no
+correspondence with with an appropriate development of documentation.
+As a consequence, the many beatiful, powerful and extremely *useful*
+new features of Python 2.2+ object orientation are mostly remained
+confined to developers and power users: the average Python programmer
+has remained a little a part from the rapid development and she
+*wrongly* thinks she has no use for the new features. There have
+also been *protestations* of the users against developers of the
+kind "please, stop adding thousands of complicated new extensions
+to the language for which we have no use" !
+
+Extending a language is always a delicate thing to do, for a whole
+bunch of reasons:
+
+1. once one extension is done, it is there *forever*.
+
+
+My experience has been the following.
+
+When I first read about metaclasses, in Guido's essay
+"Unifying types and classes in Python 2.2", I thought "Wow,
+classes of classes, cool concept, but how useful is it?  
+Are metaclasses really providing some new functionality?  
+What can I do with metaclasses that I cannot do without?"
+
+Clearly, in these terms, the question is rather retorical, since in principle
+any Turing-complete programming languages contains all the features provided 
+by metaclasses. Python metaclasses themselves are implemented in C, that has 
+no metaclasses. Therefore, my real question was not "What can I do 
+with metaclasses that I cannot do without?" but "How big is the convenience 
+provided by metaclasses, with respect to my typical applications?".
+ 
+The answer depends on the kind of problem you are considering. For certain
+classes of problems it can be *very* large, as I will show in this and in
+the next chapters.
+
+I think the biggest advantage of metaclasses is *elegance*. Altough it
+is true that most of what you can do with metaclasses, can be done without 
+metaclasses, not using metaclasses can result in a much *uglier* solution. 
+
+
+One needs difficult problems in order to appreciate the advantage
+of powerful methods.
+
+
+If all you need is to write few scripts for copying two or three files,
+there is no point in learning OOP.On the other hand, if you only
+write simple programs where you define only one of two classes, there
+is no point in using metaclasses. Metaclasses becomes relevant only
+when you have many classes, whole classes of classes with similar
+features that you want to modify.
+
+In this sense, metaprogramming is for experts only, i.e. with people
+with difficult problems. The point however, is that nowaydays,
+many persons have difficult problems.
+
+Finally, let me conclude this preface by recalling the
+gist of Python wisdom.
+
+  >>> import this
+  The Zen of Python, by Tim Peters
+  .
+  Beautiful is better than ugly.
+  Explicit is better than implicit.
+  Simple is better than complex.
+  Complex is better than complicated.
+  Flat is better than nested.
+  Sparse is better than dense.
+  Readability counts.
+  Special cases aren't special enough to break the rules.
+  Although practicality beats purity.
+  Errors should never pass silently.
+  Unless explicitly silenced.
+  In the face of ambiguity, refuse the temptation to guess.
+  There should be one-- and preferably only one --obvious way to do it.
+  Although that way may not be obvious at first unless you're Dutch.
+  Now is better than never.
+  Although never is often better than *right* now.
+  If the implementation is hard to explain, it's a bad idea.
+  If the implementation is easy to explain, it may be a good idea.
+  Namespaces are one honking great idea -- let's do more of those!
+

@@ -1,0 +1,164 @@
+Self-introduction and declaration of intents
+=============================================================
+
+When starting a new blog it is customary to begin with a brief
+introduction to ourselves, with the reason why we are starting the blog,
+and with a note about the topics of the blog. Here it goes.
+
+My name is Michele Simionato. I have started programming in 1985 and I
+work as a software developer now, but my cursus honorum has been
+somewhat excentric. I have begun working professionally as a
+developer only in 2004: for most of my professional life I have been
+doing Physics, first as a student and then as a postdoc researcher
+both in Europe and in the U.S. For that reason I am both an old-school
+programmer (started with Basic and Pascal) and a new one (a child
+of the Internet era) at the same time. I have basically lost
+a decade in the programming world. Losing the nineties is not as
+bad as it seems. For instance, I skipped the Windows era:
+I was an Amiga user in the old days, at the University I used
+VMS and then Unix, and when I bought my first laptop
+in 2002 I put Linux on it immediately so I never used Windows really; 
+also, I skipped C++ and Java
+since I switched directly to Python; finally, I skipped the GUI era and
+I started directly with Web programming. On the other hand, I also skipped
+the Object Oriented era so I needed to spend some time to catch up.
+The result of my catching up are my first papers on the Python object
+model, which are relatively popular among Pythonistas: I mean
+the `papers on meta-classes`_ with David Mertz
+and the essay about the `Python Method Resolution Order`_, written at the
+end of 2002. Since then I had the time to see the difference between
+the theory and the practice, I have worked with large object oriented
+frameworks (Zope/Plone/Twisted) and I have got a lot of opinions about
+software development and about how to keep things simple.
+
+.. _papers on meta-classes: http://www.ibm.com/developerworks/linux/library/l-pymeta.html
+.. _Python Method Resolution Order: http://www.python.org/download/releases/2.3/mro
+.. _Stacktrace: http://www.stacktrace.it
+
+There are many reasons why I am starting this blog.
+For one, I like to write papers/essays and I have written a lot
+in the past years, publishing on IBM DeveloperWorks, O'Reilly, Pyzine
+and more recently on Stacktrace_. I was looking for a centralized place
+where to publish my thoughts without constraints of time, size,
+language and with the potential to reach a large public of technically-inclined readers.
+Artima fits perfectly my needs, so here I am. The reason why I want to
+publish my thoughts (apart from glory) is that I think they may be
+helpful to others, since I am in a particularly good position to
+write, i.e. I am *ignorant enough*. There is an interesting little story
+about this point. In an interview Isaac Asimov was asked why he did write
+so little about Biophysics, his own field of research, when he wrote
+about just everything (Mathematics, Physics, Astronomy, History, even
+Bible Studies). He answered: "I cannot write about Biophysics,
+since I know too much about it". The same goes for me: I have the
+motivation to write when I learn a new thing, I see the
+mistakes a beginners can make and I want to warn others about them.
+If there is a subject where I am a long time expert, I have forgotten
+about the mistakes I did and I am on a level too far
+away from the beginner to be of interest to her.  I
+think this argument generalizes: to write something useful for the
+others, you must be ignorant enough. This does not means that you have
+to be clueless, of course, but there is a right degree of ignorance
+which is needed. Fortunately I do have the right degree
+of ignorance, since I (re)started programming in 2002, so I have
+more or less the same level of expertise of a smart teenager who
+started at the same time: smart teenagers are actually the primary
+target of my blog, they are the future of programming and the ones
+we of the older generation should write for.
+
+My own personal problem is that I tend to become an expert of a
+subject very quickly, so I have to keep changing subject often in
+order to stay sufficiently ignorant ;) This is why I am interested in
+many topics and many languages. For instance I have written a `long
+series for Stacktrace about Scheme`_ which I would like to translate
+in English and publish here, if I can find the time.  I have also
+started a crusade against inheritance in Python which I would like to
+continue here, discussing examples of how you can refactor code using
+inheritance without need, and explaining the virtues of object
+composition. Other likely subjects for my blog could be a panoramic of
+the new features of Python (Python 2.6/3.0 are coming out in October!)
+together with a discussion of why you may want to use them. Last year
+I have been studying for a bit the functional language SML and I liked
+it, so it may well be that I will write something about functional
+programming too. Notice that you can use a functional mindset even if
+you are using a language which is not functional, as I have discussed
+at lenght in a `series of papers`_ about the new ``namedtuple``
+construct in Python 2.6/3.0 which I would like to translate here.
+Finally, I would like to post in this blog some hacks and recipes
+that I use in my own code and that I think could be of interest
+to others. For instance the literate programming-inspired
+technology that `I use to write my own papers`_ or the
+library from implementing command line interface that I have 
+written.
+
+.. _long series for Stacktrace about Scheme: http://stacktrace.it/articoli/2008/02/le-avventure-di-un-pythonista-schemeland-1/
+.. _series of papers: http://stacktrace.it/articoli/2008/05/gestione-dei-record-python-1/
+.. _anti-patterns: http://en.wikipedia.org/wiki/Antipattern
+.. _I use to write my own papers: http://stacktrace.it/articoli/2008/01/geek-publishing/
+
+Now it is time to say something about the title of this blog, *The
+Explorer*. There are many (good and bad) books on software development
+that talk about patterns, best practices, proven methodologies and all
+that. This is *not* my goal. These books are about the past, whereas I
+am more interested in the future: I want to *explore* new techniques,
+new methodologies, the ones that will hopefully become the patterns of
+the future, as well as the ones that will become the anti-patterns_ of
+the future. I do a great deal of experimentation in my own code
+because I am always unsatisfied with the current situation and I want
+to try new routes. Therefore I am not afraid of breaking established
+traditions and I can occasionally become an heretic. I also think that
+the only way to learn is to make mistakes. So if something which is
+considered bad is not so obviously bad in my personal opinion, I tried
+it and I see where it goes.  I also experiments with hacks and tricks,
+since they have their place in a programmer's education. On the other
+hand, I *never* use exploratory code in production, since I am not
+masochist.  There is a barrier between exploratory code and production
+and one should be very careful not to cross the barrier. Most of my
+exploratory codes sits silently in my hard disk and nobody will see it
+ever; some of it appears under the form of a newsgroup post or a
+recipe; a much smaller portion of it appears as an open source
+library.  After a few years, if the open source library is well
+received and many people are using it (i.e. it becomes somewhat a
+shared community knowledge) I may start using it in my own production
+code.  This is happening with my `decorator module`_ which
+is now more than three years old and is being used in many Python
+frameworks: it is only at this point that I am taking in consideration
+the idea of using it in my own production code.  Notice that I am not
+worried about bugs (in three years I never had a single bug report) it
+is just that it involves a different way of working with Python
+decorators than the standard one and I am not yet 100% convinced that
+that way is the best one.
+
+There is always a big gap between technical competence, which is
+shortly gained, and practical experience, which takes years to form.
+There is also the problem that things change continuously in the
+programming world, so once you get expertise in a technology the
+technology has become obsolete. Here I am using the word "technology"
+is an large sense: even a language is a technology and can become
+obsolete. There are for instance many new books about software
+development with C++ which nevertheless I consider obsolete since *C++
+is nowadays an obsolete language*. Here I am speaking in the
+same sense Paul Graham was in his essay `Microsoft is dead`_.  I know
+that C++ will still be around for years, especially in the corporate
+IT world. But C++ is no longer innovating and I am sure most of my
+smart teenagers readers think it is boring: they want to use Ruby or
+Python or even Scala instead. A few months ago I was reading a book
+about refactoring in C++ (we had it in our library in the office and I
+had some spare time) and it was mostly of no value to me since the
+biggest part of it was about tricks and techniques to cope with
+peculiarities/warts of C++ that do not exist in Python, the main
+language we use at work. The other part of the book was about the fact
+that automatic tests and refactoring are good, but I was already
+convinced of it, so it was old news to me.  In this blog you will not
+see much of mainstream technology and easy advocacy.  On the
+contrary you will see many non-orthodox ways of doing new and old
+things as well. I will show
+solutions to design/programming issues and I will let you decide if
+they are good or bad (most of the time I don't know the answer
+myself). In this sense this site will be different than most
+Artima weblogs: it is not intended as a site for best practices,
+but as a site for exploration and ideally you will start from here
+`to boldly go where no man has gone before`_ ;)
+
+.. _decorator module: http://www.phyast.pitt.edu/~micheles/python/documentation.html
+.. _Microsoft is dead: http://www.paulgraham.com/microsoft.html
+.. _to boldly go where no man has gone before: http://en.wikipedia.org/wiki/Where_no_man_has_gone_before

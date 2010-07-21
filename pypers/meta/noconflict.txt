@@ -1,0 +1,66 @@
+#<noconflict.py>
+
+def memoize(f):
+    """This closure remembers all f invocations"""
+    argskw,result = [],[]
+    def _(*args,**kw): 
+        akw=args,kw
+        try: # returns a previously stored result
+            return result[argskw.index(akw)]
+        except ValueError: # there is no previously stored result
+            argskw.append(akw) # update argskw
+            result.append(f(*args,**kw)) # update result
+            return result[-1] # return the new result
+    _.argskw=argskw #makes the argskw list accessible outside
+    _.result=result #makes the result list accessible outside
+    return _
+
+def clsfactory(*metas,**options):
+    """Class factory avoiding metatype conflicts. The invocation syntax is
+    clsfactory(M1,M2,..,priority=1)(name,bases,dic). If the base classes have 
+    metaclasses conflicting within themselves or with the given metaclasses, 
+    it automatically generates a compatible metaclass and instantiate it. 
+    If priority is True, the given metaclasses have priority over the 
+    bases' metaclasses"""
+
+    priority=options.get('priority',False) # default, no priority
+    trivial=lambda m: sum([issubclass(M,m) for M in metas]) # hackish lambda:
+    # m is trivial if it is a superclass of at least one of the explicit metas
+
+    def generatemetaclass(bases):
+        metabases=tuple([mb for mb in map(type,bases) if not trivial(mb)])
+        print metabases; raise SystemExit()
+        metabases=(metabases+metas, metas+metabases)[priority]
+        metaname="_"+''.join([m.__name__ for m in metabases])
+        if not metabases: # trivial metabase
+            return type 
+        elif len(metabases)==1: # single metabase
+            return metabases[0]
+        else: # multiple metabases
+            # create new metaclass,shift possible conflict to meta-metaclasses
+            return clsfactory()(metaname,metabases,{})
+
+    generatemetaclass=memoize(generatemetaclass) 
+
+    return lambda name,bases,dic: generatemetaclass(bases)(name,bases,dic)
+
+#</noconflict.py>
+
+>>> from noconflict import clsfactory
+>>> class MM1(type): pass
+...
+>>> class MM2(type): pass
+...
+>>> class M1(type):
+...     __metaclass__=MM1
+>>> class M2(type): 
+...     __metaclass__=MM2
+>>> class A: __metaclass__=M1
+...
+>>> class B: __metaclass__=M2
+...
+>>> class C(A,B):
+...     __metaclass__=clsfactory()
+>>> print C,type(C),type(type(C))
+<class 'C'> <class 'noconflict._M1M2'> <class 'noconflict._MM1MM2'>
+

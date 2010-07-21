@@ -1,0 +1,18 @@
+Documentation for the 'split' module
+=====================================
+
+The module contains a 'split' function, which 
+splits a string taking as separators "," and ";".
+This is an example of usage:
+    
+>>> from split import split
+>>> split("hello, world!; welcome to the Italian Code Jam!")
+['hello', 'world!', 'welcome to the Italian Code Jam!']
+
+Notice that 'split' eats whitespaces:
+
+>>> split("hello ,  world")
+['hello', 'world']
+
+>>> split("hello , ;  world")
+['hello', '', 'world']

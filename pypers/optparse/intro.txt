@@ -1,0 +1,83 @@
+> Hello Michele,
+> 
+> Thank you for your proposals. I'll talk with Kendall and Peter about 
+> all of your proposals but we would
+> definitely be interested in an article on the optparse module.
+> 
+> What I would need from you is the introduction (for our planning and 
+> our work on the next table of contents)
+> and an estimated date when you could get a first draft to us.
+> 
+> Regards,
+> 
+> Mark
+
+Okay, here is the introduction. For what concerns the draft, I can work
+on it over the weekend and send it to you on Monday. It is not a big 
+job since I already have some notes for a recipe I planned to submit 
+to the Python Cookbook and I can expand on that. I don't know how 
+long it will be at the end, but I would try to make it more or less the 
+size of a DeveloperWorks paper, i.e. 2500 words.
+Please let me know if this is too much or too little. Also, if everything 
+is approved, let me know about the compensation and the needed paperwork.
+Best regards,
+
+                Michele
+
+P.S. I will send you the draft in reStructuredText format, if it is
+okay for you.
+
+-----------------------------------------------------------------------
+
+
+The optparse module: writing command line tools the easy way
+=======================================================================
+
+"The optparse module is a powerful, flexible, extensible, easy-to-use 
+command-line parsing library for Python. Using optparse, you can add 
+intelligent, sophisticated handling of command-line options to your 
+scripts with very little overhead." -- Greg Ward, optparse author
+
+Introduction
+-----------------------------------------------------------------------
+
+Once upon a time, when graphic interfaces were still to be dreamed
+about, command line tools were the body and the soul of all programming
+tools. Many years have passed since then, but some things have not changed: 
+command line tools are still fast, efficient, portable, easy to use 
+and - more importantly - reliable. You can count on them.
+You can expect command line scripts to work in any situation, 
+during the installation phase, in a situation of disaster recovery, when 
+your window manager breaks down and even in systems with memory 
+constraints such as embedded devices. When you really need them, command 
+line tools are always there. 
+
+Hence, it is important for a programming language - especially
+one that wants to be called a "scripting" language - to provide 
+facilities to help the programmer in the task of writing command
+line tools. In Python, for a long time the support for this kind of 
+tasks has been devoted to the old fashioned getopt module. I have
+never been particularly fond of getopt, since it required the programmer 
+to do a sensible amount of boring job even for the parsing of simple 
+argument lines. However, the situation has changed with the coming of 
+Python 2.3, and thanks to the great job of Greg Ward (the author of 
+optparse and Optik, its precursor) now the Python programmer 
+has at her disposal - in the standard library and not as an 
+add-on module - a fully fledged Object Oriented API for command 
+line argument parsing, which makes writing Unix-style command 
+line tools easy, efficient and fast.
+
+The only minor disadvantage of optparse is that it is a kind of 
+sophisticated tool, and requires some time to be fully mastered. 
+The purpose of this paper is to help the reader to rapidly get the 
+10% of the features of optparse that she will use in the 90% of 
+the cases.
+
+Taking as an example a real life application - a search and 
+replace tool -  I will guide the reader through (some of) the wonders 
+of optparse, showing how easy is to use it and how convenient it 
+really is. Also, I will show some trick that will make your life with
+optparse much easier. This paper is intended for both Unix and
+Windows programmers - actually I will argue that Windows programmers 
+need optparse even more than Unix programmers - and does not
+require any particular expertise to be fully appreciated.

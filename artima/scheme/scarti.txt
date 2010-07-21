@@ -1,0 +1,1124 @@
+for instance,
+you could develop your program by using an interpreted implementation,
+with the advantage of rapid development and debugging, and later on
+deploy your program by using a compiled implementation, with the
+advantage of speed and deployment. 
+
+ ; draws a cake with n candles
+
+  (define (print-cake n)
+    (printf "   ~a  \n" (make-string n #\.))
+    (printf " .-~a-.\n" (make-string n #\|))
+    (printf " | ~a |\n" (make-string n #\space))
+    (printf "---~a---\n" (make-string n #\-)))
+
+
+For instance an alternative version of ``multi-define``
+could be the following::
+
+ (def-syntax multi-def
+   (syntax-match (=)
+     (=> (ctx (name = value) ...)
+         #'(begin (define name value) ...))))
+
+Here the identifier ``=`` is recognized as a keyword inside the
+scope of the macro.
+
+ > (multi-def (a = 1) (b = 2) (c = (+ a b)))
+ > (list a b c)
+ (1 2 3)
+
+Breaking hygiene
+------------------------------------------ 
+
+Sometimes you want to break hygiene. ``def-syntax`` allows you to
+do it just as easily as ``define-macro``. Here is an example,
+a Python-like ``while`` loop which recognizes the "keywords"
+``break`` and ``continue``.
+
+A simple
+macro to define the three components of a three-dimensional vector
+``v`` as three variables ``v.x, v.y, v.z``:
+
+.. code-block:: scheme
+
+ (define (make-syntax-symbol syntax-sym . strings)
+   )
+
+ (def-syntax (define-3d-vector v vec)
+   #`(begin
+      (define #,(make-syntax-symbol #'v  ".x") (vector-ref v 0))
+      (define #,(make-syntax-symbol #'v  ".y") (vector-ref v 1))
+      (define #,(make-syntax-symbol #'v  ".z") (vector-ref v 2))))
+
+This macro should be compared with:
+
+.. code-block:: scheme
+
+  (define (make-symbol sym . strings)
+  )
+
+  (define-macro (define-3d-vector v vec)
+    `(begin
+        (define ,(make-symbol v  ".x") (vector-ref v 0))
+        (define ,(make-symbol v  ".y") (vector-ref v 1))
+        (define ,(make-symbol v  ".z") (vector-ref v 2))))
+
+The definition using ``def-syntax`` is a bit uglier than the one of
+``define-macro``, but this is a feature, not a bug, since breaking
+hygiene is a dirty thing and it is a good thing to have a dirty syntax
+for it. That should prompt people to use better solutions. For
+instance in this case a better solution would be to define a second
+order hygienic macro like the following one:
+
+.. code-block:: scheme
+
+ (def-syntax (define-3d-vector v vec)
+   #'(begin
+      (define _v v)
+      (def-syntax v
+        ((v) #'_v)
+        ((v x) #'(vector-ref _v 0))
+        ((v y) #'(vector-ref _v 1))
+        ((v z) #'(vector-ref _v 2)))))
+
+so you would use the syntax ``(v x), (v y), (v z)`` instead of ``v.x, v.y, v.z``
+(more parentheses the better ;) Notice that the auxiliary variabile ``_v``
+is introduced hygienically so that it cannot be accessed directly; still,
+you can get the value of the vector with the syntax ``(v)``.
+
+Guarded patterns
+--------------------------------------------------------------------------
+
+There is another major advantage of ``def-syntax``
+versus ``define-macro``: better error messages via the usage of
+guarded patterns. The general version of a clause in ``def-syntax``
+is of kind ``(skeleton condition otherwise  ...)`` and if a condition
+is present, the pattern is matched only if the condition is satified;
+if not, if there is an ``otherwise``, specification, that is executed,
+else, the matcher look at the clause. For instance the macro
+``define-3d-vector v vec`` could be made more robust against
+errors in this way:
+
+.. code-block:: scheme
+
+ (def-syntax (define-3d-vector v vec)
+   #'(begin
+        (define _v v)
+        (def-syntax v
+           ((v) _v)
+           ((v x) #'(vector-ref _v 0))
+           ((v y) #'(vector-ref _v 1))
+           ((v z) #'(vector-ref _v 2)))) 
+   (identifier? #'v)
+   (syntax-violation #'v "not a valid identifier!" #'v))
+
+Now you get a meaningful error message if you try something like the following:
+
+
+.. code-block:: scheme
+
+ > (define-3d-vector "v" (vector 1 2 3)) 
+
+
+Last but not least, ``def-syntax`` macros, being based on syntax
+objects and not just S-expressions, have information about source code
+location and they are able to provide more informative error messages.
+
+
+
+Macros with helper functions
+----------------------------------------------------
+
+``define-macro``-style macros often use helper functions as building blocks.
+``syntax-rules`` is unable to do that, but ``def-syntax``, being based on 
+``syntax-case`` has no trouble at all.  For instance, suppose you want
+to define a version of ``let`` with fewer parentheses (as done in Arc),
+such that
+
+.. code-block:: scheme
+
+  (my-let (x 1 y 2) (+ x y))
+
+expands to
+
+.. code-block:: scheme
+
+  (let ((x 1)(y 2)) (+ x y))
+
+and that you already have a list-processing ``chop`` function such that
+
+.. code-block:: scheme
+
+ > (chop '(x 1 y 2))
+ ((x 1) (y 2))
+
+You can use the ``chop`` function inside your ``def-syntax`` macro
+as simply as that:
+
+.. code-block:: scheme
+
+  (def-syntax (my-let (x ...) body1 body2 ...)
+    #`(let #,(chop #'(x ...)) body1 body2 ...))
+
+Often one wants to perform general computations at compile time, in terms
+of helper functions invoked by a macro. To make this task easier, 
+``umacros`` provides an helper function
+``syntax-apply`` that takes a function and a list of syntax objects 
+and return a syntax-object.
+
+Here an example computing the factorial of ``n`` at compile time, if ``n``
+is a literal number:
+
+;FACT-MACRO
+
+In particular, ``define-style`` macros themselves are an example of
+this class of macros, since they are performing list processing at
+compile time in terms of an expander function. That means that
+``define-macro`` can be defined in terms of ``def-syntax`` in
+a few lines of code::
+
+.. code-block:: scheme
+
+ (def-syntax define-macro
+   (syntax-match ()
+      (=> (define-macro (name . params) body1 body2 ...)
+          #'(define-macro name (lambda params body1 body2 ...)))
+      (=> (define-macro name expander)
+          #'(def-syntax (name . args)
+              (datum->syntax #'name (apply expander (syntax->datum #'args)))))
+      ))
+
+``syntax-match`` and second order macros
+------------------------------------------------
+
+Whereas *umacros* are intended to make life easy for beginner macro
+programmers, they also have the ambition to make life easier for
+*expert* macro programmers.  To this aim, the library alots exports
+some utility which is helpful when writing complex macros. The most
+important of such utilities is the macro ``syntax-match``, which is
+useful when you need to access directly the transformer underlying the
+macro, for instance writing second order macros, i.e. macro defining
+macros.  Actually ``def-syntax`` is just a thing layer of sugar over
+``syntax-match``, being ``(def-syntax (name . args) body ...)``
+a shortcut for
+``(define-syntax name (syntax-match (literal ...) (=> (name . args) body ...)
+))``.
+
+Here is an example of usage of ``syntax-match``.
+We define a ``named-vector`` second order macro, which allows
+to define macros providing a record-like syntax to vectors. 
+
+.. code-block:: scheme
+
+    (def-syntax (named-vector field ...)
+       #'(let ((i (enum-set-indexer (make-enumeration '(field ...)))))
+             (syntax-match (make set! fields field ...)
+               (=> (_ make (field-name field-value) (... ...))
+                #'(vector field-value (... ...)))
+               (=> (_ v set! field value)
+                   #`(vector-set! v #,(i 'field) value)) ...
+               (=> (_ v field)
+                   #`(vector-ref v #,(i 'field))) ...
+               (=> (_ fields)
+                   #''(field ...))
+               (=> (_ v)
+                   #'v)
+               )))
+
+``named-vector`` expands to a macro transformer and can be used as follows:
+
+.. code-block:: scheme
+
+ > (define-syntax book (named-vector title author))
+ > (book fields)
+ (title author)
+
+The macro ``book`` allows to define vectors  as follows:
+
+ > (define b (book make (title "Bible") (author "God")))
+ > (book b title)
+ "Bible"
+ (book b author)
+ "God"
+ > (book b set! title "The Bible")
+ > (book b)
+ #("The Bible" "God")
+
+``syntax-fold``
+------------------------------------------
+
+Another powerful utility provided by *umacros* is ``syntax-fold``,
+which is useful in the definition of complex macros, whenever you need
+to convert a list of *N* expressione into a list of *N'* expressions,
+with *N'* different from *N*.  Consider for instance the following
+problem: convert the list of *N* elements ``(a1 a2 a3 a4 ...)`` into
+the list of *2N* elements ``(a1 a1 a2 a2 a3 a3 ...)``.
+
+With regular fold can be done as follows:
+
+ > (define ls '(a1 a2 a3 a4 a5 a6))
+ > (fold-right (lambda (x acc) (cons* x x acc)) '() ls)
+ (a1 a1 a2 a2 a3 a3 a4 a4 a5 a5 a6 a6)
+
+This is easily done with ``syntax-fold``:
+
+ > (define-syntax double 
+      (syntax-fold (right acc ()) 
+       (((_ x) #'(x x)))))
+ > (double 1 2 3)
+
+   
+
+For instance, the previous macro can be generalized to an N-dimensional
+vector as follows:
+
+.. code-block:: scheme
+
+ (def-syntax (define-vector v vec)
+   (if (identifier? v)
+   #'(begin
+        (define _v v)
+        (def-syntax v
+           (=> (v) _v)
+           #,(list-comp #`(=> (v i) (vector-ref _v i)) (i) (in (range N)))))
+    "not a valid identifier!" #'v))
+
+|#
+
+(import (rnrs) (ikarus) (umacros3))
+
+(pretty-print (def-syntax <patterns>))
+
+(def-syntax (for i i1 i2 body ...)
+ #'(let ((start i1) (stop i2))
+     (assert (<= start stop))
+     (let loop ((i start))
+       (unless (>= i stop) body ... (loop (+ 1 i))))))
+; (identifier? #'i))
+
+(pretty-print (for <patterns>))
+(for i 0 5 (display i))
+(newline)
+
+(pretty-print (syntax-expand (for i 0 5 (display i))))
+;(newline))
+
+;LET/CC
+(def-syntax (let/cc cont body ...)
+  #'(call/cc (lambda (cont) body ...)))
+;END
+
+;WHILE
+(def-syntax (while condition body ...)
+  (with-syntax
+    ((break (datum->syntax #'while 'break))
+     (continue (datum->syntax #'while 'continue)))
+    #'(let/cc break
+        (let loop ()
+          (let/cc continue
+             (if condition
+                 (begin body ... (loop))
+                 (break)))
+          (loop)))))
+;END
+
+;WHILE-EXAMPLE
+(define i 0)
+(while (< i 10)
+  (set! i (+ 1 i))
+  (if (= i 2) (continue))
+  (display i)
+  (if (= i 5) (break)))
+;END
+
+(newline)
+
+;FACT-MACRO
+(def-syntax fact
+  (letrec
+      ((fac (lambda (n) (if (or (= n 1) (= n 0)) 1 (* n  (fac (- n 1)))))))
+    (syntax-match ()
+     (=> (fact n) (datum->syntax #'fact (fac (syntax->datum #'n)))))))
+;END
+
+(define (syntax-apply ctxt func . args)
+  (datum->syntax ctxt (apply func (syntax->datum args))))
+
+;(def-syntax (fact n) (apply-in-ctx #'fact fac #'n))
+
+(display (fact 6))
+
+;(define chop (syntax-match => (a b rest ...) #'((a b) (chop rest))))
+
+;(define (list-head lst n)
+;  (if (= 0 n)
+;(define (chop-helper lst n acc)
+;  (if (<= (length lst) n) (reverse (cons lst acc))
+;      (chop-helper (list-tail lst n) (cons acc)))) 
+
+
+Implementing literals with guards
+---------------------------------------------------------
+
+Literal identifiers defined via ``syntax-match`` have many advantages,
+including the fact that they can be introspected. However, sometimes
+you may want to implement them using guards instead. This is
+advantageous if you have a single pattern and you don't need
+to use the full power of ``syntax-match``, or if you want to
+give customized error messages in case of wrong syntaxes.
+
+Here is an example::
+
+> (def-syntax (for3 el in lst do something ...)
+    #'(apply for-each (lambda el do something ...)
+        (transpose lst))
+    (eq? (syntax->datum #'in) 'in)
+    (syntax-violation 'for3 "invalid literal: required 'in'" #'in))
+
+The guard strips the syntax object ``#'in`` by converting it down to a
+simple datum, i.e. to a quoted Scheme expression via ``syntax->datum``,
+and then checks if the datum is identical to the quoted identifier
+``'in``. If not, a suitable syntax error is raised::
+
+ > (for3 (x y) on '((a b) (x y) (1 2)) (display x) (display y))
+ Unhandled exception
+  Condition components:
+    1. &who: for3
+    2. &message: "invalid literal: required 'in'"
+    3. &syntax:
+        form: on
+        subform: #f
+
+You may want to hide the low-level details in your guards, i.e. the
+call to ``syntax->datum``; moreover, you may want to remove
+the duplication in the name of the literal identifier, which is
+repeated twice; finally, you may want to extend the syntax to
+check for many identifiers at once. All that can be done with a
+suitable macro, as the following one::
+
+> (def-syntax literal? ; a macro to be used in guards
+   (syntax-match (syntax) ; remember: (syntax x) means #'x
+     (=> (literal? (syntax name) ...)
+         #'(and (eq? (syntax->datum #'name) 'name) ...)
+         (for-all identifier? #'(name ...)))))
+
+``literal?`` accepts patterns of the form ``(literal? #'name ...)``
+where name is a valid identifier: this is checked early on
+by the guard ``(for-all identifier? #'(name ...))`` which
+is true if all the objects in the syntax list
+``#'(name ...)`` are valid identifiers.
+
+Using this macro, ``for3`` can be rewritten as
+
+> (def-syntax (for4 el in lst do something ...)
+    #'(apply for-each (lambda el do something ...)
+        (transpose lst))
+    (literal? #'in)
+    (syntax-violation 'for3 "invalid literal: required 'in'" #'in))
+
+ 
+In order to give a concrete example, here is a ``for``
+loop defined via ``def-syntax``::
+
+ (def-syntax (for i i1 i2 body ...)
+  #'(let ((start i1) (stop i2)) 
+      (assert (<= start stop))
+      (let loop ((i start))
+        (unless (>= i stop) body ... (loop (+ 1 i))))))
+
+It is not an accident that the syntax resembles the ``define-macro`` syntax:
+
+.. code-block:: scheme
+
+ (define-macro (for i i1 i2 . body)
+  (let ((start (gensym)) (stop (gensym)))
+   `(let ((,start ,i1) (,stop ,i2))
+      (let loop ((,i ,start))
+        (unless (>= ,i ,stop) ,@body (loop (+ 1 ,i)))))))
+
+On the aestetic side, ``def-syntax`` looks more elegant than ``define-macro``
+because you can avoid all the funny commas and @-signs, as well as the gensyms
+(in this example introducing the names ``start`` and ``stop`` is necessary in 
+order to prevent multiple evaluation, and using ``gensym`` is necessary
+in order to prevent unwanted variable capture). Moreover, ``def-syntax``
+is more powerful, since it can accepts guarded patterns. For instance,
+suppose we want to extend the previous ``for`` macro, by checking that
+``i`` is a valid identifier.
+That is easily done by using the extended form
+of ``def-syntax``:
+
+
+.. code-block:: scheme
+
+ (def-syntax (for i i1 i2 body ...)
+  #'(let ((start i1) (stop i2)) 
+      (let loop ((i start))
+        (unless (>= i stop) body ... (loop (+ 1 i)))))
+  (identifier? #'i)
+  )
+
+It is possible to improve the error message by adding a clause
+to the guard:
+
+.. code-block:: scheme
+
+ (def-syntax (for i i1 i2 body ...)
+  #'(let ((start i1) (stop i2)) 
+      (let loop ((i start))
+        (unless (>= i stop) body ... (loop (+ 1 i)))))
+  (identifier? #'i)
+  (syntax-violation 'def-syntax "Not a valid identifier" #'i)
+  )
+
+The extended for ``def-syntax`` is
+``(def-syntax (name . args) body fender else ...)``
+where the fender and/or the else clause are optional.
+
+
+---------------------
+
+The Scheme module system is extremely complex, because of the
+complications caused by macros and because of the want of
+separate compilation. However, fortunately, the complication
+is hidden, and the module system works well enough for many
+simple cases. The proof is that we introduced the R6RS module
+system in episode 5_, and for 20 episode we could go on safely
+by just using the basic import/export syntax. However, once
+nontrivial macros enters in the game, things start to become
+complicated.
+
+identifier-append
+------------------------------------------
+
+Suppose you want
+to define an utility to generate identifiers to be inserted
+unhygienically inside macros. A typical use case is the definition of
+a bunch of identifiers with different suffixes. We can perform the
+task with the following helper function:
+
+$$lang:IDENTIFIER-APPEND
+
+All the functions used here (``string->symbol``, ``string-append``,
+``symbol->string`` work in the obvious way.
+Here is a trivial example of usage of ``identifier-append`` in a
+``def-book`` macro which introduces two identifiers for the fields
+``title`` and ``author``:
+
+$$DEF-BOOK
+
+Here is a test, showing that hygiene is effectively broken and that
+the identifiers ``name-title`` and ``name-author`` are really introduced
+in the namespace after expansion:
+
+$$TEST-DEF-BOOK
+
+Are fexpr better than macros?
+---------------------------------------------
+
+http://en.wikipedia.org/wiki/Fexpr
+
+
+#|
+(define sentinel (gensym))
+
+(def-syntax (hash-lambda h)
+  (syntax-match ()
+     (sub ())))
+
+;; I would write the module system over alists
+(define (alist->hash a)
+  (define h (make-eq-hashtable))                                                
+  (for-each (lambda (x) (hashtable-set! h (car x) (cadr x))) a)
+  (case-lambda
+    (() h)
+    ((name) (hashtable-ref h name sentinel))))
+ 
+(def-syntax (module-object def ...)
+  (: with-syntax (name ...) (map get-name-from-define #'(def ...))
+     #'(let ()
+         def ...
+         (alist->hash (list (list 'name name) ...)))))
+
+(display (syntax-expand (module-object
+                         (define a 1)
+                         (define (f) a))))
+                         
+(define mod1
+  (module-object
+   (define a 1)
+   (define (f) a)))
+
+(display (mod1 'a))
+(display ((mod1 'f)))
+
+;(define mod1 (alist (a 1) (f (lambda () a))))
+
+(define-ct example
+  (define x 1)
+  (define y (* x 2)))
+
+(pretty-print (syntax-expand
+(define-ct example
+  (define x 1)
+  (define y (* x 2)))))
+
+(display (list (example x) (example y)))
+         
+|#
+
+
+
+Suppose you wanted to define the macros
+``define-ct`` and ``alist`` in the same module:
+
+.. code-block:: scheme
+
+ (import (rnrs) (sweet-macros))
+
+ (def-syntax (alist arg ...)
+    <code here> ...)
+
+  (def-syntax (define-ct kw (define name value) ...)
+    #'(def-syntax kw
+        (let ((a (alist (name value) ...)))
+             <more code here> ...)))
+
+Using list-comprehension
+------------------------------------------------------------
+
+For instance, once I needed to write the permutation of a set
+of symbols in order to write a complex macro, and I did spend
+a lot of time trying to implement them in time of ``map``
+and ``filter``, whereas it was trivial to solve the problem
+with list comprehensions.
+The algorithm is very clear; an empty list has no permutations::
+
+ > (perm '())
+ ()
+
+A list of lenght 1 has only one possible permutation::
+
+ > (perm '(a))
+ ((a))
+
+The permutations of list of length n are the sum of the
+permutations of its sublists of lenght n-1::
+
+ > (perm '(a b));; the sublists are '(b) and '(a)
+ ((a b) (b a))
+ > (perm '(a b c));; the sublists are '(b c), '(a c) and '(a b)
+ ((a b c) (a c b) (b a c) (b c a) (c a b) (c b a))
+
+Here is the implementation using list comprehension::
+ ;; compute the permutations of a list of distinct elements
+ (define (perm lst)
+   (cond
+    ((null? lst) '()); empty list
+    ((null? (cdr lst)) (list lst)); single element list
+    (else; multi-element list 
+     (list-of (cons el subls)
+       (el in lst)
+       (subls in (perm (list-of e (e in lst) (not (eq? e el)))))))))
+
+
+module-system
+-----------------------
+
+
+--------------------------- order of evaluation -----------------
+
+ Whereas an interpreter looks
+at a program one expression at the time, a compiler looks at it as a
+whole: in particular, the order of evaluation of expressions in a
+compiled program is unspecified, unless you specify it by using a
+``begin`` form.
+
+Incidentally, in my opinion having an unspecified
+evaluation order is an clear case of premature optimization and yet another
+wart of Scheme, but unfortunately this is the way it is. The
+rationale is that in some specific circumstances some compiler could
+take advantage of the unspecified evaluation order to optimize the
+computation of some expression and run a few percent faster but this
+is certainly *not* worth the complication.
+
+----------
+
+Consequently,
+there at least three different module systems underlying the
+name "R6RS module system", each with its peculiar advantages and
+issues.
+
+
+--- more on hygiene
+
+However, gensyms do not and cannot protect the macro code itself
+from bindings that are in place at the point of call, when the macro
+code expects those names to be bound at the point of macro definition
+(typically globally).  For example, if a non-hygienic macro calls the
+list procedure, and at the point of call the code has bound the name
+"list" to something else, the macro is screwed.
+
+
+A note about identitifier macros
+--------------------------------------------------------------
+
+I have always hated being forced to put my helper functions in an
+auxiliary module, because I often use auxiliary functions which
+are intended to be used only once inside a given macro, thus
+it makes sense to put those auxiliary functions *in the same
+module* as the macro the are used in.
+In principle you could solve the problem by definining all the
+functions *inside* the macro, but I hate this, both for dogmatic
+reasons (it is a Pythonista dogma that *flat is better than nested*)
+and for pragmatic reasons, i.e. I want to be able to debug my
+helper functions and this is impossible if they are hidden inside
+the macro. They must be available at the top-level. Moreover, you
+never know, and a functionality which was intended for use in a specific
+macro my turn useful for another macro after all, and it is much
+more convenient if the functionality is already encapsulated in
+a nice exportable top level function.
+
+I am not the only one to believe that it should be possible to define
+helper functions in the same module as the macro and actually
+many Scheme implementations provide a way to do so via a
+``define-for-syntax`` form which allows to define function
+at *expand time*, so that they are available for usage in macros.
+
+If your Scheme does not provide ``define-for-syntax``, which is not
+part of the R6RS specification, you can still work around phase
+separation with some clever hack. For instance, you could
+use the following macro:
+
+$$lang:LITERAL-REPLACE
+
+In the words of Abdul Aziz Ghuloum, the implementer of Ikarus:
+
+  In definitions context (e.g., top-level program, library top-level,
+  internal definitions), the compiler processes the body forms one by
+  one looking for definitions.  If it encounters a define-syntax, the
+  right-hand-side is expanded and evaluated and made available for
+  expanding subsequent forms from that point on.  If it encounters a
+  macro use, it expands the macro, splices it in place of the input form
+  and resumes with the resulting body forms.  If it encounters a
+  variable definition, it does NOT expand the right-hand-side
+  expression, instead, it queues it until all definitions (variables and
+  macros) are found.  At that point, the body expressions and
+  right-hand-side expressions of variable definitions (that were queued)
+  are expanded.
+  At any rate, macro definitions *are* expanded and evaluated to
+  obtain the transformer procedure *before* expansion of the rest of
+  the definitions resumes.  This is true for all R6RS implementations.
+
+For instance, PLT multiple instantiation semantics has the
+advantage of being consistent with separate compilation.
+
+
+..
+
+ ----------------------------------------------------------------------------
+ |                          | single instantiation | multiple instantiation |
+ --------------------------------------------------------------------------
+ | partial phase separation |      not so bad      | good                   |
+ | full phase separation    |    bad (Larceny)     | bad  (PLT)             |
+ -------------------------------------------------------------------------
+
+
+This is *wanted* behavior. According to Matthew Flatt:
+
+.. epigraph::
+
+ *In PLT Scheme, the motivation for phase-specific bindings is not so
+ much that we may want different names in different phases, but that we
+ want to be specific about which code is running at which times. Without
+ an enforced separation, we found that it was far too easy to
+ accidentally have the run-time code depend on some initialization in
+ compile-time code (e.g. loading a module, initializing some state), and
+ that possibility made our builds and libraries fragile. (This problem
+ is described more in the "Composable and Compilable Macros" paper.) So,
+ we moved to a system that would tell us when we got it wrong, in much
+ the same way that the compiler complains when a module contains a free
+ variable.*
+
+However I am not convinced by this argument. Whereas it is true that
+one should be very careful when mixing compile-time and run-time,
+especially in presence of side effects, I believe one can solve the
+issue by using separate compilation, and that the benefits of the
+tower of meta-levels are not compensated by the complications it
+induces.
+
+
+My wishlist for a Scheme implementation
+---------------------------------------------------
+
+I have a personal wishlist of features.
+
+- interpreter semantics and the REPL
+
+  I think that the behavior of REPL should
+  not be too different from the behavior of scripts; in particular,
+  I like that in PLT functions defined in the REPL
+  are not available in macros. This may be inconvenient, but
+  I think it is pedagogically
+  useful, since it forces beginners to think about phase separation
+  early on and to have a consistent model of what will happen once
+  they compile the script. I started programming in Scheme
+  with implementations where the REPL behavior was different
+  from the compiled behavior and it was very difficult for me
+  to understand why my "correct" scripts did not compile.
+
+- phase separation and multiple instantiation
+
+  I agree with the PLT people that expand-time variables and run-time
+  variables should live in different instances, however I disagree
+  that we need a tower of meta-levels. Two phases are more than enough.
+  We can just perform the compilation in a different process
+  than the evaluation process. In this way the variables can be
+  imported in all phases, but modifying a variable at expand time
+  cannot influence its runtime counterpart.
+
+- missing features from the standard
+
+  I think the standard lacks many important features. I have already
+  noticed that I would welcome the ability to export all names from a
+  library ``(export *)`` and the ability to introspect the names
+  exported by library. In addition, I would welcome a mechanism to
+  write helper functions for macros *in the same file* the macros are
+  defined, if one wants to. One way to implement this feature is to
+  standardize the ability of writing multiple libraries in the same
+  file, which is already provided by some implementations.  Another
+  way is to introduce at ``define-at-all-phases`` form.
+
+
+I have not even explained why one would like to
+transfer information from the compile-time to the run-time, even
+if you imagine the reason: for instance one could implement an
+object system at compile-time based on static classes, but one
+would like to introspect such an object system at run-time, and to
+get information about the names of the classes, their ancestors,
+the names of the methods, etc.
+
+
+
+
+For instance, I have not discussed at all other kind of side effects
+except mutation.
+
+I have argued that cross-phase side effects are bad, because they
+cannot survive separate compilation, but I have not discussed that it
+is indeed possible to transfer side-effects from compile-time to
+run-time, surviving separated compilation: doing so however require
+some more advanced macrology, which I have not yet explained.
+
+There are a few subtle differences between systems with implicit phasing
+and system with explicit phasing which I have not mentioned here,
+particularly in presence of helper macros.
+
+There are many things which I have just
+mentioned, by referring to newsgroup discussions for further analysis.
+A serious scholar of the module system should check them out.
+
+There is also a set of personal observations about the module system I
+would like to make at some point: I have looked at all the different
+implementations of the R6RS module system, but I did not find any that
+satisfied me completely, and I have some ideas about how the "right"
+module system should work.
+
+The most important thing I have not discussed is the big issue of how
+libraries are mapped to the file-system, which is not stardardized.
+There is some work going on (a proposed SRFI by Derick Eddington) but
+at the time of this writing it is too premature to discuss it.
+For this reason I am not discussing the support for importing
+a specific release of a library, nor the issue of putting multiple libraries
+in the same file.
+
+
+
+The secret of the ellipsis
+-----------------------------------------------------------------
+
+
+
+macros generating macros
+----------------------------------------------------
+
+In this paragraph I will give an example of a second order macro
+expanding to a regular (first order) macro. Here it is:
+
+$$DEF-VECTOR-TYPE
+
+``def-vector-type`` is a macro which defines a macro which is used to
+manage classes of vectors; for instance
+
+$$BOOK
+
+defines a ``Book`` macro which is able to manage two-dimensional vectors
+with fields ``title`` and ``author``. The expansion of ``Book`` is the
+following:
+
+.. code-block:: scheme
+
+ (def-syntax Book
+  (syntax-match (new ref set! title author)
+   (sub (ctx <name>) #''Book)
+   (sub (ctx <fields>) #'(list 'title 'author))
+   (sub (ctx from-list ls) #'(list->vector ls))
+   (sub (ctx new arg ...) #'(vector arg ...))
+   (sub (ctx v ref title) #'(vector-ref v 0))
+   (sub (ctx v ref author) #'(vector-ref v 1))
+   (sub (ctx v set! title x) #'(vector-set! v 0 x))
+   (sub (ctx v set! author x) #'(vector-set! v 1 x))))
+
+From this expansion it is clear how ``Book`` works. For instance,
+
+.. code-block:: scheme
+
+ > (define b (Book new "Title" "Author"))
+
+defines a vector of two strings:
+
+.. code-block:: scheme
+
+ > b
+ #("Title" "Author")
+
+``(Book b ref title)`` retrieves the ``title`` field whereas
+``(Book b ref author)`` retrieves the ``author`` field:
+
+.. code-block:: scheme
+
+ > (Book b ref title)
+ "Title"
+ > (Book b ref author)
+ "Author"
+
+``(Book b set! title new-title)`` and ``(Book b set! author new-author)``
+allows to change the ``title`` and ``author`` fields.
+It is also possible to convert a list into a ``Book`` vector:
+
+ > (Book from-list '("t" "a"))
+ #("t" "a")
+
+Finally, the ``Book`` macro provides introspection features:
+
+.. code-block:: scheme
+
+ > (Book <name>)
+ Book
+ > (book <fields>)
+ (title author)
+
+Multiple instantiation of modules
+-------------------------------------------------
+
+If you are porting a library definining macros amongst different R6RS
+Scheme implementations, you must be aware of a subtle difference between
+PLT Scheme and the rest of the world. PLT Scheme has a "feature" called
+multiple instantiation of modules which is not found in other implementations.
+I quote the word "feature" because the PLT people think this is a good thing
+to have, whereas other implementors do not necessarely think so.
+An example will explain the multiple instantiation concept.
+Consider the following module:
+
+Side effects are not visible outside!
+
+
+In
+PLT I wrote the example in
+a directory called eli-example with a main.ss script like
+the following:
+
+#!r6rs
+(library (eli-example M1)
+   (export m1)
+   (import (rnrs))
+   (define-syntax m1
+     (let ([c 0])
+       (lambda (stx)
+         (set! c (+ c 1))
+         (syntax-case stx ()
+           [(_) (with-syntax ([c c]) #'c)]))))) 
+
+#!r6rs
+(library (eli-example M2)
+   (export m2)
+   (import (rnrs) (for (eli-example M1) expand))
+   (define-syntax m2
+     (lambda (stx)
+       (syntax-case stx ()
+         [(_) (let ([c (m1)])
+                (with-syntax ([c c]) #'c))])))) 
+
+#!r6rs
+(library (eli-example)
+(export m1 m2)
+(import (rnrs) (eli-example M1) (eli-example M2))
+(display (m1))
+(display (m2))
+)
+
+Here the module M1 is imported, the value of c is set to 1,
+and m1 is exported again, with (m1) equal to 1. The fact that
+internally M2 imports M1 another time has no effect at all. In Ikarus/
+Larceny instead modules are like shared singletons:
+if module M2 increments the counter, the effect is visible from the
+outside. So, in principle PLT system is better, I will concede that.
+On the other hand, Ikarus system is simpler, and once users are warned
+of the dangers of stateful macros, I think people can live with them.
+BTW, I would you write a compile time register in PLT, i.e. a global
+storage of names working across modules? 
+
+.. _thread: http://groups.google.com/group/comp.lang.scheme/browse_frm/thread/509c781e720d28a0/201944b0ac50c594?#201944b0ac50c594
+
+
+
+This is episode #25, the beginning of another block
+of six posts constituting part V of my Adventures.
+Part I was an introduction to the language; part II was
+an introduction to macros; part III was an introduction to functional
+programming and part IV an introduction to the module system.
+We are done with the introductions now, and we are ready to face
+more beefy matters. In particular part V main is concerned with
+expert-level macrology.
+
+In the following six episodes I will
+discuss various techniques and patterns which are commonly
+used by Scheme macro writers, such as recursive macros, higher order
+macros, and more. I will go more in detail
+about how macros work, explaining what a syntax object is, what
+a (non-)hygienic macro is and how you can to compare lexical
+identifiers in macros.
+
+I will also discuss the relation
+between my own ``sweet-macros`` and traditional macros (``syntax-rules``,
+``syntax-case`` and ``define-macro``) so that you should be able to
+program with any Scheme macrology out there. 
+
+Finally I will give some nontrivial example of macro, such as a
+macro implementing runtime pattern matching for lists, by filling the
+gap left in episode 15_ .
+
+power and simplicity
+---------------------
+
+When it comes to designing programming languages, easy of use and
+power seems to go in opposite directions. There are plenty of examples
+where something went wrong, i.e. simple languages which are
+good only for teaching and not for professional use, and
+professional languages which are too tricky to use
+for the casual programmer. We have also examples of languages which
+are both weak in power *and* difficult to use (insert your chosen
+language here).
+
+;Writing your own language
+;------------------------------------
+
+(import (except (rnrs) let) (rename (rnrs) (let let-orig)) (sweet-macros))
+                
+(def-syntax let
+  (syntax-match ()
+    (sub (let () lst e e* ...)
+         #'(if (null? lst) (begin e e* ...)
+               (apply error 'let "Too many elements" lst)))
+    (sub (let (arg1 arg2 ... . rest) lst e e* ...)
+         #'(let-orig ((ls lst))
+             (if (null? ls)
+                 (apply error 'let "Missing arguments" '(arg1 arg2 ...))
+                 (let arg1 (car ls)
+                   (let (arg2 ... . rest) (cdr ls) e e* ...)))))
+    (sub (let name value e e* ...)
+         #'(let-orig ((name value)) e e* ...)
+         (identifier? #'name)
+         (syntax-violation 'let "Argument is not an identifier" #'name))
+    ))
+
+(def-syntax (named-let name n v b b* ...)
+  #'(letrec ((name (lambda (lst) (let n lst b b* ...))))
+      (name v))
+  (identifier? #'name))
+
+
+;(write (let (x) (list 1) x))
+;(write (let (x y) (list 1 2) (+ x y)))
+(write (let (x y x) (list 1 2 3) (+ x y)))
+
+
+.. http://community.schemewiki.org/?syntactic-closures
+.. http://community.schemewiki.org/?hygiene-versus-gensym
+
+extra-long thread "What's up with Scheme macros?" Feb 12 2008
+.. http://groups.google.com/group/comp.lang.lisp/browse_frm/thread/75c5f5e550b905d3/9bb9ea36925d4040?#9bb9ea36925d4040
+
+my own thread about phase separation
+.. http://groups.google.com/group/ikarus-users/browse_frm/thread/ec579ad3b619f2d5/7e10a07a8f6789b4?hl=ene10a07a8f6789b4
+
+
+Take for instance this piece of code:
+
+.. code-block:: scheme
+
+ (let ((a 1))
+     (let ((a 2))
+        ...))
+
+Is the first ``a`` equal to the second ``a``? They are bound to
+different values.
+Moreover, consider the following:
+
+.. code-block:: scheme
+
+ (let ((a 1))
+     (let ((b a))
+        ...))
+
+Here ``a`` and ``b`` are different names for the same value, but they
+have different lexical context . Should they
+be considered equal?
+
+Notice that two aliases (same name, same binding) are *not*
+considered ``free-identifier=?``:
+
+.. code-block:: scheme
+
+ > (define a 1)
+ > (define b a) ;; alias for a 
+ > (free-identifier=? #'a #'b)
+ #f
+
+
+You can leverage on ``free-identifier=?`` to define a function which is able
+to determine if an identifier is bound or unbound. The trick is to
+take the identifier and to strip its lexical context form it;
+if the identifier was unbound, stripping the lexical context
+does not change much, and the original identifier is 
+``free-identifier=?`` to its stripped version. On th other hand,
+if the original identifier was bound in its lexical context,
+it will not be ``free-identifier=?`` to its stripped version.
+
+The R6RS standard does not specify a way to create a truly minimal
+context (i.e. one where no names are bound) however in all R6RS
+implementations (except Ypsilon) ``generate-temporaries``
+returns identifiers with an empty context, so that the
+following trick does the job:
+
+$$lang:UNBOUND?
+
+
+
+What happens if I pass to the macro an identifier ``id`` named ``forbidden``?
+Should it be considered equal to the literal identifier ``#'forbidden``?
+What if ``id`` is bound and what what if ``id`` is unbound? Moreover,
+how do we compare identifiers in systems with full phase separation,
+since an identifier can be bound in a phase and unbound in another
+phase? Finally, what if ``check-id`` is used inside as follows:
+
+.. code-block:: scheme
+
+ (def-syntax (check forbidden)
+   (check-id #'forbidden))
+
+Should ``forbidden`` in this context be traited as a dummy name
+or should it raise a ``syntax-violation``?
+
+This episode will be spent discussing the subtilities of identifier
+equality.

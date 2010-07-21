@@ -1,0 +1,26 @@
+Welcome to the Unicode world! (a Python-centric view)
+======================================================
+
+quote::
+
+  Here's the stark simple recipe: when you use Unicode, you *MUST*
+  switch to a Unicode-centric view of the universe.  Therefore you
+  encode *FROM* Unicode and you decode *TO* Unicode.  Period.  It's
+  similar to the way floating point contaminates ints.
+
+                          Aahz on comp.lang.python
+
+u.encode -> str
+s.decode -> str
+
+Why do Unicode objects have a decode method?
+--------------------------------------------
+
+The u.decode method first encodes in the default encoding and then 
+decodes the result with the specified encoding, so if u is a unicode 
+object  ``u.decode("utf-16")`` is an abbreviation of 
+``u.encode().decode("utf-16")``.
+
+In the same way str has an encode method, so  ``s.encode("utf-16")``
+is an abbreviation of ``s.decode().encode("utf-16")``.
+

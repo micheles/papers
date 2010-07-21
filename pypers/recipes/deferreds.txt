@@ -1,0 +1,70 @@
+Twisted FAQs clearly state that "deferreds do not magically convert blocking
+code into non-blocking code". So, how do you magically convert blocking
+code into non-blocking code? 
+
+This recipe is the solution!
+
+::
+
+  #<deferred.py>
+
+  from twisted.internet import reactor, defer
+  from twisted.python import threadable; threadable.init(1)
+  import sys, time
+
+  ## the core trick
+
+  def callInThread(func, *args):
+      """Takes a blocking function an converts it into a deferred-valued 
+      function running in a separate thread.
+      """
+      de = defer.Deferred()
+      de.addCallback(func)
+      reactor.callInThread(de.callback, *args)
+      return de
+  
+  deferred = callInThread.__get__ # decorator associated to callInThread
+
+  ## example code
+
+  def print_(result):
+    print result
+  
+  def running():
+      "Prints a few dots on stdout while the reactor is running."
+      sys.stdout.write("."); sys.stdout.flush()
+      reactor.callLater(.1, running)
+
+  @deferred
+  def sleep(sec):
+    "A blocking function magically converted in a non-blocking one."
+    print 'start sleep %s' % sec
+    time.sleep(sec)
+    print '\nend sleep %s' % sec
+    return "ok"
+  
+  if __name__ == "__main__":
+     sleep(2).addBoth(print_)
+     reactor.callLater(.1, running)
+     reactor.callLater(3, reactor.stop)
+     reactor.run() 
+
+  #</deferred.py>
+
+<rant>How to make blocking code non-blocking is the obvious question for
+everybody using Twisted, but the Twisted documentation does not make
+easy to find the solution :-( </rant>
+
+The trick is to run the blocking function in a separate thread. Here
+all the magic is performed by the decorator, ``deferred``, which converts
+``sleep``, a blocking function, into a deferred function i.e. a 
+non-blocking function that returns a deferred object. The code for
+``callInThread`` is clear, and the ``.__get__`` trick converts 
+``callInThread`` in a one-argument function returning a closure, 
+i.e. an object suitable to be used as a decorator. I have seen this 
+trick in Alex Martelli's lectures at PyCon 2005. If you are confused 
+by it, you should read Raymond Hettinger essay on descriptors 
+(http://users.rcn.com/python/download/Descriptor.htm).
+
+In short: every time you have a blocking function in your code, wrap 
+it with the ``deferred`` decorator and live happy!

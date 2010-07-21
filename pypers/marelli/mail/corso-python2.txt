@@ -1,0 +1,55 @@
+Corso di Python avanzato per la Magneti Marelli 
+-------------------------------------------------------------------------
+
+Daniele Matteucci mi ha chiesto di stilare una breve nota per una proposta
+di un corso di Python avanzato da tenere presso la Magneti Marelli nel 
+Settembre 2005.
+
+Il corso si svolgerebbe in 3 giorni di full immersion. Il mio compenso
+ordinario per questo tipologia di corsi è di 400 Euro al giorno più le 
+spese (diciamo 150 Euro al giorno per vitto e alloggio). La cifra precisa 
+andrà poi definita in base al programma da svolgere. Un programma indicativo 
+potrebbe essere il seguente.
+
+- Primo giorno: testing automatico di applicazioni in Python.
+
+Discuterò i frameworks più usati (doctest, py.test, unittest) con
+esercitazioni pratiche.
+
+- Secondo giorno: refactoring a buone pratiche di programmazione.
+
+Esempi pratici di come convertire cattivo codice in buon codice e
+discussione dei più tipici errori di programmazione.
+
+- Terzo giorno: argomenti specifici di programmazione avanzata.
+
+Questa parte del programma è da concordare: argomenti trattabili
+potrebbero essere la programmazione multithreading, programmazione
+ad oggetti avanzata, iteratori e generatori, etc.
+
+Ho già tenuto corsi di Python di questo tipo (quest'anno a Bolzano
+e ad Oxford); il programma del corso di Oxford si può trovare a
+qui:
+
+https://www.accu.org/conference/events_2005_04_19.html#55
+
+
+Preventivo indicativo per tre giorni:
+
+        ======== ======= =======
+        Compenso 400 x 3   1200E
+        -------- ------- -------
+        IVA        20%      240E
+        -------- ------- -------
+        Spese    150 x 3    450E
+        -------- ------- -------
+        Viaggio              60E
+        -------- ------- -------
+        Totale             1950E
+        ================ =======
+
+Roma, 23 giugno 2005
+
+          *Michele Simionato*, michele.simionato@gmail.com
+
+

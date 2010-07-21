@@ -1,0 +1,21 @@
+Just a short note to remind my readers that this year I will be at
+the `EuroPython conference`_ in Birmingham, 19th to 22nd July 2010.
+
+I have been missing from EuroPython for a few years, but this year
+the schedule_ looks fantastic. Lots of first class Pythonistas and
+Guido van Rossum will come too! 
+
+I will give a talk titled `Introduction to Functional Programming`_
+which had a lot of success at the recent `Italian PyCon`_. It looks
+like there is a number of people interested in functional programming
+these days.
+
+Next year EuroPython will be held in Florence, Italy (and I am in the
+organizing committee, so I know what I am talking about ;). If for any
+reason you cannot come to Birmingham, consider a vacation in the
+beautiful Florence next year!
+
+.. _EuroPython conference: http://www.europython.eu/
+.. _schedule: http://www.europython.eu/talks/timetable/
+.. _Introduction to Functional Programming: http://micheles.googlecode.com/hg/pypers/pycon10/talk.html
+.. _Italian PyCon: http://www.pycon.it/

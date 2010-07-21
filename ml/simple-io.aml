@@ -1,0 +1,31 @@
+signature SIMPLE_IO = sig
+       type instream
+       type outstream
+       type vector
+       val openIn: string-> instream
+       val closeIn: instream -> unit
+       val openOut: string-> outstream
+       val closeOut: outstream -> unit
+       val inputAll: instream -> vector
+       val output: outstream * vector -> unit
+    end
+
+functor ManagedIO(SimpleIO:SIMPLE_IO) = struct
+
+    val inputAll = SimpleIO.inputAll
+    val output = SimpleIO.output
+              
+    fun withInputFile fname manage = let
+        val file = SimpleIO.openIn fname
+    in     
+         manage file 
+         finally SimpleIO.closeIn file
+    end
+
+    fun withOutputFile fname manage = let
+        val file = SimpleIO.openOut fname
+    in     
+         manage file 
+         finally SimpleIO.closeOut file
+    end
+end

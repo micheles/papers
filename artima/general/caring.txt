@@ -1,0 +1,200 @@
+I do not care much about programming languages. 
+
+I mean, I *do* care about programming as a general activity of the
+mind and as a mean of self-expression, but I do not care much about
+a *specific* programming language.  
+
+I began to program professionally with Python, and I like
+the language, but now I am writing a book about Scheme, and tomorrow I will
+probably be looking at a language with static typing and type
+inference.  I do have any kind of fidelity to a specific language.
+To me languages are tools which I use for my job and for my personal
+entertainment, but I do not feel any particular obligation to keep
+using the same language forever.
+I think my position about programming languages is quite
+common amongst programmers and that I am in the majority.
+
+However, *who cares about the majority?* 
+
+The majority counts nothing when it comes to
+programming languages. Programming languages are designed and libraries
+are written by a very small *minority*.
+This is actually the norm: all science and arts are produced 
+and evolve in consequence of the work of a small minority.
+The majority matters when it comes to the question of 
+the *success* of language; one may argue that one language is
+more successful than another due to a set of specific boundary
+conditions: in that time and place, in that historic/economic situation,
+a language may have more or less success for all sort of
+technical and non-technical reasons.
+
+When a language becomes successful the majority become relevant mostly
+in a negative sense, as a force resisting change, since backward
+compatibility concerns becomes essential. However, here I am not concerned
+with the question of success: I am concerned with the *creative*
+aspects of a language, and the creative parts are always done
+by a small minority. It is that minority which matters.
+In such a minority you will find a lot of people that *really* care
+about their chosen language. This is especially visible in
+non-mainstream languages, and particularly in the Common Lisp
+community.
+
+I am writing these notes the day after the `European Lisp
+Symposium`_, which was my first Lisp conference. I did attend
+the `Italian Python conference`_ three weeks before that, and while
+there are a lot of really passionated Pythonistas there,
+the passion is much more visible in the Lisp community,
+particularly in the *etymological* sense of the term.
+At the conference I saw with my own eyes many people caring and
+suffering for their language, and that sight prompted me to write
+these notes.
+
+On a superficial level, the level of the user base, you could just
+dismiss such people as language geeks that should get a life and care
+more about other things. However, while not all language geeks are
+part of the active community (a lot of geeks are just whiners not
+producing any code relevant to the community and not having any effect
+on the evolution of a language and its libraries) I think it is fair
+to say that within the active community you can find a number of geeks
+which actually do care (and possibly care too much) about their
+language. I would also argue that the number of passionated people is
+much higher in the active community than in the passive community.
+
+I put myself in the active community, since I
+have written a few open source modules, some of them with
+many thousands of downloads, and I have written papers 
+documenting obscure features of at least one language,
+which have become the standard reference on the topic.
+On top of that I have being very active on newsgroups and
+mailing lists, I have a blog about programming and I am
+a participant and even an organizer of language conferences.
+ 
+Still, I am not sold to any particular language, and I do not
+suffer/enjoy particularly if the language I am using right now is
+doing badly (in some sense) or is doing well. The reason is that I am
+a programmer by accident, not by design, and that programming is a
+secondary interest to me (I studied Physics not Computer Science!).
+However, I do realize that there is a sizable portion of people 
+in the active community which care *a lot* for their chosen language and
+I take them very seriously.
+
+The Lisp community is a special case, since the language is the
+second oldest language in the world and it has such a long and
+glorious history - for instance at the conference we had multiple
+references to the legendary Lisp machines the people of my generation
+never saw. My perception was that a lot of people at the conference
+felt very sad when comparing that times (the mid eighties) with the current
+situation. Common Lisp look is perceived to be in a bad shape with
+respect to the past, at least if we measure the success of language
+in terms of user base and of money being put in it - which is a
+measure of success I do not particularly like, BTW.
+
+In the Common Lisp community you feel the suffering (and the pride too)
+much more than in other communities. Also, the people which used Lisp
+in the past but did not feel bound to it have already fled to other
+languages. As a consequence, now the community is somewhat
+self-selected and the percentage of people really caring about the
+language is much higher than in other communities.
+I did know about the Common Lisp community from comp.lang.lisp,
+which I read sometimes (rarely actually) but I did not really
+believe the newsgroup to be representative of the community.
+On the other hand, the language conference not only confirmed the
+feeling you get from the newsgroup, but actually I had an even
+stronger impression of suffering. 
+
+Is the language conference representative of the Common Lisp community
+at large? I do not know, probably not, since there were only forty or
+so people there, but I will assume here - as a working hypothesis -
+that the people at the conference were indeed representative of the
+active community (the passive community does not count).
+
+I am more involved with the Scheme community, and I was quite surprised at
+the conference seeing how much different the communities are. Scheme
+is a research language, it has always had a small community and little
+money: people do not feel they have lost much during the last twenty
+years. Most Schemers know that they will never conquer the world and
+they are content with that.
+
+On the other hand many lispers think that they have lost the mind-share
+they had in the past and they suffer for that: I remember particularly
+Scott McKay, who cited Ruby on Rails multiple times and made pretty
+clear that he was disturbed by the fact that Ruby was having much more
+success than Common Lisp, and that many great hackers very choosing
+Ruby, whereas twenty years ago they would have chosen Common Lisp. For
+comparison, I never heard in the Scheme community anybody complaining
+about the success of Ruby, they just do not care.
+
+Of course, you should take with a grain of salt anything I
+am saying, since those are mostly subjective impressions
+I have got from a single conference. Certainly at the conference
+there were people happy with Common Lisp as it is (for instance
+`Pascal Costanza`_ did not look sad at all!).
+I may well be completely wrong about how the Common Lisp community feels,
+but it does not matter: what matters is the external *perception* of
+the community, nor the community in itself. So my perceptions from the
+outside, even if wrong, are significant. Actually, I am sure that a
+lot of people out there - people that could be potential new
+members of the Common Lisp community - do share my perception and stay
+away from the language because of that perception.
+
+People - and I mean people that care - chose a language
+not only because of its features, but also because of its community.
+There are people taking pride in being part of a large "successful"
+community (they will not choose Common Lisp) and others taking pride 
+in being part of a small "oppressed" community (they might choose
+Common Lisp). 
+
+I do not feel particularly either way. I am an organizer of the `Italian
+Python conference`_, and this year we had Guido as guest of honor and more
+than 380 participants and I am happy of the success we got; nevertheless now
+I spend most of my spare time hacking Scheme and posting on the Ikarus mailing
+list, which has less than 10 active posters. I am not particularly
+proud of being part of a large community or of a small community, but
+many people care about these things.
+
+I care about the philosophy of a language, which is the
+philosophy of its community: and when I had to choose between Ruby or
+Python I chose Python because of (the perception I had) of its
+community; similarly, when I had to choose between Common Lisp and
+Scheme I chose Scheme because of the community.
+Therefore, it is obvious to me that the problem of Common Lisp is not
+the language but the community: if the community is failing to attract
+new users, because it feels like a frozen community full of nostalgia
+and no clear vision about the future, there is no point in changing
+the language.
+
+I have a lot of respect for the lisp community and for what they
+have accomplished in the latest 50 years: I want to absorb 
+what they have to teach us youngsters so
+that their experience is not lost. It is important for that knowledge
+to be passed into new communities and new languages, since
+I *perceive* the Common Lisp community to be at a dead end.
+Of course Common Lisp will continue forever, just as FORTRAN will
+continue forever and COBOL will continue forever, but the language has
+stopped to innovate decades ago (note to the reader: at this point you
+should read Paul Graham's essay about why `Microsoft is dead`_).
+
+I am more optimistic about Scheme: it will
+never become mainstream, the standardization process will
+always suck, but there will always be young implementations
+and new blood coming in. 
+This is clearly a personal impression: I talked with SBCL hackers at
+the conference, with CLisp hackers, as well as with people using Lisp
+professionally: there is still a lot of work being done in concrete
+implementations, and new projects.  It is just a *perception* of mine
+that things are more fun in the Scheme community and that there is
+more going on, especially in the newest R6RS implementations.
+
+I could just be ignorant; nevertheless, my impression after the
+conference if that I have been wise in choosing the Scheme camp. No
+offense to anybody is intended of course, and actually I am very happy
+they invited me, since it was a very nice conference and an extremely
+interesting experience.  I have also seen a couple of cool projects
+that Pythonistas should copy, and perhaps I will have to write another
+post or two about ideas that came to me from the conference.
+All that is a measure of success to me ;-)
+
+.. _Microsoft is dead: http://www.paulgraham.com/microsoft.html
+.. _European Lisp Symposium: http://www.european-lisp-symposium.org/
+.. _Italian Python conference: http://www.pycon.it/
+.. _Pascal Costanza: http://p-cos.blogspot.com/

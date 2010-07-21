@@ -1,0 +1,564 @@
+The truth about ``super``
+==========================
+
+:Author: Michele Simionato
+:Email: michele.simionato@gmail.com
+:Date: June 2004
+:Status: Draft
+
+``super`` is a new built-in, first introduced in Python 2.2 and slightly 
+improved and fixed in Python 2.3, which is little known to the average 
+Python programmer. One of the reason for this 
+fact is the poor documentation of ``super``: at the time of this writing 
+(June 2004) the documentation is incomplete and in some parts 
+misleading and even wrong. For instance, it was recently pointed out 
+on comp.lang.python that the standard library (Python 2.3.4, section 2.1) 
+still says::
+
+  super(type[, object-or-type])
+    Return the superclass of type. If the second argument is omitted the 
+    super object returned is unbound. If the second argument is an object, 
+    isinstance(obj, type) must be true. If the second argument is a type, 
+    issubclass(type2, type) must be true. super() only works for new-style 
+    classes.
+
+The first sentence is just plain wrong. ``super`` does not return the 
+superclass. There is no such a thing as "the" superclass in a Multiple 
+Inheritance (MI) world. Also, the sentence about 'unbound' is misleading,
+since it may easily lead the programmer to think about bound and unbound
+methods, whereas it has nothing to do with that concept. Finally, there are
+subtle pitfalls and dark corners of ``super`` which are not at all mentioned. 
+IMNSHO ``super`` is one of the most trickiest and surprising Python 
+constructs, and we absolutely needs a document to share light its secrets. 
+The present draft is a first step in this direction: it aims to tell you 
+the "truth" about ``super``. At least the amount of truth
+I have discovered with my experimentations, which is certainly
+not the whole truth ;)
+
+A fair warning is in order here: this document is aimed to expert 
+Pythonistas. It assumes you already know the Method Resolution Order (MRO) 
+concept; moreover a good understanding of descriptors would be extremely 
+useful in order to grasp this document. Some parts also require good 
+familiarity with metaclasses. All in all, this paper is not for the faint 
+of heart ;)
+
+First truth: there is no superclass in a MI world
+----------------------------------------------------------
+
+Readers familiar will single inheritance languages, such as
+Java or Smalltalk, will have a clear concept of superclass
+in mind. This concept, however, has *no useful meaning* in Python or in
+other multiple inheritance languages. I became convinced of this fact
+after a discussion with Bjorn Pettersen on comp.lang.python in May 2003
+(at that time I was mistakenly thinking that one could define a
+superclass concept in Python). Consider this example from that
+discussion:
+
+ ::
+
+            +-----+
+            |  T  |
+            |a = 0|
+            +-----+
+          /         \
+         /           \
+     +-------+    +-------+
+     |   A   |    |   B   | 
+     |       |    | a = 2 |
+     +-------+    +-------+
+         \           /
+          \         /
+            +-----+
+            |  C  |
+            +-----+
+               :
+               :    instantiation
+               c
+
+>>> class T(object):
+...     a = 0
+
+>>> class A(T):
+...     pass
+
+>>> class B(T):
+...     a = 2
+
+>>> class C(A,B):
+...     pass
+
+>>> c = C()
+
+Who is the superclass of ``C``? There are two direct superclasses (i.e. bases)
+of ``C``: ``A ``and ``B``. ``A`` comes before ``B``, so one would naturally 
+think that the superclass of ``C`` is ``A``. ``A`` inherits the attribute 
+``a`` from ``T``, so if ``super(C,c)`` was returning the superclass of ``C``, 
+then it should return ``A``. ``A`` inherits its attribute ``a`` from ``T``,
+where ``a`` has the value 0, so ``super(C,c).a`` would return 0. This
+is NOT what happens. Instead, ``super(C,c).a`` walks trought the
+method resolution order [#]_ of the class of ``c`` (which is ``C``) 
+and retrieves the attribute from the first class above ``C`` which
+defines it. In this example the MRO of ``C`` is ``[C, A, B, T, object]``, so
+``B`` is the first class above ``C`` which defines ``a`` and ``super(C,c).a``
+correctly returns the value 2, not 0:
+
+>>> super(C,c).a
+2
+
+You may call ``A`` the superclass of ``C``, but this is not an useful
+concept since the methods are resolved by looking at the classes
+in the MRO of ``C``, and not by looking at the classes in the MRO of ``A``
+(which in this case is ``[A,T, object]`` and does not contain ``B``). 
+The whole MRO is needed, not just the first superclass.
+
+So, using the word *superclass* in the standard doc is completely
+misleading and should be avoided altogether.
+
+Second truth: ``super`` returns proxy objects
+----------------------------------------------------
+
+Having established that ``super`` cannot return and does not return the
+mythical superclass, we may ask ourselves what the hell is returning 
+``super`` ;) The truth is that ``super`` returns proxy objects.
+
+Informally speaking, a proxy object is an object with
+the ability to dispatch to methods of other classes via delegation.
+Technically, ``super`` works by overriding the ``__getattribute__`` 
+method in such a way that its instances becomes proxy objects providing 
+access to the methods in the MRO. The dispatch is done in such a way
+that
+
+``super(cls, instance-or-subclass).meth(*args, **kw)``
+
+corresponds to
+
+``right-method-in-the-MRO-applied-to(instance-or-subclass, *args, **kw)``
+
+There is a caveat at this point: the second argument can be
+an instance of the first argument, or a subclass of it, but
+in *both cases* a bound method is returned (one could naivily
+think, instead, that when a subclass is passed one gets an
+unbound method).
+
+For instance, in this example
+
+>>> class B(object):
+...     def __repr__(self):
+...         return "<instance of %s>" % self.__class__.__name__
+
+>>> class C(B):
+...     pass
+
+>>> class D(C):
+...     pass
+
+>>> d = D()
+
+both
+
+>>> print super(C,d).__repr__
+<bound method D.__repr__ of <instance of D>>
+
+and 
+
+>>> print super(C,D).__repr__
+<bound method D.__repr__ of <class 'D'>>
+
+returns bound methods. This means that when I call those methods,
+I get
+
+>>> print super(C,d).__repr__()
+<instance of D>
+
+(here ``d``, a ``D`` instance, is being passed to ``__repr__``) and
+
+>>> print super(C, D).__repr__()
+<instance of type>
+
+(here ``D``, an instance of the (meta)class ``type``, is being passed 
+to ``__repr__``).
+
+Reading the docs,one could think that in order to get unbound methods, 
+she needs to switch to the alternative syntax of ``super``, the single 
+argument syntax. This is actually untrue. To understand how unbound
+methods can be retrieved we need to talk about descriptors.
+
+Third truth: ``super`` returns descriptor objects
+----------------------------------------------------
+
+Descriptors (more properly I should speak of the descriptor protocol) were 
+introduced in Python 2.2 by Guido van Rossum. Their primary motivation 
+is technical, since they were needed to implement the new-style object 
+system. Descriptors were also used to introduce new standard concepts in 
+Python, such as classmethods, staticmethods and properties. Moreover, 
+according to the traditional transparency policy of Python, descriptors 
+were exposed to the application programmer, giving him/her the freedom
+to write custom descriptors. [#]_ Any serious Python programmer should have 
+a look at descriptors: luckily they are now very well documented (which was
+not the case when I first studied them :-/) thanks to the beautiful essay
+of Raimond Hettinger [#]_. You should read it before continuing this article, 
+since it explains all the details. However, for the sake of our discussion
+of ``super``, it is enough to say that a *descriptor class* is just a
+regular new-style class which implements a .``__get__`` method with
+signature ``__get__(self, obj, objtyp = None)``. A *descriptor object*
+is just an instance of a descriptor class. 
+
+Descriptor objects are intended to be used as attributes (hence their
+complete name attribute descriptors). Suppose that 'descr' is a
+given descriptor object used as attribute of a given class C.
+Then the syntax ``C.descr`` is actually interpreted by Python as a 
+call to ``descr.__get__(None, C)``, whereas the same syntax for an 
+instance of C corresponds to a call to ``descr.__get__(c, type(c))``.
+
+The unbound method ``__repr__`` can be retrieved as
+
+>>> super(C,d).__repr__.__get__(None,D) # or with D instead of d
+<unbound method D.__repr__>
+
+and we may check that it works correctly:
+
+>>> print _(d)
+<instance of D>
+
+This is cumbersome and tricky, but it is the only way to get
+the unbound method. Using the unbound form of ``super`` does 
+*not* return ``D.__repr__``: instead it returns ``super.__repr__`` 
+bound to the (unbound) super object ``super(C)``:
+
+>>> print super(C).__repr__() # same as repr(super(C))
+<super: <class 'C'>, NULL>
+
+Very tricky. Notice that ``super`` also redefines ``__new__``, 
+``__init``, ``__get__``, ``__getattribute``, as well as inheriting 
+other special attributes from ``object``. So using the single-argument
+syntax you will dispatch to 
+these methods in ``super`` and not to the right methods defined in 
+the hierarchy at hand. On the other hand, the two-argument syntax 
+does not have this problem. For instance
+
+>>> print super(C,C).__repr__()
+<instance of type>
+
+does the right thing.
+
+This other example should shed further light. Suppose ``B`` 
+has a method called ``meth`` like this:
+
+>>> B.meth = lambda self :'You called B.meth with first argument %s' % self
+
+Then ``B.meth`` is an unbound method and, mislead by the documentation,
+one could expect to be able to access it with the syntax ``super(C).meth``.
+This is not the case. You get an error instead:
+
+>>> super(C).meth
+Traceback (most recent call last):
+  ...
+AttributeError: 'super' object has no attribute 'meth'
+
+Unbound super objects cannot be accessed directly,
+they must be converted to bound objects in order to make them
+to dispatch properly. Unbound super objects can be converted to
+bound super objects via the descriptor protocol. For instance,
+in this example I can convert ``super(C)`` in a super object
+bound to ``d`` in this way:
+
+>>> boundsuper = super(C).__get__(d, D) # this is the same as super(C,d)
+
+Now I can access the bound method 'd.meth':
+
+>>> print boundsuper.meth
+<bound method D.<lambda> of <instance of D>>
+
+
+
+As a consequence, ``__get__`` cannot be turned into a cooperative method
+just by using ``super``: you would get the wrong ``get``.
+
+.. [#] Descriptors gives an enormous power to the application
+       programmer, especially when combined with metaclasses. For instance,
+       using descriptors I did implement a prototype-based object system for 
+       Python in few lines: see of course this was an hack, only useful as proof
+       of concept.
+
+Fourth truth: the 'unbound' syntax is a mess
+------------------------------------------------------------------
+
+Having established that the 'unbound' syntax does not returns unbound methods 
+one might ask what its purpose is.
+The answer is that ``super(C)`` is intended to be used as an attribute in 
+other classes. Then the descriptor magic will automatically convert the 
+unbound syntax in the bound syntax. For instance:
+
+>>> class B(object):
+...     a = 1
+>>> class C(B):
+...     pass
+>>> class D(C):
+...     sup = super(C)
+>>> d = D()
+>>> d.sup.a
+1
+
+This works since ``d.sup.a`` calls ``super(C).__get__(d,D).a`` which is
+converted to ``super(C, d).a`` and retrieves ``B.a``.
+
+There is a single use case for the single argument 
+syntax of ``super`` that I am aware of, but I think it gives more troubles 
+than advantages. The use case is the implementation of "autosuper" made 
+by Guido on his essay about new-style classes.
+
+The idea there is to use the unbound super objects as private
+attributes. For instance, in our example, we could define the
+private attribute ``__sup`` in the class ``C`` as the unbound
+super object ``super(C)``:
+
+>>> C._C__sup = super(C)
+
+With this definition inside the methods the syntax 
+``self.__sup.meth(arg)`` can be used
+as an alternative to ``super(C, self).meth(arg)``, and the advantage is 
+that you avoid to repeat the name of the class in the calling
+syntax, since that name is hidden in the mangling mechanism of
+private names. The creation of the ``__sup`` attributes can be hidden 
+in a metaclass and made automatic. So, all this seems to work: but
+actually this *not* the case.
+
+Things may wrong in various case, for instance for classmethods,
+as in this example::
+
+  #<ex.py>
+
+  class B(object):
+      def __repr__(self):
+          return '<instance of %s>' % self.__class__.__name__
+      def meth(self):
+          print "B.meth(%s)" % self
+      meth = classmethod(meth)
+
+  class C(B):
+      def meth(self):
+          print "C.meth(%s)" % self
+          self.__super.meth()
+      meth = classmethod(meth)
+
+  C._C__super = super(C)
+
+  class D(C):
+      pass
+
+  D._D__super = super(D)
+
+
+  d=D()
+
+  d.meth()
+
+  #</ex.py>
+
+The last line raises an ``AttributeError: 'super' object has no attribute 
+'meth'.``
+
+So, using a ``__super`` unbound super object is not a robust solution
+(notice that everything would work by substituting  ``self.__super.meth()``
+with ``super(C,self).meth()``. There are other ways to avoid repeating
+the class name, see for instance my cookbook recipe [#]_.
+
+If it was me, I would just remove the single argument syntax of ``super``,
+making it illegal. But this would probably break someone code, so
+I don't think it will ever happen. Another solution would be just to
+deprecate it. There is no need for this syntax, one can always circumvent 
+it.
+
+Fifth truth: ``super`` does not work with meta-attributes
+-----------------------------------------------------------------------
+
+If you start using ``super`` intensively, soon or latter you will find
+a number of subtilities. One of these is the fact that ``super`` does not 
+work well with the ``__name__`` special attribute. Consider this example:
+
+>>> class B(object):
+...     "This is class B"
+... 
+>>> class C(B):
+...     pass
+... 
+
+Here the special (class) attribute ``__doc__`` is retrieved as you would expect:
+
+>>> super(C,C).__doc__ == super(C,C()).__doc__ == B.__doc__
+True
+
+On the other hand, the special attribute ``__name__`` is not 
+retrieved correctly:
+
+>>> super(C,C).__name__ # one would expect it to be 'B'
+Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+AttributeError: 'super' object has no attribute '__name__'
+
+The problem is that ``__name__`` is not just a plain class
+attribute: it is actually a "getset descriptor" defined on
+the metaclass "type" (try to run  ``help(type.__dict__['__name__'])``
+and you will see for yourself). More in general, ``super`` has
+problems with meta-attributes, i.e. class attributes of metaclasses.
+
+Meta-attributes differs from regular attributes since they are not 
+transmitted to the instances of the instances.You can find the
+rationale for this behaviour elsewhere [#]_: here I am only interested
+to the issues with ``super``. Consider this example:
+
+#<example1.py>
+
+class M(type):
+    "A metaclass with a class attribute 'a'."
+    a = 1 
+
+class B:
+    "An instance of M with a meta-attribute 'a'."
+    __metaclass__ = M
+
+class C(B):
+    "An instance of M with the same meta-attribute 'a'"
+
+if __name__ == "__main__":
+    print B.a, C.a # => 1 1 
+    print super(C,C).a #=> attribute error
+
+#</example1.py>
+
+If you run this, you will get an attribute error. This is a case
+where ``super`` is doing the *right* thing, since 'a' is *not* inherited 
+from B, but it comes directly from the metaclass (again, look at my second
+article with David Mertz to understand why it is so), so 'a'
+is *not* in the MRO of C. A similar thing happens for the "__name__"
+attribute (the fact that it is a descriptor and not a plain 
+attribute does not matter), so ``super`` is working correctly, but
+still it may seems surprising at first.
+
+Sixth truth: ``super`` does not play well with pydoc and doctest
+-----------------------------------------------------------------
+
+There are various ``super`` pitfalls currently undocumented of which
+the experienced Python programmer should be aware of.
+
+The unbound form of ``super`` does not play well with pydoc. 
+The problems is still there in Python 2.3.4 (see bug report SF729103)
+
+>>> class B(object): pass
+... 
+>>> class C(B):
+...     s=super(B)
+... 
+>>> help(C)
+Traceback (most recent call last):
+  ...
+  ... lots of stuff here
+  ...
+File "/usr/lib/python2.3/pydoc.py", line 1198, in docother
+   chop = maxlen - len(line)
+TypeError: unsupported operand type(s) for -: 'type' and 'int'
+
+I have not yet clear what the cause is, but it is certainly quite
+tricky. An incompatibility between  ``super`` was reported by Christian Tanzer
+(SF902628); if you run the following, you will get a TypeError:
+
+ ::
+
+  #<ex.py>
+
+  class C(object):
+      pass
+
+  C.s = super(C) 
+
+  if __name__ == "__main__":
+      import doctest, __main__
+      doctest.testmod(__main__)
+
+  #<ex.py>
+
+BTW, I don't think this is related to ``super`` only since I have
+found similar problems when playing with descriptors and doctest
+some time ago (but I cannot reproduce the bug right now).
+
+Seventh truth: special attribute access for special attributes is special ;)
+----------------------------------------------------------------------------
+
+There is also another subtle pitfall which is not directly related
+to ``super`` but which is often encountered working with ``super``. 
+This came up at least three or four times in the newsgroup, and there 
+are various independent bug reports on sourceforge about it, so possibly 
+you may face it too. Bjorn Pettersen was the first one who pointed out the
+problem to me (see also bug report SF 729913): the issue is that
+
+``super(MyCls, self).__getitem__(5)``
+
+works, but not
+
+``super(MyCls, self)[5]``.
+
+The problem is general to all special methods, not only to ``__getitem__``,
+and the explanation for that has to do with the implementation of
+attribute lookup for special methods. Clear explanations of what is
+going on are provided by Michael Hudson as a comment to the bug report:
+SF789262 and by Raymond Hettinger as a comment to the bug report SF805304.
+Shortly put, this is not a problem of ``super`` per se, the problem is
+that the special call ``x[5]`` (using ``__getitem__`` as example) is
+converted to  ``type(x).__getitem__(x,5)``
+*only if* ``__getitem__`` is explicitely defined in ``type(x)``. If 
+``type(x)`` does not define ``__getitem__`` directly, but only 
+indirectly via delegation (i.e. overriding ``__getattribute__``),
+then the second form works but not the first one.
+
+This restriction will likely stay in Python because it would involve 
+a really big change and a loss of performances, so it has to be
+considered just a documentation bug, since nowhere in
+the docs it is mentioned that special calling syntaxes (such as
+the ``[]`` call, the ``iter`` call, the ``repr`` call, etc. etc.)
+are special and bypass ``__getattribute__``. Guido advice is:
+just use the more explicit form and everything will work.
+
+Finally, there may be other bugs and pitfalls I am not aware of. Certainly
+there are many other issues and bugs in previous versions of Python that
+I have not mentioned here, since they have been fixed, but that you may
+encounter if you use Python 2.2 (and maybe even in 2.3).
+
+The last truth: when it comes to ``super`` don't trust even Guido himself!
+-----------------------------------------------------------------------------
+
+In order to explain how ``super`` works, Guido describes a
+"fully functional implementation of the super() built-in class in 
+pure Python" in "Unifying types and classes in Python 2.2".
+Unfortunately, that implemenentation is more harmful than helpful, since
+the current ``super`` DOES NOT work in the same way :-(
+Take for instance this example:
+
+>>> class C(object):
+...    f='C.f'
+
+>>> class D(C):
+...    f='D.f'
+
+Here the ``super`` works fine, 
+df
+
+>>> print super(D,D()).f 
+C.f
+
+but the class ``Super`` described by Guido will raise an attribute
+error when invoked as ``Super(D,D()).f``.  Therefore Super is NOT 
+equivalent to the currently implemented ``super`` built-in.
+
+Notes
+-----------------
+
+
+.. [#] I wrote an essay on Python 2.3 Method Resolution Order which
+         you may find here:
+
+.. [#] Raymond Hetting wrote a beautiful essay on descriptors here:
+
+.. [#] David Mertz and me wrote a couple of articles on metaclasses;
+       the second one is the relevant one for the issues discussed here:
+
+.. [#] http://groups.google.it/groups?hl=it&lr=&ie=UTF-8&threadm=2259b0e2.0304300625.4e0ebace%40posting.google.com&rnum=3&prev=/groups%3Fhl%3Dit%26lr%3D%26ie%3DUTF-8%26q%3Dsimionato%2Bpettersen%2Bsuper%26btnG%3DCerca%26meta%3Dgroup%253Dcomp.lang.python.*
