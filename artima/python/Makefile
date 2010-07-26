@@ -62,3 +62,6 @@ traits: traits.txt
 
 caches: caches.py
 	$(MINIDOC) -d caches; $(POST) /tmp/caches.rst 274438
+
+parallel: parallel.txt
+	$(POST) parallel.txt 299551
