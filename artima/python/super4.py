@@ -1,4 +1,7 @@
 """\
+Super in Python 3
+==================================================
+
 Most languages supporting inheritance support cooperative inheritance,
 i.e.  there is a language-supported way for children methods
 to dispatch to their parent method: this is usually done via a
@@ -373,7 +376,6 @@ avoid multiple inheritance; you may be interested in reading my series
 `Mixins considered harmful`_.
 
 .. _MRO paper: http://www.python.org/download/releases/2.3/mro/
-.. _new style classes: http://www.python.org/download/releases/2.2.3/descrintro/
 .. _Super considered harmful: http://fuhm.net/super-harmful/
 .. _Menno Smits: http://freshfoo.com/blog/object__init__takes_no_parameters
 .. _Things to know about super: http://www.phyast.pitt.edu/~micheles/python/super.pdf

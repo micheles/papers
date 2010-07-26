@@ -66,7 +66,7 @@ I have discovered with my experimentations, which is certainly
 not the whole truth ;)
 
 A fair warning is in order here: this document is aimed at expert
-Pythonistas. It assumes you are familiar with `new style classes`_ and
+Pythonistas. It assumes you are familiar with `new-style classes`_ and
 the `Method Resolution Order`_ (MRO); moreover a good understanding of
 descriptors_ would be extremely useful. Some parts also require good
 familiarity with metaclasses_. All in all, this paper is not for the
@@ -312,7 +312,7 @@ function first:
 <unbound method D.__repr__>
 
 .. _Method Resolution Order: http://www.python.org/download/releases/2.3/mro/
-.. _new style classes: http://www.python.org/download/releases/2.2.3/descrintro/
+.. _new-style classes: http://www.python.org/download/releases/2.2.3/descrintro/
 .. _descriptors: http://users.rcn.com/python/download/Descriptor.htm
 .. _metaclasses: http://www.ibm.com/developerworks/library/l-pymeta.html
 .. _comp.lang.python in May 2003: http://tinyurl.com/5ms8lk
