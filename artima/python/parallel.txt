@@ -271,9 +271,17 @@ systems. Actually I should probably remove the future tense since a
 lot of people are already working in this scenario.
 I leave further comments to my readers.
 
+UPDATE: I see today a very interesting (as always!) `article by Dave Beazley`_
+on the subject of threads and generators. He suggests cooperation between
+threads and generators instead of just replacing threads with generators.
+Kind of interesting to me, since plac_ uses the same trick of wrapping
+a generator inside a thread, even if for different reasons (I am just
+interested in making the thread killable, Dave is interested on performance).
+BTW, all articles by Dave are a must read if you are interested in concurrency
+in Python, do a favor to yourself and read them!
+
 .. http://blog.ianbicking.org/concurrency-and-processes.html
 .. http://thread.gmane.org/gmane.comp.python.devel/71708 # Pythonic concurrency
-
 .. _the PDF is public: http://research.microsoft.com/en-us/um/people/simonpj/papers/stm/beautiful.pdf
 .. _nice blog post: http://shoptalkapp.com/blog/2009/10/20/beautiful-coroutines
 .. _PEP 3148: http://www.python.org/dev/peps/pep-3148/
@@ -283,3 +291,4 @@ I leave further comments to my readers.
 .. _Threads Considered Harmful: http://www.kuro5hin.org/story/2002/11/18/22112/860
 .. _Beautiful Code: http://oreilly.com/catalog/9780596510046/preview
 .. _it will improve: http://www.dabeaz.com/python/NewGIL.pdf
+.. _article by Dave Beazley: http://dabeaz.blogspot.com/2010/07/yieldable-threads-part-1.html

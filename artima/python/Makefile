@@ -6,20 +6,19 @@ default:
 	echo "Available python files:"; ls *.py
 
 super1:	super1.py
-	$(MINIDOC) -d super1; #$(POST) /tmp/super1.rst 236275
+	$(MINIDOC) -d super1; $(POST) /tmp/super1.rst 236275
 
 super2:	super2.py
-	$(MINIDOC) -d super2; #$(POST) /tmp/super2.rst 236278
+	$(MINIDOC) -d super2; $(POST) /tmp/super2.rst 236278
 
 super3:	super3.py
-	$(MINIDOC) -d super3; #$(POST) /tmp/super3.rst 237121
+	$(MINIDOC) -d super3; $(POST) /tmp/super3.rst 237121
 
 super4:	super4.py
-	$(MINIDOC) -d super4; #$(POST) /tmp/super4.rst 281127
+	$(MINIDOC) -d super4; $(POST) /tmp/super4.rst 281127
 
 super: super.rst super1.py super2.py super3.py super4.py
 	$(RST) -tp super.rst
-	#scp super.pdf micheles@merlin.phyast.pitt.edu:public_html/python
 
 generic: genericfunctions.py
 	$(MINIDOC) -d genericfunctions; $(POST) /tmp/genericfunctions.rst 237764
