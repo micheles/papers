@@ -92,7 +92,7 @@ possible to get it right.  One may actually argue that this is a case
 that should be managed with a higher level abstraction than threads: a
 witty writer could even say that the one case when you can get threads
 right is when you do not need then.  I have no issues with that
-position: but I have issue with bold claim that threads are impossible
+position: but I have issue with the bold claim that threads are impossible
 to use in all situations!
 
 In my experience even the trivial use cases are rare and actually in 8
@@ -183,7 +183,7 @@ also gave me the occasion to implement something non completely
 trivial with the multiprocessing module.
 
 In plac_ commands are implemented as generators
-wrapped in task objects. When the command raise an exception, plac_
+wrapped in task objects. When the command raises an exception, plac_
 catches it and stores it in three attributes of the task object:
 ``etype`` (the exception class), ``exc`` (the
 exception object) and ``tb`` (the exception traceback). When working
