@@ -23,7 +23,7 @@ programs with compiler semantics which are not portable.
 
 Fortunately the module system works well enough for most simple
 cases. The proof is that we introduced the R6RS module system in
-episode 5_, and for 15 episode we could go on safely by just using the
+episode 5_, and for 15 episodes we could go on safely by just using the
 basic import/export syntax. However, once nontrivial macros enters in
 the game, things are not easy anymore.
 
@@ -65,9 +65,9 @@ as batch compiler for scripts.
 
 Conceptually, in Python everything happens at runtime, including
 bytecode compilation. While technically bytecode compilation
-is cached, conceptually you may very well think that every module
-is recompiled at runtime, when you import it - which is actually what
-happens if the module has changed in the meanwhile.
+is cached, i.e. Python does not recompile already imported modules,
+conceptually you may think that every module
+is recompiled at runtime, when you import it.
 
 In short, you can consider Python as an interpreter (as it is usually
 done) and there is no substantial difference between typing commands
@@ -141,7 +141,7 @@ on the helper function ``distinct?`` defined as follows:
 $$list-utils:DISTINCT?
 
 ``distinct?`` takes a list of objects and finds out they are all
-distinct according to some equality operator, of if there are duplicates.
+distinct according to some equality operator, or if there are duplicates.
 Here are a couple of test cases:
 
 $$TEST-DISTINCT
@@ -188,7 +188,7 @@ to bytecode in Ypsilon - and executed immediately.  Each new definition
 augments the namespace of known names at runtime, both for first class
 objects and macros. Macros are both defined and expanded at runtime.
 
-It is clear tha the semantics of an incremental compiler is
+It is clear that the semantics of an incremental compiler is
 very similar to the semantics of an interpreter; here is an example in
 Ikarus, where a macro is defined which depends from a helper function:
 
