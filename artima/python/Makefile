@@ -36,7 +36,7 @@ records2: records2.py
 	$(MINIDOC) -d records2; $(POST) /tmp/records2.rst 269269
 
 records3: records3.py
-	$(MINIDOC) -d records3; $(POST) /tmp/records3.rst 
+	$(MINIDOC) -d records3; $(POST) /tmp/records3.rst 301076
 
 decorator3: decorator3.txt
 	$(POST) decorator3.txt 243843
