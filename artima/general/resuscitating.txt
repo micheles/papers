@@ -1,0 +1,131 @@
+Recently, I have spent some time trying to recover a very old Compaq 
+laptop, which I have been neglecting for years (actually my wife was using
+it, by now she has her `new Eeepc`_).
+
+The laptop is seven years old, and it shows:
+
+- there are only 256 M of RAM (actually 240 M + 16 M for the video card);
+- the hard disk has 20 G, and it is pretty slow as compared to modern ones;
+- the video card is pretty poor, you can forget about installing compiz on it.
+
+Moreover, the laptop is in a pretty bad shape:
+
+- the Athlon processor heats a lot and under heavy load the machine
+  is likely to freeze;
+- the builtin Ethernet interface does not work, as an aftermath of a 
+  lightning storm of 4 years ago;
+- the builtin CD Writer/DVD Reader stopped working 5 years ago;
+- the external DVD Writer I bought 3 years go does not work either;
+- the BIOS is unable to boot from the two USB ports which
+  only support the prehistoric USB 1.1 protocol.
+
+It was clearly difficult to install some usable operating
+system on it, to replace Windows XP. I did not want to buy another external
+DVD Writer, since nowadays I have no need for it (I use an external USB
+drive for my backups, it is cheeper than buying DVDs).
+Luckily, by googling on the net, I discovered the Smart Boot Manager
+project: if you have a system which is unable to boot from an USB pen
+or an USB drive, but has a floppy reader, you can boot from the
+floppy and then dispatch to the real boot media. 
+I made a smart boot floppy and I was able to install
+Ubuntu 8.10 on my laptop from a pen drive.
+
+I have a wireless USB kit - bought a few weeks ago since it was
+really cheap, something like 14 Euros - and I used that to replace
+the wired connection. The wireless card was recognized out of the box
+by Ubuntu, without need of any external driver, whereas on XP I had
+to download the custom drivers from the producer site.
+That was a happy discovery, so I decided that resuscitating
+the laptop was a worthy project. 
+
+As I said, I installed the standard
+Ubuntu distribution, but the performance was not spectacular.
+Actually, the system was quite slow, and with Firefox open my memory
+occupation was dangerously close to the top limit of 240 M.
+It was clear that I should give up Gnome if I wanted to get a
+snappier machine. So, I tried to install Xubuntu, which comes with
+the lightweight XFCE desktop environment. With that configuration
+the memory occupation was reduced and the machine was indeed faster,
+but still too slow for my taste. I decided then
+to go back to the good old Ice Window Manager (IceWM_) which I had
+used in the past with an even older machine with only 128M of
+memory. IceWM did the job: the memory occupation dropped down
+to 70 M (so says htop_) and the machine is much more responsive.
+
+I did install the `ROX File Manager`_ instead of
+Nautilus, and links_ instead of Firefox: with those little
+changes the laptop has become very much usable. I discovered
+in the process that now links features a very neat graphic mode:
+the trick is to install links2 (``apt-get install links2``)
+and to start it with the ``-g`` option (``links2 -g``).
+
+I put this line in the ``.icewm/toolbar`` file::
+
+ prog XTerm xterm x-terminal-emulator
+ prog links /usr/share/app-install/icons/wsjt.png links2 -g
+ prog nm-applet /usr/share/app-install/icons/wlassistant.xpm nm-applet
+
+The format of the configuration file is pretty simple: every line
+in it has the form ``prog alt icon app`` were ``app`` is the
+executable application, ``icon`` is a path to an icon that will
+appear on the toolbar and ``alt`` is the text which appears
+when you hover the mouse over the icon, or the text which replaces
+the images if the icon is missing.
+
+With this trick a little icon for the Network Manager Applet appears
+on my toolbar and I can connect to the wireless simply by clicking on
+it. The applet is relatively resource hungry (around 10 Megabytes) and
+there are slimmer alternative out there, but for the moment I am
+keeping it, since I am familiar with it and I can afford it.
+
+Generally speaking, IceWM seems to work well with Gnome applications:
+in particular all the Gnome applications I have tried with an applet
+in the task bar works under IceWM, and the applet appears
+in the system tray.
+
+One advantage of Gnome is the automount mechanism, so that removable
+devices are automatically recognized and mounted. With a bit of googling,
+I found out a couple of programs to do the same job, ivman_ (to monitor
+the HAL daemon) and pmount_ (to mount the removable device).
+
+Moreover, I removed the gnome-terminal, using the good old xterm instead.
+An advantage of xterm with respect to gnome-terminal is that it
+does not intercept the function keys, so it play better with programs
+like htop_ or the Midnight Commander. Also, I have found out that
+xterm used together with screen makes a good replacement for
+heavy applications like the gnome-terminal or the KDE Konsole.
+Plus, the scrolling is blazzing fast.
+
+Since I always want to use a terminal with screen, it makes sense to
+open it at startup. So, I wrote the following .icewm/startup file::
+
+ #!/bin/sh
+ ivman -s # volume manager daemon
+ xterm -e screen &
+
+(notice that the startup file must be executable to be run). The first
+line starts the volume manager daemon, thats mounts and unmounts 
+automatically the removable drives when I attach and detach them
+(apparently there is a bug in recent versions of the Linux kernel
+so I had to list the allowable drives in the file ``/etc/pmount.allow``
+to get ``pmount`` working). The second line open an xterm with screen.
+
+I have been using this configuration for a week or so, and so far it
+seems to work fine. The only issue I had is that I needed some time to
+adjust to links: it is definitely less convenient than Firefox.
+On the other hand, its memory occupation is order of magnitudes smaller, 
+and that makes it usable. I had to renounce to Firefox since it 
+was eating all of my memory and making all of my system sluggish.
+
+Now I plan to use the old laptop as my main box for a while - I have
+already installed subversion, postgresql, g++ and lots of other stuff -
+and I will keep you posted with my findings. If you want to share some
+good tips for people with an obsolete machine, please do so!
+
+.. _new Eeepc: http://www.artima.com/weblogs/viewpost.jsp?thread=240841
+.. _IceWM: http://www.icewm.org/
+.. _pmount: http://pmount.alioth.debian.org/
+.. _ivman: http://ivman.sourceforge.net/
+.. _links: http://links.twibright.com/
+.. _ROX File Manager: http://roscidus.com/desktop/
+.. _htop: http://sourceforge.net/projects/htop

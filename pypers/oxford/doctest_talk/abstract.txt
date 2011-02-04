@@ -1,0 +1,11 @@
+Automatic testing proved extremely effective in
+helping code design, improving code reliability, 
+and enabling code refactoring. 
+Therefore, most modern languages provide a
+standard testing framework.
+Python is no exception and provide a powerful
+Smalltalk/Java-inspired unittest framework. 
+However, Python also provides a *second*, less known 
+but arguably *better*, testing framework called doctest.. 
+In this talk I will show to the audience the wonders of
+doctest, explaining why it is so cool and deserving attention. 

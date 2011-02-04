@@ -1,0 +1,44 @@
+Caching object creation
+-----------------------
+
+This cookbook contains many recipes to memoize functions, however a recipe to
+memoize classes was missing. Using this recipe you can cache object
+creation, i.e. __new__ and __init__ methods are called only when needed.
+For a good use case, see the discussion around 
+http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/413609
+
+ #<main.py>
+
+ from ms.lang_utils import Memoize
+
+ if __name__ == "__main__":
+    
+     class Object:
+         __metaclass__ = Memoize
+         def __init__(self, *args):
+             print "object created with parameters %s" % str(args)
+
+
+     o1 = Object(1) # create the first object
+     o2 = Object(1) # return the already created object
+     assert o1 is o2
+
+     o3 = Object(1, 2) # create another object
+     o4 = Object(1, 2) # return the already created object
+     assert o3 is o4
+
+ #</main.py>
+
+The test case in the code should be clear: if you pass to class the same
+parameters, you will get the same object. __new__ and __init__ methods
+will NOT be called the second time you pass the same parameters.
+Everything works since __new__ and __init__ are called by the metaclass
+__call__ method which has been memoized. 
+
+You may use whatever implementation you like for the memoize decorator, there
+are many availables in this cookbook and in the PythonDecoratorLibrary in
+the Python Wiki. I also have written a pretty cool decorator module that
+allows you to define signature-preserving decorators:
+
+http://www.phyast.pitt.edu/~micheles/python/decorator.zip
+

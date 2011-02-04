@@ -1,0 +1,351 @@
+Drawing graphs the easy way: an introduction to ``dot``
+=====================================================================
+
+Got a graphing problem?
+----------------------------
+
+You must give a presentation tomorrow and you haven't prepared any
+figure yet; you must document your last project and you need to plot
+your most hairy class hierarchies;  you are asked to provide ten slightly 
+different variations of the same picture; you are pathologically unable to put 
+your finger on a mouse and drawing anything more complex that a square ...
+in all these cases,  dont' worry! ``dot`` comes at the rescue and 
+can save your day!
+
+What is ``dot``?
+--------------------------------
+
+``dot`` is a tool to generate nice-looking diagrams with a minimum of
+effort. ``dot`` is distributed as a part of ``GraphViz``, an
+Open Source project developed at AT&T and released under a MIT licence.
+It is a high quality and mature product, with very good 
+documentation and support, available on all major platforms, 
+including Unix/Linux, Windows and Mac. There is an official home-page and 
+a supporting mailing list.
+
+What can I do with ``dot`` ?
+---------------------------------
+
+First of all, let me make clear that ``dot`` is not just another paint program, 
+nor a vector graphics program. ``dot`` is a scriptable batch-oriented graphing 
+tool;  it is to vector drawing programs as ``LaTex`` is to word processors.
+If you want to have control on every single pixel in your diagram,
+or if you are an artistic person who likes to draw free hand, then ``dot`` 
+is not for you. ``dot`` is a tool for the lazy developer, the one who wants
+the job done with the minimum effort and without caring too much about the details.
+
+Since ``dot`` is not a WYSIWYG tool - even if it comes together with a WYSIWYG tool, 
+``dotty`` - it is not intended to be used interactively: 
+its strength is the ability to *programmatically* generate diagrams. To fullfill
+this aim, ``dot`` uses a simple but powerful graph description language. You 
+just give (very high level) instructions to ``dot`` and it will draw the diagrams 
+for you, taking into account all the low level details. Whereas the user 
+has a faily large choice of customization 
+options and can control the final output in many ways, it is not at all easy 
+to force ``dot`` to do *exactly* what one wants. 
+
+Expecting that would mean to fight with the tool. 
+You should think of ``dot`` as a kind of smart boy, 
+who likes to do things his own way and who is very good at it, but becomes 
+nervous if the master tries to put too much pressure on him. 
+The right attitude with ``dot`` (just as with Latex) is to trust it and 
+let it to do the job.
+At the end, when ``dot`` has finished its part, the user can always 
+refine the graph by hand, by using ``dotty``, the interactive editor 
+of ``dot`` diagrams which comes with GraphViz and has the ability to read 
+and generate ``dot`` code.
+But in most cases, the user is not expected to do anything manually,
+since ``dot`` works pretty well. The right way to go is to customize
+``dot`` options, then the user can programmatically generate one or
+one hundred diagrams with the least effort.
+
+``dot`` is especially useful in repetitive and automatic tasks, since
+it is not difficult to generate ``dot`` code.
+For instance, ``dot`` comes very handy in the area of automatic documentation 
+of code. This kind of jobs can be down with UML tools, but ``dot`` has an 
+advantage over them in terms of easy of use, flat learning curve and 
+flexibility. On top of that, ``dot`` is very fast, since it is written in C
+and can generate very complicated diagrams in fractions of second.
+
+Hello World from ``dot``
+------------------------------
+
+``dot`` code has a C-ish syntax and it is quite readable even from somebody
+who has not read the manual. For instance, this ``dot`` script:
+
+ ::
+
+  graph hello{
+
+  // Comment: Hello World from ``dot``
+  // a graph with a single node Node1
+
+  Node1 [label="Hello, World!"]
+
+  }
+
+generates the following picture:
+
+.. figure:: fig1.png
+
+Having saved this code in a file called ``hello.dot``, the graph can be 
+generated and shown on the screen with a simple one-liner:
+
+ ::
+
+  $ dot hello.dot -Tps | gv -
+
+The ``-Tps`` option generates postscript
+code, which is then piped to the ghostview utility. Notice that 
+I am running my examples on a Linux machine with ghostview installed, 
+but ``dot`` works equally well under Windows, so you may trivially 
+adapt the examples.
+
+If the user is satisfied with the output, it can save it into a file:
+
+ ::
+
+  $ dot hello.dot -Tps -o hello.ps
+
+Most probably the user may want to tweak with the options,
+for instance adding colors and changing the font size. 
+This is not difficult:
+
+ ::
+
+  graph hello2{
+  
+  // Hello World with nice colors and big fonts
+  
+  Node1 [label="Hello, World!", color=Blue, fontcolor=Red,
+      fontsize=24, shape=box]
+   
+  }
+
+This draws a blue square with a red label:
+
+.. figure:: fig2.png
+
+All X-Window colors and fonts are available.
+
+``dot`` is quite tolerant: the language is case insensitive and 
+quoting the options (color="Blue", shape="box") will work too. 
+Moreover, in order to make happy C fans, semicolons can be used 
+to terminate statements and they will simply be ignored.
+
+Basic concepts of ``dot``
+--------------------------------------------------------------------------
+
+A generic ``dot`` graph is composed by nodes and edges.
+Our ``hello.dot`` example contains a single node and no edges.
+Edges enter in the game when there are relationships between nodes,
+for instance hierarchical relationships as in this example:
+
+ ::
+
+  digraph simple_hierarchy{
+  
+  B [label="The boss"]      // node B
+  E [label="The employee"]  // node E
+  
+  B->E [label="commands", fontcolor=darkgreen] // edge B->E
+  
+  }
+
+.. figure:: fig3.png
+
+``dot`` is especially good at drawing directed graph such this, where
+there is a natural direction (notice that GraphViz  also includes the ``neato``
+tool, which is quite similar to ``dot`` and is especially targeted to 
+undirected graphs). 
+In this example the direction is from the boss, who commands, 
+to the employee, who obeys. Of course in ``dot`` one has the freedom 
+to revert social hierarchies ;):
+
+ ::
+
+  digraph revolution{
+  
+  B [label="The boss"]      // node B
+  E [label="The employee"]  // node E
+  
+  B->E [label="commands", dir=back, fontcolor=red]  
+  // revert arrow direction 
+  
+  }
+
+.. figure:: fig4.png
+
+Sometimes, one wants to put on the same level things of the
+same importance; this can be done with the rank option, as
+in the following example, which describes a hierarchy with a boss,
+two employees of the same rank, John and Jack, and a lower
+rank employee Al who depends from John:
+
+ ::
+
+  digraph hierarchy{
+
+  nodesep=1.0 // increases the separation between nodes
+
+  node [color=Red,fontname=Courier]
+  edge [color=Blue, style=dashed] //setup options
+
+  Boss->{ John Jack} // the boss has two employees
+
+  {rank=same; John Jack} //they have the same rank
+
+  John -> Al // John has a subordinate 
+
+  John->Jack [dir=both] // but still is on the same level as Jack
+  }
+
+.. figure:: fig5.png
+
+This example shows a nifty feature of ``dot``: if the user forgets
+to give it explicit labels, it will use the name of the nodes as
+default labels. The default colors and style can be set for nodes and 
+edges respectively. It is also possible to control the separation 
+between (all) nodes by tuning the ``nodesep`` option.
+We leave for our readers to see what happens without the rank option
+(hint: you get a very ugly graph).
+
+``dot`` is quite sophisticated and 
+there are dozen of options which are deeply discussed in the excellent 
+documentation. In particular, the man page (``man dot``) is especially 
+useful and well done. The documentation also explain how to draw
+graphs containing subgraphs. However those are advanced features which
+are outside the scope of a brief presentation.
+
+Here we will discuss another feature instead: the ability to generate output 
+in different formats.
+Depending on the requirements, different formats can be more or
+less suitable. For the purpose of generating printed documentation, 
+the postscript format is quite handy. On the other hand, if the documentation
+has to be converted in html format and put on a Web page, a png
+format can be handy. It is quite trivial to get it:
+
+ ::
+
+  $ dot hello.dot -Tpng -o hello.png
+
+There are *many* others available formats, including all the common ones
+such as gif, jpg, wbmp, fig and more exotic ones.
+
+Generating ``dot`` code
+----------------------------------------------------------------------------
+
+``dot`` is not a real programming language, nevertheless it is pretty easy
+to interface ``dot`` with a real programming language.  Bindings for 
+many programming languages - including Java, Perl and Python - are already
+available. A more lightweight alternative is just to generate the ``dot`` code
+from your preferred language. 
+Doing so allows the user to completely automatize the graph generation. 
+Here I will give a simple Python example using this technique.
+
+This example script shows how to draw Python class hierarchies 
+with the least effort; it may help you in documenting your code.
+
+Here is the script:
+
+ ::
+
+  # dot.py 
+
+  "Require Python 2.3 (or 2.2. with from __future__ import generators)"
+  
+  def dotcode(cls):
+      setup='node [color=Green,fontcolor=Blue,fontname=Courier]\n'
+      name='hierarchy_of_%s' % cls.__name__
+      code='\n'.join(codegenerator(cls))
+      return "digraph %s{\n\n%s\n%s\n}" % (name, setup, code)
+
+  def codegenerator(cls):
+      "Returns a line of dot code at each iteration."
+      # works for new style classes; see my Cookbook
+      # recipe for a more general solution
+      for c in cls.__mro__:
+          bases=c.__bases__
+          if bases: # generate edges parent -> child
+              yield ''.join([' %s -> %s\n' % ( b.__name__,c.__name__)
+                             for b in bases])
+          if len(bases) > 1: # put all parents on the same level
+              yield " {rank=same; %s}\n" % ''.join(
+                  ['%s ' % b.__name__ for b in bases])
+
+  if __name__=="__main__": 
+      # returns the dot code generating a simple diamond hierarchy
+      class A(object): pass
+      class B(A): pass
+      class C(A): pass
+      class D(B,C): pass
+      print dotcode(D)
+
+The function ``dotcode`` takes a class and returns the ``dot`` source
+code needed to plot the genealogical tree of that class.  
+The source code is generated by ``codegenerator``, which traverses the list
+of the ancestors of the class (a.k.a. the Method Resolution Order of
+the class) and determines the edges and the nodes of the hierarchy. 
+``codegenerator`` is a generator which returns an iterator yielding 
+a line of ``dot`` code at each iteration. Generators are a cool 
+recent addition to Python; they come particularly handy for the purpose
+of generating text or source code. 
+
+The output of the script is the following self-explanatory ``dot`` code:
+
+ ::
+
+  digraph hierarchy_of_D{
+
+  node [color=Green,fontcolor=Blue,font=Courier]
+
+   B -> D
+   C -> D
+
+   {rank=same; B C }
+
+   A -> B
+
+   A -> C
+
+   object -> A
+
+  }
+
+Now the simple one-liner:
+
+ ::
+
+  $ python dot.py|dot -Tpng -o x.png
+
+generates the following picture:
+
+.. figure:: fig6.png
+
+References
+--------------
+
+You may download ``dot`` and the others tool coming with GraphViz at the
+official home-page of the project:
+
+http://www.graphviz.org
+
+You will also find plenty of documentation and links to the mailing list.
+
+Perl and Python bindings are available here
+
+http://theoryx5.uwinnipeg.ca/CPAN/data/GraphViz/GraphViz.html
+
+(Perl bindings, thanks to Leon Brocard)
+
+and here
+
+http://www.cs.brown.edu/~er/software/
+
+(Python bindings, thanks to Manos Renieris).
+
+The script ``dot.py`` I presented in this article is rather minimalistic. 
+This is on purpose. A much more sophisticated version with additional 
+examples is discussed in my Python Cookbook recipe
+
+http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/213898

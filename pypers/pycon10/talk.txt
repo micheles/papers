@@ -1,0 +1,487 @@
+Introduction to Functional Programming
+===============================================
+
+:Event: PyCon Italia 2010
+:Presenters: Michele Simionato, Nicola Larosa
+:Date: 2010-05-08
+
+.. include:: <s5defs.txt>
+.. footer:: PyCon Italia 2010
+
+My goals for this talk
+------------------------------------------------------
+
+- this is an introductory talk (no monads, no combinators, 
+  no pattern matching, no concurrency, no blurb)
+- mostly about Python, with 1 or 2 examples in Scheme
+- a first part for purists (rebinding and TCO)
+- a second part focused on functional *design* in real life
+- also a few remarks about functional aspects in automatic testing
+  and database programming
+
+First: two misconceptions
+----------------------------------------
+
+- two extreme viewpoints:
+
+ 1. FP means map, filter, reduce
+ 2. FP means Haskell
+
+.. class:: incremental
+
+- I am in between
+- readability and maintainability are my first concerns, not purity
+- ... still purity is attractive
+
+What functional means
+------------------------
+
+- a lot of emphasis on the functions in the past, nowadays people stress
+  more the data structures
+
+- a language is functional if
+
+   .. class:: incremental
+
+   1. *variables cannot be re-assigned*
+   2. *data structures cannot be modified*
+   3. *I/O side effects are confined*
+
+Less is more
+----------------------------------------------
+
+- FP is about having *less* features, not more!
+
+.. class:: incremental
+
+- less ways of shooting yourself in the foot
+- the functional programmer is often compared to a monk
+- the challenge: can we program under such strong constraints??
+
+1: immutable bindings
+--------------------------------------
+
+- there are no more variables as we intend them
+- what about for loops?
+
+>>> for item in sequence:
+        do_something(item)
+
+.. class:: incremental
+
+- the name ``item`` is rebound at each iteration
+- (talk about boxes and labels)
+- for loops have worked well for 50+ years, it seems impossible to
+  live without them
+- ... but do for loops work really well?
+
+Let's see ...
+----------------------------------------
+
+::
+
+  root = Tkinter.Tk()
+  text = Tkinter.StringVar()
+  label = Tkinter.Label(root, textvariable=text)
+  menubar = Tkinter.Menu(root)
+  menu = Tkinter.Menu(menubar)
+  menubar.add_cascade(label='File', menu=menu)
+  for item in ['F1','F2', 'F3']:
+      def showmenu():
+          text.set(text.get() + '\n%s' % item)
+      menu.add_command(label=item, command=showmenu)
+  root.config(menu=menubar); label.pack()
+  root.mainloop()
+
+The usual hack
+---------------------------------------  
+
+::
+
+  root = Tkinter.Tk()
+  text = Tkinter.StringVar()
+  label = Tkinter.Label(root, textvariable=text)
+  menubar = Tkinter.Menu(root)
+  menu = Tkinter.Menu(menubar)
+  menubar.add_cascade(label='File', menu=menu)
+  for item in ['F1','F2', 'F3']:
+      def showmenu(item=item):
+          text.set(text.get() + '\n%s' % item)
+      menu.add_command(label=item, command=showmenu)
+  root.config(menu=menubar); label.pack()
+  root.mainloop()
+
+This is still a hack
+--------------------------------------------------
+
+- looking at the interaction of for-loops and closures is a good
+  test to see if a language is functional
+
+.. class:: incremental
+
+- this is an example of the difference between a truly functional language
+  and an imperative language with some support for FP
+- Python, Common Lisp, Go do *not* pass the test
+- Haskell, Scheme, Clojure, Perl *do* pass the test
+
+A simpler example
+----------------------------------------------
+
+::
+
+  lst = []
+  for i in 0, 1, 2:
+      def f():
+          print i
+      lst.append(f)
+  
+  lst[0]() #=> 2
+  lst[1]() #=> 2
+  lst[2]() #=> 2
+  
+A partial solution
+---------------------------------
+
+::
+
+  lst = []
+  def append_f(i):
+      def f():
+          print i
+      lst.append(f)
+  
+  for i in 0, 1, 2: # mutation is still there
+      append_f(i)
+  
+  lst[0]() #=> 0
+  lst[1]() #=> 1
+  lst[2]() #=> 2
+  
+The question
+---------------------------------
+
+We need a way to compute a loop *without* rebinding the loop variable::
+
+  def loop123():
+      for i in 1, 2, 3:
+          <do_something(i)>
+
+  loop123()
+
+Clearly we need to introduce a new scope at each iteration
+
+The answer: recursion
+---------------------------------
+
+Convert the function containing a loop in a recursive function with an
+additional argument (the loop index)::
+  
+  def loop123(i=1):
+      if i > 3:
+          return
+      else:
+          <do_something(i)>
+          loop123(i+1) # tail call
+  
+  loop123()
+
+Another example: enumerate
+------------------------------------
+
+Here is an example of a for loop used to build a data structure::
+ 
+ def enumerate(values, i=0, acc=()):
+    if i >= len(values):
+        return acc
+    else:
+        return enumerate(
+          values, i+1, acc + ((i, values[i]),))
+ 
+The trick is to use an (immutable) accumulator
+
+The importance of tail calls  
+------------------------------------------------
+
+- in a truly functional language all for-loops are implemented as
+  recursive functions in tail call form
+
+.. class:: incremental
+
+- the compiler is able to recognize them and avoids creating
+  a new stack per each iteration (TCO): no recursion limit
+- for the programmer POV the loop variable is never reassigned
+- it seems *perverse* but it is essential
+- expecially for things like pattern matching
+
+A note on pattern matching
+------------------------------------
+
+Pattern matching is used a lot in functional languages; in Scheme is
+especially used in macro programming; in ML and Haskell is used everywhere,
+even to define functions::
+  
+ fun fact n = fact' (n, 1)
+ and fact' (0, acc) = acc
+   | fact' (n, acc) = fact' (n-1,  acc*n);
+
+In Erlang is used to destructure the messages sent to the Erlang lightweight
+processes.
+
+TCO and debugging
+---------------------------
+
+There has been some heated debate last year due to Guido's dismissal
+of TCO. 
+
+.. class:: incremental
+
+ In all fairness I must notice that TCO does not prevent debugging::
+
+  ;; tco.ss
+  (let loop ((x -3))
+    (/ 1 x)
+    (loop (add1 x)))
+
+ (but I agree that iterative is better than recursive)
+
+The pragmatist voice
+---------------------------------
+
+*Python programs written in functional style usually won’t go to the
+extreme of avoiding all I/O or all assignments; instead, they’ll
+provide a functional-appearing interface but will use non-functional
+features internally. For example, the implementation of a function
+will still use assignments to local variables, but won’t modify global
+variables or have other side effects.* -- Andrew Kuchling
+
+Example: collecting objects
+------------------------------
+
+::
+
+  def collect_mail(mails):
+      storage = {}
+      for mail in mails:
+          client = mail.getclient()
+          kind = mail.getkind()
+          date = mail.getdate()
+          stored = storage.get((client, kind))
+          if stored is None or stored.date < date:
+              storage[client, kind] = mail
+      return storage
+
+For purists at all costs ...
+-----------------------------------------------------
+
+- you can avoid mutation of the storage by introducting a functional
+  update utility::
+ 
+   def update(d, k, v):
+       newd = d.copy()
+       newd.update({k : v})
+       return newd
+
+... use a helper function
+----------------------------------------
+
+::
+  
+   def _collect_mail(storage, mail):
+      # a left-folding function: acc,obj->new-acc
+      client = mail.getclient()
+      kind = mail.getkind()
+      date = mail.getdate()
+      stored = storage.get((client, kind))
+      if stored is None or stored.date < date:
+          return update(
+              storage, (client, kind), mail)
+      else:
+          return storage
+  
+... then reduce is your friend
+-------------------------------------
+
+::
+
+   def collect_mail(mails):
+      return reduce(_collect_mail, mails, {})
+
+.. class:: incremental
+
+- except that you should not be *perverse*
+- there is no reason to be functional at any cost if you are using a
+  non-functional language
+- do not fight the language, flow with it
+- and this close the discussion about immutable bindings
+
+2: immutable data
+-------------------------------------------------
+
+- we cannot really get rid of all mutable objects but
+  certainly mutable objects are overused
+
+.. class:: incremental
+
+- mutable objects are often evil 
+  (globals, example of nosetests changing my sys.path)
+- mutable objects can be often avoided
+  (functional update may substitute mutation)
+- there are smart functional data structures nowadays
+  (not much in Python)
+- Python has only strings, (named)tuples and frozensets
+
+namedtuple
+--------------------------------------
+
+>>> from collections import namedtuple
+>>> Point = namedtuple('Point', 'x y')
+>>> p1 = Point(0, 0)
+>>> p2 = p1._replace(x=1)
+>>> p2
+(1, 0)
+>>> p1 is p2
+False
+
+(requires copying the full structure in Python). Python also lacks
+immutable dictionaries (say Red/Black trees).
+
+Generators are mutable
+--------------------------------------
+
+Many Python programs (especially the ones using list/generator
+comprehension and the itertools module) are considered in functional
+style even if they are not functional from a purist POV:
+
+  >>> it123 = iter([1, 2, 3])
+  >>> for i in it123: print i,
+  ...
+  1 2 3
+  >>> for i in it123: print i,
+  ...
+  
+The functional way: streams
+-------------------------------------
+
+Looping over a stream does not mutate it::
+
+  > (import (srfi :41 streams))
+  > (define str123 (stream-range 1 4))
+  > (stream-for-each display str123)
+  123
+  > (stream-for-each display str123)
+  123
+
+Yet another difference between Python and a true functional language
+
+3: confined side effects?
+-------------------------------------------------
+
+- to be able to distinguish pure functions from
+  impure functions is important::
+
+   @memoize
+   def do_something():
+      result = long_computation()
+      log.info('Computed %s', result)
+      return result
+
+- Haskell is the purest language when it comes to
+  confining side effects
+
+Side effects and unittests
+------------------------------------------
+
+- in Python keeping the distinction between pure and impure functions is a
+  question of good coding style
+
+.. class:: incremental
+
+- common sense tells you that you should decouple I/O from the
+  business logic
+- unit testing is arguably the master path to functional design:
+  if you want to test a thing, make it a pure function
+- if it is difficult to test it is not functional
+
+Usual recommendations
+--------------------------------------
+
+All the usual recommendations to make code more testable, such as
+
+.. class:: incremental
+
+- avoid side effects (including the ones at import time)
+- do not use special variables (damned them!)
+- decouple the system i.e. pass objects around
+- write libraries, not frameworks
+- feel guilty!
+
+are recommendations to make code more functional. 
+
+Database connections (bad)
+-----------------------------------------
+
+db = DBSession() # singleton
+
+def read(...):
+   db.read_data( ... )
+
+def write(data, ...):
+   db.write_data(data, ...)
+
+if __name__ == '__main__':
+   db.init(dsn)
+
+Database connections (good)
+-----------------------------------------
+
+def read(db, ...):
+   db.read_data( ... )
+
+def write(db, data, ...):
+   db.write_data(data, ...)
+
+if __name__ == '__main__':
+   db = DBSession(dsn)
+
+FP and databases
+----------------------------------------------------------
+
+- operating on a DB looks like the least functional thing you can do
+  (ex. ``importer.import(fileobj, db)``)
+
+.. class:: incremental
+
+- still can be made functional, at the price of *creating the db*
+  (this is how we write the db tests)::
+
+   def import(lines): # this is a pure function!
+       db = create_db()
+       out = importer.import(lines, db)
+       drop_db(db)
+       return out
+
+Functional design and SQL
+----------------------------------------------------------
+
+- SQL makes a good functional language once you remove mutation
+  (UPDATE and DELETE)
+
+.. class:: incremental
+
+- SELECTs are not really different from list comprehensions
+  (think of LINQ);
+- if you can use a view, use it (tell my recent experience making legacy
+  SQL code more functional)
+- even non-premature optimizations are evil :-(
+
+References
+------------------------------------------------
+
+http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf
+http://www.haskell.org/
+http://clojure.org/
+http://docs.python.org/howto/functional.html
+http://www.defmacro.org/ramblings/fp.html
+http://www.cs.cmu.edu/~rwh/theses/okasaki.pdf
+http://srfi.schemers.org/srfi-41/srfi-41.html
+http://funcall.blogspot.com/2009/05/you-knew-id-say-something-part-iv.html

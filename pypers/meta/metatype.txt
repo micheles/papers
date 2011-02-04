@@ -1,0 +1,188 @@
+SOLVING THE METACLASS CONFLICT
+=========================================================================
+
+Summary:
+------------------------------------------------------------------------
+
+Any serious user of metaclasses has been bitten at least once by the 
+infamous metaclass/metatype conflict. Here I give a general recipe to
+solve the problem, as well as some theory and some examples.
+
+ ::
+
+  #<noconflict.py>
+
+  def _generatemetaclass(bases,metas,priority):
+      """Internal function called by clsfactory. 'bases' is tuple of 
+      base classes, 'metas' a tuple of metaclasses and priority is a boolean."""
+
+      trivial=lambda m: m is type or m in metas
+      metabases=tuple([mb for mb in map(type,bases) if not trivial(mb)])
+      metabases=(metabases+metas, metas+metabases)[priority]
+      metaname="_"+''.join([m.__name__ for m in metabases])
+      if not metabases: # trivial metabase
+          return type 
+      elif len(metabases)==1: # single metabase
+          return metabases[0]
+      else: # multiple metabases
+          # create new metaclass,shift possible conflict to meta-metaclasses
+          return type(metaname,metabases,{}) 
+
+  def memoize(f):
+      """This closure remembers all f invocations"""
+      argskw,result = [],[]
+      def _(*args,**kw): 
+          akw=args,kw
+          try: # returns a previously stored result
+              return result[argskw.index(akw)]
+          except ValueError: # there is no previously stored result
+              argskw.append(akw) # update argskw
+              result.append(f(*args,**kw)) # update result
+              return result[-1] # return the new result
+      _.argskw=argskw #makes the argskw list accessible outside
+      _.result=result #makes the result list accessible outside
+      return _
+ 
+  _generatemetaclass=memoize(_generatemetaclass) 
+
+  def clsfactory(*metas,**options):
+      """Class factory avoiding metatype conflicts. The invocation syntax is
+      clsfactory(M1,M2,..,priority=1)(name,bases,dic). If the base classes have 
+      metaclasses conflicting within themselves or with the given metaclasses, 
+      it automatically generates a compatible metaclass and instantiate it. 
+      If priority is True, the given metaclasses have priority over the 
+      bases' metaclasses"""
+
+      priority=options.get('priority',False) # default, no priority
+      return lambda n,b,d: _generatemetaclass(b,metas,priority)(n,b,d)
+
+  #</noconflict.py>
+
+Discussion
+---------------------------------------------------------
+
+I think that not too many programmers are familiar with metaclasses and 
+metatype conflicts, therefore let me be pedagogical ;) 
+
+The simplest case where a metatype conflict happens is the following.
+Consider a class ``A`` with metaclass ``M_A`` and a class ``B`` with
+an independent metaclass ``M_B``; suppose we derive ``C`` from ``A`` 
+and ``B``. The question is: what is the metaclass of ``C`` ? 
+Is it ``M_A`` or ``M_B`` ?
+
+  >>> class M_A(type): 
+  ...     pass
+  >>> class M_B(type): 
+  ...     pass
+  >>> class A(object):
+  ...     __metaclass__=M_A
+  >>> class B(object):
+  ...     __metaclass__=M_B
+  >>> class C(A,B): 
+  ...     pass 
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+The correct answer (see the book "Putting metaclasses to work" for a 
+thought discussion) is ``M_C``, where ``M_C`` is a metaclass that inherits 
+from ``M_A`` and ``M_B``, as in the following graph, where instantiation 
+is denoted by colon lines:
+
+  ::
+
+
+             M_A     M_B
+              : \   / :
+              :  \ /  :
+              A  M_C  B
+               \  :  /
+                \ : /
+                  C
+
+
+However, Python is not that magic, and it does not automatically create 
+``M_C``. Instead, it raises a ``TypeError``, warning the programmer of
+the possible confusion. The metatype conflict can be avoided 
+by assegning the correct metaclass to ``C`` by hand:
+
+  >>> class M_AM_B(M_A,M_B): pass
+  ...
+  >>> class C(A,B): 
+  ...     __metaclass__=M_AM_B
+  >>> C,type(C)
+  (<class 'C'>, <class 'M_AM_B'>)
+
+In general, a class ``A(B, C, D , ...)`` can be generated without conflicts 
+only if ``type(A)`` is a subclass of each of ``type(B), type(C), ...``
+
+It is possible to automatically avoid conflicts, by defining a smart 
+class factory that generates the correct metaclass by looking at the 
+metaclasses of the base classes. This is done via the ``clsfactory``
+class factory, wich internally invokes the ``_generatemetaclass``
+function. When ``_generatemetaclass`` is invoked with the same bases and
+the same metaclasses it should return the same metaclass. This is done by 
+keeping a list of the generated metaclasses thanks to the ``with_memory``
+closure. Now, when ``_generatemetaclass`` is invoked with the same arguments 
+it returns the same metaclass.
+
+  >>> import sys; sys.path.append('.') # for doctest purposes
+  >>> from noconflict import clsfactory
+  >>> class C(A,B):
+  ...     __metaclass__=clsfactory()
+  >>> C 
+  <class 'C'>
+  >>> type(C) # automatically generated metaclass
+  <class 'noconflict._M_AM_B'>
+
+  >>> class M_A(type): pass 
+  ...
+  >>> class M_B(type): pass 
+  ...
+  >>> class A: __metaclass__=M_A 
+  ...
+  >>> class B: __metaclass__=M_B 
+  ...
+  >>> class E(A,B):
+  ...     __metaclass__=clsfactory()
+  >>> type(E) 
+  <class 'noconflict._M_AM_B'>
+  >>> class F(A,B):
+  ...     __metaclass__=clsfactory()
+  >>> type(F) 
+  <class 'noconflict._M_AM_B'>
+  >>> type(E) is type(F)
+  True
+
+Another example where ``clsfactory()`` can solve the conflict is the
+following:
+
+  >>> class D(A):
+  ...     __metaclass__=M_B
+  Traceback (most recent call last):
+    File "<string>", line 1, in ?
+  TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+Here the problem is that since ``D`` inherits from ``A``, its metaclass must 
+inherit from ``M_A`` and cannot be ``M_B``. 
+
+``clsfactory`` solves the problem by automatically inheriting both from
+``M_A`` and ``M_B``:
+
+  >>> class D(A):
+  ...     __metaclass__=clsfactory(M_B)
+  >>> type(D)
+  <class 'noconflict._M_AM_B'>
+
+In some case, the user may want ``M_B`` to have the priority over ``M_A``.
+This is easily done:
+
+  >>> class D(A):
+  ...     __metaclass__=clsfactory(M_B,priority=True)
+  >>> type(D)
+  <class 'noconflict._M_BM_A'>
+
+----
+
+I thank David Mertz for help in polishing the code. These examples here have 
+been checked with doctest on Python 2.3b1.

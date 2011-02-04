@@ -1,0 +1,40 @@
+Taste Python (EuroPython 2005)
+==========================================
+
+Hi Harald,
+
+I was looking at your suggestions again:
+
+ ::
+
+ """
+ a) some real "hello world" stuff
+ b) tricks and powers of the interactive console
+ c) dynamic modules taken from
+ - web scraping with python (beautifull soup, urllib..)
+ - database access (WITHOUT sqlobject, which is presented seperately)
+ - some basic system Administration Stuff
+ - do a PDF
+ """
+
+I think we should decide how to split this stuff between us and
+also have an idea of the time needed. I could do
+
+1. A superfast toor of IPython (10 minutes)
+2. reStructuredText, how to make Web pages and PDFs (15 minutes)
+3. Twill, i.e. how to interact with the Web the easy way (10 minutes)
+
+The time are indicatives i.e. they could easily become longer (but not
+much shorter, unless we kill something). According to the interests of people 
+times and topics could change at run time, but I think its is best if we have 
+prepared at least a provisional program. BTW, if you don't know about Twill, 
+here is a reference:
+
+http://darcs.idyll.org/~t/projects/twill/README.html
+
+It is so easy to use that it makes a good candidate even for a 
+total beginner course and on the other hand it is useful even to
+the expert Web developer. I am writing a paper on it for O'Reilly,
+so I am already prepared ;)
+
+         Michele Simionato

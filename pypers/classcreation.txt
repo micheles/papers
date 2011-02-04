@@ -1,0 +1,280 @@
+What happens when Python executes a class statement?
+-----------------------------------------------------------------------------
+
+It seems an easy question, isn't ? 
+But the answer is pretty sophisticated ;)
+
+
+### see also the documentation: file:/mnt/win/Python23/Doc/ref/metaclasses.html
+
+1. First of all, Python determines which is the currect metaclass to
+   use in order to create the class. Here are the rules:
+
+   1. if an explicit ``__metaclass__`` is given, use it;
+   2. otherwise, determine the correct metaclass from the base classes's
+      metaclass.
+
+   The determination from the base 
+   classes' metaclasses is based on the following principles:
+
+   1. custom metaclasses have the precedence over the built-in metaclasses
+      ``type``  and ``ClassType``;
+   2. ``type``, i.e. the default metaclass of new style classes, has the 
+      precedence over ``ClassType``, the default metaclass of old style 
+      classes;
+   3. if there is a global ``__metaclass__`` it acts as the new default
+      metaclass for old style classes;
+   4. in the case of same precedence the first, i.e. the leftmost  
+      metaclass is used.
+   
+2. Let's call ``M`` the correct metaclass. Then ``M`` is called in the form
+   ``M(n,b,d)``, where ``n`` is the name of the class to create, ``b`` 
+   the tuple of its base classes and ``d`` its dictionary. This is equivalent 
+   to call ``type(M).__call__(M,n,b,d)``.
+
+   Now, unless  ``type(M).__call__`` is overridden with a meta-metaclass,
+   the standard ``type.__call__`` will be used. 
+
+3. The following happens when ``type.__call__(M,n,b,d)`` is invoked:
+
+   1. Python tries to create the class ``C`` by using ``M.__new__(M,n,b,d)``,
+      which at a certain moment will invoke ``type.__new__(M,n,b,d)``.
+   2. ``type.__new__(M,n,b,d)`` looks at ``M`` and at the metaclasses
+      of the bases (again) and raises an exception if a metaclass 
+      conflict is found;
+   3. If not, it creates the class using the right metaclass;
+   4. Finally, Python initializes ``C`` by using ``type(C).__init__(C,n,b,d)``.
+
+   Notice that ``type(C)`` is not necessarely ``M``. Moreover, 
+   ``type.__call__`` is also able to manage the case when it is invoked
+   with only two arguments.
+
+The interesting point is that the check for metaclass conflicts is not
+immediate: first a tentative metaclass ``M`` is determined and called, then
+its ``__new__`` method dispatches to ``type.__new__`` and
+only at that moment there will be the check. This suggest the basic idea to solve
+the conflict: to override ``M.__new__`` in such a way to create the
+right metaclass as a submetaclass of ``M`` and the metaclasses of the
+bases; then dispatch to this metaclass ``__new__`` method.
+
+
+I argued these rules from experiment, but it should be possible to infer
+them from Python-2.3/Objects/typeobject.c, at least for experts of Python
+internals. 
+
+How ``type.__call__`` works.
+---------------------------------------------------------------------------
+
+Let me start by discussing few examples where the metaclass is automatically
+determinated, i.e. there is no explicit ``__metaclass__`` hook.
+My simplest example is the case in which there are two base classes,
+one old style (``A``) and the other new style (``B``):
+
+>>> class A:
+...     pass
+
+>>> class B(object):
+...     pass
+
+We want to create a class ``C`` with bases ``A`` and ``B``:
+
+>>> class C(A,B): 
+...     pass
+
+In order to proceed with the creation, Python argues that the metaclass 
+to use is the metaclass of ``B``, i.e. ``type`` and not the metaclass of 
+``A``, i.e. ``ClassType``. Then the class statement is equivalent to
+
+>>> C=type('C',(A,B),{})
+
+i.e. to
+
+>>> type(type).__call__(type,'C',(A,B),{})
+<class 'C'>
+
+i.e. to (since ``type`` is its own metaclass)
+
+>>> type.__call__(type,'C',(A,B),{})
+<class 'C'>
+
+Notice that 
+
+>>> type.__call__('C',(A,B),{})
+Traceback (most recent call last):
+  ...
+TypeError: descriptor '__call__' requires a 'type' object but received a 'str'
+
+will not work, i.e. it is not equivalent to 
+``type(type).__call__(type,'C',(A,B),{})`` as it happens for regular callable
+objects. ``type`` is special, since it is its own metaclass, so ``type.__call__``
+has to be defined on it with four and not three arguments.
+
+A less simple example
+--------------------------------------------------------------------------
+
+In the previous examples, the class statement and the ``type``
+call were perfectly equivalent.
+If there is a non-trivial metaclass, the situation changes:
+
+>>> class M1(type):
+...     "A chatty metaclass"
+...     def __new__(mcl,n,b,d):
+...         print 'calling M1.__new__, name = %s ...' % n
+...         return super(M1,mcl).__new__(mcl,n,b,d)
+...     def __init__(cls,n,b,d):
+...         print 'calling M1.__init__, name = %s ...' % n
+...         super(M1,cls).__init__(n,b,d)
+
+>>> class A: 
+...     __metaclass__=M1
+calling M1.__new__, name = A ...
+calling M1.__init__, name = A ...
+
+>>> class C(A,B):
+...    pass
+calling M1.__new__, name = C ...
+calling M1.__init__, name = C ...
+
+In this case the class statement is equivalent to ``M1('C',(A,B),{})``
+i.e. to ``type(M1).___call__(M1,'C',(A,B),{})`` i.e. 
+``type.___call__(M1,'C',(A,B),{})``.
+However, it is interesting to notice that ``type`` would work too:
+
+>>> type('C',(A,B),{})
+calling M1.__new__, name = C ...
+calling M1.__init__, name = C ...
+<class 'C'>
+
+The reason is that ``type.__call__`` is able to dispatch to the correct 
+metaclass ``__new__``.
+
+Moreover, there is the issue of what ``type`` does when it is called with
+only two arguments:
+
+>>> type.__call__(type,C)
+<class 'M1'>
+
+However, the class statement is not always equivalent to a
+``type.__call__`` and there is a very subtle difference between the 
+two. The difference only manifests itself  in the
+the case in which ``A`` and ``B`` have incompatible metaclasses.
+
+
+Differences between  class statement and ``type`` invokation
+---------------------------------------------------------------------------
+
+Consider the following metaclass with a tricked ``__call__`` metamethod:
+
+>>> class M(type):
+...     class __metaclass__(type):
+...         def __call__(mcl,n,b,d):
+...             print "You are calling type(M).__call__ ..."
+..              return super(mcl.__class__,mcl).__call__(n,b,d)
+...     def __new__(mcl,n,b,d):
+...         print 'calling M.__new__, name = %s ...' % n
+...         return super(M,mcl).__new__(mcl,n,b,d)
+...     def __init__(cls,n,b,d):
+...         print 'calling M.__init__, name = %s ...' % n
+...         super(M,cls).__init__(n,b,d)
+
+>>> class B:
+...     __metaclass__=M
+You are calling type(M).__call__ ...
+calling M.__new__, name = B ...
+calling M.__init__, name = B ...
+
+>>> class C(B):
+...     pass
+You are calling type(M).__call__ ...
+calling M.__new__, name = C ...
+calling M.__init__, name = C ...
+
+This makes clear that the class statement is calling ``M('C',(),{})``
+and NOT ``type('C',(),{})``.
+
+A more sophisticated example
+--------------------------------------------------------------------------
+
+Here is an example:
+
+>>> class M2(type):
+...     "Another chatty metaclass"
+...     def __new__(mcl,n,b,d):
+...         print 'calling M2.__new__, name = %s ...' % n
+...         return super(M2,mcl).__new__(mcl,n,b,d)
+...     def __init__(cls,n,b,d):
+...         print 'calling M2.__init__, name = %s ...' % n
+...         super(M2,cls).__init__(n,b,d)
+
+>>> class B: 
+...     __metaclass__=M2
+calling M2.__new__, name = B ...
+calling M2.__init__, name = B ...
+
+If we try to create ``C`` with ``type``, we simply get a conflict:
+
+>>> type.__call__(type,'C',(A,B),{})
+Traceback (most recent call last):
+  ...
+TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+On the other hand, with a class statement we get
+
+>>> class C(A,B):
+...     pass
+calling M1.__new__, name = C ... # doctest bug here
+Traceback (most recent call last): 
+  File "pro.py", line 4, in __new__
+    return super(M1,mcl).__new__(mcl,n,b,d)
+TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+The difference is that ``M1.__new__`` is called *first*, and only after
+the conflict is discovered, when ``M1.__new__`` invokes ``type.__new__``.
+The error message is pretty clear indeed.
+In other words, the class statement in this case is equivalent to 
+``M1('C',(A,B),{})`` i.e. to ``type.__call__(M1,'C',(A,B),{})``.
+
+
+
+
+>>> from safetype import safetype as type
+
+An example of badly written metaclass
+--------------------------------------------------------------------------
+
+Let me start by checking the validity of point 3.3, i.e the fact that the
+newly created class is initialized with ``type(C).__init__(C,n,b,d)``
+and not with ``M.__init__(C,n,b,d)``. This happens when ``M.__new__``
+is overridden in such a way that it does not return an instance of ``M``.
+Here is a simple example:
+
+
+>>> class M(type):
+...     "A badly written metaclass"
+...     def __new__(mcl,n,b,d):
+...         print 'calling M.__new__, name = %s ...' % n
+...         return type(n,b,d)
+...     def __init__(cls,n,b,d):
+...         print 'calling M.__init__, name = %s ...' % n
+
+In this example ``M.__new__`` returns an instance of ``type``, so it
+will be initialized with ``type.__init__`` and not with ``M.__init__``:
+
+>>> class C:
+...     __metaclass__=M
+calling M.__new__, name = C ...
+
+As you see, ``M.__init__`` is not called since
+
+>>> type(C)
+<type 'type'>
+
+Typically, missing ``M.__init__`` is not what you want. There are two
+solutions:
+
+1. returns ``type.__call__(mcl,n,b,d)`` (the poor man solution)
+2. returns ``super(M,mcl).__new__(mcl,n,b,d)`` (the right solution)
+
+The cooperative solution is the right one because it will work always,
+whereas the solution number 1 may fail when ``M`` is composed trough
+multiple inheritance with another metaclass.

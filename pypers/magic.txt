@@ -1,0 +1,1039 @@
+THE MAGIC OF METACLASSES - PART 2 
+===========================================================================
+
+Metaclasses are so powerful that a single chapter is not enough to make
+justice to them ;) In this second chapter on metaclasses I will 
+unravel their deepest secrets, covering topics such as meta-metaclasses,
+anonymous inner metaclasses, global metaclasses and advanced class factories.
+
+Moreover, I will give various magical applications of metaclasses,
+in the realm of enhancing the Python language itself. Actually, this is
+probably the most idiomatic application of metaclasses (Guido's examples
+on the metaclass usage are all in this area). I will show
+how metaclasses can be used to enhance the ``super`` cooperatice call
+mechanism.
+
+This is not a chapter for the faint of heart.
+
+The secrets of the ``__metaclass__`` hook
+------------------------------------------------------------------------
+
+In the previous chapter we have seen how the ``__metaclass__`` hook can
+be used as a way of metaclass enhancing pre-existing classes 
+with a minimal change of the sourcecode. 
+
+But it has much deeper secrets.
+
+The first and simplest of them, 
+is the fact that the hook can be used it can also be defined 
+at the module level, *outside* the class. This allows a number of neat 
+tricks, since in presence of a  ``__metaclass__`` hook at the module
+level *all* the old style classes in the module (including nested ones!)
+acquire that hook. A first application is to rejuvenate old style classes 
+to new style classes.
+
+I remind that old style classes are retained with compability with old 
+code, but they are a pain in the back, if you want to use features 
+intended for new style classes only (for instance properties etc.). 
+Naively, one would expect the conversion from old style classes
+to new style to be long and error prone: suppose you have a very large 
+application with hundreds of old style classes defined in dozens of modules. 
+Suppose you want to update your application to Python 2.2+ classes in order
+to take advantage of the new features I have discussed extensively in this
+book: the naive way to go would be to go trough the source, look for
+all classes definitions and change 
+
+ ::
+
+  Classname: --> Classname(object)
+
+One could solve this problem with a regular expression search and replace
+in all modules, but this would require to change *all* the source.
+This is againt the spirit of OOP, we must *reuse* old code. 
+
+Metaclasses are particularly handy to solve this problem: actually it is
+enough to add to your modules the following line as first line: 
+
+ ::
+
+   __metaclass__ = type
+
+Then, all your old style classes will have 'type' as their metaclass: this
+is akin to say that all the old style classes  are *automagically* rejuvenate 
+to new style classes! And this also works for *nested* classes!!
+
+ ::
+
+  #<rejuvenate.py>
+
+  __metaclass__ = type # this rejuvanate all the class in the module
+
+  class C:
+     class D: pass
+
+  print dir(C)   # both C and C.D
+  print dir(C.D) # are now new style classes
+
+  #</rejuvenate.py>
+
+This very first example add consistence (if needed) to the
+widespread belief that metaclasses have a well deserved reputation of magic.
+
+The explanation is that defining a global metaclass called ``__metaclass__``
+automatically makes all old style classes (new style class simply ignore 
+the existence of the global ``__metaclass__``)  defined in you module 
+instances of the given metaclass; this automatically converts them to 
+new style classes.
+
+Anonymous inner metaclasses
+---------------------------------------------------------------------------
+
+A second, deeper secret of the ``__metaclass__`` hook is that it can be
+used to define anonymous *inner metaclasses*. The following example
+explain what I mean:
+
+ ::
+
+  #<oopp.py>
+
+  def totuple(arg):
+      "Converts the argument to a tuple, if need there is"
+      if isinstance(arg,tuple): return arg # do nothing
+      else: return (arg,) # convert to tuple
+
+  class BracketCallable(object):
+      """Any subclass C(BracketCallable) can be called with the syntax C[t], 
+      where t is a tuple of arguments stored in bracket_args;  returns the 
+      class or an instance of it, depending on the flag 'returnclass'."""
+
+      returnclass=True
+      class __metaclass__(type): # anonymous inner metaclass
+          def __getitem__(cls,args): # non cooperative metamethod
+              if cls.returnclass: 
+                  c=type(cls.__name__,(cls,),{'bracket_args':totuple(args)})
+                  return c # a customized copy of the original class
+              else:
+                  self=cls(); self.bracket_args=totuple(args)
+                  return self
+
+  #</oopp.py>
+
+In this code 'BracketCallable.__metaclass__' is the anonymous (actually 
+it has a special name, ``__metaclass__``) inner metaclass of 'BracketCallable'.
+
+The effect of 'BracketCallable.__metaclass__' is the following: it makes
+'BracketCallable' and its descendants callable with brackets. Since
+the 'returnclass' flag is set, ``__getitem__`` returns the class
+with an attribute 'bracket_args' containing the tuple of the passed
+arguments (otherwise it returns an instance of the class).
+This works since when  Python encounters an expression of kind 
+``cls[arg]`` it interprets it as  ``type(cls).__getitem__(cls,arg)``. 
+Therefore, if ``cls`` is a subclass of  'BracketCallable', this means that
+
+ ::
+
+  cls[arg] <=> BracketCallable.__metaclass__.__getitem__(cls,arg)
+
+Let me give few examples:
+
+  >>> from oopp import BracketCallable
+  >>> type(BracketCallable)
+  <class 'oopp.__metaclass__'>
+  >>> print type(BracketCallable).__name__ # not really anonymous
+  __metaclass__
+  >>> print BracketCallable['a1'].bracket_args
+  ('a1',)
+  >>> print BracketCallable['a1','a2'].bracket_args
+  ('a1', 'a2')
+
+This syntactical feature is an example of a thing that can be done 
+*trough metaclasses only*: it cannot be emulated by functions.
+
+
+Anonymous inner metaclasses are the least verbose manner 
+of defining metamethods. Moreover, they are a neat trick to define 
+mix-in classes that, when inherited, can metamagically enhance 
+an entire multiple inheritance hierarchy. 
+
+In the previous example ``__getitem__`` is noncooperative, but nothing
+forbids anonymous inner metaclasses from being made cooperative. However,
+there is some subtlety one must be aware of.
+Let me give an example. My 'WithCounter' class counts how many instances
+of 'WithCounter' and its subclasses are generated. However, it does not
+distinguishes bewteen different subclasses. 
+This was correct in the pizza shop example, simple only the total
+number of produced pizzas mattered, however, in other situations,
+one may want to reset the counter each time a new subclass is created. 
+This can be done automagically by a cooperative inner metaclass:
+
+ ::
+
+  class WithMultiCounter(WithCounter):
+      """Each time a new subclass is derived, the counter is reset"""
+      class __metaclass__(type):
+          def __init__(cls,*args):
+              cls.counter=0
+              super(cls.__this,cls).__init__(*args)
+      reflective(__metaclass__)
+
+Notice that the order of execution of this code is subtle:
+
+1) first, the fact that WithMulticounter has a non-trivial metaclass is
+   registered, but nothing else is done;
+2) then, the line ``reflective(__metaclass__)`` is executed: this means
+   that the inner metaclass (and therefore its instances) get an
+   attribute ``._metaclass__this`` containing a reference to the
+   inner metaclass;
+3) then, the outer class is passed to its inner metaclass and created
+   by the inherited metaclass' ``__new__`` method;
+4) at this point  ``cls`` exists and ``cls.__this`` is inherited from
+   ``__metaclass__._metaclass__this``; this means that the expression
+   ``super(cls.__this,cls).__init__(*args)`` is correctly recognized and
+   'WithMultiCounter' can be initialized;
+5) only after that, the name 'WithMultiCounter' enters in the global 
+   namespace and can be recognized.
+
+Notice in particular that inside ``super``, we could also
+use ``cls.__metaclass__`` instead of ``cls.__this``, but this
+would not work inside ``__new__``, whereas ``__this`` would be
+recognized even in ``__new__``. Moreover, ``cls.__metaclass__``
+can be overridden in subclasses (they may have a submetaclass
+of ``__metaclass__``) therefore the usage is risky.
+
+Notice also that ``X.__class__`` can be different from
+``X.__metaclass__`` if the metaclass ``__new__`` method
+is overridden or in various other circumstances. 
+
+  >>> from oopp import *
+  >>> print MRO(WithMultiCounter)
+  1 - WithMultiCounter(WithCounter)[__metaclass__]
+  2 - WithCounter(object)
+  3 - object()
+
+For sake of readability, often it is convenient
+to give a name even to inner classes:
+
+::
+
+  #<oopp.py>
+
+  class WithMultiCounter(WithCounter):
+      """Each time a new subclass is derived, the counter is reset"""
+      class ResetsCounter(type):
+          def __init__(cls,*args):
+              cls.counter=0
+              super(cls.ResetsCounter,cls).__init__(*args)
+      __metaclass__=ResetsCounter
+
+  #</oopp.py>
+
+Notice that inside super we used the expression ``cls.ResetsCounter`` and
+not ``WithMultiCounter.ResetsCounter``: doing that would generate a
+``NameError: global name 'WithMultiCounter' is not defined`` since at the
+time when  ``ResetsCounter.__init__`` is called for the first time, 
+the class ``WithMultiCounter`` exists but is has not yet entered the global
+namespace: this will happens only after the initialization in the
+``ResetsCounter`` metaclass, as we said before.
+
+Without the metaclass one can reset the counter by hand each time, or
+can reset the counter on all the classes of the hierarchy with a
+convenient function (akin to the 'traceH' routine defined in chapter 6).
+
+Example:
+
+  >>> from oopp import *
+  >>> class GrandFather(WithMultiCounter): pass
+  >>> class Father(GrandFather): pass
+  >>> class Child(Father): pass
+  >>> GrandFather()
+  <__main__.GrandFather object at 0x402f7f6c> # first GrandFather instance
+  >>> Father()
+  <__main__.Father object at 0x402f79ec> # first Father instance
+  >>> Father()
+  <__main__.Father object at 0x402f7d4c> # second Father instance
+  >>> Child.counter # zero instances
+  0
+  >>> Father.counter # two instances
+  2
+  >>> GrandFather.counter # one instance
+  1
+
+I leave as an exercise for the reader to show that the original 'WithCounter'
+would fail to count correctly the different subclasses and would put the 
+total number of instances in 'Child'.
+
+Passing parameters to (meta) classes
+-------------------------------------------------------------------------
+
+Calling a class with brackets is a way of passing parameters to it (or
+to its instances, if the 'returnclass' flag is not set). 
+There additional ways for of doing that. 
+One can control the instantiation syntax of classes by redefining the 
+``__call__`` method of the metaclass. The point is that when we instantiate 
+an object with the syntax ``c=C()``, Python looks
+at the ``__call__`` method of the metaclass of 'C'; the default behaviour
+it is to call ``C.__new__`` and ``C.__init__`` in succession, however, that
+behavior can be overridden. Let me give an example without using
+anonymous metaclasses (for sake of clarity only).
+
+ ::
+
+  #<metacall.py>
+
+  class M(type): # this is C metaclass
+      def __call__(cls):
+          return "Called M.__call__" 
+
+  C=M('C',(),{}) # calls type(M).__call__
+  c=C() # calls type(C).__call__
+  # attention: c is a string!
+  print c #=> Called M.__call__
+
+  #</metacall.py>
+
+In this example, ``M.__call__`` simply 
+returns the string ``Called M.__call__``, and the class
+'C' is *not* instantiated. Overriding the metaclass
+``__call__ `` method therefore provides another way to implement
+the ``Singleton`` pattern. However, savage overridings as the one in
+this example, are not a good idea, since it will confuse everybody.
+This is an example where metaclasses change the semantics: whereas
+usually the notation ``C()`` means "creates a C instance", the
+metaclass can give to the syntax ``C()`` any meaning we want.
+Here there is both the power and the danger of metaclasses: they
+allows to make both miracles and disasters. Nevertheless, used with
+a grain of salt, they provide a pretty nice convenience.
+
+Anyway, overriding the '__call__' method of the metaclass can be 
+confusing, since parenthesis are usually reserved to mean instantion,
+therefore I will prefere to pass arguments trough brackets.
+
+The beauty and the magic of metaclasses stays in the fact that this mechanism 
+is completely general: since metaclasses themselves are classes, we can
+'CallableWithBrackets' to pass arguments to a metaclass, i.e.
+'CallableWithBrackets' can also be used as a meta-metaclass!
+
+I leave as an exercise for the reader to figure out
+how to define meta-meta-metaclasses, meta-meta-meta-metaclasses, etc.
+etc. (there is no limit to the abstraction level you can reach with 
+metaclasses;-)
+
+Let me show an example: a magical way of making methods cooperative.
+This can be done trough a 'Cooperative' metaclass that inherits from
+'BracketCallable' and therefore has 'BracketCallable.__metaclass__'
+as (meta)metaclass:
+ 
+ ::
+
+  #<oopp.py>
+
+  class Cooperative(BracketCallable,type):
+      """Bracket-callable metaclass implementing cooperative methods. Works
+      well for plain methods returning None, such as __init__"""
+      def __init__(cls,*args):
+          methods=cls.bracket_args
+          for meth in methods: 
+              setattr(cls,meth,cls.coop_method(meth,vars(cls).get(meth)))
+      def coop_method(cls,name,method): # method can be None
+          """Calls both the superclass method and the class method (if the 
+          class has an explicit method). Implemented via a closure"""
+          def _(self,*args,**kw):
+              getattr(super(cls,self),name)(*args,**kw) # call the supermethod
+              if method: method(self,*args,**kw) # call the method
+          return _
+
+  #</oopp.py>
+
+The code above works for methods returing ``None``, such as ``__init__``.
+Here I give a first example of application: a hierarchy where the ``__init__``
+methods are automatically called (similar to automatic initialization
+in Java).
+
+ ::
+
+  #<cooperative.py>
+
+  from oopp import Cooperative
+
+  class B(object):
+      """Cooperative base class; all its descendants will automagically 
+      invoke their ancestors __init__ methods in chain."""
+      __metaclass__=Cooperative['__init__']
+      def __init__(self,*args,**kw):
+          print "This is B.__init__"
+  
+  class C(B):
+      "Has not explicit __init__"
+  
+  class D(C):
+      """The metaclass makes D.__init__ to call C.__init__ and 
+      therefore B.__init__"""
+      def __init__(self,*args,**kw):
+          print "This is D.__init__"
+
+  d=D()
+  
+  print "The metaclass of B is",type(B)
+  print "The meta-metaclass of B is", type(type(B))
+  
+  #</cooperative.py>
+
+Output:
+
+ ::
+
+  This is B.__init__
+  This is D.__init__
+  The metaclass of B is <class 'oopp.Cooperative'>
+  The meta-metaclass of B  is <class 'oopp.__metaclass__'>
+
+A second example, is the following, an alternative way of
+making the paleoanthropological hierarchy of chapter 4 cooperative:
+
+ ::
+
+  #<paleo.py>
+
+  from oopp import Cooperative,Homo
+
+  class HomoHabilis(Homo):
+      __metaclass__=Cooperative['can']
+      def can(self):
+          print " - make tools"
+
+  class HomoSapiens(HomoHabilis):
+      def can(self):
+          print " - make abstractions"
+      
+  class HomoSapiensSapiens(HomoSapiens):
+      def can(self):
+          print " - make art"
+
+  HomoSapiensSapiens().can()
+
+  # Output:
+
+  # <HomoSapiensSapiens> can:
+  #  - make tools
+  #  - make abstractions
+  #  - make art
+
+  #</paleo.py>
+
+Metaclasses can be used to violate the old good rule "explicit is
+better than implicit". Looking at the source code for 'HomoSapiens'
+and 'HomoSapiensSapiens' one would never imagine the ``can`` is
+somewhat special. That is why in the following I will prefer to
+use the anonymous super call mechanism, which is explicit, instead
+of the implicit cooperative mechanism.
+
+Meta-functions
+---------------------------------------------------------------------
+
+The third and deepest secret of the ``__metaclass__`` hook is that, even if
+it is typically used in conjunction with metaclasses, actually the hook 
+can refer to generic class factories callable with the signature
+``(name,bases,dic)``. Let me show a few examples 
+where ``__metaclass__`` is a function or a generic callable object
+instead of being a metaclass:
+
+ ::
+
+  #<metafun.py>
+
+  from oopp import kwdict
+
+  class Callable(object):
+      def __call__(self,name,bases,dic):
+          print name,bases,'\n',kwdict(dic)
+          return type(name,bases,dic)
+
+  callableobj=Callable()
+
+  class C: __metaclass__=callableobj
+
+  print "type of C:",C.__class__
+
+  def f(name,bases,dic):
+      print name,bases,'\n',kwdict(dic)
+      return type(name,bases,dic)
+
+  class D: __metaclass__=f
+
+  print "type of D:",D.__class__
+
+  class B(object):
+      def __metaclass__(name,bases,dic):
+          """In this form, the __metaclass__ attribute is a function. 
+          In practice, it works as a special static method analogous 
+          to __new__"""
+          print "name: ", name
+          print "bases:", bases
+          print "dic:\n",kwdict(dic)
+          return type(name,bases,dic)
+
+  class E(B): pass
+
+  print "type of E:",E.__class__
+  print "Non-called E.__metaclass__:", E.__metaclass__
+
+  #</metafun.py>
+
+With output
+
+ ::
+
+  C () 
+  __metaclass__ = <Callable object at 0x401c964c>
+  __module__ = __builtin__
+  type of C: <type 'type'>
+  D () 
+  __metaclass__ = <function f at 0x401c4994>
+  __module__ = __builtin__
+  type of D: <type 'type'>
+  name:  B
+  bases: (<type 'object'>,)
+  dic: 
+  __metaclass__ = <function __metaclass__ at 0x401c4a3c>
+  __module__ = __builtin__
+  type of E: <type 'type'>
+  Non-called E.__metaclass__: <unbound method E.__metaclass__>
+
+The advantage/disadvantage of this solution is that the ``__metaclass__`` 
+hook is called only once, i.e. it is not called again if a new class
+is derived from the original one. For instance in this example 'E' is
+derived from 'B', but the function ``B.__metaclass__`` is *not* called
+during the creation of 'E'.
+
+Metafunctions can also be used when one does not want to transmit the
+metaclass contraint. Therefore they usage is convenient in exactly
+the opposite situation of a cooperative metaclass.
+
+Anonymous cooperative super calls
+-----------------------------------------------------------------------
+
+As I noticed in the previous chapters, the ``super`` 
+mechanism has an annoying 
+problem: one needs to pass explicitely the name of the base class. Typically, 
+this is simply an 
+inelegance since it is annoying to be forced to retype the name of the base 
+class. However, in particular
+cases, it can be a problem. This happens for instance if we try to
+pass the class's methods to a different class: one cannot do that,
+since the methods contains an explicit reference to the original class
+and would not work with the new one. Moreover, having named super calls
+is annoying in view of refactoring. Consider for
+instance the previous ``supernew.py`` script: in the ``__new__`` method
+defined inside the class 'B', we called ``Super`` with the syntax
+``Super(B,cls)`` by repeating the name of the class 'B'. Now,
+if in the following I decide to give to 'B' a more descriptive
+name, I have to go trough the source, search all the ``super``
+calls, and change them accordingly to the new name. It would be
+nice having Python do the job for me. A first solution is to call
+``super`` (or ``Super``) with the syntax ``super(self.__this,obj)``,
+where the special name ``__this`` is explicitly replaced by the name 
+of the class where the call is defined by the 'reflective' function
+of last chapter. This approach has the disadvantage that each time we
+derive a new class, we need to invoke *explicitely* the routine 
+``reflective``. It would be marvelous to instruct Python to invoke
+``reflective`` automatically at each class creation. Actually, this
+seems to be deep magic and indeed it is: fortunately, a custom metaclass 
+can perform this deep magic in few lines:
+
+ ::
+
+  #<oopp.py>
+    
+  class Reflective(type):
+      """Cooperative metaclass that defines the private variable __this in
+      its instances. __this contains a reference to the class, therefore
+      it allows anonymous cooperative super calls in the class."""
+      def __init__(cls,*args):
+          super(Reflective,cls).__init__(*args)
+          reflective(cls)
+
+  #</oopp.py>
+
+Now, let me show how 'Reflective' can be used in a practical example. 
+
+By deriving new metaclasses from 'Reflective', one can easily 
+create powerful class factories that generate reflective classes. 
+ 
+Suppose I want to define a handy class 
+factory with the abilitity of counting the number of its instances.
+
+This can be done by noticing that metaclasses are just classes, therefore 
+they can be composed with regular classes in multiple inheritance. In 
+particular one can derive a 'Logged' metaclass from 'WithLogger': in
+this way we send a message to a log file each time a new class is created.
+This can be done by composing 'WithLogger' with 
+'WithMultiCounter.__metaclass__' and with 'Reflective':
+
+ ::
+
+  #<oopp.py>
+
+  class Logged(WithLogger,Reflective): 
+      """Metaclass that reuses the features provided by WithLogger. 
+      In particular the classes created by Logged are Reflective, 
+      PrettyPrinted and Customizable.""" 
+      #WithLogger provides logfile and verboselog
+      def __init__(cls,*args,**kw):
+          super(Logged,cls).__init__(*args,**kw) 
+          bases=','.join([c.__name__ for c in cls.__bases__])
+          print >> cls.logfile, "%s is a child of %s" % (cls,bases)
+          print >> cls.logfile,'and an instance of %s' % type(cls).__name__
+
+  #</oopp.py>
+
+The MRO is
+
+  >>> print MRO(Logged)
+  MRO of Logged:
+    0 - Logged(WithLogger,Reflective)
+    1 - WithLogger(WithCounter,PrettyPrinted)
+    2 - WithCounter(object)
+    3 - PrettyPrinted(object)
+    4 - Reflective(type)
+    5 - type(object)
+    6 - object()
+
+and the inheritance graph can be drawn as follows:
+
+ ::
+
+
+          _____________________ object 6 ___
+         /                        /         \
+   2 WithCounter        3 PrettyPrinted        type 5
+            \                /               /
+             \              /               /
+              \            /               /
+               \          /               /
+                \        /               /
+                 \      /               /
+                1 WithLogger       Reflective 4
+                     \           /
+                      \         /
+                       \       /
+                        \     /
+                   Logged 0
+                           :
+                           :
+                           C1
+
+'WithCounter' acts now as a metaclass, since WithCounter.__new__ invokes
+type.__new__. Since ``type.__new__`` is non-cooperative,
+in the composition of a metaclass with a regular class, the metaclass
+should be put first: this guarantees that ``__new__`` derives from
+``type.__new__``, thus avoiding the error message.
+
+  >>> Logged.verboselog=True
+  >>> C1=Logged('C1',(),{})
+  *****************************************************************************
+  Tue Apr 22 18:47:05 2003
+  1. Created 'C1'
+  with accessibile non-special attributes:
+  _C1__this = 'C1'
+  'C1' is a child of object
+  and an instance of Logged
+
+Notice that any instance of 'WithCounterReflective' inherits the 'WithCounter' 
+attribute ``counter``, that counts the number of classes that have been 
+instantiated (however it is not retrieved by ``dir``; moreover the 
+instances of 'WithCounterReflective' instances have no ``counter`` attribute).
+
+  >>> C1.counter
+  1
+
+More on metaclasses as class factories 
+----------------------------------------------------------------------------
+
+A slight disadvantage of the approach just described, 
+is that 'Logged'  cooperatively invokes the ``type.__new__`` 
+static method, therefore, when we invoke the metaclass, we must explicitly 
+provide a name, a tuple of base classes and a dictionary, since the 
+``type.__new__`` staticmethod requires that signature. Actually, 
+the expression  
+
+ ::
+
+  C=Logged(name,bases,dic)
+
+is roughly syntactic sugar for 
+
+ ::
+
+  C=Logged.__new__(Logged,name,bases,dic) 
+  assert isinstance(C,Logged)
+  Logged.__init__(C,name,bases,dic)
+
+If a different interface is desired, the best way is to use a class
+factory 'ClsFactory' analogous to the object factory 'Makeobj' 
+defined in chapter 4. It is convenient to make 'ClsFactory'
+bracket-callable.
+
+ ::
+
+  #<oopp.py>
+ 
+  class ClsFactory(BracketCallable):
+      """Bracket callable non-cooperative class acting as 
+      a factory of class factories.
+
+      ClsFactory instances are class factories accepting 0,1,2 or 3 arguments. 
+    . They automatically converts functions to static methods 
+      if the input object is not a class. If an explicit name is not passed
+      the name of the created class is obtained by adding an underscore to 
+      the name of the original object."""
+      
+      returnclass=False # ClsFactory[X] returns an *instance* of ClsFactory
+
+      def __call__(self, *args):
+          """Generates a new class using self.meta and avoiding conflicts.
+          The first metaobject can be a dictionary, an object with a
+          dictionary (except a class), or a simple name."""
+          
+          # default attributes
+          self.name="CreatedWithClsFactory"    
+          self.bases=()
+          self.dic={}
+          self.metas=self.bracket_args
+
+          if len(args)==1:
+              arg=args[0]
+              if isinstance(arg,str): # is a name 
+                  self.name=arg
+              elif hasattr(arg,'__name__'): # has a name
+                  self.name=arg.__name__+'_'
+              self.setbasesdic(arg)
+          elif len(args)==2: 
+              self.name=args[0] 
+              assert isinstance(self.name,str) # must be a name
+              self.setbasesdic(args[1])
+          elif len(args)==3: # must be name,bases,dic
+              self.name=args[0]
+              self.bases+=args[1]
+              self.dic.update(args[2])
+          if len(args)<3 and not self.bases: # creating class from a non-class
+              for k,v in self.dic.iteritems():
+                  if isfunction(v): self.dic[k]=staticmethod(v)
+          #return child(*self.bases,**vars(self))
+          return makecls(*self.metas)(self.name,self.bases,self.dic)
+
+      def setbasesdic(self,obj):
+          if isinstance(obj,tuple): # is a tuple
+              self.bases+=obj
+          elif hasattr(obj,'__bases__'): # is a class
+              self.bases+=obj.__bases__
+          if isinstance(obj,dict): # is a dict
+              self.dic.update(obj)
+          elif hasattr(obj,"__dict__"): # has a dict
+              self.dic.update(obj.__dict__)
+
+  #</oopp.py>
+
+'ClsFactory[X]' where 'X' is a metaclass returns callable objects acting as
+class factories. For instance
+
+ ::
+
+  #<oopp.py>
+
+  Class=ClsFactory[type] # generates non-conflicting classes
+  Mixin=ClsFactory[Reflective] # generates reflective classes
+    
+  #</oopp.py>
+
+can be used as a class factories that automatically provides a default name,
+base classes and dictionary, and avoids meta-type conflicts.
+'Mixin' generates reflective classes that can be used as mixin in multiple
+inheritance hierarchies. Here I give few example of usage of 'Class':
+
+  >>> from oopp import *
+  >>> C1,C2,C3=[Class('C'+str(i+1)) for i in range(3)]
+  >>> C1
+  <class 'oopp.C1'>
+  >>> C2
+  <class 'oopp.C2'>
+  >>> C3
+  <class 'oopp.C3'>]
+ 
+  >>> Clock=Class('Clock',{'get_time':get_time})
+  >>> Clock
+  <class 'oopp.Clock'>
+  >>> Clock.get_time()
+  16:01:02
+
+Another typical usage of 'Class' is the conversion of a module in a class: 
+for instance
+
+  >>> time_=Class(time)
+  >>> time_
+  <class 'oopp.time_'>
+
+Notice the convention of adding an underscore to the name of the class 
+generated from the 'time' module.
+  
+  >>> time_.asctime()
+  'Mon Jan 20 16:33:21 2003'
+
+Notice that all the functions in the module ``time`` has been magically 
+converted in staticmethods of the class ``time_``. An advantage of this 
+approach is that now the module is a class and can be enhanced with 
+metaclasses: for instance we could add tracing capabilities, debugging 
+features, etc. 
+
+By design, 'Class' and 'Reflective' also works when the first argument 
+is a class or a tuple of base classes:
+
+  >>> ClsFactory_=Class(ClsFactory)
+  >>> type(ClsFactory_)
+  <class 'oopp.__metaclass__'>
+  >>> ClsFactory_=Mixin(ClsFactory) 
+  >>> type(ClsFactory_) # automagically generated metaclass
+  <class 'oopp._Reflective__metaclass__'>
+
+Programming with metaclasses
+--------------------------------------------------------------------------
+In order to how a non-trivial application of metaclasses in real life,
+let me come back to the pizza shop example discussed in chapter 4 and 6.
+
+ ::
+
+  #<oopp.py>
+
+  def Pizza(toppings,**dic): 
+       """This function produces classes inheriting from GenericPizza and 
+       WithLogger, using a metaclass inferred from Logged"""
+       toppinglist=toppings.split()
+       name='Pizza'+''.join([n.capitalize() for n in toppinglist])
+       dic['toppinglist']=toppinglist
+       return ClsFactory[Logged](name,
+              (GenericPizza,WithLogger,WithMultiCounter),dic)
+
+  #</oopp.py>
+
+  >>> from oopp import *
+  >>> Margherita=Pizza('tomato mozzarella',verboselog=True)
+  *****************************************************************************
+  Tue May 13 14:42:17 2003
+  1. Created 'PizzaTomatoMozzarella'
+  with accessibile non-special attributes:
+  ResetsCounter = <class 'oopp.ResetsCounter'>
+  _GenericPizza__this = <class 'oopp.GenericPizza'>
+  _WithCounter__this = <class 'oopp.WithCounter'>
+  _WithLogger__this = <class 'oopp.WithLogger'>
+  baseprice = 1
+  counter = 0
+  formatstring = %s
+  logfile = <open file '<stdout>', mode 'w' at 0x402c2058>
+  price = <unbound method PizzaTomatoMozzarella.price>
+  sizefactor = {'small': 1, 'large': 3, 'medium': 2}
+  topping_unit_price = 0.5
+  toppinglist = ['tomato', 'mozzarella']
+  toppings_price = <unbound method PizzaTomatoMozzarella.toppings_price>
+  verboselog = True
+  'PizzaTomatoMozzarella' is a child of GenericPizza,WithLogger,
+  WithMultiCounter and an instance of _LoggedResetsCounter
+
+Notice the *deep* magic: ``Pizza`` invokes ``ClsFactory[Logged]`` which in 
+turns calls the class factory ``child`` that creates 'Margherita' from 
+'GenericPizza', 'WithLogger' and 'WithMultiCounter' by using the
+metaclass 'Logged': however, since 'WithMultiCounter', has the internal
+metaclass 'ResetsCounter' , there is a metatype conflict:
+``child`` *automagically* solves the conflict by creating the metaclass
+'_LoggedResetsCounter' that inherits both from 'Logged' and 'ResetsCounter'. 
+At this point, 'Margherita' can be safely created
+by '_LoggedResetsCounter'. As such, the creation of 'Margherita'
+will be registered in the log file and 'Margherita' (with all its
+children) will continue to be able to recognize the special identifier 
+``this``. 
+
+  >>> print Margherita('large')
+  *****************************************************************************
+  Tue May 13 14:47:03 2003
+  1. Created large pizza with tomato,mozzarella, cost $ 6.0
+  with accessibile non-special attributes:
+  ResetsCounter = <class 'oopp.ResetsCounter'>
+  _GenericPizza__this = <class 'oopp.GenericPizza'>
+  _WithCounter__this = <class 'oopp.WithCounter'>
+  _WithLogger__this = <class 'oopp.WithLogger'>
+  baseprice = 1
+  counter = 1
+  formatstring = %s
+  logfile = <open file '<stdout>', mode 'w' at 0x402c2058>
+  price = <bound method PizzaTomatoMozzarella.price of 
+  <oopp.PizzaTomatoMozzarella object at 0x4032764c>>
+  size = large
+  sizefactor = {'small': 1, 'large': 3, 'medium': 2}
+  topping_unit_price = 0.5
+  toppinglist = ['tomato', 'mozzarella']
+  toppings_price = <bound method PizzaTomatoMozzarella.toppings_price of 
+  <oopp.PizzaTomatoMozzarella object at 0x4032764c>>
+  verboselog = True
+  large pizza with tomato,mozzarella, cost $ 6.0
+  >>> print MRO(Margherita)
+  MRO of PizzaTomatoMozzarella:
+    0 - PizzaTomatoMozzarella(GenericPizza,WithLogger)[_LoggedResetsCounter]
+    1 - GenericPizza(object)
+    2 - WithLogger(WithCounter,Customizable,PrettyPrinted)
+    3 - WithMultiCounter(WithCounter)[ResetsCounter]
+    4 - WithCounter(object)
+    5 - PrettyPrinted(object)
+    6 - object()
+
+Notice that
+
+  >>> print Margherita
+  'PizzaTomatoMozzarella'
+
+The power of inheritance in this example is quite impressive, since
+I have reused the same class 'WithLogger' (and its children) both in the 
+metaclass hierarchy and in the regular hierarchy: this means that I have added
+logging capabilities both to classes and their instances in a
+strike! And there is no confusion between the two. For instance,
+there is a ``counter`` attribute for the metaclass 'Logged' 
+and many independent ``counter`` attributes for any generated class,
+i.e. for any kind of pizza.
+
+ It is interesting to notice that '' itself is an instance of
+ its inner metaclass, as ``type()`` would show. This technique
+ avoids the need for inventing a new name for the metaclass. The inner
+ metaclass is automatically inherited by classes inheriting from the outer
+ class. 
+
+Metaclass-aided operator overloading 
+---------------------------------------------------------------------------
+
+As we discussed in chapter 4, inheriting from built-in types is generally
+painful. The problem is that if P is a primitive class, i.e. a 
+Python built-in type, and D=D(P) is a derived class, then the 
+primitive methods returning P-objects have to be modified (wrapped) in 
+such a way to return D-objects. 
+
+The problem is expecially clear in the context of operator overloading.
+
+Consider for instance the problem of defining a 'Vector' class in the 
+mathematical sense. Mathematically-speaking, vectors are defined as objects 
+that can be summed each other and multiplied by numbers; they can be 
+represented by (finite or infinite) sequences. In the case of finite 
+sequences, vectors can be represented with lists and a vector class can 
+be naturally implemented by subclassing ``list``:
+
+ ::
+
+  #<vector.py>
+
+  class Vector(list):
+      """Implements finite dimensional vectors as lists. Can be instantiated
+      as Vector([a,b,c,..]) or as Vector(a,b,c ..)"""
+      def __add__(self,other):
+          return [el+other[i] for i,el in enumerate(self)]
+      __radd__=__add__
+      def __mul__(self,scalar):
+          return [el*scalar for el in self]
+      def __rmul__(self,scalar):
+          return [scalar*el for el in self]
+
+  v=Vector([1,0])
+  w=Vector([0,1])
+
+  print v+w, type(v+w) 
+  print 2*v, type(2*v) 
+  print v*2, type(v*2) 
+
+  #</vector.py>
+
+With output
+
+ ::
+
+  [1, 1] <type 'list'>
+  [2, 0] <type 'list'>
+  [2, 0] <type 'list'>
+
+The problem is that the overloaded methods must be wrapped in such a way
+to return ``Vector`` object and not ``list`` object; moreover, if
+``Vector`` is subclassed (for instance by defining a ``NumericVector``),
+the overloaded methods must return instances of the subclass. There is
+only one way of doing that automatically: trough the magic of metaclasses.
+
+Here is the solution, involving an ``autowrappedmethod`` descriptor class,
+that wraps the overloaded operators and is automatically invoked by
+the metaclass ``AutoWrapped``.
+ 
+ ::
+
+  #<oopp.py>
+
+  class autowrappedmethod(wrappedmethod):
+      """Makes the method returning cls instances, by wrapping its
+      output with cls"""
+      klass=None # has to be fixed dynamically from outside
+      def __init__(self,meth):
+          super(autowrappedmethod,self).__init__(meth) # cooperative
+          self.klass=self.klass # class variable -> instance variable
+      def wrapper(self): # closure
+          return lambda *args,**kw: self.klass(self.func(*args,**kw))
+
+  class AutoWrapped(type):
+      """Metaclass that looks at the methods declared in the attributes 
+      builtinlist and wraplist of its instances and wraps them with
+      autowrappedmethod."""
+      def __init__(cls,name,bases,dic):
+          super(AutoWrapped,cls).__init__(name,bases,dic) # cooperative
+          cls.builtinlist=getattr(cls,'builtinlist',[])
+          if not hasattr(cls,'diclist') : # true only at the first call
+              cls.diclist=[(a,vars(bases[0])[a]) for a in cls.builtinlist]
+          if dic.has_key('wraplist'): # can be true at any call
+              cls.diclist+=[(a,dic[a]) for a in cls.wraplist] 
+          wrapper=autowrappedmethod.With(klass=cls)
+          d=dict([(a,wrapper(v)) for a,v in cls.diclist])
+          customize(cls,**d)
+      
+  #</oopp.py>
+
+Now the ``Vector`` class can be written as
+
+ ::
+
+  #<oopp.py>
+
+  class Vector(list):
+      """Implements finite dimensional vectors as lists. Can be instantiated
+      as Vector([a,b,c,..]) or as Vector(a,b,c ..)"""
+      __metaclass__=AutoWrapped
+      wraplist='__add__ __radd__ __mul__ __rmul__'.split()
+      def __add__(self,other):
+          return [el+other[i] for i,el in enumerate(self)]
+      __radd__=__add__
+      def __mul__(self,scalar):
+          return [scalar*el for el in self]
+      def __rmul__(self,scalar):
+          return [el*scalar for el in self]
+
+  #</oopp.py>
+
+Here the ``AutoWrapped`` metaclass wraps the output of ``__add__, 
+__radd__, __mul__, __rmul__``, guaranteeing that they returns ``Vector``
+instances or instances of some subclass of ``Vector``, if ``Vector`` is
+subclassed. This is an example of usage:
+
+  .. doctest
+
+  >>> from oopp import Vector
+  >>> v=Vector([1,0])
+  >>> v
+  <oopp.Vector object at 0x4032858c>
+  >>> w=Vector([0,1])
+  >>> v+2*w
+  <oopp.Vector object at 0x403190ac>
+  >>> print v+2*w
+  [1, 2]
+
+It should be clear by now that metaclasses are the natural framework where
+to discuss operator overloading
+(at least in languages that have metaclasses ;-). After all, operator
+overloading is another kind of (very nice) syntactic sugar and we know
+already that metaclasses are very good when we need syntactic sugar.

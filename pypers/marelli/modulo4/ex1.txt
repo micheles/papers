@@ -1,0 +1,15 @@
+  #<_main.py>
+
+  class C(object):
+      pass
+    
+  def f(x):
+      return x
+    
+  #</_main.py>
+
+>>> f(1) == 1
+True
+
+>>> C
+<class '_main.C'>

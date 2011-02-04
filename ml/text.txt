@@ -1,0 +1,36 @@
+Functional Programming For Dynamic Programmers - Part 4
+=======================================================
+
+:author: Michele Simionato
+:date: December 2007
+
+This is the fourth of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers, i.e. 
+for programmers with a background in dynamically typed languages, such as Perl, 
+Python, Ruby, or languages in the Lisp family. The approch is eminently practical
+and example-based; the main goal is to see if we can stole some good idea from
+statically typed languages. In order to be concrete, I will consider languages
+in the ML family, because they are pretty nice and much easier to understand
+that Haskell.
+
+Text processing in SML
+----------------------------------------------
+
+Scripting languages, starting from Perl, have a very strong tradition
+in the field of text processing. In comparison, SML has very few
+primitive text processing functions. Still, it is not difficult to implement a few
+basic facilities. In this assessment, as a learning exercise, I will
+show how can implement a simple template mechanism.  In order to do
+so, the first thing to discuss is the regular expression.  More or
+less all SML implementations have they own regular expression library;
+here I will consider only Alice ML library, which is very simple and
+needs to be supplemented by some utility in order to become usable.
+
+$pippo:
+$hello
+$are pippo lippo
+
+fun pippo {hello, are} = "" ^ hello ^ "" ^ are " pippo lippo"
+
+
+link:<a href="$u">$a</a>

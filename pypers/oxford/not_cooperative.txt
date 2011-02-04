@@ -1,0 +1,120 @@
+
+Background: I am preparing my lecture for the Oxford ACCU conference
+and I wanted to show how __getattribute__ can be used to trace
+attribute access. Then I discovered that composing the TracedAttribute 
+mixin with a built-in type does not work reliabily, where it works
+perfectly fine with custom classes. 
+
+Methods of builtin types are usually cooperative. 
+Consider for instance this example:
+
+#<cooperative.py>
+
+class B1(object):
+    def __init__(self, **kw):
+        print "B1.__init__"
+        super(B1, self).__init__(**kw)
+
+class B2(object):
+    def __init__(self, **kw):
+        print "B2.__init__"
+        super(B2, self).__init__(**kw)
+
+#</cooperative.py>
+
+>>> from cooperative import B1, B2
+>>> class C(B1, B2, str):
+...     pass
+>>> c = C()
+B1.__init__
+B2.__init__
+
+str.__init__, B1.__init__ and B2.__init__ are cooperative, as expected.
+Moreover,
+
+>>> class C(B1, str, B2):
+...     pass
+>>> c = C()
+B1.__init__
+B2.__init__
+
+and
+
+>>> class C(str, B1, B2):
+...     pass
+>>> c = C()
+B1.__init__
+B2.__init__
+
+also work as expected.
+
+However str.__getattribute__ (the same for int.__getattribute__)
+is only apparently  cooperative with B1.__getattribute__ and 
+B2.__getattribute__. Consider this other example:
+
+#<trace_builtin.py>
+
+class TracedAccess1(object):
+    def __getattribute__(self, name):
+        print "1: accessing %s" % name
+        return super(TracedAccess1, self).__getattribute__(name)
+
+class TracedAccess2(object):
+    def __getattribute__(self, name):
+        print "2: accessing %s" % name
+        return super(TracedAccess2, self).__getattribute__(name)
+
+class B(object):
+    def __init__(self, *args):
+        super(B, self).__init__(*args)
+
+
+#</trace_builtin.py>
+
+This *seems* to work:
+
+>>> from trace_builtin import TracedAccess1, TracedAccess2
+>>> class C(TracedAccess1, TracedAccess2, str):
+...     pass
+>>> cinit = C().__init__
+1: accessing __init__
+2: accessing __init__
+
+However, if I change the order of the bases, I get
+ 
+>>> class C(TracedAccess1, str, TracedAccess2):
+...     pass
+>>> cinit = C().__init__
+1: accessing __init__
+
+and
+
+>>> class C(str, TracedAccess1, TracedAccess2):
+...     pass
+>>> cinit = C().__init__
+
+so str.__getattribute__ (or int.__getattribute__) is not
+cooperative.
+
+There is no such a problem for a custom type, such as B:
+
+>>> from trace_builtin import B
+>>> class C(TracedAccess1, TracedAccess2, B):
+...     pass
+>>> cinit = C().__init__
+1: accessing __init__
+2: accessing __init__
+
+>>> class C(TracedAccess1, B, TracedAccess2):
+...     pass
+>>> cinit = C().__init__
+1: accessing __init__
+2: accessing __init__
+
+>>> class C(B, TracedAccess1, TracedAccess2):
+...     pass
+>>> cinit = C().__init__
+1: accessing __init__
+2: accessing __init__
+
+Here, everything works fine. Can somebody share some light on this?

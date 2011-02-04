@@ -1,0 +1,916 @@
+THE BEAUTY OF OBJECTS
+===========================================================================
+
+In this chapter I will show how to define generic objects in Python, and
+how to manipulate them.
+
+User defined objects
+--------------------------------------------------------------------------
+
+In Python, one cannot directly modify methods and attributes of built-in 
+types, since this would be a potentially frightening source of bugs. 
+Imagine for instance of changing the sort method of a list and invoking an 
+external module expecting the standard sort: all kind of hideous outcome 
+could happen. 
+
+Nevertheless, in Python, as in all OOP languages, the user can define 
+her own kind of objects, customized to satisfy her needs. In order to
+define a new object, the user must define the class of the objects she 
+needs. The simplest possible class is a do-nothing class:
+
+ ::
+
+  #<oopp.py>
+
+  class Object(object):
+      "A convenient Object class"
+
+  #</oopp.py>
+
+Elements of the ``Object`` class can be created (instantiated) quite
+simply:
+ 
+  >>> from oopp import Object
+  >>> obj1=Object()
+  >>> obj1
+  <oopp.Object object at 0x81580ec>
+  >>> obj2=Object()
+  obj2
+  <object.Object object at 0x8156704>
+
+Notice that the hexadecimal number 0x81580ec is nothing else that the
+unique object reference to ``obj1``
+
+  >>> hex(id(obj1))
+   '0x81580ec'
+
+whereas 0x8156704 is the object reference of ``obj2``:
+
+  >>> hex(id(obj2))
+  '0x8156704'
+
+However, at this point ``obj1`` and ``obj2`` are generic 
+doing nothing objects . Nevertheless, they have 
+at least an useful attribute, the class docstring:
+
+  >>> obj1.__doc__ #obj1 docstring
+  'A convenient Object class'
+  >>> obj2.__doc__ # obj2 docstring: it's the same
+  'A convenient Object class'
+
+Notice that the docstring is associate to the class and therefore all
+the instances share the same docstring, unless one explicitly assigns
+a different docstring to some instance. ``__doc__``
+is a class attribute (or a static attribute for readers familiar with the
+C++/Java terminology) and the expression is actually syntactic sugar for 
+
+  >>> class Object(object): # with explicit assignement to __doc__
+  ...    __doc__ = "A convenient Object class"
+
+
+Since instances of 'Object' can be modified, I can transform them in
+anything I want. For instance, I can create a simple clock:
+
+  >>> myclock=Object()
+  >>> myclock
+  <__main__.Object object at 0x8124614>
+
+A minimal clock should at least print the current time 
+on the system. This is given by the ``get_time`` function
+we defined in the first chapter. We may "attach" that function 
+to our clock as follows:
+
+  >>> import oopp
+  >>> myclock.get_time=oopp.get_time
+  >>> myclock.get_time # this is a function, not a method
+  <function get_time at 0x815c40c>
+ 
+In other words, we have converted the ``oopp.get_time`` function to a
+``get_time`` function of the object ``myclock``. The procedure works
+
+  >>> myclock.get_time()
+  '15:04:57'
+
+but has a disadvantage: if we instantiate another
+clock
+
+  >>> from oopp import Object
+  >>> otherclock=Object()
+
+the other clock will ``not`` have a get_time method:
+
+  >>> otherclock.get_time() #first attempt; error
+  AttributeError: 'Object' object has no attribute 'get_time'
+
+Notice instead that the docstring is a *class attribute*, i.e. it
+is defined both for the class and *all instances* of the class,
+therefore even for ``otherclock``:
+
+  >>> Object.__doc__
+  'A convenient Object class' 
+  >>> otherclock.__doc__
+  'A convenient Object class'
+
+We would like to convert the ``get_time`` function to a 
+``get_time`` method for the *entire* class 'Object', i.e. for all its
+instances. Naively, one would be tempted to write the following:
+
+  >>> Object.get_time = oopp.get_time
+
+However this would not work:
+
+  >>> otherclock.get_time() #second attempt; still error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: oopp.get_time() takes no arguments (1 given)
+
+This error message is something that all Python beginners encounter
+(and sometimes even non-beginners ;-). The solution is to introduce
+an additional argument:
+
+  >>> Object.get_time=lambda self : oopp.get_time()
+  >>> otherclock.get_time # this is method now, not a function
+  <bound method Object.<lambda> of <__main__.Object object at 0x815881c>>
+  >>> otherclock.get_time() #third attempt
+  '15:28:41'
+
+Why this works ? The explanation is the following:
+when Python encounters an expression of the form
+``objectname.methodname()`` it looks if there is a already a method 
+*attached* to the object:
+
+    a. if yes it invokes it with no arguments 
+       (this is why our first example worked);
+    b. if not it looks at the class of the object; if there is a method 
+       bound to the class it invokes that method *by passing the 
+       object as first argument*.
+
+When we invoked ``otherclock.get_time()`` in our second attempt, Python
+found that the function ``get_time`` was defined at the class level, 
+and sent it the ``otherclock`` object as first argument: however ``get_time`` 
+was bind to ``func_get_time``, which is function with *no* arguments: whence
+the error message. The third attempt worked since, thanks to the 
+lambda function trick, the ``get_time`` function has been converted to
+a function accepting a first argument.
+
+Therefore that's the rule: in Python, one can define methods 
+at the class level, provided one explitely introduces a first argument
+containing the object on which the method is invoked.
+
+This first argument is traditionally called ``self``; the name 'self' is not
+enforced, one could use any other valid Python identifier, however the
+convention is so widespread that practically everybody uses it;
+pychecker will even raise a warning in the case you don't follow the
+convention.
+
+I have just shown one the most interesting features of Python, its
+*dynamicity*: you can create the class first and add methods to it later.
+That logic cannot be followed in typical compiled language as C++. On the
+other hand, one can also define methods in a static, more traditional way:
+
+ ::
+
+  #<clock1.py>
+
+  "Shows how to define methods inside the class (statically)"
+
+  import oopp
+
+  class Clock(object):
+      'Clock class; version 0.1'
+      def get_time(self): # method defined inside the class
+          return oopp.get_time()
+
+  myclock=Clock() #creates a Clock instance
+  print myclock.get_time() # print the current time
+
+  #</clock1.py>
+
+In this case we have defined the ``get_time`` method inside the class as a
+normal function with an explicit first argument called self; this is
+entirely equivalent to the use of a lambda function.
+
+The syntax ``myclock.get_time()`` is actually syntactic sugar for
+``Clock.get_time(myclock)``.
+
+In this second form, it is clear the ``get_time`` is really "attached" to the
+class, not to the instance.
+
+Objects have static methods and classmethods
+-----------------------------------------------------------------------------
+
+ .. line-block::
+
+  *There should be one--and preferably only one--obvious way to do it*
+  -- Tim Peters, *The Zen of Python*.
+
+
+For any rule, there is an exception, and despite the Python's motto    
+there are many ways to define methods in classes. The way I presented
+before was the obvious one before the Python 2.2 revolution; however, 
+nowadays there is another possibility that, even if less obvious, has the 
+advantage of some elegance (and it is also slightly more efficient too, even if
+efficiency if never a primary concern for a Python programmer).
+We see that the first argument in the ``get_time`` method is useless,
+since the time is computed from the ``time.asctime()`` function which
+does not require any information about the object that is calling
+it. This waste is ugly, and since according to the Zen of Python
+ 
+    *Beautiful is better than ugly.*
+
+we should look for another way. The solution is to use a *static method*:
+when a static method is invoked, the calling object is *not* implicitly passed
+as first argument. Therefore we may use a normal function with no additional
+first argument to define the ``get_time`` method:
+
+ ::
+
+  #<oopp.py>
+
+  class Clock(object):
+      'Clock with a staticmethod'
+      get_time=staticmethod(get_time)
+
+  #</oopp.py>
+
+Here is how it works:
+
+  >>> from oopp import Clock
+  >>> Clock().get_time() # get_time is bound both to instances
+  '10:34:23'
+  >>> Clock.get_time() # and to the class
+  '10:34:26'
+
+The staticmethod idiom converts the lambda function to a
+static method of the class 'Clock'. Notice that one can avoid the
+lambda expression and use the (arguably more Pythonic) idiom
+
+ ::
+
+      def get_time()
+          return oopp.get_time()
+      get_time=staticmethod(oopp.get_time)
+
+as the documentation suggests:
+
+  >>> print  staticmethod.__doc__
+  staticmethod(function) -> method
+  Convert a function to be a static method.
+  A static method does not receive an implicit first argument.
+  To declare a static method, use this idiom:
+     class C:
+         def f(arg1, arg2, ...): ...
+         f = staticmethod(f)
+  It can be called either on the class (e.g. C.f()) or on an instance
+  (e.g. C().f()).  The instance is ignored except for its class.
+  Static methods in Python are similar to those found in Java or C++.
+  For a more advanced concept, see the classmethod builtin.
+
+At the present the notation for static methods is still rather ugly,
+but it is expected to improve in future versions of Python (probably
+in Python 2.4). Documentation for static methods can
+be found in Guido's essay and in the PEP.. : however this is intended for
+developers.
+
+As the docstring says, static methods are also "attached" to the
+class and may be called with the syntax ``Clock.get_time()``.
+
+A similar remark applies for the so called *classmethods*:
+
+  >>> print classmethod.__doc__
+  classmethod(function) -> method
+  Convert a function to be a class method.
+  A class method receives the class as implicit first argument,
+  just like an instance method receives the instance.
+  To declare a class method, use this idiom:
+  class C:
+      def f(cls, arg1, arg2, ...): ...
+      f = classmethod(f)
+  It can be called either on the class (e.g. C.f()) or on an instance
+  (e.g. C().f()).  The instance is ignored except for its class.
+  If a class method is called for a derived class, the derived class
+  object is passed as the implied first argument.
+  Class methods are different than C++ or Java static methods.
+  If you want those, see the staticmethod builtin.
+
+
+#When a regular method is invoked, a reference to the calling object is 
+#implicitely passed as first argument; instead, when a static method is 
+#invoked, no reference to the calling object is passed.
+
+As the docstring says, classmethods are convenient when one wants to pass 
+to a method the calling *class*, not the calling object. Here there is an 
+example:
+
+  >>> class Clock(object): pass
+  >>> Clock.name=classmethod(lambda cls: cls.__name__)
+  >>> Clock.name() # called by the class
+  'Clock'
+  >>> Clock().name() # called by an instance
+  'Clock'
+
+Notice that classmethods (and staticmethods too) 
+can only be attached to classes, not to objects:
+
+  >>> class Clock(object): pass
+  >>> c=Clock()
+  >>> c.name=classmethod(lambda cls: cls.__name__) 
+  >>> c.name() #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: 'classmethod' object is not callable
+
+gives a TypeError. The reason is that classmethods and staticmethods 
+are implemented 
+trough *attribute descriptors*. This concept will be discussed in detail in a 
+forthcoming in chapter 6.
+
+Notice that classmethods are not proving any fundamental feature, since
+one could very well use a normal method and retrieve the class with 
+``self.__class__`` as we did in the first chapter. 
+Therefore, we could live without (actually, I think they are a non-essential
+complication to the language).
+Nevertheless, now that we have them, we can use them, since
+they come handy in various circumstances, as we will see in the following.
+
+Objects have their privacy
+---------------------------------------------------------------------------
+
+In some situations, it is convenient to give to the developer
+some information that should be hided to the final user. To this
+aim Python uses private names (i.e. names starting with a single
+underscore) and private attributes (i.e. attributes starting with
+a double underscore). 
+
+
+Consider for instance the following script:
+
+ ::
+
+  #<privacy.py>
+
+  import time
+
+  class Clock(object):
+      __secret="This Clock is quite stupid."
+
+  myclock=Clock()
+  try: print myclock.__secret
+  except Exception,e: print "AttributeError:",e
+
+  #</privacy.py>
+
+The output of this script is
+
+ ::
+
+  AttributeError: 'Clock' object has no attribute '__secret'
+
+Therefore, even if the Clock object *does* have a ``__secret`` attribute, 
+the user cannot access it ! In this way she cannot discover that
+actually "This Clock is quite stupid."
+
+In other programming languages, attributes like ``__secret`` are
+called "private" attributes. However, in Python private attributes
+are not really private and their secrets can be accessed with very
+little effort. 
+
+First of all, we may notice that ``myclock`` really contains a secret
+by using the builtin function ``dir()``:
+
+ ::
+
+   dir(myclock)
+   ['_Clock__secret', '__class__', '__delattr__', '__dict__', '__doc__', 
+    '__getattribute__', '__hash__', '__init__', '__module__', '__new__', 
+    '__reduce__', '__repr__', '__setattr__', '__str__', '__weakref__']
+
+We see that the first attribute of myclock is '_Clock__secret``, 
+which we may access directly:
+
+ ::
+
+   print myclock._Clock__secret
+   This clock is quite stupid.
+
+We see here the secret of private variables in Python: the *name mangling*.
+When Python sees a name starting with two underscores (and not ending
+with two underscores, otherwise it would be interpreted as a special
+attribute), internally it manage it as ``_Classname__privatename``.
+Notice that if 'Classname' begins with underscores, the leading underscores
+are stripped in such a way to guarantee that the private name starts with
+only *one* underscore. For instance, the '__secret' private attribute 
+of classes such as 'Clock', '_Clock', '__Clock', '___Clock', etc. is
+mangled to '_Clock__secret'.
+
+Private names in Python are *not* intended to keep secrets: they
+have other uses. 
+
+1. On one hand, private names are a suggestion to the developer. 
+   When the Python programmer sees a name starting with one or two 
+   underscores in a program written by others, she understands
+   that name should not be of concern for the final user, but it 
+   only concerns the internal implementation.
+
+2. On the other hand, private names are quite useful in class
+   inheritance, since they provides safety with respect to the overriding
+   operation. This point we will discussed in the next chapter.
+
+3. Names starting with an underscore are not imported by the 
+   statement ``from module import *``
+
+Remark: it makes no sense to define names with double underscores
+outside classes, since the name mangling doesn't work in this case.
+Let me show an example:
+
+  >>> class Clock(object): __secret="This Clock is quite stupid"
+  >>> def tellsecret(self): return  self.__secret
+  >>> Clock.tellsecret=tellsecret
+  >>> Clock().tellsecret() #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+    File "<stdin>", line 2, in tellsecret
+  AttributeError: 'Clock' object has no attribute '__secret'
+
+The explanation is that since ``tellsecret()`` is defined outside the class,
+``__secret`` is not expanded to ``_Clock__secret`` and therefore cannot be
+retrieved, whereas
+
+  >>> class Clock(object): 
+  ...     __secret="This Clock is quite stupid"
+  ...     def tellsecret(self): return self.__secret
+  >>> Clock().tellsecret()
+  This Clock is quite stupid
+
+will work. In other words, private variables are attached to classes.
+
+Objects have properties
+-------------------------------------------------------------------------------
+
+In the previous section we have shown that private variables are of
+little use for keeping secrets: if a developer really wants to restrict 
+the access to some methods or attributes, she has to resort to
+*properties*.
+
+Let me show an example:
+
+ ::
+
+  #<secret.py>
+
+  import oopp
+
+  class Clock(object): 
+      'Clock class with a secret'
+    
+      you_know_the_pw = False #default
+                   
+      def give_pw(self, pw):
+          """Check if your know the password. For security, one should crypt
+          the password."""
+          self.you_know_the_pw = (pw == "xyz")
+        
+      def get_secret(self):
+          if self.you_know_the_pw:
+              return "This clock doesn't work."
+          else:
+              return "You must give the right password to access 'secret'"
+        
+      secret = property(get_secret)
+ 
+  c = Clock()
+  print c.secret # => You must give the right password to access 'secret'
+  c.give_pw('xyz') # gives the right password
+  print c.secret # => This clock doesn't work.
+  print Clock.secret # => <property object at 0x814c1b4>
+
+  #</secret.py>
+
+In this script, one wants to restrict the access to the attribute
+'secret', which can be accessed only is the user provide the
+correct password. Obviously, this example is not very secure,
+since I have hard coded the password 'xyz' in the source code,
+which is easily accessible. In reality, one should crypt the
+password a perform a more sophisticated test than the trivial
+check ``(pw=="xyz")``; anyway, the example is only intended to
+shown the uses of properties, not to be really secure.
+
+The key action is performed by the descriptor class ``property`` that
+converts the function ``get_secret`` in a property object. Additional
+informations on the usage of ``property`` can be obtained from the
+docstring:
+
+  >>> print property.__doc__
+  property(fget=None, fset=None, fdel=None, doc=None) -> property attribute
+  fget is a function to be used for getting an attribute value, and likewise
+  fset is a function for setting, and fdel a function for del'ing, an
+  attribute.  Typical use is to define a managed attribute x:
+  class C(object):
+      def getx(self): return self.__x
+      def setx(self, value): self.__x = value
+      def delx(self): del self.__x
+      x = property(getx, setx, delx, "I'm the 'x' property.")
+
+Properties are another example of attribute descriptors. 
+
+Objects have special methods
+---------------------------------------------------------------------------
+
+From the beginning, we stressed that objects have special attributes that
+may turn handy, as for instance the docstring ``__doc__`` and the class
+name attribute ``__class__``. They have special methods, too.
+
+With little doubt, the most useful special method is the ``__init__``
+method, that *initializes* an object right after its creation. ``__init__``
+is typically used to pass parameters to *object factories*. Let me an
+example with geometric figures:
+
+ ::
+
+  #<oopp.py>
+    
+  class GeometricFigure(object): #an example of object factory
+      """This class allows to define geometric figures according to their
+      equation in the cartesian plane. It will be extended later."""
+      def __init__(self,equation,**parameters):
+          "Specify the cartesian equation of the object and its parameters"
+          self.eq=equation
+          self.par=parameters
+          for k,v in self.par.items(): #replaces the parameters in the equation
+              self.eq=self.eq.replace(k,str(v))
+          self.contains=eval('lambda x,y : '+self.eq,{}) 
+          # dynamically creates the function 'contains'
+
+  #</oopp.py>
+
+Here it is how it works:
+
+  >>> from oopp import *
+  >>> disk=GeometricFigure('(x-x0)**2+(y-y0)**2 <= r**2', x0=0,y0=0,r=5)
+  >>> # creates a disk of radius 5 centered in the origing
+  >>> disk.contains(1,2) #asks if the point (1,2) is inside the disk
+  True
+  >>> disk.contains(4,4) #asks if the point (4,4) is inside the disk
+  False
+
+
+Let me continue the section on special methods with some some observations on
+``__repr__`` and ``__str__``.Notice that  I
+will not discuss all the subtleties; for a thought discussion, see the
+thread "Using __repr__ or __str__" in c.l.p. (Google is your friend).
+The following discussion applies to new style classes, old style classes 
+are subtly different; moreover.
+
+When one  writes
+
+  >>> disk
+  <oopp.GeometricFigure instance at 0x81b496c>
+
+one obtains the *string representation* of the object. Actually, the previous
+line is syntactic sugar for
+
+  >>> print repr(disk)
+  <oopp.GeometricFigure instance at 0x81b496c>
+
+or
+
+  >>> print disk.__repr__()
+  <oopp.GeometricFigure instance at 0x81b496c>
+
+The ``repr`` function extracts the string representation from the
+the special method ``__repr__``, which can be redefined in order to 
+have objects pretty printed. Notice that ``repr`` is conceptually
+different from the ``str`` function that controls the output of the ``print`` 
+statement. Actually, ``print o`` is syntactic sugar for ``print str(o)``
+which is sugar for ``print o.__str__()``.
+
+If for instance we define 
+
+ ::
+
+  #<oopp.py>
+
+  class PrettyPrinted(object):
+      formatstring='%s' # default
+      def __str__(self):
+          """Returns the name of self in quotes, possibly formatted via 
+          self.formatstring. If self has no name, returns the name 
+          of its class in angular brackets.""" 
+          try: #look if the selfect has a name 
+             name="'%s'" % self.__name__ 
+          except AttributeError: #if not, use the name of its class
+              name='<%s>' % type(self).__name__
+          if hasattr(self,'formatstring'):
+              return self.formatstring % name
+          else: 
+              return name
+
+  #</oopp.py>
+
+then we have
+
+  >>> from oopp import PrettyPrinted
+  >>> o=PrettyPrinted() # o is an instance of PrettyPrinted
+  >>> print o #invokes o.__str__() which in this case returns o.__class__.name
+  <PrettyPrinted>
+
+whereas
+  
+  >>> o # i.e. print repr(o)
+  <oopp.PrettyPrinted object at 0x400a006c>
+
+However, in most cases ``__repr__`` and ``__str__`` gives the same
+output, since if ``__str__`` is not explicitely defined it defaults
+to ``__repr__``. Therefore, whereas modifying ``__str__`` 
+does not change ``__repr__``, modifying ``__repr__`` changes ``__str__``,
+if ``__str__`` is not explicitely given:
+
+ ::
+
+  #<fairytale1.py>
+
+  "__repr__ can also be a regular method, not a classmethod"
+
+  class Frog(object):
+      attributes="poor, small, ugly"
+      def __str__(self):
+          return "I am a "+self.attributes+' '+self.__class__.__name__
+
+  class Prince(object):
+      attributes='rich, tall, beautiful'
+      def __str__(self):
+          return "I am a "+self.attributes+' '+self.__class__.__name__
+
+  jack=Frog(); print repr(jack),jack
+  charles=Prince(); print repr(charles),charles  
+
+  #</fairytale1.py>
+
+The output of this script is:
+
+ ::
+
+   <Frog object at 0x81866ec> I am a poor, small, ugly Frog
+   <Prince object at 0x818670c> I am a rich, tall, beautiful Prince
+
+for jack and charles respectively. 
+
+``__str__``  and ``__repr__`` are also called by the formatting
+operators "%s" and "%r".
+
+Notice that  i) ``__str__`` can be most naturally
+rewritten as a class method; ii) Python is magic:
+
+ ::
+
+  #<fairytale2.py>
+    
+  """Shows two things: 
+      1) redefining __repr__ automatically changes the output of __str__
+      2) the class of an object can be dinamically changed! """
+
+  class Frog(object):
+      attributes="poor, small, ugly"
+      def __repr__(cls):
+          return "I am a "+cls.attributes+' '+cls.__name__
+      __repr__=classmethod(__repr__)
+
+  class Prince(object):
+      attributes='rich, tall, beautiful'
+      def __repr__(cls):
+          return "I am a "+cls.attributes+' '+cls.__name__
+      __repr__=classmethod(__repr__)
+
+  def princess_kiss(frog):
+        frog.__class__=Prince
+
+  jack=Frog()
+  princess_kiss(jack)
+  print jack # the same as repr(jack)
+
+  #</fairytale2.py>
+
+Now the output for jack is "I am a rich, tall, beautiful Prince" !
+In Python you may dynamically change the class of an object!!
+
+Of course, this is a feature to use with care ;-)
+
+There are many others special methods, such as __new__, __getattr__,
+__setattr__, etc. They will be discussed in the next chapters, in
+conjunction with inheritance.
+
+Objects can be called, added, subtracted, ...
+---------------------------------------------------------------------------
+
+Python provides a nice generalization of functions, via the concept
+of *callable objects*. A callable object is an object with a ``__call__``
+special method. They can be used to define "functions" that remember
+how many times they are invoked:
+
+ ::
+
+  #<call.py>
+
+  class MultiplyBy(object):
+      def __init__(self,n):
+          self.n=n
+          self.counter=0
+      def __call__(self,x):
+          self.counter+=1
+          return self.n*x
+
+  double=MultiplyBy(2)
+  res=double(double(3)) # res=12
+  print "double is callable: %s" % callable(double)
+  print "You have called double %s times." % double.counter
+
+  #</call.py>
+
+With output
+
+ ::
+
+  double is callable:  True
+  You have called double 2 times.
+
+The script also show that callable objects (including functions) 
+can be recognized with the ``callable`` built-in function.
+
+Callable object solves elegantly the problem of having "static" variables
+inside functions (cfr. with the 'double' example in chapter 2).
+A class with a ``__call__`` method can be used to generate an entire
+set of customized "functions". For this reason, callable objects are 
+especially useful in the conjunction with object factories. Let me show 
+an application to my factory of geometric figures:
+
+ ::
+
+  #<oopp.py>
+
+  class Makeobj(object):
+      """A factory of object factories. Makeobj(cls) returns instances
+       of cls"""
+      def __init__(self,cls,*args):
+          self.cls=cls
+          self.args=args
+      def __call__(self,**pars):
+          return self.cls(*self.args,**pars)
+
+  #</oopp.py>
+
+  #<factory.py>
+
+  from oopp import Makeobj,GeometricFigure
+
+  makedisk=Makeobj(GeometricFigure,'(x-x0)**2+(y-y0)**2<r**2')
+  makesquare=Makeobj(GeometricFigure,'abs(x-x0)<L and abs(y-y0)<L')
+  disk=makedisk(x0=0,y0=0,r=10) # make a disk of radius 10
+  square=makesquare(x0=0,y0=0,L=20) # make a disk of side 10
+
+  print disk.contains(9,9) # => False
+  print square.contains(9,9) # => True
+  #etc.
+
+  #</factory.py>
+
+This factory generates callable objects, such as ``makedisk`` and
+``makesquare`` that returns geometric objects. It gives a nicer interface
+to the object factory provided by 'GeometricFigure'. 
+
+Notice that the use of the expression ``disk.contains(9,9)`` in order to
+know if the point of coordinates (9,9) is contained in the disk, it is
+rather inelegant: it would be much better to be able to ask if 
+``(9,9) in disk``. This is possibile, indeed: and the secrets is to
+define the special method ``__contains__``. This is done in the next
+example, that I think give a good taste of the beauty of objects
+
+ ::
+
+  #<funnyformatter.py>
+
+  from oopp import Makeobj
+
+  Nrow=50; Ncol=78
+    
+  class GeometricFigure(object):
+      """This class allows to define geometric figures according to their
+      equation in the cartesian plane. Moreover addition and subtraction
+      of geometric figures are defined as union and subtraction of sets."""
+      def __init__(self,equation,**parameters):
+          "Initialize "
+          self.eq=equation
+          self.par=parameters
+          for (k,v) in self.par.items(): #replaces the parameters
+              self.eq=self.eq.replace(k,str(v))
+          self.contains=eval('lambda x,y : '+self.eq,{})
+      def combine(self,fig,operator):
+          """Combine self with the geometric figure fig, using the
+          operators "or" (addition) and "and not" (subtraction)"""
+          comboeq="("+self.eq+")"+operator+"("+fig.eq+")"
+          return GeometricFigure(comboeq)
+      def __add__(self,fig):
+          "Union of sets"
+          return self.combine(fig,' or ')
+      def __sub__(self,fig):
+          "Subtraction of sets"
+          return self.combine(fig,' and not')
+      def __contains__(self,point): #point is a tuple (x,y)
+          return self.contains(*point)
+
+  makedisk=Makeobj(GeometricFigure,'(x-x0)**2/4+(y-y0)**2 <= r**2')
+  upperdisk=makedisk(x0=38,y0=7,r=5)
+  smalldisk=makedisk(x0=38,y0=30,r=5)
+  bigdisk=makedisk(x0=38,y0=30,r=14)
+
+  def format(text,shape):
+      "Format the text in the shape given by figure"
+      text=text.replace('\n',' ')
+      out=[]; i=0; col=0; row=0; L=len(text)
+      while 1:
+          if (col,row) in shape:
+              out.append(text[i]); i+=1
+              if i==L: break
+          else:
+              out.append(" ")
+          if col==Ncol-1:
+              col=0; out.append('\n') # starts new row
+              if row==Nrow-1: row=0   # starts new page
+              else: row+=1
+          else: col+=1 
+      return ''.join(out)
+
+  composition=bigdisk-smalldisk+upperdisk
+  print format(text='Python Rules!'*95,shape=composition)
+
+  #</funnyformatter.py>
+
+I leave as an exercise for the reader to understand how does it work and to
+play with other geometric figures (he can also generate them trough the
+'Makeobj' factory). I think it is nicer to show its output:
+
+  ::
+                                                                     
+                                                                              
+                                     Pyt                                      
+                                hon Rules!Pyt                                 
+                              hon Rules!Python                                
+                             Rules!Python Rules!                              
+                             Python Rules!Python                              
+                             Rules!Python Rules!P                             
+                             ython Rules!Python                               
+                             Rules!Python Rules!                              
+                              Python Rules!Pyth                               
+                                on Rules!Pyth                                 
+                                     on                                       
+                                                                              
+                                                                              
+                                                                              
+                                     Rul                                      
+                            es!Python Rules!Pytho                             
+                        n Rules!Python Rules!Python R                         
+                     ules!Python Rules!Python Rules!Pyth                      
+                   on Rules!Python Rules!Python Rules!Pyth                    
+                 on Rules!Python Rules!Python Rules!Python R                  
+               ules!Python Rules!Python Rules!Python Rules!Pyt                
+              hon Rules!Python Rules!Python Rules!Python Rules!               
+             Python Rules!Python Rules!Python Rules!Python Rules              
+            !Python Rules!Python Rule   s!Python Rules!Python Rul             
+            es!Python Rules!Pyth             on Rules!Python Rule             
+           s!Python Rules!Pyth                 on Rules!Python Rul            
+           es!Python Rules!Py                   thon Rules!Python             
+           Rules!Python Rules                   !Python Rules!Pyth            
+          on Rules!Python Ru                     les!Python Rules!P           
+           ython Rules!Python                    Rules!Python Rule            
+           s!Python Rules!Pyt                   hon Rules!Python R            
+           ules!Python Rules!P                 ython Rules!Python             
+            Rules!Python Rules!P             ython Rules!Python R             
+            ules!Python Rules!Python    Rules!Python Rules!Python             
+              Rules!Python Rules!Python Rules!Python Rules!Pytho              
+              n Rules!Python Rules!Python Rules!Python Rules!Py               
+               thon Rules!Python Rules!Python Rules!Python Rul                
+                 es!Python Rules!Python Rules!Python Rules!P                  
+                   ython Rules!Python Rules!Python Rules!P                    
+                     ython Rules!Python Rules!Python Rul                      
+                        es!Python Rules!Python Rules!                         
+                            Python Rules!Python R                             
+                                     ule                                      
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                                                              
+                                     s!
+
+Remark.
+
+Unfortunately, "funnyformatter.py" does not reuse old code: in spite of the
+fact that we already had in our library the 'GeometricFigure' class, with 
+an "__init__" method that is exactly the same of the "__init__" method in 
+"funnyformatter.py", we did not reuse that code. We simply did a cut
+and paste. This means that if we later find a bug in the ``__init__`` method,
+we will have to fix it twice, both in the script and in the library. Also,
+if we plan to extend the method later, we will have to extend it twice.
+Fortunately, this nasty situation can be avoided: but this requires the
+power of inheritance.

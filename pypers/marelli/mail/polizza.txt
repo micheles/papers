@@ -1,0 +1,28 @@
+Un paio di comunicazioni.
+
+1. Ho stipulato una polizza di responsabilita' civile terzi per i giorni
+19-23 Settembre, quindi adesso non ci dovrebbero essere piu' problemi.
+
+2. Stavo riguardando il programma da portare e mi sono reso conto che
+resta un po' di tempo libero (diciamo una mezza giornata). In questa
+mezza giornata potrei parlare di varie cose, ditemi voi cosa vi
+interessa di piu'. Possibilita' sono:
+
+- numeric & matplotlib (praticamente l'equivalente di Matlab ma fatto
+  da Python)
+
+- programmazione orientata agli oggetti;
+
+- un'introduzione alla programmazione con i threads;
+
+- un'introduzione alla programmazione di network (client/server, magari
+  qualche cenno su Twisted);
+
+- altro a richiesta.
+
+Le possibilita' sono esclusive perche' non si puo' far tutto!
+
+A risentirci,
+
+
+                Michele Simionato

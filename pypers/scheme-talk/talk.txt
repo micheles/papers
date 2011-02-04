@@ -1,0 +1,558 @@
+The R6RS module system
+===============================================
+
+:Talk given at: EuroLisp Symposium 2009
+:By: Michele Simionato
+:date: 2009-05-28
+
+.. include:: <s5defs.txt>
+.. footer:: Michele Simionato, EuroLisp 2009
+
+Part I
+--------------------------
+
+The easy things about the R6RS module system
+
+.. image:: Jigsaw.png
+
+Part II
+----------------------------------------
+
+Explicit phasing and the tower of meta-levels
+
+.. image:: exploding-head.jpg
+   :width: 360
+
+Part III
+--------------------------
+
+Porting libraries between different R6RS implementations
+
+.. image:: aps_lib_03.jpg
+   :width: 500
+
+Self-presentation
+----------------------------
+
+Who am I?
+
+.. image:: faccina.jpg
+
+
+About me
+----------------------------
+
+A hobbyist Scheme programmer
+
+.. class:: incremental
+
+- I use Python at work
+- I started programming in Scheme 5+ years ago
+- I am writing "The Adventures of a Pythonista in Schemeland" on Artima.com
+- the blog posts will become a book
+- I think my experience is relevant for new 
+  R6RS programmers
+
+What I have done in Scheme
+--------------------------------------
+
+- written a module called *sweet-macros* as sugar over syntax-case
+
+.. class:: incremental
+
+- written various support libraries for the Adventures
+- fought a lot with portability issues
+- experimented with cutting edge features (found bugs!)
+- made a lot of noise in various mailing lists
+- got *impressive* support from Scheme implementors :-)
+
+Part I: the easy part
+----------------------------------------------------
+
+.. code-block:: scheme
+
+ $ cat my-lib.sls # in most R6RS implementations
+ #!r6rs
+ (library (my-lib)
+  (export a b)
+  (import (rnrs)); standard R6RS bindings
+  (define a 42)
+  (define b 0)
+  (display "my-lib instantiated!\n")
+ )
+ ;; import it as (import (my-lib))
+ ;; be careful with the names!
+
+Nothing is easy
+------------------------------------------------
+
+*how to map libraries to the file system is unspecified!*
+
+.. class:: incremental
+
+- ``(import (package subpackage ... lib))`` looks for
+  ``package/subpackage .../lib.sls``
+- in PLT ``(import (my-lib))`` looks for ``my-lib/main.sls``, not for
+  ``my-lib.sls``
+- some implementations understand the ``main.sls`` convention, others not
+- there is not even an SRFI on the topic (yet)
+- open issues: multiple libraries in a single file and how to manage
+  multiple versions of a library
+ 
+Import syntax
+--------------------------------------
+
+.. code-block:: scheme
+
+   (import (rnrs) (my-lib))
+   (display (+ a b)) ;=> 42
+
+.. class:: incremental
+
+- import with a prefix:
+
+  .. code-block:: scheme
+
+   (import (rnrs) (prefix (my-lib) my-lib:))
+   (display my-lib:a) ;=> 42
+
+- import only a specific sets of names:
+
+  .. code-block:: scheme
+
+   (import (rnrs) (only (my-lib) a))
+   (display a) ;=> 42
+
+Import syntax (rename, except)
+----------------------------------------
+
+other easy features
+
+.. class:: incremental
+
+- renaming a set of identifiers:
+
+  .. code-block:: scheme
+
+   (import (rnrs) (rename (my-lib) (a ml-a)))
+   (display ml-a) ;=> 42
+
+- excluding a set of identifiers:
+
+  .. code-block:: scheme
+
+   (import (rnrs) (except (my-lib) a))
+   (display b) ;=> 0
+
+Limitations
+----------------------------------------
+
+- ``(export *)`` not available
+
+  + you must list explicitly all the exported identifiers
+  + the rationale is making static recognition of exported 
+    identifiers easier
+
+.. class:: incremental
+
+- no introspection API 
+
+  + no (get-exported-ids '(my-lib))
+  + no (get-path-name '(my-lib))
+
+- support for implementation-specific files (.IMPL.sls convention)
+  in its infancy
+
+Example: compatibility files
+----------------------------------------
+
+.. code-block:: scheme
+
+ $ cat compat.mzscheme.sls
+ #!r6rs
+ (library (aps compat)
+ (export printf format pretty-print)
+ (import (rnrs) (only (scheme) printf format pretty-print)))
+
+ $ cat compat.ypsilon.sls
+ (library (aps compat)
+ (export printf format pretty-print)
+ (import (rnrs) (core))
+ (define (printf format-string . args)
+   (display (apply format format-string args))))
+
+Let's start with macros now
+----------------------------------
+
+They are not so scary ...
+
+.. image:: mantid.jpg
+   :width: 560
+
+R6RS modules and syntax-rules
+---------------------------------------
+
+A simple example:
+
+.. code-block:: scheme
+
+ #!r6rs
+ (library (show)
+  (export show)
+  (import (rnrs) (only (aps compat) printf))
+  (define-syntax show
+    (syntax-rules ()
+     ((_ x) (printf "~a=~a\n" 'x x)))))
+
+Macro usage
+-------------------------
+
+99.9% of times there are no problems with syntax-rules macros:
+
+.. code-block:: scheme
+
+ > (import (show))
+ > (define a 1) 
+ > (show a)
+ a=1
+
+I will show an issue with a second order syntax-rules macro
+later on
+
+Where is the problem?
+-------------------------------------------------
+
+- the most common problem is when you have macro transformers
+  depending on helper variables:
+
+.. code-block:: scheme
+
+   > (let ()
+       (define a 42)
+       (define-syntax m (lambda (x) a))
+       m)
+   error: identifier a out of context
+
+.. class:: incremental
+
+- the identifier is not available to the macro!?
+
+Because of phase separation
+-------------------------------
+
+.. code-block:: scheme
+
+  (let ()
+   (define a 42)                    ; run-time
+   (define-syntax m (lambda (x) a)) ; macro-def-time
+   m)
+
+.. class:: incremental
+
+ - ``a`` is defined too late!
+
+ - regular definitions (both define and let) are performed
+   at run-time
+
+ - macro definitions (both define-syntax
+   and let-syntax) are performed at compile-time
+
+Phase errors
+-------------------------------------
+
+One must be careful not to mix expand-time
+and run-time
+
+.. image:: salvador-dali-clock.jpg 
+
+Beware of the REPL!
+-------------------------------------------
+
+.. code-block:: scheme
+
+ $ mzscheme # or larceny
+ > (define a 42)
+ > (let-syntax ((m (lambda (x) a))) m)
+ reference to undefined identifier: a
+  
+but
+
+.. code-block:: scheme
+
+  $ ikarus # or ypsilon
+  > (define a 42)
+  > (let-syntax ((m (lambda (x) a))) m)
+    42
+
+No phase separation
+----------------------------------------------------
+
+Phase separation is not ubiquitous; for 
+instance Guile 1.8 (or Emacs Lisp) have no phase separation:
+
+.. code-block:: scheme
+
+ guile> (let ()
+          (define a 42)
+          (define-macro (m) a) 
+          (m))
+ 42
+
+(the next version of Guile will have phase separation
+and some support for R6RS Scheme).
+
+To cope with phase separation
+--------------------------------------
+
+Put the helper object (value, function, macro)
+in a different module and import it at expand time
+
+.. code-block:: scheme
+
+ > (import (for (my-lib) expand))
+ > (let-syntax ((m (lambda (x) a))) m)
+   42
+
+.. class:: incremental
+
+- slightly inconvenient
+- I wish we could include libraries in scripts :-(
+
+So everthing is settled, right?
+-------------------------------------
+
+Not really, since there are a few R6RS surprises ...
+
+.. image:: joker.jpg
+   :width: 300
+
+The R6RS specification is loose
+-------------------------------------------------------
+
+An example:
+
+.. code-block:: scheme
+
+  (import (for (only (my-lib) a) expand))
+  (display (let-syntax ((m (lambda (x) a))) m))
+  (display a)
+  
+.. class:: incremental
+
+- R6RS implementations are required to support 
+  ``(import (for (my-lib) expand))`` *syntactically*
+- they are not required to honor it!
+- this code runs fine on all systems except PLT Scheme and Larceny!
+
+Lack of phase specification
+---------------------------------------------
+
+- systems based on psyntax (and Ypsilon) import the identifiers at 
+  all phases simultaneously
+
+.. class:: incremental
+
+- you cannot import a name into a specific phase
+- I will argue this a good thing because it avoids the tower
+  of meta-levels (later)
+- the R6RS forbids reusing the same
+  name with different bindings in different phases anyway
+
+
+Part II
+----------------------------
+
+Fasten your seatbelts now ...
+
+The Dark Tower of meta-levels
+-----------------------------------------------------
+
+.. image:: DarkTower.jpg
+
+Meta-levels in macros
+-------------------------------------------
+
+we saw that the right hand side of macro definition refers to names
+which are one phase (meta-level) up
+
+.. class:: incremental
+
+-
+ .. code-block:: scheme
+
+  (define-syntax macro                ; meta-level 0
+     (lambda (x)                      ; meta-level 1
+       (syntax-case x (literals ...)  ; meta-level 1
+         (pattern                     ; meta-level 1
+          fender                      ; meta-level 1
+          #'template))))              ; meta-level 0
+
+- inside a template one goes back one meta-level
+
+An example at meta-level 2
+-----------------------------------------------------
+
+.. code-block:: scheme
+
+  (import (for (only (my-lib) a) (meta 2))
+          (for (only (my-lib) b) (meta 1)))
+  (define-syntax m1       ;; level 0
+   (lambda (x1)           ;; level 1
+      (define-syntax m2   ;; level 1
+         (lambda (x2) a)) ;; level 2
+      (+ m2 b)))          ;; level 1
+  (display                ;; level 0
+    m1                    ;; level 1
+  )                       ;; level 0
+
+Positive meta-levels
+---------------------------------------
+
+- in a nested macro innermost levels are compiled first
+
+.. image:: list-comprehension.jpg 
+
+The Dark Side of the Tower
+---------------------------------------------
+
+.. code-block:: scheme
+
+ (define-syntax very-static-table
+  (syntax-rules ()
+    ((_ (name value) ...) 
+      (syntax-rules (<names> name ...)
+        ((_ <names>) '(name ...))
+        ((_ name) value) ...))))
+
+ (define-syntax color
+  (very-static-table (red 0) (green 1) (blue 2)))
+
+ (display (color <names>)) ;=> (red green blue)
+ (display (color red)) ;=> 0
+
+Negative meta-levels
+---------------------------------------
+
+.. code-block:: scheme
+
+ (define-syntax very-static-table      ;; level 0
+  (syntax-rules ()                     ;; level 1
+    ((_ (name value) ...)              ;; level 1
+      (syntax-rules (<names> name ...) ;; level 0
+        ((_ <names>)                   ;; level 0
+          '(name ...))                 ;; level -1
+        ((_ name)                      ;; level 0
+          value)                       ;; level -1
+          ...))))
+
+Needs ``(import (for (only (rnrs) quote) (meta -1)))``
+
+I had to fight with meta-levels
+----------------------------------
+
+.. code-block:: scheme
+
+ (import (rnrs) (for (rnrs) (meta -1))
+ (for (sweet-macros helper1) (meta -1) (meta 0) (meta 1)))
+
+.. image:: sweet-macros.png
+   :width: 695
+
+Ikarus, Mosh, IronScheme ...
+---------------------------------------------------
+
+Such implementations do not need to worry about
+the Dark Tower. I think they will have a great future!
+
+.. image:: tower_of_babel.jpg
+
+
+R6RS: an unhappy compromise
+--------------------------------------------
+
+You get the worse of two worlds: writers of portable code
+
+.. class:: incremental
+
+- cannot rely on the simplicity of implicit phasing
+- cannot rely on the full power of explicit phasing
+- cannot rely on a clearly defined import semantics
+- apparently it was politically impossible to do better :-/
+
+Part III: my experience
+-------------------------
+
+Porting macro-rich R6RS libraries can be a rather heavy task ...
+
+.. image:: mule.jpg
+
+Bugs
+---------------------------------------------------
+
+I have found many bugs in different R6RS implementations
+while porting my ``sweet-macros`` library:
+
+- Ikarus (1)
+- Ypsilon (4)
+- PLT (3)
+- Larceny (1)
+
+.. class:: incremental
+
+ *All fixed within hours!*
+
+Other difficulties
+------------------------------------------
+
+- I had to wait for the .IMPL.sls convention to be implemented
+
+- I am generating the helper modules required by PLT/Larceny
+  from the Ikarus/Ypsilon module
+
+.. class:: incremental
+
+- while writing the APS libraries I have found various non-portable
+  behaviors
+
+- the number of times a library is instantiated is
+  totally implementation-dependent
+
+More non-portable behavior
+----------------------------------------------------
+
+- the number of times a library is visited is also
+  implementation-dependent
+
+- in implementations based on psyntax and in Ypsilon a module
+  is visited only if one of its macros is used
+
+- in implementations others than PLT, side-effects
+  can leak through phases
+
+.. class:: incremental
+
+- all the details in my Adventures
+
+References
+------------------------------
+
+- http://www.artima.com
+- http://www.phyast.pitt.edu/~micheles/scheme/TheAdventuresofaPythonistainSchemeland.pdf
+- http://www.phyast.pitt.edu/~micheles/scheme/sweet-macros.zip
+
+and of course in the R6RS document
+
+- http://www.r6rs.org/final/html/r6rs/r6rs.html
+
+
+Acknowledgments
+-----------------------------------
+
+This work would not have been possible without the help of 
+
+- Abdulaziz Ghuloum, Derick Eddington (*Ikarus*)
+- Matthew Flatt, Eli Barzilay (*PLT*)
+- Will Clinger, André van Tolder (*Larceny*)
+- Yoshikatsu Fujita (*Ypsilon*)
+
+and many others. Thank you!

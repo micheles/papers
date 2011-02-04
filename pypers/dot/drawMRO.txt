@@ -1,0 +1,263 @@
+Drawing inheritance diagrams with "Dot"
+=================================================
+
+Dot is a very nice graph description language developed
+at MIT and available for free at http://www.graphviz.org/ .
+
+Combined with Python, it makes an ideal tool to 
+draw automatically generated diagrams. As an 
+example, I will describe here a short recipe which 
+produce beautiful inheritance diagrams for Python classes
+(and metaclasses too). In particular the recipe allows to
+display the MRO (Method Resolution Order) for complicate 
+inheritance hierarchies. Here is the code::
+
+ #<MROgraph.py>
+ 
+ """
+ Draw inheritance hierarchies via Dot (http://www.graphviz.org/)
+ Author: M. Simionato
+ E-mail: mis6@pitt.edu
+ Date: August 2003
+ License: Python-like
+ Requires: Python 2.3, dot, standard Unix tools  
+ """
+ 
+ import os,itertools
+ 
+ PSVIEWER='gv'     # you may change these with
+ PNGVIEWER='kview' # your preferred viewers
+ PSFONT='Times'    # you may change these too
+ PNGFONT='Courier' # on my system PNGFONT=Times does not work 
+ 
+ def if_(cond,e1,e2=''):
+     "Ternary operator would be" 
+     if cond: return e1
+     else: return e2
+  
+ def MRO(cls):
+     "Returns the MRO of cls as a text"
+     out=["MRO of %s:" % cls.__name__]
+     for counter,c in enumerate(cls.__mro__):
+         name=c.__name__
+         bases=','.join([b.__name__ for b in c.__bases__])
+         s="  %s - %s(%s)" % (counter,name,bases)
+         if type(c) is not type: s+="[%s]" % type(c).__name__
+         out.append(s)
+     return '\n'.join(out)
+       
+ class MROgraph(object):
+     def __init__(self,*classes,**options):
+         "Generates the MRO graph of a set of given classes."
+         if not classes: raise "Missing class argument!"
+         filename=options.get('filename',"MRO_of_%s.ps" % classes[0].__name__)
+         self.labels=options.get('labels',2)
+         caption=options.get('caption',False)
+         setup=options.get('setup','')
+         name,dotformat=os.path.splitext(filename)
+         format=dotformat[1:] 
+         fontopt="fontname="+if_(format=='ps',PSFONT,PNGFONT)
+         nodeopt=' node [%s];\n' % fontopt
+         edgeopt=' edge [%s];\n' % fontopt
+         viewer=if_(format=='ps',PSVIEWER,PNGVIEWER)
+         self.textrepr='\n'.join([MRO(cls) for cls in classes])
+         caption=if_(caption,
+                    'caption [shape=box,label="%s\n",fontsize=9];'
+                    % self.textrepr).replace('\n','\\l')
+         setupcode=nodeopt+edgeopt+caption+'\n'+setup+'\n'
+         codeiter=itertools.chain(*[self.genMROcode(cls) for cls in classes])
+         self.dotcode='digraph %s{\n%s%s}' % (
+             name,setupcode,'\n'.join(codeiter))
+         os.system("echo '%s' | dot -T%s > %s; %s %s&" %
+               (self.dotcode,format,filename,viewer,filename))
+     def genMROcode(self,cls):
+         "Generates the dot code for the MRO of a given class"
+         for mroindex,c in enumerate(cls.__mro__):
+             name=c.__name__
+             manyparents=len(c.__bases__) > 1
+             if c.__bases__:
+                 yield ''.join([
+                     ' edge [style=solid]; %s -> %s %s;\n' % (
+                     b.__name__,name,if_(manyparents and self.labels==2,
+                                         '[label="%s"]' % (i+1)))
+                     for i,b in enumerate(c.__bases__)])
+             if manyparents:
+                 yield " {rank=same; %s}\n" % ''.join([
+                     '"%s"; ' % b.__name__ for b in c.__bases__])
+             number=if_(self.labels,"%s-" % mroindex)
+             label='label="%s"' % (number+name)
+             option=if_(issubclass(cls,type), # if cls is a metaclass
+                        '[%s]' % label, 
+                        '[shape=box,%s]' % label)
+             yield(' %s %s;\n' % (name,option))
+             if type(c) is not type: # c has a custom metaclass
+                 metaname=type(c).__name__
+                 yield ' edge [style=dashed]; %s -> %s;' % (metaname,name)
+     def __repr__(self):
+         "Returns the Dot representation of the graph"
+         return self.dotcode
+     def __str__(self):
+         "Returns a text representation of the MRO"
+         return self.textrepr
+ 
+ def testHierarchy(**options):
+     class M(type): pass # metaclass
+     class F(object): pass
+     class E(object): pass
+     class D(object): pass
+     class G(object): __metaclass__=M
+     class C(F,D,G): pass
+     class B(E,D): pass
+     class A(B,C): pass
+     return MROgraph(A,M,**options)
+ 
+ if __name__=="__main__": 
+     testHierarchy() # generates a postscript diagram of A and M hierarchies
+ 
+ #</MROgraph.py>
+
+The recipe should work as it is on Linux systems (it may require
+to customize the postscript and PNG viewers); Windows users 
+must work a bit and change the ``os.system`` line.
+The recipe may be customized and extended at your will; 
+but since I wanted the script to fit in one hundred lines I have restricted 
+the currently available customization to the following options:
+
+ - *filename=<string>* sets the filename containing the picture;
+
+ - *labels=<int>*  turns on/off the labeling of edges;
+
+ - *caption=<boolean>* turns on/off the insertion of a caption;
+
+ - *setup=<string>* allows the user to enter raw Dot code.
+
+By default, *filename* is equal to ``MRO_of_<classname>.ps`` and
+the picture is stored in a postscript format (you may want to
+change this). Dot recognizes many other formats; I only need the PNG
+format for graph to be inserted in Web pages, so
+the recipe currently only works for .ps and .png
+filename extensions, but it is trivial to add new formats.
+The option *labels=0* makes no label appearing in the graph; *labels=1* 
+makes labels specifying the MRO order appearing in the graph; *labels=2* 
+makes additional labels specifying the ordering of parents 
+to appear. This latter option (which is the default) is useful 
+since Dot changes the order of the parents in order to draw a nicer 
+picture. *caption=True* adds an explanatory caption to the diagram; the
+default is *False*, i.e. no caption is displayed.
+The *setup* option can be used to initialize the graph; 
+for instance to change the colors, to fix a size
+(in inches) and an aspect ratio, to set the orientation, etc.
+Here is an example:
+
+>>> from MROgraph import testHierarchy
+>>> colors='edge [color=blue]; node [color=red];'
+>>> g=testHierarchy(filename='A.png', labels=1, caption=True,
+...     setup='size="8,6"; ratio=0.7; '+colors)
+
+ .. image:: A.png
+
+If an unrecognized option is passed, it is simply
+ignored and nothing happens: you may want to raise an
+error instead, but this is up to you. Also, you may want 
+to add more customizable options; it is easy to change 
+the code accordingly. The aim is not to wrap all the
+Dot features, here.
+
+Examples with both old style and new style classes
+----------------------------------------------------------------
+
+This recipe can be convenient for documenting programs, 
+but it can also be used as a learning tool,
+when you are studying a large framework with
+a complicated class hierarchy. In this case
+there could be a problem, since by design the
+recipe works with new style only, whereas
+most of legacy Python code works with old-style
+classes; however it is trivial to convert
+an old-style class to new-style, simply
+by composing it with the ``object`` class.
+For instance, let me show what can be learned about the
+ScrolledText widget of Tkinter:
+
+>>> from MROgraph import MROgraph
+>>> import ScrolledText
+>>> class ScrolledText_(ScrolledText.ScrolledText,object):
+...     "Creates a new style class from ScrolledText.ScrolledText"
+>>> g=MROgraph(ScrolledText_,
+...     filename="ScrolledText.png",setup='size="5,5"; '+colors)
+
+ .. image:: ScrolledText.png
+
+We see here that Tkinter makes use of the mixins Pack, Place and Grid
+(in this order) which combined with BaseWidget generate a Widget. We
+also see that  Misc has the precedence over Pack, Place and Grid.
+Finally, all Tkinter classes are old-style classes, instances
+of the metaclass ``classobj``. 
+
+I should warn the reader that the MRO for new style and old style 
+classes is different, so there are old style hierarchies which cannot 
+be converted to new style one. Here is an example:
+
+>>> class A: pass # notice, old style!
+...
+>>> class B(A): pass
+...
+>>> class C(A,B): pass
+...
+>>> class D(C,object): pass
+...
+>>> g=MROgraph(D,filename="D.png",setup=colors,caption=True)
+...
+
+ .. image:: D.png
+
+This only works since A,B and C are old style, since the triangle
+configuration is forbidden for new style classes by the C3 MRO.
+If you try to derive A from object, you will get a MRO error.
+
+On the other hand, there are old style hierarchies which can be
+converted to new style one, but behave differently after the
+conversion. Consider for instance the following old style hierarchy:
+
+>>> class A: a='A' # makes A,B,C and D old style
+...
+>>> class B(A): pass
+...
+>>> class C(A): a='C'
+...
+>>> class D(B,C): pass
+...
+>>> class E(D,object): pass # makes E new style
+...
+>>> g=MROgraph(E,filename='oldstyle.png',setup=colors,caption=True)
+
+ .. image:: oldstyle.png
+
+In this example A comes before C, 
+
+>>> E.a
+...
+'A'
+
+whereas for new style classes it would be the opposite:
+
+>>> class A(object): a='A' # makes the whole hierarchy new style
+...
+>>> class B(A): pass
+...
+>>> class C(A): a='C'
+...
+>>> class D(B,C): pass
+...
+>>> class E(D): pass
+...
+>>> g=MROgraph(E,filename='newstyle.png',setup=colors,caption=True)
+
+ .. image:: newstyle.png
+
+Here C has the precedence over A:
+
+>>> E.a
+...
+'C'
+

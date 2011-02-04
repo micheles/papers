@@ -1,0 +1,294 @@
+Threads, processes and concurrency in Python: some thoughts
+=====================================================================
+
+I attended the EuroPython conference in Birmingham last week. Nice
+place and nice meeting overall. There were lots of interesting talks
+on many subjects. I want to focus on the talks about concurrency here.
+We had a keynote by Russel Winder about the "multicore
+revolution" and various talks about different approaches to
+concurrency (Python-CSP, Twisted, stackless, etc). Since this is a hot
+topic in Python (and in other languages) and everybody wants to have
+his saying, I will take the occasion to make a comment.
+
+The multicore *non* revolution
+--------------------------------------------------
+
+First of all, I want to say that I believe in the multicore *non*
+revolution: I claim that essentially *nothing* will change for the average
+programmer with the advent of multicore machines. Actually, the
+multicore machines are already here and you can already see that
+nothing has changed.
+
+For instance, I am interacting with my database just as before: yes,
+internally the database may have support for multiple cores, it may be
+able to perform parallel restore and other neat tricks, but as a
+programmer I do not see any difference in my day to day SQL
+programming, except (hopefully) on the performance side.
+
+I am also writing my web application as before the revolution: perhaps
+internally my web server is using processes and not threads, but I do
+not see any difference at the web framework user level.  Ditto if I am
+writing a desktop application: the GUI framework provides a way to
+launch processes or threads in the background: I just perform
+the high level calls and I not fiddle with locks. 
+
+At work we have a Linux cluster with hundreds of CPUs, running
+thousands of processes per day in parallel: still, all of the
+complication of scheduling and load balancing is managed by the Grid
+engine, and what we write is just single threaded code interacting with
+a database. The multicore revolution did not change anything for the
+way we code. On the other extreme of the spectrum, people developing
+for embedded platforms will just keep using platform-specific
+mechanisms.
+
+The only programmers that (perhaps) may see a difference are
+scientific programmers, or people writing games, but they are a
+minority of the programmers out there. Besides, they already know
+how to write parallel programs, since in the scientific community
+people have discussed parallelization for thirty years, so no
+revolution for them either.
+
+For the rest of the world I expect that frameworks will appear
+abstracting the implementation details away, so that people will not
+see big differences when using processes and when using threads.  This
+is already happening in the Python world: for instance the
+multiprocessing module in the standard library is modeled on the
+threading module API, and the recently accepted `PEP 3148`_ (the one
+about futures) works in the same way for both threads and processes.
+
+Enough with thread bashing
+---------------------------------------------------------
+
+At the conference there was *a lot* of bias against threads, as usual in
+the Python world, just more so.  I have heard people saying bad things
+against threads from my first day with Python, 8 years ago, and
+frankly I am getting tired. It seems this is an area filled with
+misinformation and FUD. And I am not even talking of the endless rants
+against the GIL.
+
+I do not like threads particularly, but after 8 years of hearing
+things like "it is impossible to get threads right, and if you are
+thinking so you are a delusional programmer" one gets a bit tired. Of
+course it is possible to get threads right, because all mainstream
+operating systems use them, most web servers use them, and thousands
+of applications use them, and they are all working (I will not claim
+that they are all bug-free, though).
+
+The problem is that the people bashing threads are typically system
+programmers which have in mind use cases that the typical application
+programmer will never encounter in her life. For instance, I recommend
+the article by Bryan Cantrill "A spoon of sewage", published in the
+`Beautiful Code`_ book: it is an horror story about the intricacies of
+locking in the core of the Solaris operating system (you can find part
+of the article in this `blog post`_). That kind of things are terribly
+tricky to get right indeed; my point however is that really few people
+have to deal with that level of sophistication.
+
+In 99% of the use cases an application programmer is likely to run
+into, the simple pattern of spawning a bunch of independent threads
+and collecting the results in a queue is everything one needs to
+know. There are no explicit locks involved and it is definitively
+possible to get it right.  One may actually argue that this is a case
+that should be managed with a higher level abstraction than threads: a
+witty writer could even say that the one case when you can get threads
+right is when you do not need then.  I have no issues with that
+position: but I have issue with the bold claim that threads are impossible
+to use in all situations!
+
+In my experience even the trivial use cases are rare and actually in 8
+years of Python programming I have never once needed to implemenent a
+hairy use case. Even more: I never needed to perform a concurrent
+update using locks *directly* (except for learning purposes).  I do
+write concurrent applications, but all of my concurrency needs are
+taken care of by the database and the web framework.  I use
+threadlocal objects occasionally, to make sure everything works
+properly, but that's all. Of course threadlocal objects (I mean
+instances of ``threading.local`` in Python) use locks internally, but
+I do not need to think about the locks, they are hidden from my user
+experience.  Similarly, when I use SQLAlchemy, the thread-related
+complications are taken care of by the framework. This is why in
+practice threads are usable and are actually used by everybody,
+sometimes even without knowing it (did you know that using the
+standard library logging module turns your program into a
+multi-threaded program behind your back?).
+
+There is more to say about threads: if you want to run your
+concurrent/parallel application on Windows or in any platform lacking
+``fork``, *you have no other choice*. Yes, in theory one could use the
+asynchronous approach (Twisted-docet) but in practice even Twisted use
+threads underneath to manage blocking input (say from the database):
+there is not way out.
+
+Confusing parallelism with concurrency
+-------------------------------------------
+
+At the conference various people conflated parallelism with
+concurrency, and I feel compelled to rectify that misunderstanding.
+
+Parallelism_ is really quite trivial: you just split a computation in
+many *independent* tasks which interact very little or *do not
+interact at all* (for the so-called embarrassing parallel problems) and
+you collect the results at the end.  The MapReduce pattern of Google
+fame is a well known example of simple parallelism.
+
+Concurrency is very much nontrivial instead: it is all about modifying
+things from different threads/processes/tasklets/whatever without
+incurring in hairy bugs. Concurrent updates are the key aspects in
+concurrency.  A true example of concurrency is an OS-level task
+scheduler.
+
+The nice thing is that most people don't need true concurrency, they
+need just parallelism of the simplest strain. Of course one needs a
+mechanism to start/stop/resume/kill tasks, and a way to wait for a
+task to finish, but this is quite simple to implement if the tasks are
+independent. Heck, even my own plac_ module is enough to manage simple
+parallelism! (more on that later)
+
+I also believe people have been unfair against the poor old shared memory
+model, looking only at its faults and not at its advantages. Most of
+the problems are with locks, not with the shared memory model. In
+particular, in parallel situations (say read-only situations, with no
+need for locks) shared memory is quite good since you have access to
+everything.
+
+Moreover, the shared memory model has the non-negligible advantage
+that you can pass non-pickleable objects between tasks. This is quite
+convenient, as I often use non-pickleable objects such as generators
+and closures in my programs (and tracebacks are unpickleable too).
+
+Even if you need to manage true concurrency with shared memory, you
+are not forced to use threads and locks directly. For instance, there
+is a nice example of concurrency in Haskell in the `Beautiful Code`_
+book titled "Beautiful concurrency" (`the PDF is public`_) which uses
+Software Transactional Memory (STM). The same example can be
+implemented in Python in a completely different way by using
+cooperative multitasking (i.e. generators and a scheduler) as
+documented in a `nice blog post`_ by Christian Wyglendowski. However:
+
+1. the asynchronous approach is single-core;
+2. if a single generator takes too long to run, the whole program will block,
+   so that extra-care should be taken to ensure cooperation.
+
+My experience with plac
+----------------------------------------------------
+
+Recently I have released a module named plac_ which
+started out as a command-line argument parser but immediately evolved
+as a tool to write command-line interpreters. Since I wanted to be
+able to execute long running commands without blocking the interpreter
+loop I implemented some support for running commands in the background
+by using threads or processes. That made me rethink about various 
+things I have learned about concurrency in the last 8 years: it
+also gave me the occasion to implement something non completely
+trivial with the multiprocessing module.
+
+In plac_ commands are implemented as generators
+wrapped in task objects. When the command raises an exception, plac_
+catches it and stores it in three attributes of the task object:
+``etype`` (the exception class), ``exc`` (the
+exception object) and ``tb`` (the exception traceback). When working
+in threaded mode it is possible to re-raise the exception after the
+failure of task, with the original traceback. This is convenient
+if you are collecting the output of different commands, since you
+can process the error later on. 
+
+In multiprocessing mode instead, since the exception happened in a
+separated process and the traceback is not pickleable, it is
+impossible to get your hands on the traceback. As a workaround plac_
+is able to store the string representation of the traceback, but it is
+clearly losing debugging power.
+
+Moreover, plac_ is based on generators
+which are not pickleable, so it is difficult to port on Windows
+the current multiprocessing implementation, whereas the threaded
+implementation works fine both on Windows and Unices.  
+
+Another difference worth to notice is that the
+multiprocessing model forced me to specify explicitly which variables
+are shared amongst processes; as a consequence, the multiprocessing
+implementation of tasks in plac_ is slightly longer than the threaded
+implementation. In particular, I needed to implement the shared attributes as
+properties over a ``multiprocessing.Namespace`` object.  However, I
+must admit that I like to be forced to specify the shared
+variables (*explicit is better than implicit*).
+
+I am not touching here the issue of the overhead due to processes and
+process intercommunication, since I am not interested in performance
+issues, but there is certainly an issue if you need to pass a large
+amount of data so certainly there are cases where using threads has
+some advantage. 
+
+Still, at EuroPython it seemed that everybody was dead set against
+threads. This is a feeling which is quite common amongsts Python
+developers (actually I am not a thread lover myself) but sometime
+things get too unbalanced.  There is so much talk
+against threads and then if you look at the reality it turns out that
+essentially all Web frameworks and database libraries are using them!
+Of course, there are exceptions, like Twisted and Tornado, or psycopg2
+which is able to access the asynchronous features of PostgreSQL, but
+they are exactly that: exceptions.  Let's be honest.
+
+Conclusion
+-------------------------------
+
+In practice it is difficult to get rid of threads and no amount of
+thread bashing will have any effect. It is best to have a positive
+attitude and to focus on ways to make threads easier to use for the
+simple cases, and to provide thread/process agnostic high level APIs:
+`PEP 3148`_ is a step in that direction. For instance, an application
+could use use threads on Windows and processes on Unices,
+transparently (at least to a certain extent: it is impossible to be
+perfectly transparent in the general case). 
+
+In the long run I assume that Windows will grow some good way to run
+processes, because it looks like it is tecnologically impossible to
+substain the shared memory model when the number of cores becomes
+large, so that the multiprocessing model will win at the end. Then
+there will be less reasons to complain about the GIL. Not that
+there aren many reason to complain even now, since the GIL affects
+CPU-dominated applications, and typically CPU-dominated applications
+such as computations are not done in pure Python, but in C-extensions
+which can release the GIL as they like. BTW, the GIL itself will never go
+away in C-Python because of backward compatibility concerns with
+C-extensions, even if `it will improve`_ in Python 3.2.
+
+So, what are my predictions for the future? That concurrency will be
+even further hidden from the application programmer and that the
+underlying mechanism used by the language will matter even less than
+it matters today.  This is hardly a deep prediction; it is already
+happening. Look at the new languages: Clojure or Scala are using Java
+threads internally, but the concurrency model exposed to the
+programmer is quite different. At the moment I would say that all
+modern languages (including Python) are converging towards some form
+of message passing concurrency model (remember the Go meme *don't
+communicate by sharing memory; share memory by communicating*). The
+future will tell if the synchronous message passing mechanism
+(CSP-like) will dominate, or if the Erlang-style asynchronous message
+passing will win, or if they will coexist (which looks likely).
+Event-loop based programming will continue to work fine as always and
+raw threads will be only for people implementing operating
+systems. Actually I should probably remove the future tense since a
+lot of people are already working in this scenario.
+I leave further comments to my readers.
+
+UPDATE: I see today a very interesting (as always!) `article by Dave Beazley`_
+on the subject of threads and generators. He suggests cooperation between
+threads and generators instead of just replacing threads with generators.
+Kind of interesting to me, since plac_ uses the same trick of wrapping
+a generator inside a thread, even if for different reasons (I am just
+interested in making the thread killable, Dave is interested on performance).
+BTW, all articles by Dave are a must read if you are interested in concurrency
+in Python, do a favor to yourself and read them!
+
+.. http://blog.ianbicking.org/concurrency-and-processes.html
+.. http://thread.gmane.org/gmane.comp.python.devel/71708 # Pythonic concurrency
+.. _the PDF is public: http://research.microsoft.com/en-us/um/people/simonpj/papers/stm/beautiful.pdf
+.. _nice blog post: http://shoptalkapp.com/blog/2009/10/20/beautiful-coroutines
+.. _PEP 3148: http://www.python.org/dev/peps/pep-3148/
+.. _parallelism: https://computing.llnl.gov/tutorials/parallel_comp/
+.. _blog post: http://blogs.sun.com/bmc/entry/opensolaris_sewer_tour
+.. _plac: http://pypi.python.org/pypi/plac
+.. _Threads Considered Harmful: http://www.kuro5hin.org/story/2002/11/18/22112/860
+.. _Beautiful Code: http://oreilly.com/catalog/9780596510046/preview
+.. _it will improve: http://www.dabeaz.com/python/NewGIL.pdf
+.. _article by Dave Beazley: http://dabeaz.blogspot.com/2010/07/yieldable-threads-part-1.html

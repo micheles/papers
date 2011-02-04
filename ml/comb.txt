@@ -1,0 +1,342 @@
+Functional Programming For Dynamic Programmers - Part 4
+=======================================================
+
+:author: Michele Simionato
+:date: December 2007
+
+This is the fourth of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers, i.e. 
+for programmers with a background in dynamically typed languages, such as Perl, 
+Python, Ruby, or languages in the Lisp family. The approch is eminently practical
+and example-based; the main goal is to see if we can stole some good idea from
+statically typed languages. In order to be concrete, I will consider languages
+in the ML family, because they are pretty nice and much easier to understand
+that Haskell.
+
+Academic languages vs enterprise languages
+-----------------------------------------------------------
+
+There is a widespread misconception that academic languages are clean but
+unpractical, whereas enterprise languages are practical but dirty. I never
+bought that argument, since I have seen examples of the opposite, and also
+because I always believed that a language can be both clean *and* practical.
+
+For instance in my opinion both Python and Ruby are reasonably clean and
+reasonably practical and this is part of the reason why they are having so
+much success lately. I believe the reason why they are so clean is that from
+the beginning they managed to stay away from optimization, the root of all evil.
+On the other hand, I am also convinced that it possible to write a language
+which is both practical, clean and fast. Unfortunately, such a language does
+not exist yet. SML is fast and somewhat clean but it is definitely not practical. 
+Here by practical I mean enterprise-ready.
+
+There is an irriducible aporia_ between enterprise programmers and
+academics: people working on enterprise are facing every day problems
+that are already solved; to them, the importanting thing is to avoid
+reinventing the wheel. Given two languages, one that provides a solution
+to a problem they have, and one providing the tools to build the solution
+themselves, they prefer the first one. This is natural since in an enterprise 
+environment one has deadlines and it is essential to be as productive
+as possible; of course the best way to be productive is to *not write* code,
+and to re-use code written by others. 
+On the other hand, in academia one has to do with new problems, or
+with new techniques to solve old problems: the proof of concept is
+more important than the practical implementation. Also, academics
+are (rightly) interested in writing papers, not in writing code. For all these 
+reasons it is clear that you cannot face an
+academic language such as SML with an enterprise mindset.
+For instance, if you come from an enterprise environment you will be used to
+expect ready availabity of a nearly infinite number
+of libraries doing everything you may need and more. This is certainly
+the situation for all enterprise-level languages such as C, C++, Java, C#,
+Perl, Python and now even Ruby, which is younger but rapidly spreading.
+
+As I said many time, I assume that my readers are dynamic programmers,
+well acquainted with scripting languages; I feel the urge warn them that the
+situation in SML is very different than in Perl, Python or Ruby [#]_ . Here
+are a few differences.
+
+1. 
+    Scripting languages have a dominant (sometimes unique)
+    implementation; ML has dozens of implementations, each with
+    useful features which are not in the standard, so that
+    different implementations provides incompatible extensions.
+
+2.  
+    Scripting languages have a BDFL_ (Benevolent Dictator For Life,
+    i.e.  Guido van Rossum for Python, Larry Wall for Perl, Yukihiro
+    Matsumoto for Ruby) whereas SML is a language designed by
+    committee. That means that a scripting language can evolve much
+    *much* faster than a language designed by committee. Also,
+    languages designed by committee are compromises whereas
+    single-person languages are much more consistent.
+
+3. 
+    SML has a very small community: the support you can have in newsgroup
+    and mailing lists is simply not comparable to the support you can get in
+    the scripting languages mailing list and newsgroups.
+
+    if Andreas Rossberg won the first price
+    at the lottery and decided to leave for a tropical paradise, nobody would
+    provide support for Alice ML on the mailing list
+
+4.
+    SML is a deserted language, even compared to non-mainstream
+    languages as OCaml, Haskell, Scheme, Common Lisp, Smalltalk, Tcl,
+    ...; it is perhaps the least used language I have ever seen and
+    this is a pity.
+
+5.
+    Generally speaking, if you want bindings for external libraries
+    you have to write it yourself; there are no standard bindings for
+    GUI toolkits, database drivers, scientific programming libraries.
+
+6. 
+    Scripting languages have traditionally a strong support for Web programming
+    which is next to absent in SML.
+
+
+All the issues I have just listed are just accidental, not
+structural: in principle one could just solve them by writing code; in principle
+a DHH_ could take an SML implementation and make it the next Ruby on Rails.
+However that has not happened yet, so if you want to work with SML right now you
+will be forced to reinvent the wheel. In this article I will reinvent a few wheels,
+just to be able to give some meaninful example to the enterprise programmer
+in the next articles.
+
+.. _aporia: http://en.wikipedia.org/wiki/Aporia
+.. _BDFL: http://en.wikipedia.org/wiki/BDFL
+.. _DHH: http://en.wikipedia.org/wiki/DHH
+
+.. [#] Notice that I put Perl, Python and Ruby in the mainstream
+        languages, since even if the number of dynamic programmers is
+        inferior the number of say C/C++, Java or .NET programmers,
+        in practice scripting programmers have available nearly everything the
+        other languages have available, and much better languages.
+
+String interpolation the practical way
+--------------------------------------------------------
+
+Every language has some builtin mechanism to do string interpolation: C
+has ``sprintf``, Python has the ``%`` operator, Lisp has ``format``, but
+SML has none. Therefore I will provide here a very simple interpolation library
+for SML, so that I will be able to provide more interesting examples later.
+The library provides a single higher order function 
+``format: string -> string list -> string`` converting a template
+string into a 'string list -> string' function replacing the template 
+with the provided list of arguments. For instance
+
+ ``format "The square of $ is $\n" ["3", "9"]``
+
+returns
+
+     ``"The square of 3 is 9"``
+
+For sake of simplicity, we will not implement any mechanism to escape
+dollar signs, so if the format strings contains dollar signs for other
+reasons (for instance there is money involved) the library will not
+work.
+
+The library is heavily based on list processing.
+Lists are the most common data structures in 
+functional languages (they formed the core of Lisp at its beginning) . 
+You should look at the `basis library`_
+to see what you can do with lists. Here I will just say that SML lists are 
+linked lists in the same sense of Lisp or Scheme (with the difference
+that they are immutable) and not as in Python (Python lists are actually arrays,
+Python is abusing the name). Just as in Scheme, where
+
+  ``(list 1 2)``
+
+is a shortcut for
+
+ ``(cons 1 (cons 2 '()))``
+
+in ML
+
+  ``[1, 2]``
+
+is a shortcut for
+
+ ``1::2::[]``
+
+and ``::`` is the *cons* operator (short for constructor). 
+If you don't know Scheme, a SML lists should be thought of as of a
+nested Python list, i.e.
+
+   ``[1, 2] (SML) => [1, [2, []]] (Python)``
+
+.. _basis library: http://www.standardml.org/Basis/list.html 
+ 
+The core of the algorithm used in the interpolation library is a
+recursive function which takes a list of N+1 terms ``t_1 ... t_{N+1}``
+and a list of N arguments ``a_1 .. a_N`` and returns the string
+obtained by interspersing the terms with the arguments,
+
+  ``t_1 ^ a_1 ^ ... _tN ^ a_N ^ t_{N+1}``
+
+For instance, we will be interspersing ``["The square of ", " is ", "\n"]`` with
+ ``["3", "9"]``.
+
+Here is the code::
+
+ $ cat format.aml
+
+.. include:: format.aml 
+    :literal: 
+
+A few comments are in order.
+
+1.
+ We used the ability to define exceptions with a value:
+ ``exception ArityError of string`` means that ``ArityError`` accepts
+ a string argument (the error message).
+
+2.
+ We used the standard library ``String.fields`` utility, which splits a string
+ according to a delimiter; in our case  ``String.fields (fn c => c = #"$") templ``
+ splits the template into a list a strings using the character ``$`` as delimiter.
+ In SML characters are specified with a sharp notation, so the character ``$``
+ is written ``#"$"``.
+
+3.
+ The  builtin ``concat`` concatenates a list of strings whereas ``rev`` reverts
+ a list; you are advised to read the documentation or any book on SML for more.
+
+String interpolation the SML way
+-------------------------------------------------
+
+Functional languages have a reputation for abstractness 
+but in this series of articles I have focused solely on very concrete 
+earth-bound aspects. To correct the balance, in this section I will discuss
+a few programming techniques which are quite common in 
+functional languages, but unheard of in "regular" languages, and that
+require a mathematically-inclined mind to be understood. I am doing so 
+because these tricks are actually used a lot in functional languages, and 
+I don't want to give a false impression by ignoring them 
+and just discussing the easy things. 
+
+For instance, you should not believe that functional
+programming is just about functions; there is an higher order
+approach to functional programming, in which the primary objects
+are not functions, but operators operating on functions, the so
+called *combinators*. For people with a background in Physics, I will
+say this is exactly analogous to the switch from the
+Schroedinger picture, in which the emphasis is on the wave functions,
+to the Heisenberg picture, in which the emphasis is on the quantum
+operators.
+
+Having warned my readers that this section is not for the faint of heart
+(but you may safely skip it if you don't feel adventurous)
+I will start from the concatenation operator
+
+::
+
+ ^ : string * string -> string
+
+which satifies the properties::
+ 
+     a ^ (b ^ c)  = (a ^ b) ^ c = a  ^ b ^ c
+     a ^ "" = "" ^ a = a
+
+Mathematically speaking, the set of strings in SML 
+is a monoid_ with respect to concatenation and the empty
+string "" is the identity element.
+
+.. _monoid: http://en.wikipedia.org/wiki/Monoid
+.. _group: http://en.wikipedia.org/wiki/Group_%28mathematics%29
+.. _group representations: http://en.wikipedia.org/wiki/Group_representation
+
+If you have a background in Mathematics or in Physics you will be familiar
+with the theory of `group representations`_; in particular groups (and monoids
+too) can be represented with operators operating on function spaces.
+In the case at hand, I can define a lift transformation converting plain
+strings into operators by preserving the composition law::
+
+ -  fun L s f s' = f (s' ^ s);
+ val L : string -> (string -> 'a) -> string -> 'a = _fn
+
+(this is the same as ``fun L s = fn f => fn s' => f (s' ^ s)``).
+In other words, ``L s`` is an operator (combinator) taking a function and
+returning a function, with the property
+
+  ``L (s1 ^ s2) = (L s1) o (L s2)``
+
+where ``o`` denotes the composition of operators. Just as ``L`` is an upgrade
+operation, promoving a plain simple string to the celestial world of operators
+in function spaces, I can define a downgrade operation ``l``, demoving
+celestial operators back to earthly strings::
+
+ - fun l O = O Fn. id "";
+ val l : (('a -> 'a) -> string -> 'b) -> 'b = _fn
+
+``l`` takes the operator, applies it to the identity function and
+returns a function which is then applied to the empty string, finally
+bringing back at home a plain string; ``l`` is the inverse of ``L``,
+i.e. ``l o L`` is the identity in the space of strings where ``L o l``
+is the identity in the space of operators. You can try yourself at the
+prompt that
+
+::
+
+ - l(L"a" o L"b");
+ val it : string = "ab"
+
+so we succeded in making simple things hard and abstract. But not happy with
+that, we are going to make things harder and more abstract, by defining
+another combinator taking a function and returning an higher order function::
+
+  - fun str f s s' = f (s ^ s')    
+  val str : (string -> 'a) -> string -> string -> 'a = _fn
+  
+(this is the same as ``fun str f = fn s => fn s' => f ( s ^ s')``).
+This combinator is so abstract than even when lift back to the mortal world
+it is more than a mere string, it is actually the identity function on strings::
+
+ - l str;
+ val it : string -> string = _fn
+ - (l str) "hello";
+ val it : string = "hello"
+
+The ``str`` combinator can be composed in the celestial word: when lift
+back to the mortal world, it returns a higher order version of the concatenation
+operator::
+
+ - l (str o str);
+ val it : string -> string -> string = _fn
+
+ - l (str o str) "hello" " world";
+ val it : string = "hello world"
+
+We can also compose ``str`` with other combinators and we can write things like::
+
+ - l( L"a" o str o L"b" o str o L"c") "?" ":";
+ val it : string = "a?b:c"
+
+In other words, we have reinvented string interpolation the difficult way.
+Still, there is at least an advantage of this approach with respect to the
+approach we used in the previous paragraph: combinator-based string interpolation
+happens at compile type and *mistakes are discovered by the compiler*, not
+at runtime. Moreover, the approach can be easily extended to manage
+different types: for instance, if we have to do with numbers, we
+can define the combinators::
+
+  -  fun int f s n = f (s ^ (Int.toString n))    
+  val str : (string -> 'a) -> string -> string -> 'a = _fn
+
+  - fun real f s n = f (s ^ (Real.toString n))    
+ val real : (string -> 'a) -> string -> real -> 'a = _fn
+
+and use them as follows::
+
+  - print (l(int o L" / " o int o L" = " o real o L"\n") 5 2 2.5);
+  5 / 2 = 2.5
+  val it : unit = ()
+
+If you make a mistake like using an int instead of a real, or if you forget an
+argument, you will get a compile time type error.
+
+----
+
+*Give a man a fish and he will eat for a day. Teach a man to fish and he will eat 
+for the rest of his life.*  -- Chinese proverb

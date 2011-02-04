@@ -1,0 +1,103 @@
+``super`` with only one argument ("bound" super) is a mess.
+
+AFAICT ``super(C)`` is intended to be used as an attribute in 
+other classes. Then the descriptor magic will automatically convert the 
+unbound syntax in the bound syntax. For instance:
+
+>>> class B(object):
+...     a = 1
+>>> class C(B):
+...     pass
+>>> class D(C):
+...     sup = super(C)
+>>> d = D()
+>>> d.sup.a
+1
+
+This works since ``d.sup.a`` calls ``super(C).__get__(d,D).a`` which is
+converted to ``super(C, d).a`` and retrieves ``B.a``.
+
+There is a single use case for the single argument 
+syntax of ``super`` that I am aware of, but I think it gives more troubles 
+than advantages. The use case is the implementation of "autosuper" made 
+by Guido on his essay about new-style classes.
+
+The idea there is to use the unbound super objects as private
+attributes. For instance, in our example, we could define the
+private attribute ``__sup`` in the class ``C`` as the unbound
+super object ``super(C)``:
+
+>>> C._C__sup = super(C)
+
+With this definition inside the methods the syntax 
+``self.__sup.meth(arg)`` can be used
+as an alternative to ``super(C, self).meth(arg)``, and the advantage is 
+that you avoid to repeat the name of the class in the calling
+syntax, since that name is hidden in the mangling mechanism of
+private names. The creation of the ``__sup`` attributes can be hidden 
+in a metaclass and made automatic. So, all this seems to work: but
+actually this is *not* the case.
+
+Things may wrong in various case, for instance for classmethods,
+as in this example::
+
+  #<ex1.py>
+
+  class B(object):
+      def __repr__(self):
+          return '<instance of %s>' % self.__class__.__name__
+      @classmethod
+      def meth(cls):
+          print "B.meth(%s)" % cls
+
+  class C(B):
+      @classmethod
+      def meth(cls):
+          print "C.meth(%s)" % cls
+          cls.__super.meth()
+
+  C._C__super = super(C)
+
+  class D(C):
+      pass
+
+  D._D__super = super(D)
+
+
+  d=D()
+
+  d.meth()
+
+  #</ex1.py>
+
+The last line raises an ``AttributeError: 'super' object has no attribute 
+'meth'.``
+
+So, using a ``__super`` unbound super object is not a robust solution
+(notice that everything would work by substituting  ``self.__super.meth()``
+with ``super(C,self).meth()``. There are other ways to avoid repeating
+the class name, see for instance my cookbook recipe, which will also be
+in the printed version.
+
+If it was me, I would just remove the single argument syntax of ``super``,
+making it illegal. But this would probably break someone code, so
+I don't think it will ever happen. Another solution would be just to
+deprecate it. There is no need for this syntax, one can always circumvent 
+it. In addition to the other issues, the unbound form of ``super`` does 
+not play well with pydoc. 
+The problems is still there in Python 2.4 (see bug report SF729103)
+
+>>> class B(object): pass
+... 
+>>> class C(B):
+...     s=super(B)
+... 
+>>> help(C)
+Traceback (most recent call last):
+  ...
+  ... lots of stuff here
+  ...
+  File "/usr/lib/python2.4/pydoc.py", line 1290, in docother
+    chop = maxlen - len(line)
+TypeError: unsupported operand type(s) for -: 'type' and 'int'
+

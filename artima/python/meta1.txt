@@ -1,0 +1,200 @@
+Metaclasses in Python 3.0 [1 of 2]
+==========================================================
+
+# this is a translation of http://stacktrace.it/articoli/2008/01/metaclassi-python-3000/
+
+I heard for the first time the word "metaclass" in 2002, when I begun studying
+Python. I was very active in the Python newsgroup then, and I received from
+`David Mertz`_ an invitation to write a joint paper about metaclasses.
+That was my very first paper outside Physics and since then I have had a
+particular affection for the subject. At the time the topic was hot
+since the metaclass mechanism had been just reformed
+(that was around the time Python 2.2 came along). Nowadays the subject
+is still hot since with Python 3.0 coming in October we will have
+another reform of the metaclass mechanism. The reform is for the better.
+I could not miss the occasion to write something about it.
+
+.. _David Mertz: http://en.wikipedia.org/wiki/David_Mertz
+
+The sweeet changes
+------------------------------------------------------
+
+Here I assume my readers to be familiar with metaclass programming in
+Python, at least as it is intended from Python 2.2 to Python 2.6.  If
+you need to refresh your memory, my advice is to give a look to the
+metaclass trilogy David and I wrote for IBM DeveloperWorks, *Metaclass
+programming in Python*, parts 1_, 2_ e 3_ .
+
+A metaclass is nothing else than a subclass of the builtin metaclass ``type``:
+
+>>> class DoNothingMeta(type): # a silly metaclass
+...       pass
+
+A metaclass can be instantiated by specifying a string (the *name*),
+a tuple of classes (the *bases*) and a dictionary (the *dic*):
+
+>>> C = DoNothingMeta('C', (object,), {})
+
+The metaclass instance is a class named *C*, with parent *object* and an empty
+dictionary. In Python 3.0 everything remains the same: the only change
+is in the *syntactic sugar*. In Python 2.2+ you have at your disposition
+the so-called ``__metaclass__`` hook and that the previous line can
+be written also as
+
+>>> class C(object): __metaclass__ = DoNothingMeta
+
+In Python 3.0+ instead, you can use a somewhat nicer syntax:
+
+>>> class C(object, metaclass=DoNothingMeta): pass
+
+The important thing to notice is that in Python 3.0 you can write
+
+>>> class C(object): __metaclass__ = DoNothingMeta
+
+*but the hook is not recognized*: Python 3.0 will just add a ``__metaclass__``
+attribute to your class, but the attribute will not be treated in any special
+way and in particular your class will not be magically converted in an instance
+of the metaclass: the class of ``C`` will stay ``type`` 
+and not ``DoNothingMeta``:
+
+>>> type(C) is DoNothingMeta
+False
+
+This is potentially risky when porting code from Python 2.X to Python
+3.0. I guess the 2to3 tool will give some warning, but I have not
+tried it yet. If anybody who knows read this post, feel free to
+comment.
+
+
+.. _1: http://www.ibm.com/developerworks/linux/library/l-pymeta.html
+.. _2: http://www-128.ibm.com/developerworks/linux/library/l-pymeta2/
+.. _3: http://www.ibm.com/developerworks/library/l-pymeta3.html
+.. _Metaprogramming without Metaclasses: http://www.ibm.com/developerworks/library/l-pymeta3.html
+
+The hot changes
+---------------------------------------------------------------
+
+The syntactic changes, however useful, are still cosmetics. The substantial
+change between Python 2.2 and Python 3.0 is *semantic*: in Python 3.0
+the dictionary passed to the metaclass can be replaced with a generic
+object with a ``__setitem__`` method. In particular, you
+can pass to a metaclass an ordered dictionary instead of a ordinary
+dictionary. That means that it is possible to keep the order of the
+declarations in the class body, a much desired feature for metaclass
+practictioners.
+For instance, suppose we want to define a ``Book`` class with fields
+``title`` and ``author`` (in that order).
+In Python 2.2 we would be forced to repeat the names of the fields:
+
+.. code-block:: python
+
+ class BookPython22(object):
+ 
+     title = 'varchar(128)'
+     author = 'varchar(64)'
+ 
+     order = ['title', 'author']
+
+The ``order`` list is redundant and annoying, but you cannot get rid
+of it in traditional Python, otherwise you would miss the relative
+ordering of ``title`` and ``author``. In Python 3.0 instead, the
+``order`` list can be avoided, provided we use an ordered dict.  At
+the moment I am writing this is not clear if an ordered dict class will
+enter in the standard library of Python 3.0, therefore I will give a
+simple implementation here:
+
+.. code-block:: python
+
+ from collections import Mapping
+
+ class odict(Mapping):
+    "A simple implementation of ordered dicts without __delitem__ functionality"
+
+    def __init__(self, alist=None):
+        self._inner = {} # inner dictionary
+        self._keys = [] # the dictionary keys in order
+        if alist:
+            for k, v in alist:
+                self[k] = v
+
+    def __getitem__(self, key):
+        return self._inner[key]
+
+    def __setitem__(self, key, value):
+        self._inner[key] = value
+        self._keys.append(key)
+
+    def __iter__(self):
+        return iter(self._keys)
+
+    def __len__(self):
+        return len(self._keys)
+
+    def __repr__(self):
+        return '{%s}' % list(self.items())
+
+I am deriving here from the ``Mapping`` Abstract Base Class provided
+by the collections module, which takes the place of the traditional
+``UserDict.DictMixin`` class. Talking about the ABCs would take too
+long and I will leave that for a future post. 
+
+The relevant thing to say for what concerns dictionaries 
+is that the dictionary interface has changed in Python 3.0: the methods
+``.iterkeys()``, ``.itervalues()`` and ``.iteritems()`` 
+were removed and the methods ``.keys()``, ``.values()``
+and ``.items()`` now return views instead of lists. Again, I have
+no time to discuss views right now, but you can look at the `relevant PEP`_.
+
+.. _relevant PEP: http://www.python.org/dev/peps/pep-3106/
+
+We still need to tell the metaclass to use an ``odict`` instead of ``dict``.
+To this aim, Python 3.0 recognizes a special (class)method
+``__prepare__(mcl, name, bases)`` returning the would be class dictionary.
+Therefore it is enough to add a suitable ``__prepare__`` to the metaclass:
+
+.. code-block:: python
+
+ class MetaBookExample(type): 
+    @classmethod
+    def __prepare__(mcl, name, bases):
+        return odict()
+    def __new__(mcl, name, bases, odic):
+        cls = super().__new__(mcl, name, bases, dict(odic))
+        cls.odic = odic
+        return cls
+
+The tricky point here is that the ``__new__`` method must convert
+the class "dictionary" returned by ``__prepare__`` into
+a regular dictionary (this explains the ``dict(odic)`` expression).
+If your ``__prepare__`` method does not return an instance of ``dict``
+and you do not override ``__new__`` properly, you will get an error.
+For instance in this example if you do not override ``__new__`` you will
+get a ``TypeError: type() argument 3 must be dict, not odict`` when
+you try to instantiate the metaclass. If you do things correctly, instead,
+
+.. code-block:: python
+
+ class BookExample(metaclass=MetaBookExample):
+    "An example"
+    title = 'Varchar(128)'
+    author = 'Varchar(64)' 
+
+you may verify that the order of the class attributes is preserved:
+
+>>> BookExample.odic # this is an odict instance
+{[('__module__', '__main__'), ('__doc__', 'An example'), ('title', 'Varchar(128)'), ('author', 'Varchar(64)')]}
+
+We see here that the metaclass is also passing a couple of implicit
+magic attributes ``__module__`` and ``__doc__`` to the class. This is
+the usual behavior even in Python 2.2+ so it should not come as a
+surprise to you.
+
+Keeping the order of class attributes can be useful for
+the builders of Object Relation Mappers (SQLAlchemy_ anyone?),
+since it becomes possible to match the order of the columns in the database
+with the order of the column attributes at the Python level.
+In the second part of this article I will give a pedagogical example
+of what you can do with Python 3.0 metaclasses, by implementing a
+clever (not necessarily in a good sense) record system. Stay tuned!
+
+.. _SQLAlchemy: http://www.sqlalchemy.org

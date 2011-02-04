@@ -1,0 +1,14 @@
+SciPy e' il progetto piu' importante per quanto riguarda il calcolo scientifico in Python.
+SciPy fornisce molti vantaggi:
+
+1) la possibilita' di riutilizzare codice scientifico esistente (in C, C++ e Fortran) 
+   da Python, tramite degli opportuni wrapper (SWIG, weave, f2py, etc.);
+2) un'ottima libreria per gli array N-dimensionali (Numpy);
+3) la possibilita' di utilizzare la console interattiva di (I)Python;
+4) ottime routine di visualizzazione (Matplotlib, Chaco, etc.);
+5) l'apertura a tutto il mondo Python.
+
+Il mio talk sara' decisamente introduttivo, discutera' le caratteristiche
+piu' semplici di Numpy e mostrera' qualche esempio di uso di altre parti di SciPy, 
+in particolare le librerie per l'interpolazione non-lineare (non-linear least 
+squares fitting). En passant, parlero' anche di IPython e Matplotlib.

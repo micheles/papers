@@ -1,0 +1,696 @@
+\documentclass[10pt,a4paper,english]{article}
+\usepackage{babel}
+\usepackage{ae}
+\usepackage{aeguill}
+\usepackage{shortvrb}
+\usepackage[latin1]{inputenc}
+\usepackage{tabularx}
+\usepackage{longtable}
+\setlength{\extrarowheight}{2pt}
+\usepackage{amsmath}
+\usepackage{graphicx}
+\usepackage{color}
+\usepackage{multirow}
+\usepackage{ifthen}
+\usepackage[colorlinks=true,linkcolor=blue,urlcolor=blue]{hyperref}
+\usepackage[DIV12]{typearea}
+%% generator Docutils: http://docutils.sourceforge.net/
+\newlength{\admonitionwidth}
+\setlength{\admonitionwidth}{0.9\textwidth}
+\newlength{\docinfowidth}
+\setlength{\docinfowidth}{0.9\textwidth}
+\newlength{\locallinewidth}
+\newcommand{\optionlistlabel}[1]{\bf #1 \hfill}
+\newenvironment{optionlist}[1]
+{\begin{list}{}
+  {\setlength{\labelwidth}{#1}
+   \setlength{\rightmargin}{1cm}
+   \setlength{\leftmargin}{\rightmargin}
+   \addtolength{\leftmargin}{\labelwidth}
+   \addtolength{\leftmargin}{\labelsep}
+   \renewcommand{\makelabel}{\optionlistlabel}}
+}{\end{list}}
+\newlength{\lineblockindentation}
+\setlength{\lineblockindentation}{2.5em}
+\newenvironment{lineblock}[1]
+{\begin{list}{}
+  {\setlength{\partopsep}{\parskip}
+   \addtolength{\partopsep}{\baselineskip}
+   \topsep0pt\itemsep0.15\baselineskip\parsep0pt
+   \leftmargin#1}
+ \raggedright}
+{\end{list}}
+% begin: floats for footnotes tweaking.
+\setlength{\floatsep}{0.5em}
+\setlength{\textfloatsep}{\fill}
+\addtolength{\textfloatsep}{3em}
+\renewcommand{\textfraction}{0.5}
+\renewcommand{\topfraction}{0.5}
+\renewcommand{\bottomfraction}{0.5}
+\setcounter{totalnumber}{50}
+\setcounter{topnumber}{50}
+\setcounter{bottomnumber}{50}
+% end floats for footnotes
+% some commands, that could be overwritten in the style file.
+\newcommand{\rubric}[1]{\subsection*{~\hfill {\it #1} \hfill ~}}
+\newcommand{\titlereference}[1]{\textsl{#1}}
+% end of "some commands"
+\input{style.tex}
+\title{Let's keep it simple (or, how to do metaprogramming without metaclasses)}
+\author{}
+\date{}
+\hypersetup{
+pdftitle={Let's keep it simple (or, how to do metaprogramming without metaclasses)},
+pdfauthor={Michele Simionato}
+}
+\raggedbottom
+\begin{document}
+\maketitle
+
+%___________________________________________________________________________
+\begin{center}
+\begin{tabularx}{\docinfowidth}{lX}
+\textbf{Author}: &
+	Michele Simionato \\
+\textbf{Date}: &
+	10 July 2006 \\
+\textbf{Version}: &
+	0.5 \\
+\end{tabularx}
+\end{center}
+
+\setlength{\locallinewidth}{\linewidth}
+\hypertarget{contents}{}
+\pdfbookmark[0]{Contents}{contents}
+\subsubsection*{~\hfill Contents\hfill ~}
+\begin{list}{}{}
+\item {} \href{\#introduction}{Introduction}
+
+\item {} \href{\#about-class-initialization}{About class initialization}
+
+\item {} \href{\#please-stop-abusing-metaclasses}{Please stop abusing metaclasses}
+
+\item {} \href{\#the-classinitializer-decorator}{The \texttt{classinitializer} decorator}
+
+\item {} \href{\#tricky-points-and-caveats}{Tricky points and caveats}
+
+\item {} \href{\#example-initializing-records}{Example: initializing records}
+
+\item {} \href{\#references}{References}
+
+\item {} \href{\#questions-and-answers}{Questions and answers}
+
+\end{list}
+
+
+
+%___________________________________________________________________________
+
+\hypertarget{introduction}{}
+\pdfbookmark[0]{Introduction}{introduction}
+\section*{Introduction}
+
+A few days ago I was at CERN, at the EuroPython 2006 conference. The
+conference was good, the organization perfect, the talks of
+very high level, the people extremely nice.
+
+Nevertheless, I saw a trend growing in the Python community
+that disturbed me a little and motivated
+me to write this paper. The trend I am alluding to, is the trend
+towards \emph{cleverness}. Unfortunately, whereas once cleverness was
+mostly confined to Zope and Twisted, now is appearing everywhere.
+
+I personally don't have anything against cleverness for
+experimental projects and learning exercises. But I have a gripe
+against cleverness when I see it deployed in production frameworks
+that I am forced to cope with as an user.
+
+Cleverness means making things more complicated than
+needed, making things more fragile, making the learning curve
+steeper and, worse of all, making debugging harder.
+
+In this short paper I will try to give my small contribution against
+cleverness, at least in a case where I have some expertise, i.e.
+against metaclass abuses.
+
+Let me say that I consider \emph{metaclass abuse} any usage of a metaclass
+in a situation where you could have solved the problem without a
+metaclass.
+
+I feel in part responsible for some of the abuses I see floating
+around in newsgroups, in conferences and in frameworks source code,
+because of my (together with David Mertz) contribution in popularizing
+metaclasses, so I have decided to make amend with this paper.
+
+This paper consider only one kind of metaprogramming technique, i.e.
+the creation at runtime of classes with attributes and methods which
+are dynamically generated. Contrarily to popular belief, this is a job
+where most of the time you \emph{don't need} and you \emph{don't want} a custom
+metaclass, as I will argue in the next section.
+
+The paper is intended for a double target of readers:
+\begin{itemize}
+\item {} 
+average programmers, that would benefit from knowing a few
+meta-programming tricks, but are scared off by brain melting concepts;
+
+\item {} 
+clever programmers, which are actually too clever and should know
+better [\hyperlink{id2}{1}].
+
+\end{itemize}
+
+If you are a lazy reader, your may just read the next paragraph and
+the last one, and forget about the details.
+\begin{figure}[b]\hypertarget{id2}[1]
+The problem is that it is easy to be clever whereas it takes a
+lot of time to become unclever. For instance, it took me a few
+months to understand how to use metaclasses, but a few years
+to understand how \emph{not} to use them.
+\end{figure}
+
+
+%___________________________________________________________________________
+
+\hypertarget{about-class-initialization}{}
+\pdfbookmark[0]{About class initialization}{about-class-initialization}
+\section*{About class initialization}
+
+By class initialization I mean setting attributes and methods of
+classes immediately after their creation, once and for all [\hyperlink{id4}{2}].
+
+There are various common situations where a programmer may want to
+initialize her classes: for instance, she may want to set some default class
+attributes according to parameters read from a configuration
+file, or she may want to set class properties according to the fields
+in a database table.
+
+The easiest way to perform class initialization
+is by using an imperative style: one first creates the class,
+and then adds the dynamically generated methods and attributes.
+
+For instance, if the problem is to generate properties for an \texttt{Article}
+record class, an imperative solution is something like the following:
+\begin{quote}{\ttfamily \raggedright \noindent
+class~Article(object):~\\
+~~~def~somemethod(self):~\\
+~~~~~~~pass~\\
+~~~...~\\
+~\\
+set{\_}properties(Article,~{[}('title',~str),~('author',~str),~('date',~date){]})
+}\end{quote}
+
+However, since (proper) class initialization should occur only once,
+it does not need to be distinguished by class
+creation, and it may be argued that it
+should be treated  with a declarative style, with a syntax like the following:
+\begin{quote}{\ttfamily \raggedright \noindent
+class~Article(object):~\\
+~\\
+~~~def{\_}properties({[}('title',~str),~('author',~str),~('date',~date){]})~\\
+~\\
+~~~def~somemethod(self):~\\
+~~~~~~~pass~\\
+~\\
+~~~...
+}\end{quote}
+
+This paper is about providing a generic facility to define \emph{class initializers}
+to be used in the class scope, such as \texttt{def{\_}properties}.
+
+\textbf{Disclaimer:} the advantage of the solution I propose here,
+is that it works in current Python and it is less clever than
+metaclasses, Still I would consider it a little too clever. A clean solution
+to the problem would be to add class decorator to the language. That
+would allow a syntax like the following:
+\begin{quote}{\ttfamily \raggedright \noindent
+@with{\_}properties({[}('title',~str),~('author',~str),~('date',~date){]})~\\
+class~Article(object):~\\
+~~~def~somemethod(self):~\\
+~~~~~~~pass~\\
+~~~...
+}\end{quote}
+
+However, it is not sure at the moment if and when Guido will add class
+decorators, so my proposed solution is the lesser of two evils.
+\begin{figure}[b]\hypertarget{id4}[2]
+Well, in Python methods and attributes can always be changed at
+a later time, but let us assume that nobody is cheating here.
+\end{figure}
+
+
+%___________________________________________________________________________
+
+\hypertarget{please-stop-abusing-metaclasses}{}
+\pdfbookmark[0]{Please stop abusing metaclasses}{please-stop-abusing-metaclasses}
+\section*{Please stop abusing metaclasses}
+
+Everybody knows how to initialize instances. One just overrides
+the class \texttt{{\_}{\_}init{\_}{\_}} method. Since classes are instances of metaclasses,
+the natural solution to the class initialization problem seems to be
+to use a custom metaclass and to override its \texttt{{\_}{\_}init{\_}{\_}} method.
+
+Un fortunately, things are not so easy, because of inheritance. The
+issue is that once you have defined a custom metaclass for your base
+class, all the derived classes will inherit the metaclass, so the
+initialization code will be run on all derived classes, magically and
+implicitly.
+
+That may be fine in specific circumstances (for instance,
+suppose you have to register in your framework all the classes you
+define: using a metaclass ensures that you cannot forget to register a
+derived class), however, in many cases you may not like this behavior because:
+\newcounter{listcnt0}
+\begin{list}{\arabic{listcnt0}.}
+{
+\usecounter{listcnt0}
+\setlength{\rightmargin}{\leftmargin}
+}
+\item {} 
+you may believe that \emph{explicit is better than implicit};
+
+\item {} 
+if the derived classes have the same dynamic class attributes of
+the base class, implicitly setting them again for each derived
+class is a waste, since they would be available anyway by
+inheritance. This may be a real issue if the initialization code is
+slow, possibly because it must access a database, or perform some
+heavy computation: in this case one must add a check in the
+metaclass code to see if the attributes were already set in
+a parent class, but this adds plumbing and it does not give real
+control on a per-class basis;
+
+\item {} 
+a custom metaclass will make your classes somewhat magic and
+nonstandard: you may not want to increase your chances to incur in
+metaclass conflicts, issues with \texttt{{\_}{\_}slots{\_}{\_}}, fights with (Zope)
+extension classes and other guru-level intricacies [\hyperlink{id6}{3}];
+
+\item {} 
+you feel that a custom metaclasses is overkill for the simple job
+of class initialization and you would rather use a simpler solution.
+
+\end{list}
+
+In other words,you should use a custom metaclass only when your real
+intention is to have code running on derived classes without users of
+those classes noticing it. If this is not your case, please don't a
+metaclass and  make your life (as well your users) happier.
+\begin{figure}[b]\hypertarget{id6}[3]
+Metaclasses are more fragile than many people realize. I
+personally have never used them for production code, even
+after four years of usage in experimental code.
+\end{figure}
+
+
+%___________________________________________________________________________
+
+\hypertarget{the-classinitializer-decorator}{}
+\pdfbookmark[0]{The classinitializer decorator}{the-classinitializer-decorator}
+\section*{The \texttt{classinitializer} decorator}
+
+The aim of this paper is to provide a decorator called
+\texttt{classinitializer} that can be used to define
+class initializers, i.e. procedures taking classes and setting their
+attributes and methods. In order to be concrete, consider the following
+class initializer example:
+\begin{quote}{\ttfamily \raggedright \noindent
+def~set{\_}defaults(cls,~**kw):~\\
+~~~~for~k,~v~in~kw.iteritems():~\\
+~~~~~~~~setattr(cls,~k,~v)
+}\end{quote}
+
+You may use it imperatively, right after a class definition:
+\begin{quote}{\ttfamily \raggedright \noindent
+class~ClassToBeInitialized(object):~\\
+~~~~pass~\\
+~\\
+set{\_}defaults(ClassToBeInitialized,~a=1,~b=2)
+}\end{quote}
+
+However the imperative solution has a few drawbacks:
+\setcounter{listcnt0}{0}
+\begin{list}{\arabic{listcnt0}.}
+{
+\usecounter{listcnt0}
+\setlength{\rightmargin}{\leftmargin}
+}
+\item {} 
+it does not comply with DRY, i.e. the class name is repeated
+and if I change it during refactoring, I have to change it (at
+least) twice;
+
+\item {} 
+readability is suboptimal: since class definition and class
+initialization are separated, for long class definitions I may end
+up not seeing the last line;
+
+\item {} 
+it feels wrong to first define something and immediately right
+after to mutate it.
+
+\end{list}
+
+Luckily, the \texttt{classinitializer} decorator provides a much nicer
+declarative solution. The decorator performs some deep magic and converts
+\texttt{set{\_}defaults(cls, **kw)} into a function that can be
+used at the top scope into a class definition, with the current class
+automagically passed as first parameter:
+\begin{verbatim}>>> @classinitializer # add magic to set_defaults
+... def set_defaults(cls, **kw):
+...     for k, v in kw.iteritems():
+...         setattr(cls, k, v)\end{verbatim}
+\begin{verbatim}>>> class ClassToBeInitialized(object):
+...     set_defaults(a=1, b=2)\end{verbatim}
+\begin{verbatim}>>> ClassToBeInitialized.a
+1
+>>> ClassToBeInitialized.b
+2\end{verbatim}
+
+If you have used Zope interfaces, you may have seen examples of class
+initializers (I mean \texttt{zope.interface.implements}). In fact under the hood
+\texttt{classinitializer} is implemented by using a trick copied from
+\texttt{zope.interface.advice}, which credits Phillip J. Eby. The trick
+uses the \texttt{{\_}{\_}metaclass{\_}{\_}} hook, but it \emph{does not use} a custom
+metaclass, so that in this example \texttt{ClassToBeInitialized} will
+continue to keep its original metaclass, i.e. the plain old regular
+built-in metaclass \texttt{type} of new style classes:
+\begin{verbatim}>>> type(ClassToBeInitialized)
+<type 'type'>\end{verbatim}
+
+In principle, the trick also works for old style classes,
+and it would be easy to write an implementation keeping old style
+classes old style. However, since according  to Guido himself
+\emph{old style classes are morally deprecated}, the current implementation
+automagically converts old style classes into new style classes:
+\begin{verbatim}>>> class WasOldStyle:
+...     set_defaults(a=1, b=2)\end{verbatim}
+\begin{verbatim}>>> WasOldStyle.a, WasOldStyle.b
+(1, 2)
+>>> type(WasOldStyle)
+<type 'type'>\end{verbatim}
+
+One of the motivations for the \texttt{classinitializer} decorator, is to hide the
+plumbing, and to make mere mortals able to implements their own
+class initializers in an easy way, without knowing the details of
+how class creation works and the secrets of the \texttt{{\_}{\_}metaclass{\_}{\_}}
+hook. The other motivation, is that even for Python wizards it is very
+unconvenient to rewrite the code managing the \texttt{{\_}{\_}metaclass{\_}{\_}} hook
+every time one writes a new class initializer. So I have decided to
+use a decorator to allow separation of concerns and reuse of code.
+
+As a final note, let me point out that the decorated version of
+\texttt{set{\_}defaults} is so smart  that it will continue to
+work as the non-decorated version outside a class scope, provided that
+you pass to it an explicit class argument.
+\begin{verbatim}>>> set_defaults(WasOldStyle, a=2)
+>>> WasOldStyle.a
+2\end{verbatim}
+
+In other words, you \emph{might} continue to use the imperative style.
+
+Here is the code for \texttt{classinitializer} (the point being that you
+don't need to be able to understand it to use the decorator):
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<{\_}main.py>~\\
+~\\
+import~sys~\\
+~\\
+def~classinitializer(proc):~\\
+~~{\#}~basic~idea~stolen~from~zope.interface.advice,~which~credits~P.J.~Eby~\\
+~~def~newproc(*args,~**kw):~\\
+~~~~~~frame~=~sys.{\_}getframe(1)~\\
+~~~~~~if~'{\_}{\_}module{\_}{\_}'~in~frame.f{\_}locals~and~not~{\textbackslash}~\\
+~~~~~~~~~'{\_}{\_}module{\_}{\_}'~in~frame.f{\_}code.co{\_}varnames:~{\#}~we~are~in~a~class~\\
+~~~~~~~~~~if~'{\_}{\_}metaclass{\_}{\_}'~in~frame.f{\_}locals:~\\
+~~~~~~~~~~~~raise~SyntaxError("Don't~use~two~class~initializers~or{\textbackslash}n"~\\
+~~~~~~~~~~~~"a~class~initializer~together~with~a{\_}{\_}metaclass{\_}{\_}~hook")~\\
+~~~~~~~~~~def~makecls(name,~bases,~dic):~\\
+~~~~~~~~~~~~~try:~\\
+~~~~~~~~~~~~~~~~cls~=~type(name,~bases,~dic)~\\
+~~~~~~~~~~~~~except~TypeError,~e:~\\
+~~~~~~~~~~~~~~~~if~"can't~have~only~classic~bases"~in~str(e):~\\
+~~~~~~~~~~~~~~~~~~~cls~=~type(name,~bases~+~(object,),~dic)~\\
+~~~~~~~~~~~~~~~~else:~{\#}~other~strange~errors,~such~as~{\_}{\_}slots{\_}{\_}~conflicts,~etc~\\
+~~~~~~~~~~~~~~~~~~~raise~\\
+~~~~~~~~~~~~~proc(cls,~*args,~**kw)~\\
+~~~~~~~~~~~~~return~cls~\\
+~~~~~~~~~~frame.f{\_}locals{[}"{\_}{\_}metaclass{\_}{\_}"{]}~=~makecls~\\
+~~~~~~else:~\\
+~~~~~~~~~~proc(*args,~**kw)~\\
+~~newproc.{\_}{\_}name{\_}{\_}~=~proc.{\_}{\_}name{\_}{\_}~\\
+~~newproc.{\_}{\_}module{\_}{\_}~=~proc.{\_}{\_}module{\_}{\_}~\\
+~~newproc.{\_}{\_}doc{\_}{\_}~=~proc.{\_}{\_}doc{\_}{\_}~\\
+~~newproc.{\_}{\_}dict{\_}{\_}~=~proc.{\_}{\_}dict{\_}{\_}~\\
+~~return~newproc~\\
+~\\
+{\#}</{\_}main.py>
+}\end{quote}
+
+From the implementation it is clear how class initializers work:
+when you call a class initializer inside a class, your are actually defining a
+\texttt{{\_}{\_}metaclass{\_}{\_}} hook that will be called by
+the class' metaclass (typically \texttt{type}). The
+metaclass will create the class (as a new style one) and
+will pass it to the class initializer procedure.
+
+
+%___________________________________________________________________________
+
+\hypertarget{tricky-points-and-caveats}{}
+\pdfbookmark[0]{Tricky points and caveats}{tricky-points-and-caveats}
+\section*{Tricky points and caveats}
+
+Since class initializers (re)define the \texttt{{\_}{\_}metaclass{\_}{\_}} hook,
+they don't play well with classes that define a \texttt{{\_}{\_}metaclass{\_}{\_}} hook
+explicitly (as opposed to implicitly inheriting one). The issue is
+that if a \texttt{{\_}{\_}metaclass{\_}{\_}} hook is defined \emph{after} the
+class initializer, it \emph{silently} overrides it.
+\begin{verbatim}>>> class C:
+...     set_defaults(a=1)
+...     def __metaclass__(name, bases, dic):
+...         cls = type(name, bases, dic)
+...         print 'set_defaults is silently ignored'
+...         return cls
+...
+set_defaults is silently ignored
+>>> C.a
+Traceback (most recent call last):
+  ...
+AttributeError: type object 'C' has no attribute 'a'\end{verbatim}
+
+This is unfortunate, but there is no general solution to this issue, and I will
+simply document it (this is one of the reasons why I feel
+class initializers to be a clever hack that should be dismissed if we
+had class decorators).
+
+On the other hand, if you call a class initializer
+\emph{after} the \texttt{{\_}{\_}metaclass{\_}{\_}} hook, you will get an exception:
+\begin{verbatim}>>> class C:
+...     def __metaclass__(name, bases, dic):
+...         cls = type(name, bases, dic)
+...         print 'calling explicit __metaclass__'
+...         return cls
+...     set_defaults(a=1)
+...
+Traceback (most recent call last):
+   ...
+SyntaxError: Don't use two class initializers or
+a class initializer together with a__metaclass__ hook\end{verbatim}
+
+I feel raising an error is preferable to silently overriding your
+explicit \texttt{{\_}{\_}metaclass{\_}{\_}} hook. As a consequence, you will get an
+error if you try to use two class initializers at the same time, or
+if you call twice the same one:
+\begin{verbatim}>>> class C:
+...     set_defaults(a=1)
+...     set_defaults(b=2)
+Traceback (most recent call last):
+  ...
+SyntaxError: Don't use two class initializers or
+a class initializer together with a__metaclass__ hook\end{verbatim}
+
+I feel raising an error to be better than having the second
+initializer overriding the first one, i.e. in this example
+to set the \texttt{b} attribute \emph{without} setting the \texttt{a} attribute,
+which would be very confusing.
+
+Finally, let me show that there are no issues for inherited
+\texttt{{\_}{\_}metaclass{\_}{\_}} hooks and for custom metaclasses:
+\begin{verbatim}>>> class B: # a base class with a custom metaclass
+...     class __metaclass__(type):
+...         pass\end{verbatim}
+\begin{verbatim}>>> class C(B): # a class with both a custom metaclass AND a class initializer
+...     set_defaults(a=1)\end{verbatim}
+\begin{verbatim}>>> C.a
+1
+>>> type(C)
+<class '_main.__metaclass__'>\end{verbatim}
+
+The class initializer does not disturb the metaclass of \texttt{C}, which is
+the one inherited by its base \texttt{B}, and the inherited metaclass does
+not disturb the class initializer, which does its job just fine.
+You would have run into trouble, instead, if you tried to call \texttt{set{\_}defaults}
+directly in the base class.
+
+
+%___________________________________________________________________________
+
+\hypertarget{example-initializing-records}{}
+\pdfbookmark[0]{Example: initializing records}{example-initializing-records}
+\section*{Example: initializing records}
+
+In this section I will finally discuss the example I gave at the
+beginning, about how to define record classes with a class initializer.
+Here is the code for the class initializer, plus an helper function
+for managing dates:
+\begin{quote}{\ttfamily \raggedright \noindent
+{\#}<{\_}main.py>~\\
+~\\
+import~datetime~\\
+~\\
+@classinitializer~\\
+def~def{\_}properties(cls,~schema):~\\
+~~~~"{}"{}"~\\
+~~~~Add~properties~to~cls,~according~to~the~schema,~which~is~a~list~\\
+~~~~of~pairs~(fieldname,~typecast).~A~typecast~is~a~\\
+~~~~callable~converting~the~field~value~into~a~Python~type.~\\
+~~~~The~initializer~saves~the~attribute~names~in~a~list~cls.fields~\\
+~~~~and~the~typecasts~in~a~list~cls.types.~Instances~of~cls~are~expected~\\
+~~~~to~have~private~attributes~with~names~determined~by~the~field~names.~\\
+~~~~"{}"{}"~\\
+~~~~cls.fields~=~{[}{]}~\\
+~~~~cls.types~=~{[}{]}~\\
+~~~~for~name,~typecast~in~schema:~\\
+~~~~~~~~if~hasattr(cls,~name):~{\#}~avoid~accidental~overriding~\\
+~~~~~~~~~~~~raise~AttributeError('You~are~overriding~{\%}s!'~{\%}~name)~\\
+~~~~~~~~def~getter(self,~name=name):~\\
+~~~~~~~~~~~~return~getattr(self,~'{\_}'~+~name)~\\
+~~~~~~~~def~setter(self,~value,~name=name,~typecast=typecast):~\\
+~~~~~~~~~~~~setattr(self,~'{\_}'~+~name,~typecast(value))~\\
+~~~~~~~~setattr(cls,~name,~property(getter,~setter))~\\
+~~~~~~~~cls.fields.append(name)~\\
+~~~~~~~~cls.types.append(typecast)~\\
+~\\
+def~date(isodate):~{\#}~add~error~checking~if~you~like~\\
+~~~~"Convert~an~ISO~date~into~a~datetime.date~object"~\\
+~~~~return~datetime.date(*map(int,~isodate.split('-')))~\\
+~\\
+{\#}</{\_}main.py>
+}\end{quote}
+
+As an example of application of the above class initializer,
+I will define an \emph{Article} record class with fields \emph{title}, \emph{author}
+and \emph{date}:
+\begin{verbatim}>>> class Article(object):
+...    # fields and types are dynamically set by the initializer
+...    def_properties([('title', str), ('author', str), ('date', date)])
+...    def __init__(self, values): # add error checking if you like
+...        for field, cast, value in zip(self.fields, self.types, values):
+...            setattr(self, '_' + field, cast(value))\end{verbatim}
+\begin{verbatim}>>> a=Article(['How to use class initializers', 'M. Simionato', '2006-07-10'])
+>>> a.title
+'How to use class initializers'
+>>> a.author
+'M. Simionato'
+>>> a.date
+datetime.date(2006, 7, 10)
+>>> a.date = '2006-07-11'
+>>> a.date
+datetime.date(2006, 7, 11)\end{verbatim}
+
+The point of using the class initializer is that the class is completely
+dynamic and it can be built at runtime with a schema that can be read
+from a configuration file or by introspecting a database table. You
+have the advantages of a custom metaclass without any of the disadvantages.
+
+It is also interesting to notice that this approach avoids inheritance
+completely, so if you have a pre-existing record class and you want
+to change its implementation to use this trick, it is enough to add
+\texttt{def{\_}properties}, you don't need any kind of (multiple)
+inheritance.
+
+
+%___________________________________________________________________________
+
+\hypertarget{references}{}
+\pdfbookmark[0]{References}{references}
+\section*{References}
+
+About metaclasses:
+\href{http://www-128.ibm.com/developerworks/linux/library/l-pymeta.html}{http://www-128.ibm.com/developerworks/linux/library/l-pymeta.html} and
+\href{http://www-128.ibm.com/developerworks/linux/library/l-pymeta2}{http://www-128.ibm.com/developerworks/linux/library/l-pymeta2}
+
+About using decorators instead of metaclasses:
+
+{\textless}David's last paper{\textgreater}
+
+The code from which everything was born:
+
+\href{http://svn.zope.org/Zope3/trunk/src/zope/interface/advice.py}{http://svn.zope.org/Zope3/trunk/src/zope/interface/advice.py}
+
+
+%___________________________________________________________________________
+
+\hypertarget{questions-and-answers}{}
+\pdfbookmark[0]{Questions and answers}{questions-and-answers}
+\section*{Questions and answers}
+\begin{description}
+%[visit_definition_list_item]
+\item[{Q}] %[visit_definition]
+
+Is there any specific licence for the code discussed in the paper?
+
+%[depart_definition]
+%[depart_definition_list_item]
+%[visit_definition_list_item]
+\item[{A}] %[visit_definition]
+
+No, you may assume the Public Domain or the Python licence, whatever
+you are happier with. If you are using my code, or
+code heavily derived from my own in your frameworks/applications I
+would appreciated to be notified, just to gratify my ego.
+
+%[depart_definition]
+%[depart_definition_list_item]
+%[visit_definition_list_item]
+\item[{Q}] %[visit_definition]
+
+How do I extract snippets of code from the paper?
+
+%[depart_definition]
+%[depart_definition_list_item]
+%[visit_definition_list_item]
+\item[{A}] %[visit_definition]
+
+Download \href{http://www.phyast.pitt.edu/~micheles/classinitializer.zip}{http://www.phyast.pitt.edu/{\textasciitilde}micheles/classinitializer.zip}
+which contains the source
+version of the paper (as well as the HTML and PDF versions)
+and a doctester utility. Run
+
+\texttt{{\$} python doctester.py classinitializer.txt}
+
+This will run many doctests and generate a script called \texttt{{\_}main.py}
+with the source code for \texttt{classinitializer} and \texttt{def{\_}properties}.
+
+%[depart_definition]
+%[depart_definition_list_item]
+%[visit_definition_list_item]
+\item[{Q}] %[visit_definition]
+
+The doctester is a really cool idea! Can I use it for my own projects?
+
+%[depart_definition]
+%[depart_definition_list_item]
+%[visit_definition_list_item]
+\item[{A}] %[visit_definition]
+
+Yes. See also
+\href{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/410052}{http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/410052}
+
+%[depart_definition]
+%[depart_definition_list_item]
+\end{description}
+
+\end{document}
+

@@ -1,0 +1,235 @@
+Functional Programming For Dynamic Programmers - Part 6
+=======================================================================
+
+:author:	Michele Simionato
+:date:	December 2007
+
+This is the sixth of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers,
+i.e. for programmers with a background in dynamically typed languages,
+such as Perl, Python, Ruby, or languages in the Lisp family. The
+approch is eminently practical and example-based; the main goal is to
+see if we can stole some good idea from statically typed languages. In
+order to be concrete, I will consider languages in the ML family,
+because they are pretty nice and much easier to understand that
+Haskell.
+
+Records
+-----------------------
+
+The first level of grouping in ML is the record level: a record
+roughly correspond to a *struct* in the C programming language and can
+contain any kind of first class value. The record itself a first class value,
+i.e. it can be passed to and returned from functions. I will give a few
+examples of usage.
+
+A record factory::
+
+ - fun makeArticle {title:string, author:string} = {title, author};
+ val makeArticle :  {author : string, title : string} -> {author : string, title : string} = _fn
+
+An example record::
+
+ - val article = makeArticle {title="Functional Programming", author="M. Simionato"};
+ val article : {author : string, title : string} =
+   {author = "M. Simionato", title = "Functional Programming"}
+
+Extracting fields from a record::
+
+ - #title article;
+ val it : string = "Functional Programming"
+ - #author article;
+ val it : string = "M. Simionato"
+
+A record containing functions::
+
+ - val a = {makeArticle, printArticle = fn {title, author} => print (title^" "^author ^"\n") };
+ - #printArticle a article;
+ Functional Programming M. Simionato
+
+Notice that the order of the fields is not specified and that there is
+no concept of subrecord; for instance two records of kind
+``{title:string, author:string, publicationDate:string}`` and
+``{title:string, author:string}`` are considered completely different
+record types, the second one is not a subtype of the first one and you
+cannot substitute one with the other, possibly with default
+values. Also, records are purely static and resolved at compile time:
+if you need something more dynamic, you should use a map, not a
+record. Finally, records are functional, i.e. immutable: there is no
+way to change the value of a field, you must create an entirely new
+record with a different value if you want to simulate a record update.
+Alice provides some syntactic sugar for functional record update;
+here is an example::
+
+ - val r={a=1,b=2};
+ val r : {a : int, b : int} = {a = 1, b = 2}
+ - {r where a=2};
+ val it : {a : int, b : int} = {a = 2, b = 2}
+
+
+fun enum n = lazy n :: enum (n+1)
+
+(for instance, a log file); how can we process it? The simplest possibility is
+to convert it into a lazy list of lines, with the following code::
+
+ fun textFileToList filename = let
+     val file = TextIO.openIn filename
+     fun lazy readLines () =
+         case TextIO.inputLine file 
+               handle ex => (TextIO.closeIn file; raise ex)
+          of NONE => (TextIO.closeIn file; [])
+           | SOME line => line :: readLines ()
+ in
+     readLines ()
+ end
+
+
+A smarter line counter
+-----------------------------------------------------------
+
+ - val countLines = length o textFileToList 
+
+
+
+
+Python extended generators in Alice
+---------------------------------------------------------
+
+def consumer():
+  result = []
+   while True:
+     inp = yield
+     if inp = END:
+       return result 
+
+functor consumer(val ch: channel):
+   while true do let
+      val inp = Channel.gexst ch
+      if inp = END:
+
+
+In particular, what's the equivalent of the simple
+Python one-liner ``for item in container: print item``?  The answer is
+that there is no equivalent. The Python one-liner is completely
+polymorphic, since it works for any kind of container and it is able
+to print any kind of object. However, SML is a statically typed
+language, and you must give to the compiler some information about the
+types: it cannot predict the future, nor the type of the container and
+the types of the items.  Here I will show how you can loop on
+homogenous containers, i.e . containers where the items are all
+instances of the same type;
+
+
+ fun writeln (tostring, value)  =
+    print(format (tostring o text "\n") value);
+
+
+-  app (fn item => writeln(int, item)) [1,2,3];
+1
+2
+3
+
+fun sum lst = foldl op+ 0 lst
+
+The thing to remember is that functions associate to the **right**, so
+
+  ``a -> b -> c``
+
+means
+
+  ``a -> (b -> c)``
+
+whereas type constructor associates to the **left**, so 
+
+  ``int ref list``
+
+means
+
+   ``(int ref) list``
+
+
+Timers
+--------------------
+
+fun timedFn f a = let
+  val ct = Timer.startRealTimer ()
+  val result = f a
+in
+  (result, Timer.checkRealTimer (ct))
+end
+
+
+ - structure A = struct
+     type 'a aggr 
+     fun length(a: 'a aggr) = 1
+     fun sub(a: 'a aggr, i :int) = 1
+   end;
+ signature AGGREGATE_TYPE =
+   sig
+      type 'a aggr 
+      val length : 'a aggr -> int
+      val sub : 'a aggr * int -> int
+   end
+
+
+Higher order functions can also be used to implement poor man's object
+systems; consider for instance this example::
+
+ class Counter(object):
+    def __init__(self, initial_value):
+         self.initial_value = self.value = 0
+    def incr(self):
+         self.value += 1
+    def show(self):
+         print "The value is %d" % self.value 
+    def reset(self):
+         self.value = self.initial_value
+
+We can get the same effect via a stateful higher order function
+(a.k.a. a closure)::
+
+ exception MissingMethod
+
+ fun makeCounter initialValue = let
+    val value = ref initialValue
+ in 
+     fn "reset" => value := initialValue
+      | "show" => (print The value is "; print (Int.toString (!value)); print "\n")
+      | "incr" => value := !value + 1
+      | _ => raise MissingMethod
+ end
+
+ val counter = makeCounter 0;
+
+ do counter "incr";
+ do counter "show"; (* The value is 1 *)
+ do counter "reset";
+ do counter "show"; (* The value is 0 *)
+
+This example also shows the usage of pattern matching and of exceptions.
+
+You can rewrite it in a functional way as follows:
+
+----
+
+*The venerable master Qc Na was walking with his student, Anton.  Hoping to
+prompt the master into a discussion, Anton said "Master, I have heard that
+objects are a very good thing - is this true?"  Qc Na looked pityingly at
+his student and replied, "Foolish pupil - objects are merely a poor man's
+closures."*
+
+*Chastised, Anton took his leave from his master and returned to his cell,
+intent on studying closures.  He carefully read the entire "Lambda: The
+Ultimate..." series of papers and its cousins, and implemented a small
+Scheme interpreter with a closure-based object system.  He learned much, and
+looked forward to informing his master of his progress.*
+
+*On his next walk with Qc Na, Anton attempted to impress his master by
+saying "Master, I have diligently studied the matter, and now understand
+that objects are truly a poor man's closures."  Qc Na responded by hitting
+Anton with his stick, saying "When will you learn? Closures are a poor man's
+object."  At that moment, Anton became enlightened.*
+
+      -- Anton van Straaten
+
+
