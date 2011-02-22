@@ -1,0 +1,10 @@
+Lectures on Advanced Python Programming 
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+
+.. image:: accu2005.png
+
+:Author: Michele Simionato 
+:Given: 19 April 2005
+:Revised: 7 September 2005
+
+.. contents::

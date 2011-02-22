@@ -1,0 +1,963 @@
+FIRST THINGS, FIRST
+==============================================================================
+
+This is an introductory chapter, with the main purpose of fixing the 
+terminology used in the sequel. In particular, I give the definitions 
+of objects, classes, attributes and methods. I discuss a few examples 
+and I show some of the most elementary Python introspection features.
+
+What's an object?
+----------------------------------------------------------------------------
+
+ .. line-block::
+
+                     *So Everything Is An object.  
+                     I'm sure the Smalltalkers are very happy :)*
+
+                     -- Michael Hudson on comp.lang.python
+
+"What's an object" is the obvious question raised by anybody starting 
+to learn Object Oriented Programming. The answer is simple: in Python, 
+everything in an object!
+
+An operative definition is the following: an *object*
+is everything that can be labelled with an *object reference*.
+
+In practical terms, the object reference is implemented as 
+the object memory address, that is an integer number which uniquely
+specify the object. There is a simple way to retrieve the object reference:
+to use the builtin ``id`` function. Informations on ``id`` can be retrieved 
+via the ``help`` function [#]_:
+
+  >>> help(id)
+  Help on built-in function id:
+  id(...)
+  id(object) -> integer
+  Return the identity of an object. This is guaranteed to be unique among
+  simultaneously existing objects. (Hint: it's the object's memory address.)
+
+The reader is strongly encouraged to try the help function on everything
+(including help(help) ;-). This is the best way to learn how Python works,
+even *better* than reading the standard documentation, since the on-line
+help is often more update.
+
+Suppose for instance we wonder if the number ``1`` is an object: 
+it is easy enough to ask Python for the answer:
+
+  >>> id(1)
+  135383880
+
+Therefore the number 1 is a Python object and it is stored at the memory 
+address 135383880, at least in my computer and during the current session.
+Notice that the object reference is a dynamic thing; nevertheless it
+is guaranteed to be unique and constant for a given object during its 
+lifetime (two objects whose lifetimes are disjunct may have the same id() 
+value, though).
+
+Here there are other examples of built-in objects:
+
+  >>> id(1L) # long
+  1074483312
+  >>> id(1.0) #float
+  135682468
+  >>> id(1j) # complex
+  135623440
+  >>> id('1') #string
+  1074398272
+  >>> id([1]) #list
+  1074376588
+  >>> id((1,)) #tuple
+  1074348844
+  >>> id({1:1}) # dict
+  1074338100
+
+Even functions are objects:
+   
+  >>> def f(x): return x #user-defined function
+  >>> id(f)
+  1074292020
+  >>> g=lambda x: x #another way to define functions
+  >>> id(g)
+  1074292468
+  >>> id(id) #id itself is a built-in function
+  1074278668
+
+Modules are objects, too:
+
+  >>> import math 
+  >>> id(math) #module of the standard library
+  1074239068
+  >>> id(math.sqrt) #function of the standard library
+  1074469420
+
+``help`` itself is an object:
+
+  >>> id(help)
+  1074373452
+
+Finally, we may notice that the reserved keywords are not objects:
+
+  >>> id(print) #error
+  File "<string>", line 1
+    id(print)       ^
+  SyntaxError: invalid syntax
+
+The operative definition is convenient since it gives a practical way
+to check if something is an object and, more importantly, if two
+objects are the same or not:
+
+  .. doctest
+
+  >>> s1='spam'
+  >>> s2='spam'
+  >>> s1==s2
+  True
+  >>> id(s1)==id(s2)
+  True
+
+A more elegant way of spelling ``id(obj1)==id(obj2)`` is to use the
+keyword ``is``:
+
+  >>> s1 is s2
+  True
+
+However, I should warn the reader that sometimes ``is`` can be surprising:
+
+  >>> id([]) == id([])
+  True
+  >>> [] is []
+  False
+
+This is happening because writing ``id([])`` dynamically creates an unique
+object (a list) which goes away when you're finished with it.  So when an
+expression needs both at the same time (``[] is []``), two unique objects
+are created, but when an expression doesn't need both at the same time
+(``id([]) == id([])``), an object gets created with an ID, is destroyed,
+and then a second object is created with the same ID (since the last one
+just got reclaimed) and their IDs compare equal. In other words, "the 
+ID is guaranteed to be unique *only* among simultaneously existing objects".
+
+Another surprise is the following:
+
+  >>> a=1
+  >>> b=1
+  >>> a is b
+  True
+  >>> a=556
+  >>> b=556
+  >>> a is b
+  False
+
+The reason is that integers between 0 and 99 are pre-instantiated by the
+interpreter, whereas larger integers are recreated each time.
+
+Notice the difference between '==' and 'is':
+
+  >>> 1L==1
+  True
+
+but
+
+  >>> 1L is 1
+  False 
+
+since they are different objects:
+
+  >>> id(1L) # long 1 
+  135625536
+  >>> id(1)  # int 1
+  135286080
+
+
+The disadvantage of the operative definition is that it gives little 
+understanding of what an object can be used for. To this aim, I must
+introduce the concept of *class*.
+
+.. [#] Actually ``help`` is not a function but a callable object. The
+       difference will be discussed in a following chapter.
+
+Objects and classes
+---------------------------------------------------------------------------
+
+It is convenient to think of an object as an element of a set.
+
+It you think a bit, this is the most general definition that actually 
+grasps what we mean by object in the common language.
+For instance, consider this book, "Object Oriented Programming in Python":
+this book is an object, in the sense that it is a specific representative 
+of the *class* of all possible books.
+According to this definition, objects are strictly related to classes, and
+actually we say that objects are *instances* of classes.
+
+Classes are nested: for
+instance this book belongs to the class of books about programming
+language, which is a subset of the class of all possible books;
+moreover we may further specify this book as a Python book; moreover
+we may specify this book as a Python 2.2+ book. There is no limit
+to the restrictions we may impose to our classes.
+On the other hand. it is convenient to have a "mother" class,
+such that any object belongs to it. All strongly Object Oriented
+Language have such a class [#]_; in Python it is called *object*. 
+
+The relation between objects and classes in Python can be investigated
+trough the built-in function ``type`` [#]_ that gives the class of any 
+Python object. 
+
+Let me give some example:
+
+1. Integers numbers are instances of the class ``int`` or ``long``:
+
+  >>> type(1)
+  <type 'int'>
+  >>> type(1L)
+  <type 'long'>
+
+2. Floating point numbers are instances of the class ``float``:
+  
+  >>> type(1.0)
+  <type 'float'>
+
+
+3. Complex numbers are instances of the class ``complex``:
+
+  >>> type(1.0+1.0j)
+  <type 'complex'>
+
+4. Strings are instances of the class ``str``:
+
+  >>> type('1')
+  <type 'str'>
+
+
+5. List, tuples and dictionaries are instances of ``list``, ``tuple`` and
+   ``dict`` respectively:
+
+  >>> type('1')
+  <type 'str'>
+  >>> type([1])
+  <type 'list'>
+  >>> type((1,))
+  <type 'tuple'>
+  >>> type({1:1})
+  <type 'dict'>
+
+6. User defined functions are instances of the ``function`` built-in type
+
+  >>> type(f)
+  <type 'function'>
+  >>> type(g)
+  <type 'function'>
+
+All the previous types are subclasses of object:
+
+  >>> for cl in int,long,float,str,list,tuple,dict: issubclass(cl,object)
+  True
+  True
+  True
+  True
+  True
+  True
+  True
+
+However, Python is not a 100% pure Object
+Oriented Programming language and its object model has still some minor
+warts, due to historical accidents.
+
+Paraphrasing George Orwell, we may say that in Python 2.2-2.3, 
+all objects are equal, but some objects are more equal than others.
+Actually, we may distinguish Python objects in new style objects, 
+or rich man objects, and old style objects, or poor man objects. 
+New style objects are instances of new style classes whereas old
+style objects are instances of old style classes.
+The difference is that new style classes are subclasses of object whereas
+old style classes are not.
+
+Old style classes are there for sake of compatibility with previous 
+releases of Python, but starting from Python 2.2 practically all built-in 
+classes are new style classes. 
+
+Instance of old style classes are called old style objects. I will give
+few examples of old style objects in the future.
+
+In this tutorial with the term
+object *tout court* we will mean new style objects, unless the contrary 
+is explicitely stated. 
+
+
+.. [#] one may notice that C++ does not have such a class, but C++
+       is *not* a strongly object oriented language ;-)
+
+.. [#] Actually ``type`` is not a function, but a metaclass; nevertheless, 
+       since this is an advanced concept, discussed in the fourth chapter; 
+       for the time being it is better to think of ``type`` as a built-in 
+       function analogous to ``id``.
+
+Objects have attributes
+----------------------------------------------------------------------------
+
+All objects have attributes describing their characteristics, that may
+be accessed via the dot notation
+
+ ::
+
+  objectname.objectattribute
+
+The dot notation is common to most Object Oriented programming languages,
+therefore the reader with a little of experience should find it not surprising 
+at all (Python strongly believes in the Principle of Least Surprise). However,
+Python objects also have special attributes denoted by the double-double
+underscore notation
+
+ ::
+
+  objectname.__specialattribute__
+
+with the aim of helping the wonderful Python introspection features, that
+does not have correspondence in all OOP language.
+
+Consider for example the string literal "spam". We may discover its
+class by looking at its special attribute *__class__*:
+   
+  >>> 'spam'.__class__
+  <type 'str'>
+
+
+Using the ``__class__`` attribute is not always equivalent to using the 
+``type`` function, but it works for all built-in types. Consider for instance 
+the number *1*: we may extract its class as follows:
+
+  >>> (1).__class__
+  <type 'int'>
+
+Notice that the parenthesis are needed to avoid confusion between the integer
+1 and the float (1.).
+
+The non-equivalence type/class is the key to distinguish new style objects from
+old style, since for old style objects ``type(obj)<>obj.__class__``.
+We may use this knowledge to make and utility function that discovers
+if an object is a "real" object (i.e. new style) or a poor man object:
+
+ ::
+
+  #<oopp.py>
+
+  def isnewstyle(obj):
+      try: #some objects may lack a __class__ attribute 
+          obj.__class__
+      except AttributeError:
+          return False
+      else: #look if there is unification type/class
+          return type(obj) is obj.__class__
+  #</oopp.py>
+
+Let us check this with various examples:
+
+  >>> from oopp import isnewstyle
+  >>> isnewstyle(1)
+  True
+  >>> isnewstyle(lambda x:x)
+  True
+  >>> isnewstyle(id)
+  True
+  >>> isnewstyle(type)
+  True
+  >>> isnewstyle(isnewstyle)
+  True
+  >>> import math
+  >>> isnewstyle(math)
+  True
+  >>> isnewstyle(math.sqrt)
+  True
+  >>> isnewstyle('hello')
+  True
+
+It is not obvious to find something which is not a real object,
+between the built-in objects, however it is possible. For instance, 
+the ``help`` "function" is an old style object:
+
+  >>> isnewstyle(help)
+  False
+
+since
+
+  >>> help.__class__
+  <class site._Helper at 0x8127c94>
+
+is different from 
+
+  >>> type(help)
+  <type 'instance'>
+
+Regular expression objects are even poorer objects with no ``__class__`` 
+attribute:
+
+  >>> import re
+  >>> reobj=re.compile('somestring')
+  >>> isnewstyle(reobj)
+  False
+  >>> type(reobj)
+  <type '_sre.SRE_Pattern'>
+  >>> reobj.__class__ #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  AttributeError: __class__
+
+There other special attributes other than ``__class__``; a particularly useful
+one is ``__doc__``, that contains informations on the class it
+refers to. Consider for instance the ``str`` class: by looking at its
+``__doc__`` attribute we can get information on the usage of this class:
+
+  >>> str.__doc__
+  str(object) -> string
+  Return a nice string representation of the object.
+  If the argument is a string, the return value is the same object.
+
+From that docstring we learn how to convert generic objects in strings;
+for instance we may convert numbers, lists, tuples and dictionaries:
+
+  >>> str(1)
+  '1'
+  >>> str([1])
+  '[1]'
+  >>> str((1,))
+  (1,)'
+  >>> str({1:1})
+  '{1: 1}'
+
+``str`` is implicitely called each time we use the ``print`` statement, since
+``print obj`` is actually syntactic sugar for ``print str(obj)``.
+
+Classes and modules have another interesting special attribute, the 
+``__dict__`` attribute that gives the content of the class/module.
+For instance, the contents of the standard ``math`` module can be retrieved 
+as follows:
+
+  >>> import math
+  >>> for key in math.__dict__: print key,
+  ...
+  fmod atan pow __file__ cosh ldexp hypot sinh __name__ tan ceil asin cos 
+  e log fabs floor tanh sqrt __doc__ frexp atan2 modf exp acos pi log10 sin
+
+Alternatively, one can use the built-in function ``vars``:
+
+  >>> vars(math) is math.__dict__
+  True
+
+This identity is true for any object with a ``__dict__`` attribute. 
+Two others interesting special attributes are ``__doc__``
+
+  >>> print math.__doc__
+  This module is always available.  It provides access to the
+  mathematical functions defined by the C standard. 
+
+and ``__file__``:
+
+  >>> math.__file__ #gives the file associated with the module
+  '/usr/lib/python2.2/lib-dynload/mathmodule.so'
+    
+Objects have methods 
+----------------------------------------------------------------------------
+
+In addition to attributes, objects also have *methods*, i.e. 
+functions attached to their classes [#]_.
+Methods are also invoked with the dot notation, but
+they can be distinguished by attributes because they are typically
+called with parenthesis (this is a little simplistic, but it is enough for
+an introductory chapter). As a simple example, let me show the
+invocation of the ``split`` method for a string object:
+
+  >>> s='hello world!'
+  >>> s.split()
+  ['hello', 'world!']
+
+In this example ``s.split`` is called a *bount method*, since it is
+applied to the string object ``s``:
+
+  >>> s.split
+  <built-in method split of str object at 0x81572b8>
+
+An *unbound method*, instead, is applied to the class: in this case the
+unbound version of ``split`` is applied to the ``str`` class:
+
+  >>> str.split
+  <method 'split' of 'str' objects>
+
+A bound method is obtained from its corresponding unbound 
+method by providing the object to the unbound method: for instance 
+by providing ``s`` to ``str.split`` we obtain the same effect of `s.split()`:
+
+  >>> str.split(s)
+  ['hello', 'world!']
+
+This operation is called *binding*  in the Python literature: when write
+``str.split(s)`` we bind the unbound method ``str.split`` to the object ``s``.
+It is interesting to recognize that the bound and unbound methods are
+*different* objects:
+
+  >>> id(str.split) # unbound method reference
+  135414364
+  >>> id(s.split) # this is a different object!
+  135611408
+
+The unbound method (and therefore the bound method) has a ``__doc__`` 
+attribute explaining how it works:
+
+  >>> print str.split.__doc__
+  S.split([sep [,maxsplit]]) -> list of strings
+  Return a list of the words in the string S, using sep as the
+  delimiter string.  If maxsplit is given, at most maxsplit
+  splits are done. If sep is not specified or is None, any
+  whitespace string is a separator.
+
+
+.. [#] A precise definition will be given in chapter 5 that introduces the
+       concept of attribute descriptors. There are subtle
+       differences between functions and methods.
+
+Summing objects
+--------------------------------------------------------------------------
+
+In a pure object-oriented world, there are no functions and everything is 
+done trough methods. Python is not a pure OOP language, however quite a
+lot is done trough methods. For instance, it is quite interesting to analyze 
+what happens when an apparently trivial statement such as
+
+  >>> 1+1
+  2
+
+is executed in an object-oriented world. 
+
+The key to understand, is to notice that the number 1 is an object, specifically
+an instance of class ``int``: this means that that 1 inherits all the methods
+of the ``int`` class. In particular it inherits a special method called 
+``__add__``: this means 1+1 is actually syntactic sugar for
+
+  >>> (1).__add__(1)
+  2
+
+which in turns is syntactic sugar for
+
+  >>> int.__add__(1,1)
+  2
+
+The same is true for subtraction, multiplication, division and other 
+binary operations.
+
+  >>> 'hello'*2
+  'hellohello'
+  >>> (2).__mul__('hello')
+  'hellohello'
+  >>> str.__mul__('hello',2)
+  'hellohello'
+
+However, notice that
+
+  >>> str.__mul__(2,'hello') #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: descriptor '__mul__' requires a 'str' object but received a 'int'
+
+The fact that operators are implemented as methods, is the key to
+*operator overloading*: in Python (as well as in other OOP languages)
+the user can redefine the operators. This is already done by default
+for some operators: for instance the operator ``+`` is overloaded
+and works both for integers, floats, complex  numbers and for strings.
+
+Inspecting objects
+---------------------------------------------------------------------------
+
+In Python it is possible to retrieve most of the attributes and methods 
+of an object by using the built-in function ``dir()``
+(try ``help(dir)`` for more information).
+
+Let me consider the simplest case of a generic object:
+
+  >>> obj=object()
+  >>> dir(obj)
+  ['__class__', '__delattr__', '__doc__', '__getattribute__', 
+   '__hash__', '__init__', '__new__', '__reduce__', '__repr__', 
+   '__setattr__', '__str__']
+
+As we see, there are plenty of attributes available
+even to a do nothing object; many of them are special attributes
+providing introspection capabilities which are not 
+common to all programming languages. We have already discussed the
+meaning of some of the more obvious special attributes.
+The meaning of some of  the others is quite non-obvious, however.
+The docstring is invaluable in providing some clue.
+
+Notice that  there are special *hidden* attributes that cannot be retrieved
+with ``dir()``. For instance the ``__name__`` attribute, returning the 
+name of the object (defined for classes, modules and functions) 
+and the ``__subclasses__`` method, defined for classes and returning the 
+list of immediate subclasses of a class:
+
+  >>> str.__name__
+  'str'
+  >>> str.__subclasses__.__doc__
+  '__subclasses__() -> list of immediate subclasses'
+  >>> str.__subclasses__() # no subclasses of 'str' are currently defined
+  []
+
+For instance by doing
+
+  >>> obj.__getattribute__.__doc__
+  "x.__getattribute__('name') <==> x.name"
+
+we discover that the expression ``x.name`` is syntactic sugar for
+
+  ``x.__getattribute__('name')``
+
+Another equivalent form which is more often used is
+
+   ``getattr(x,'name')``
+
+We may use this trick to make a function that retrieves all the
+attributes of an object except the special ones:
+
+ ::
+
+  #<oopp.py>
+
+  def special(name): return name.startswith('__') and name.endswith('__')
+
+  def attributes(obj,condition=lambda n,v: not special(n)):
+      """Returns a dictionary containing the accessible attributes of 
+      an object. By default, returns the non-special attributes only."""
+      dic={}
+      for attr in dir(obj):
+          try: v=getattr(obj,attr)
+          except: continue #attr is not accessible
+          if condition(attr,v): dic[attr]=v
+      return dic
+
+  getall = lambda n,v: True
+
+  #</oopp.py>
+
+Notice that certain attributes may be unaccessible (we will see how
+to make attributes unaccessible in a following chapter) 
+and in this case they are simply ignored.
+For instance you may retrieve the regular (i.e. non special)
+attributes of the built-in functions:
+
+  >>> from oopp import attributes
+  >>> attributes(f).keys()
+  ['func_closure', 'func_dict', 'func_defaults', 'func_name', 
+   'func_code', 'func_doc', 'func_globals']
+
+In the same vein of the ``getattr`` function, there is a built-in
+``setattr`` function (that actually calls the ``__setattr__`` built-in
+method), that allows the user to change the attributes and methods of
+and object. Informations on ``setattr`` can be retrieved from the help 
+function:
+
+ ::
+
+  >>> help(setattr)
+  Help on built-in function setattr:
+  setattr(...)
+  setattr(object, name, value)
+  Set a named attribute on an object; setattr(x, 'y', v) is equivalent to
+  ``x.y = v''.
+
+``setattr`` can be used to add attributes to an object:
+
+ ::
+
+  #<oopp.py>
+  
+  import sys
+
+  def customize(obj,errfile=None,**kw):
+      """Adds attributes to an object, if possible. If not, writes an error
+      message on 'errfile'. If errfile is None, skips the exception."""
+      for k in kw:
+          try: 
+              setattr(obj,k,kw[k])
+          except: # setting error
+              if errfile:
+                  print >> errfile,"Error: %s cannot be set" % k
+
+  #</oopp.py>
+
+The attributes of built-in objects cannot be set, however:
+
+  >>> from oopp import customize,sys
+  >>> customize(object(),errfile=sys.stdout,newattr='hello!') #error
+  AttributeError: newattr cannot be set
+
+On the other hand, the attributes of modules can be set:
+
+  >>> import time
+  >>> customize(time,newattr='hello!')
+  >>> time.newattr
+  'hello!'
+
+Notice that this means we may enhances modules at run-time, but adding
+new routines, not only new data attributes.
+
+The ``attributes`` and ``customize`` functions work for any kind of objects; 
+in particular, since classes are a special kind of objects, they work 
+for classes, too. Here are the attributes of the ``str``, ``list`` and 
+``dict`` built-in types:
+
+  >>> from oopp import attributes
+  >>> attributes(str).keys()
+  ['startswith', 'rjust', 'lstrip', 'swapcase', 'replace','encode',
+   'endswith', 'splitlines', 'rfind', 'strip', 'isdigit', 'ljust', 
+   'capitalize', 'find', 'count', 'index', 'lower', 'translate','join', 
+   'center', 'isalnum','title', 'rindex', 'expandtabs', 'isspace', 
+   'decode', 'isalpha', 'split', 'rstrip', 'islower', 'isupper', 
+   'istitle', 'upper']
+  >>> attributes(list).keys()
+  ['append', 'count', 'extend', 'index', 'insert', 'pop', 
+   'remove', 'reverse', 'sort']
+  >>> attributes(dict).keys()
+  ['clear','copy','fromkeys', 'get', 'has_key', 'items','iteritems',
+   'iterkeys', 'itervalues', 'keys', 'pop', 'popitem', 'setdefault', 
+   'update', 'values']
+
+Classes and modules have a special attribute ``__dict__`` giving the 
+dictionary of their attributes. Since it is often a quite large dictionary, 
+it is convenient to define an utility function printing this dictionary in a 
+nice form:
+
+ ::
+
+  #<oopp.py>
+
+  def pretty(dic):
+      "Returns a nice string representation for the dictionary"
+      keys=dic.keys(); keys.sort() # sorts the keys
+      return '\n'.join(['%s = %s' % (k,dic[k]) for k in keys])
+
+  #</oopp.py>
+
+I encourage the use of this function in order to retrieve more 
+information about the modules of the standard library:
+
+  >>> from oopp import pretty
+  >>> import time #look at the 'time' standard library module
+  >>> print pretty(vars(time))
+  __doc__ = This module provides various functions to manipulate time values.
+  There are two standard representations of time.  One is the number
+  of seconds since the Epoch, in UTC (a.k.a. GMT).  It may be an integer
+  or a floating point number (to represent fractions of seconds).
+  The Epoch is system-defined; on Unix, it is generally January 1st, 1970.
+  The actual value can be retrieved by calling gmtime(0).
+  The other representation is a tuple of 9 integers giving local time.
+  The tuple items are:
+    year (four digits, e.g. 1998)
+    month (1-12)
+    day (1-31)
+    hours (0-23)
+    minutes (0-59)
+    seconds (0-59)
+    weekday (0-6, Monday is 0)
+    Julian day (day in the year, 1-366)
+    DST (Daylight Savings Time) flag (-1, 0 or 1)
+  If the DST flag is 0, the time is given in the regular time zone;
+  if it is 1, the time is given in the DST time zone;
+  if it is -1, mktime() should guess based on the date and time.
+  Variables:
+  timezone -- difference in seconds between UTC and local standard time
+  altzone -- difference in  seconds between UTC and local DST time
+  daylight -- whether local time should reflect DST
+  tzname -- tuple of (standard time zone name, DST time zone name)
+  Functions:
+  time() -- return current time in seconds since the Epoch as a float
+  clock() -- return CPU time since process start as a float
+  sleep() -- delay for a number of seconds given as a float
+  gmtime() -- convert seconds since Epoch to UTC tuple
+  localtime() -- convert seconds since Epoch to local time tuple
+  asctime() -- convert time tuple to string
+  ctime() -- convert time in seconds to string
+  mktime() -- convert local time tuple to seconds since Epoch
+  strftime() -- convert time tuple to string according to format specification
+  strptime() -- parse string to time tuple according to format specification
+  __file__ = /usr/local/lib/python2.3/lib-dynload/time.so
+  __name__ = time
+  accept2dyear = 1
+  altzone = 14400
+  asctime = <built-in function asctime>
+  clock = <built-in function clock>
+  ctime = <built-in function ctime>
+  daylight = 1
+  gmtime = <built-in function gmtime>
+  localtime = <built-in function localtime>
+  mktime = <built-in function mktime>
+  newattr = hello!
+  sleep = <built-in function sleep>
+  strftime = <built-in function strftime>
+  strptime = <built-in function strptime>
+  struct_time = <type 'time.struct_time'>
+  time = <built-in function time>
+  timezone = 18000
+  tzname = ('EST', 'EDT')
+
+The list of the built-in Python types can be found in the ``types`` module:
+
+  >>> import types
+  >>> t_dict=dict([(k,v) for (k,v) in vars(types).iteritems() 
+  ... if k.endswith('Type')])
+  >>> for t in t_dict: print t,
+  ...
+  DictType IntType TypeType FileType CodeType XRangeType EllipsisType 
+  SliceType BooleanType ListType MethodType TupleType ModuleType FrameType 
+  StringType LongType BuiltinMethodType BufferType FloatType ClassType 
+  DictionaryType BuiltinFunctionType UnboundMethodType UnicodeType 
+  LambdaType DictProxyType ComplexType GeneratorType ObjectType 
+  FunctionType InstanceType NoneType TracebackType
+
+For a pedagogical account of the most elementary 
+Python introspection features,
+Patrick O' Brien:
+http://www-106.ibm.com/developerworks/linux/library/l-pyint.html
+
+Built-in objects: iterators and generators
+---------------------------------------------------------------------------
+
+At the end of the last section , I have used the ``iteritems`` method 
+of the dictionary, which returns an iterator:
+
+  >>> dict.iteritems.__doc__
+  'D.iteritems() -> an iterator over the (key, value) items of D'
+
+Iterators (and generators) are new features of Python 2.2 and could not be
+familiar to all readers. However, since they are unrelated to OOP, they 
+are outside the scope of this book and will not be discussed here in detail. 
+Nevertheless, I will give a typical example of use of a generator, since
+this construct will be used in future chapters.
+
+At the syntactical level, a generator is a "function" with (at least one) 
+``yield`` statement (notice that in Python 2.2 the ``yield`` statement is
+enabled trough the ``from __future__ import generators`` syntax):
+
+
+ ::
+
+  #<oopp.py>
+
+  import re
+
+  def generateblocks(regexp,text):
+      "Generator splitting text in blocks according to regexp"
+      start=0
+      for MO in regexp.finditer(text):
+          beg,end=MO.span()
+          yield text[start:beg] # actual text
+          yield text[beg:end] # separator
+          start=end
+      lastblock=text[start:] 
+      if lastblock: yield lastblock; yield ''
+
+  #</oopp.py>
+
+In order to understand this example, the reader my want to refresh his/her 
+understanding of regular expressions; since this is not a subject for 
+this book, I simply remind the meaning of ``finditer``:
+
+  >>> import re
+  >>> help(re.finditer)
+  finditer(pattern, string)
+      Return an iterator over all non-overlapping matches in the
+      string.  For each match, the iterator returns a match object.
+      Empty matches are included in the result.
+
+Generators can be thought of as resumable functions that stop at the
+``yield`` statement and resume from the point where they left. 
+
+  >>> from oopp import generateblocks
+  >>> text='Python_Rules!'
+  >>> g=generateblocks(re.compile('_'),text)
+  >>> g
+  <generator object at 0x401b140c>
+  >>> dir(g)
+  ['__class__', '__delattr__', '__doc__', '__getattribute__', '__hash__', 
+   '__init__', '__iter__', '__new__', '__reduce__', '__reduce_ex__', 
+   '__repr__', '__setattr__', '__str__', 'gi_frame', 'gi_running', 'next']
+
+Generator objects can be used as iterators in a ``for`` loop.
+In this example the generator takes a text and a regular expression
+describing a fixed delimiter; then it splits the text in blocks
+according to the delimiter. For instance, if the delimiter is
+'_', the text 'Python Rules!' is splitted as 'Python', '_' and 'Rules!':
+
+  >>> for n, block in enumerate(g): print n, block
+  ...
+  0 Python
+  1 
+  2 Rules!
+  3
+
+This example also show the usage of the new Python 2.3 built-in ``enumerate``.
+
+Under the hood the ``for`` loop is calling the generator via its 
+``next`` method, until the ``StopIteration`` exception is raised.
+For this reason a new call to the ``for`` loop will have no effect:
+
+  >>> for n, block in enumerate(g): print n, block
+  ...
+
+The point is that the generator has already yield its last element:
+
+  >>> g.next() # error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  StopIteration
+
+``generateblocks`` always returns an even number of blocks; odd blocks
+are delimiters whereas even blocks are the intertwining text; there may be 
+empty blocks, corresponding to the null string ''.
+
+It must be remarked the difference with the 'str.split' method
+
+  >>> 'Python_Rules!'.split('_')
+  ['Python', 'Rules!']
+
+and the regular expression split method:
+
+  >>> re.compile('_').split('Python_Rules!')
+  ['Python', 'Rules!']
+
+both returns lists with an odd number of elements and both miss the separator. 
+The regular expression split method can catch the separator, if wanted, 
+
+  >>> re.compile('(_)').split('Python_Rules!')
+  ['Python', '_', 'Rules!']
+
+but still is different from the generator, since it returns a list. The
+difference is relevant if we want to split a very large text, since 
+the generator avoids to build a very large list and thus it is much more
+memory efficient (it is faster, too). Moreover, ``generateblocks``
+works differently in the case of multiple groups:
+
+  >>> delim=re.compile('(_)|(!)') #delimiter is space or exclamation mark
+  >>> for n, block in enumerate(generateblocks(delim,text)): 
+  ...     print n, block
+  0 Python
+  1 _
+  2 Rules
+  3 !
+
+whereas
+
+  >>> delim.split(text)
+  ['Python', '_', None, 'Rules', None, '!', '']
+
+gives various unwanted ``None`` (which could be skipped with 
+``[x for x in delim.split(text) if x is not None]``); notice, that
+there are no differences (apart from the fact that ``delim.split(text)``
+has an odd number of elements) when one uses a single group regular expression:
+
+  >>> delim=re.compile('(_|!)')
+  >>> delim.split(text)
+  ['Python', '_', 'Rules', '!', '']
+
+The reader unfamiliar with iterators and generators is encouraged
+to look at the standard documentation and other 
+references. For instance, there are Alex Martelli's notes on iterators at 
+http://www.strakt.com/dev_talks.html
+and there is a good article on generators by David Mertz
+http://www-106.ibm.com/developerworks/linux/library/l-pycon.html

@@ -1,0 +1,29 @@
+Hello, chromatic!
+
+Last year we exchanged a few emails and OnLamp published my paper on
+GraphViz and dot (http://www.linuxdevcenter.com/pub/a/linux/2004/05/06/graphviz_dot.html). 
+
+Since then, I wanted to write something else, but I got involved in many 
+other things and I could not find the time. However, it seems that
+now I have some spare time, and also an interesting subject to write on:
+automatic testing of Web applications.
+
+I did some work on the subject, and I was very happy when, as an aftermath 
+of the ACCU conference in Oxford, I discovered that there is already a 
+nice little language written with the purpose of testing Web application, 
+and actually two Python implementations of it: 
+PBP, the Python Browser poseur (http://pbp.berlios.de) and twill 
+(http://darcs.idyll.org/~t/projects/twill/README.html). They are
+based on the mechanize library by John J. Lee, which in turns
+is inspired by a Perl package with the same name. 
+
+I think these tools are pretty useful (they can test *any* web
+application, not just Python-based applications) and not enough
+well known, so I would like to popularize them. And what best of
+an O'Reilly article? ;)
+
+If you are interested, I can send you a draft in a few days.
+Best,
+
+
+         Michele Simionato

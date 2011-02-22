@@ -1,0 +1,67 @@
+Functional Programming For Dynamic Programmers - Part 5
+=======================================================
+
+:author: Michele Simionato
+:date: December 2007
+
+This is the fifth of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers, i.e. 
+for programmers with a background in dynamically typed languages, such as Perl, 
+Python, Ruby, or languages in the Lisp family. The approch is eminently practical
+and example-based; the main goal is to see if we can stole some good idea from
+statically typed languages. In order to be concrete, I will consider languages
+in the ML family, because they are pretty nice and much easier to understand
+that Haskell.
+
+Input and Output revisited
+--------------------------------------------------------------
+
+In accordance with the example-oriented spirit of this series, I will
+introduce functors with a motivating example, again in the arena of
+input and output. 
+We saw in an earlier installament that the standard library provides two
+structures ``TextIO`` and ``BinIO`` for managing text files and binary
+files respectively; we also show that the two structures have many things
+in common, and it is possibile to define a (sub)signature matching both.
+
+
+Structures are not first class objects and 
+they cannot be passed to and returned from regular functions.
+To circumvent this restriction, the authors of ML invented
+the concept of *functor*, which is basically a *sui generis* function
+taking structures in input and to returning structures in output. Functors
+are not-first-class objects themselves and therefore they require a specific
+declaration ``functor Name(Struct:SIGNATURE) = funct ... end``.
+
+.. include:: simple-io.aml
+   :literal:
+
+The functor here is important, since it shows how it is possible to write
+generic code in SML. In this case, I have just written a library which is
+able to wrap *any* structure matching the ``SimpleIO`` interface, and I have
+avoided a potentially infinite code duplication.
+
+The specification of which specific structure to use will be the job of the client
+code, not of the library author; in particular a particular user of the library
+may be interested in specializing it both for ``TextIO`` and ``BinIO``
+by writing::
+
+ - structure T = ManagedIO(TextIO)
+ - structure B = ManagedIO(BinIO)
+
+The operation of specializing a functor is also called *functor instantiation*;
+since it happens in a structure declaration it is performed by the compiler
+*at compile time*. The advantage is that the compiler can generate different optimized
+code for  the structures ``T`` and ``B`` in the *client* program.
+
+ ``- T.withInputFile "three-lines.txt" (print o T.inputAll)``
+
+----
+
+ *Such things are called individuals because each of them consists 
+ of characteristics the collection of which will never be the 
+ same for anything else. For the characteristics of Socrates will
+ never be in any other particular. But the characteristics of man — 
+ I mean of the man that is general — will be the same in 
+ several things, or rather in all particular men insofar as they 
+ are men.*  -- Porphyry

@@ -1,0 +1,23 @@
+Domande di conoscenza generale di Python, giusto per avere un'idea della vostra preparazione di base.
+========================================================================================================
+
+1. Scrivere un programma che testa se una stringa rappresenta un numero.
+
+2. Scrivere un programma che lista tutti i files nella directory corrente.
+
+3. Come al punto 2, ma il programma deve anche listare tutti i files nelle sottodirectories ricorsivamente.
+
+4. Calcolare lo spazio occupato da tutti i files di tipo .txt contenuti in una directory.
+
+5. Listare i files a seconda delle dimensioni (dal più piccolo al più grande, in bytes).
+
+6. Scrivere un test per verificate che una directory sia vuota.
+
+7. Aprire una finestrella contenente la scritta "hello, world!".
+
+8. Scaricare la pagina Web http://www.example.com da Internet usando Python.
+
+9. Stampare a schermo una tavola delle moltiplicazioni.
+
+10. Trovare tutte le immagini .jpg nel vostro hard disk e mostrarle a schermo in formato ridotto (thumbnails).
+

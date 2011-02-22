@@ -1,0 +1,390 @@
+Il modulo optparse: scrivere uno strumento a riga di comando in modo semplice
+=======================================================================
+
+ :Status: Draft
+ :Author: Michele Simionato
+ :E-mail: michele.simionato@gmail.com
+ :Date: May 2004
+
+*Il modulo optparse Ã¨ una potente, flessibile, estendibile, facile da usare
+libreria d'analisi per Python. Usando optparse, Ã¨ possibile realizzare una gestione
+sofisticata ed intelligente delle opzioni a riga di comando per i propri script
+con veramente poco codice aggiuntivo.* -- Greg Ward, autore di optparse
+
+Introduzione
+-----------------------------------------------------------------------
+
+Una volta tanto tempo fa, quando ancora le interfacce grafiche 
+potevano essere solo sognate, gli strumenti a riga di comando erano
+il corpo e l'anima di tutti gli strumenti di programmazione. Sono passati
+molti anni da allora, ma alcune cose non sono cambiate, gli strumenti
+a riga di comando sono ancora veloci, efficienti, portabili, semplici
+da usare e - molto importante - affidabili. Puoi contare su essi.
+Puoi aspettarti che funzionino in ogni situazione, durante la fase
+di installazione, in un situazione di ripristino di sistema, quando
+il window manager non funziona ed anche su sistemi con pesanti vincoli
+di memoria/hardware
+
+
+Dunque, Ã¨ importante per un linguaggio di programmazione - specialmente
+per i cosiddetti linguaggi di "scripting" - fornire i mezzi per aiutare
+il programmatore nel compito di scrivere strumenti a riga di comando.
+Per molto tempo per questo tipo di compiti Python ha messo a disposizione
+il modulo ``getopt``. Non ho mai particolarmente gradito ``getopt``, visto
+che richiedeva un discreto ammontare di codice anche solo per analizzare
+semplici righe di comando. Comunque, con l'arrivo di Python 2.3 la 
+situazione Ã¨ cambiata: grazie al grosso lavoro di Greg Ward (l'autore di
+``optparse`` conosciuto anche come ``Optik``) ora i programmatori Python
+hanno a loro disposizione (nella libreria standard e non come un modulo
+esterno) una matura API Orientata agli Oggetti per l'analisi delle
+righe di comando, la quale rende la scrittura di strumenti a riga di 
+comando nello stile Unix facile, efficiente e veloce.
+
+
+L'unico svantaggio di ``optparse`` Ã¨ che Ã¨ uno strumento sofisticato, che
+richiede un pÃ² di tempo per essere completamente padroneggiato.
+L'obiettivo di questo articolo Ã¨ di aiutare il lettore ad apprendere
+rapidamente il 10% delle caratteristiche di ``optparse`` che userÃ 
+nel 90% dei casi. Prendendo ad esempio un'applicazione di uso comune -
+uno strumento di ricerca e sostituzione - guiderÃ² il lettore attraverso
+le meraviglie di ``optparse``. Inoltre, mostreÃ² alcuni trucchetti che 
+renderanno il vostro rapporto con ``optparse`` piÃ¹ felice.
+Questo articolo Ã¨ pensato sia per i programmatori che lavorano su Unix 
+che per quelli che lavorano su Windows - in realtÃ  sosterrÃ² che i 
+programmatori che lavorano su Windows hanno bisogno di ``optparse`` 
+anche piÃ¹ di quelli che lavorano su Unix; per godere fino in fondo di
+questo articolo non avete bisogno di alcuna particolare esperienza.
+
+Un semplice esempio
+---------------------------------------
+
+UtilizzerÃ² come esempio didattico un piccolo programma che ho scritto
+qualche tempo fa, uno strumento di ricerca e sostituzione che lavora
+su piÃ¹ file. Ne avevo bisogno perchÃ¨ non lavoro sempre su Unix, e non
+sempre ho a disposizione sed/awk oppure Emacs, quindi aveva senso avere
+questo piccolo script Python nella mia cassetta degli attrezzi. E' lungo 
+poche righe, puÃ² essere modificato ed esteso con uno sforzo minimo, 
+funziona su tutte le piattaforme (compreso il mio PDA) ed ha il vantaggio
+di essere completamente pilotabile a riga di comando:
+non richiede alcuna libreria grafica installata e posso usarlo su
+una macchina remota tramite ssh.
+
+
+Lo script prende una serie di file e sostituisce una data espressione
+regolare ovunque, inoltre, salva una copia di backup dei file originali
+(non modificati) e da la possibilitÃ  di ripristinarli quando voglio.
+Naturalmente, tutto questo puÃ² essere fatto in modo efficiente su Unix
+con degli strumenti specializzati, ma questi strumenti sono scritti in C
+e non sono facilmente personalizzabili come gli script Python, che puoi
+cambiare in tempo reale per adeguarli alle tue necessitÃ . Quindi, ha senso
+scrivere uno strumento di questo tipo in Python (oppure in Perl, ma ora
+su scrivendo su PyJ.it ;-) )
+
+Come nota finale, lasciatemi sottolineare che trovo ``optparse`` molto piÃ¹
+utile su Windows che non su Unix/Linux/Mac OS X. Il motivo sta nella
+moltitudine di buoni strumenti a riga di comando che sono disponibili su Unix 
+ma che invece mancano in ambiente Windows, o che comunque non hanno un equivalente
+soddisfacente. PerciÃ², Ã¨ ragionevole scriversi una collezione personale di
+priccoli script a riga di comando per i propri compiti piÃ¹ comuni, soprattutto
+se si ha la necessitÃ  di lavorare su diverse piattaforme e la portabilitÃ 
+Ã¨ un requisito importante.
+Usando Python e ``optparse``, potete scrivere i vostri script una volta ed 
+utilizzarli su ogni piattaforma dove gira Python, che in pratica significa
+su ogni piattaforma tradizionale e sempre piÃ¹ su quelle meno tradizionali -
+Python si sta anche espandendo nel mercato embedded, inclusi PDA, telefoni
+cellulari e altro.
+
+La filosofia Unix per gli argomenti a riga di comando
+-------------------------------------------------
+
+Al fine di capire come funziona ``optparse``, Ã¨ essenziale capire
+quale sia la filosofia Unix in riguardo agli argomenti a riga di comando.
+
+Come dice Greg Ward:
+
+*Il compito di optparse Ã¨ di rendere veramente semplice fornire l'interfaccia
+ piÃ¹ standard, ovvia, lineare, e facile da usare per strumenti a riga di
+ comando su Unix. La filosofia di optparse Ã¨ pesantemente influenzata dalle
+ raccolte di strumenti di Unix e GNU ...*
+
+Ecco un piccolo sommario della terminologia:
+gli argomenti forniti ad uno script a riga di comando - *cioÃ¨* gli
+argomenti che Python memorizza nella lista ``sys.argv[1:]`` - sono
+classificati in tre gruppi: opzioni, argumenti delle opzioni e argomenti
+posizionali.
+Le opzioni possono essere distinte perchÃ¨ hanno come prefisso un trattino
+oppure un doppio trattino; le opzioni possono avere argomenti o meno
+(c'Ã¨ al massimo un argomento dopo ogni opzione);
+le opzioni senza argomenti sono chiamate flag. Gli argomenti posizionali
+sono tutto ciÃ² che rimane nella riga di comando dopo aver rimosso le
+opzioni ed i rispettivi argomenti.
+
+Nell'esempio dello strumento di ricerca e sostituzione, avrÃ² bisogno
+di due opzioni con argomento - voglio passare allo script un'espressione
+regolare e una stringa sostituta - avrÃ² bisogno di una flag indicante
+se Ã¨ necessario effettuare o meno il backup dei file originali. Per concludere,
+avrÃ² bisogno di un certo numero di argomenti posizionali per memorizzare
+i nomi dei files sui quali agirÃ  la ricerca e la sostituizione.
+
+Considerate - giusto per esempio - le seguenti situazioni:
+avete uan serie di file di testo nella directory corrente contenenti delle
+date nel formato Europeo DD-MM-YYYY, e volete convertirle nel formato
+Americano MM-DD-YYYY. Se siete certi che tutte le date sono nel formato
+corretto, potete trovarle con una semplice espressione regolare come
+``(\d\d)-(\d\d)-(\d\d\d\d)``.
+
+In questo particolare esempio non Ã¨ cosÃ¬ importante fare una copia di
+backup dei file originali, visto che per ripristinare il formato originale
+Ã¨ sufficiente lanciare nuovamente lo script. Quindi la sintassi da
+utilizzare sarebbe qualcosa tipo
+
+ ::
+
+  $> replace.py --nobackup --regx="(\d\d)-(\d\d)-(\d\d\d\d)" \
+                           --repl="\2-\1-\3" *.txt
+
+
+Al fine di enfatizzare la portabilitÃ , ho usato un prompt generico
+``$>``, questo significa che questi esempi funzioneranno ugualmente
+bene sia su Unix che su Windows (naturalmente su Unix avrei potuto
+ottenere gli stessi risultati con sed oppure awk, ma questi 
+strumenti non sono tanto flessibili quanto uno script Python).
+
+Questa sintassi ha il vantaggio di essere piuttosto chiara, ma lo
+svantaggio di essere abbastanza prolissa, inoltre Ã¨ piÃ¹ semplice usare
+abbreviazioni per il nome delle opzioni. Ad esempio, abbreviazioni
+significative possono essere ``-x`` per ``--regx``, ``-r`` per ``--repl``
+e ``-n`` per ``--nobackup``; inoltre, il simbolo ``=`` puÃ² essere
+tranquillamente rimosso. Quindi la precedente riga di comando diviene
+
+ ::
+
+  $> replace.py -n -x"(\dd)-(\dd)-(\d\d\d\d)" -r"\2-\1-\3" *.txt
+
+Qui vedete le convenzioni Unix al lavoro: le opzioni ad una singola
+lettera (conosciute anche come opzioni brevi) sono precedute da un
+singolo trattino, mentre le opzioni lunghe sono precedute da un
+doppio trattino. Il vantaggio della convenzione consiste nella
+possibilitÃ  di combinare le opzioni brevi: ad esempio
+
+ ::
+
+  $> replace.py -nx "(\dd)-(\dd)-(\d\d\d\d)" -r "\2-\1-\3" *.txt
+
+ha lo stesso significato della riga precedente, cioÃ¨ ``-nx`` Ã¨
+lo stesso di ``-n -x``. Potete anche scambiare liberamente l'ordine
+delle options, ad esempio in questo modo:
+
+ ::
+
+  $> replace.py -nr "\2-\1-\3" *.txt -x "(\dd)-(\dd)-(\d\d\d\d)"
+
+Questo comando sarÃ  interpretato esattamente come i precedenti, cioÃ¨
+le optioni ed i loro argomenti non sono posizionali.
+
+Come funziona in pratica?
+-----------------------------
+
+Avendo presentato i requisiti, possiamo cominciare ad implementare
+il nostro strumento di "ricerca e sostituzione". Il primo passo Ã¨ la 
+scrittura della documentation string:
+
+ ::
+
+  #!/usr/bin/env python
+  """
+  Given a sequence of text files, replaces everywhere
+  a regular expression x with a replacement string s.
+
+    usage: %prog files [options]
+    -x, --regx=REGX: regular expression
+    -r, --repl=REPL: replacement string
+    -n, --nobackup: do not make backup copies
+  """
+
+Su Windows la prima riga non Ã¨ necessaria, ma Ã¨ buona abitudine averla
+nel mondo Unix.
+
+Il prossimo passo Ã¨ la scrittura di una semplice routine di ricerca e 
+sostituzione
+
+ ::
+ 
+  import re
+
+  def replace(regx, repl, files, backup_option=True):
+      rx = re.compile(regx)
+      for fname in files:
+          txt = file(fname, "U").read() # quick & dirty
+          if backup_option:
+              print >> file(fname+".bak", "w"), txt,
+          print >> file(fname, "w"), rx.sub(repl, txt),
+
+
+Questa routine di sostituzione Ã¨ piuttosto scontata, l'unica 
+cosa che potete notare Ã¨ l'utilizzo dell'opzione "U" nella riga
+
+ ::
+
+     txt=file(fname,"U").read()
+
+Questa Ã¨ una caratteristica introdotta in Python 2.3. I file di testo
+aperti con l'opzione "U" sono letti nel modo "Universale": questo
+significa che Python si prende cura al vostro posto dei problemi
+legati agli accapo, quindi questo script funzionerÃ  correttamente
+ovunque, indipendentemente dalle convenzioni sugli accapo del vostro
+sistema operativo. Lo script legge tutto il file in memoria: questa
+Ã¨ una cattiva pratica, e qui sto assumendo che userete questo script
+solo su file piccoli adatti alle dimensioni della vostra memoria,
+altrimenti dovreste leggermente "ritoccare" il codice.
+Inoltre, uno script completo dovrebbe testare che il file esista e
+e sia leggibile, e dovrebbe fare qualcosa nel caso contrario.
+
+Quindi, come funziona? E' molto semplice, veramente.
+Prima di tutto avete bisogno di istanziare una parser per la
+riga degli argomenti dalla classe ``OptionParse`` fornita da
+``optparse``.
+
+ ::
+
+  import optparse 
+  parser = optparse.OptionParser("usage: %prog files [options]")
+
+La stringa ``"usage: %prog files [options]"`` sarÃ  utilizzata
+per stampare un messaggio di utilizzo personalizzato, dove
+``%prog`` sarÃ  sostituito dal nome dello script (in questo caso
+``replace.py``). Potete ometterlo senza problemi e ``optparse``
+userÃ  la stringa predefinita ``"usage: %prog [options]"``.
+
+A questo punto, indicate al parser le informazioni sulle opzioni che
+deve riconoscere:
+
+ ::
+
+  parser.add_option("-x", "--regx",
+                  help="regular expression")
+  parser.add_option("-r", "--repl",
+                  help="replacement string")
+  parser.add_option("-n", "--nobackup",
+                  action="store_true",
+                  help="do not make backup copies")
+
+L'argomento della  parola chiave ``help`` serve a documentare gli intenti 
+della data opzione; Ã¨ anche utilizzata da ``optparse`` nel messaggio 
+sull'utilizzo.
+L'argomento della parola chiave ``action=store_true`` Ã¨ usato per distinguere
+le flag dalle opzioni con argomenti, dice ad ``optparse`` di settare la
+flag ``nobackup`` su ``True`` se ``-n`` oppure ``--nobackup`` Ã¨ passato alla
+riga di comando.
+
+Per concludere, bisogna dire al parser di fare il suo lavoro analizzando
+la riga di comando.
+
+ ::
+
+  option, files = parser.parse_args()
+
+Il metodo ``.parse_args()`` restituisce due valori: ``option``,
+il quale Ã¨ un'istanza della classe ``optparse.Option``, e ``files``,
+che Ã¨ una lista di argomenti posizionali.
+L'oggetto ``option`` ha degli attributi - chiamati *destinazioni*
+nella terminologia di ``optparse`` - corrispondenti alle date opzioni.
+Nel nostro esempio, ``option`` avrÃ  gli attributi ``option.regx``,
+``option.repl`` e ``option.nobackup``.
+
+Se non vengono passate opzioni alla riga di comando, tutti questi
+attributi sono inizializati a ``None``, altrimenti sono inizializzati
+col valore dell'argomento dell'opzione. In particolare, le flag sono
+inizializzate con ``True`` se vengono passate, altrimenti a ``None``.
+Quindi, nel nostro esempio ``option.nobackup`` Ã¨ ``True`` se la flag
+``-n`` o ``--nobackup`` Ã¨ presente.
+
+La lista ``files`` contiene i file passati alla riga di comando
+(assumendo che abbiate passato i nomi di file di testo accessibili
+nel vostro sistema).
+
+Il codice puÃ² essere semplice come il seguente:
+
+ ::
+
+      if not files:
+          print "Non hai indicato alcun file!"
+      elif option.regx and option.repl:
+          replace(option.regex, option.repl, files, not option.nobackup)
+      else:
+          print "Missing options or unrecognized options."
+	  print __doc__ # documentation on how to use the script
+
+Una simpatica caratterisca di ``optparse`` Ã¨ che viene creata automaticamente
+una opzione di help, quindi ``replace.py -h`` (oppure ``replace.py --help``)
+funzionerÃ  come ci aspetteremmo:
+
+ ::
+
+  $> replace.py --help
+  usage: replace.py files [options]
+
+
+  options:
+    -h, --help           show this help message and exit
+    -xREGX, --regx=REGX  regular expression
+    -rREPL, --repl=REPL  replacement string
+    -n, --nobackup       do not make backup copies
+
+
+Potete stampare da programma il messaggio d'utilizzo invocando
+``parser.print_help()``.
+
+A questo punto potete testare il vostro script e vedere se funziona
+come annunciato.
+
+Come ridurre la verbositÃ  e rendere piÃ¹ felice la vostra vita con ``optparse``
+---------------------------------------------------------------------
+
+La forza di ``optparse`` si accompagna ad una penalizzazione: usare
+``optparse`` nel modo standard, come ho mostrato prima, richiede un certo
+ammontare di verbositÃ /ridondanza.
+
+Ad esempio supponete che io voglia aggiungere l'abilitÃ  di ripristinare il
+file originale dalla copia di backup.
+Bene, dobbiamo cambiare lo script in tre punti: nella docstring, nella
+lista ``add_option``, e nel blocco ``if .. elif .. else ...``. Almeno
+uno di questi Ã¨ ridondante.
+
+La ridondanza puÃ² essere rimossa analizzando la docstring al fine di dedurre le
+opzioni da riconoscere. Questo ci evita il noioso compito di scrivere
+a mano le righe ``parser.add_option``.
+Ho implementato questa idea in una ricetta del Coockbook, scrivendo
+un modulo ``optionparse`` che Ã¨ giusto un piccolo wrapper di ``optparse``.
+Per motivi di spazio, non posso riportarlo qui, ma potete trovare il codice
+ed una piccola spiegazione nel Python Coockbook (guardate nei riferimenti in
+basso).
+E' veramente semplice da usare. Ad esempio, l'articolo che state leggendo ora
+Ã¨ stato scritto usando ``optionparse``: L'ho utilizzato per scrivere un
+piccolo wrapper per le docutils - lo strumento standard di Python che converte
+file di testo (ristrutturati) in pagine HTML.
+E' inoltre interessante notare che internamente anche le docutils a loro
+volta usano ``optparse`` per svolgere il proprio compito, quindi in realtÃ 
+questo articolo Ã¨ stato composto utilizzando ``optparse`` due volte!
+
+Per concludere, dovreste tenere a mente che questo articolo gratta
+solo la superfice di ``optparse``, il quale Ã¨ piuttosto sofisticato.
+Ad esempio potete specificare dei valori predefiniti, differenti destinazioni,
+un'azione ``store_false`` e molto altro, anche se solitamente non avrete
+bisogno di tutta questa potenza. L'utente serio di ``optparse`` Ã¨ caldamente
+invitato a leggere la documentazione nella libreria standard, che Ã¨ 
+molto buona e dettagliata. Penso che questo articolo abbia soddisfatto 
+la sua funzione di "stuzzichino" di ``optparse``, se ha stimolato il lettore a
+cercare altre informazioni
+ 
+Riferimenti
+--------------------------
+
+- ``optparse/optik`` Ã¨ un progetto indipendente su sourceforge:  
+  http://optik.sourceforge.net
+
+- a partire da Python 2.3, ``optparse`` Ã¨ incluso nella libreria standard:
+  http://www.python.org/doc/2.3.4/lib/module-optparse.html
+
+- ho scritto una ricetta per il Python Cookbook su optparse:
+  http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/278844

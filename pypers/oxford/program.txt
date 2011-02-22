@@ -1,0 +1,45 @@
+*Wonders of Today's Python* -- presented by Michele Simionato
+
+*Everything you always wanted to know about Python but were afraid to ask!*
+
+In the last few years, with the advent of the new-style object model and
+of iterators, generators, decorators and more, Python has undergone a silent 
+revolution. Many of the idioms, patterns and techniques of the past have 
+been replaced by better solutions. You may feel that the language 
+is evolving at too rapid a pace for you, or that your Python skills are 
+becoming obsolete. In this case don't worry: this seminar is for you!
+
+For this lectures, I have picked some of the most interesting new
+paradigmas in modern Python, and I discuss them through examples big 
+and small, together with a thorough grounding in the relevant language
+mechanisms.  
+
+Look at the variety of design choices that today's  Python makes 
+available to you, and learn when you should use the advanced 
+techniques presented here and when you should not.
+
+Iterators and Generators underlie Python's new approach to looping --
+it's not your grandparents' loop any more! Learn how to encapsulate
+the underlying logic of your control structures and make it
+reusable. See how itertools can turn the "abstraction penalty" typical
+of other languages into an abstraction _bonus_, making your code
+faster at the same time as more abstract and general.
+
+Learn about Design Patterns and other Object-Oriented idioms and
+mechanisms. Python is a multi-paradigm language, but OOP is its core
+paradigm. Understand the pros and cons of your alternatives: When
+should you use closures, rather than callable instances? When is
+inheritance OK, and when is it better to hold-and-delegate? What
+classical Design Patterns are built-in to Python, and which others are
+appropriate to consider, when?
+
+Descriptors and Metaclasses are the underpinnings of today's Python's
+OOP -- Python exposes them and lets you customize them for your own
+purposes. Add Decorators, the new syntax just introduced in Python 2.4
+(a systematic application of a crucial use case for higher-order
+functions), and you'll see why the working title of that chapter was
+"Black Magic"... Learn important use cases for each of these advanced
+mechanisms.
+
+Prerequisites: you need a solid grasp of Python fundamentals to start
+with. Course objectives: you'll walk out of this a Python wizard!

@@ -1,0 +1,1093 @@
+THE POWER OF CLASSES
+==========================================================================
+
+This chapter is devoted to the concept of class inheritance. I will discuss
+single inheritance, cooperative methods, multiple inheritance and more.
+
+
+The concept of inheritance
+----------------------------------------------------------------------
+
+Inheritance is perhaps the most important basic feature in OOP, since it
+allows the reuse and incremental improvement of old code.
+To show this point, let me come back to one of the 
+examples I have introduced in the last chapter, 'fairytale1.py' script, 
+where I defined the classes 'Frog' and 'Prince' as
+
+ ::
+
+  class Frog(object):
+      attributes="poor, small, ugly"
+      def __str__(self):
+          return "I am a "+self.attributes+' '+self.__class__.__name__
+
+  class Prince(object):
+      attributes='rich, tall, beautiful'
+      def __str__(self):
+          return "I am a "+self.attributes+' '+self.__class__.__name__
+
+We see that the way we followed here was very bad since:
+
+1. The ``__str__`` method is duplicated both in Frog and in Prince: that
+   means that if we find a bug a later, we have to fix it twice!
+
+2. The ``__str__`` was already defined in the PrettyPrinted class (actually 
+   more elegantly), therefore we have triplicated the work and worsened the 
+   situation!
+
+This is very much against the all philosophy of OOP:
+
+  *never cut and paste!*
+
+We should *reuse* old code, not paste it!
+
+The solution is *class inheritance*. The idea behind inheritance is to 
+define new classes as subclasses of a *parent* classes, in such a way that 
+the *children* classes possess all the features of the parents. 
+That means that we do not need to 
+redefine the properties of the parents explicitely.
+In this example, we may derive both 'Frog' and 'Prince' from
+the 'PrettyPrinted' class, thus providing to both 'Frog' and  'Prince'
+the ``PrettyPrinted.__str__`` method with no effort:
+
+  >>> from oopp import PrettyPrinted
+  >>> class Frog(PrettyPrinted): attributes="poor, small, ugly"
+  ...
+  >>> class Prince(PrettyPrinted):  attributes="rich, tall, beautiful"
+  ...
+  >>> print repr(Frog()), Frog()
+  <__main__.Frog object at 0x401cbeac> <Frog>
+  >>> print Prince()
+  >>> print repr(Prince()),Prince()
+  <__main__.Prince object at 0x401cbaac> <Prince>
+
+Let me show explicitly that both 'Frog' and 'Prince' share the 
+'PrettyPrinted.__str__' method:
+
+  >>> id(Frog.__str__) # of course, YMMV
+  1074329476
+  >>> id(Prince.__str__)
+  1074329476
+  >>> id(PrettyPrinted.__str__)
+  1074329476
+
+The method is always the same, since the object reference is the same
+(the precise value of the reference is not guaranteed to be  1074329476,
+however!).
+
+This example is good to show the first advantage of inheritance: 
+*avoiding duplication of code*.
+Another advantage of inheritance, is *extensibility*: one can very easily
+improve existing code. For instance, having written the ``Clock`` class once, 
+I can reuse it in many different ways. for example I can build a ``Timer`` 
+to be used for benchmarks. It is enough to reuse the function ``with_timer``
+introduced in the first chapter (functions are good for reuse of code, too ;):
+
+ ::
+
+  #<oopp.py>
+
+  class Timer(Clock):
+      "Inherits the get_time staticmethod from Clock"
+      execute=staticmethod(with_timer)
+      loop_overhead=staticmethod(loop_overhead)
+
+
+  #</oopp.py>
+
+Here there is an example of application:
+
+  >>> from oopp import Timer
+  >>> Timer.get_time()
+  '16:07:06'
+
+Therefore 'Timer' inherits 'Clock.get_time'; moreover it has the additional 
+method ``execute``:
+
+  >>> def square(x): return x*x
+  ...
+  >>> Timer.execute(square,n=100000)(1)
+  executing square ...
+    Real time: 0.01 ms  CPU time: 0.008 ms
+
+The advantage of putting the function ``execute`` in a class is that
+now we may *inherit* from that class and improve out timer *ad
+libitum*.
+
+Inheritance versus run-time class modifications
+-------------------------------------------------------------------------
+
+Naively, one could think of substituting inheritance with run-time 
+modification of classes, since this is allowed by Python. However,
+this is not such a good idea, in general. Let me give a simple example.
+Suppose we want to improve our previous clock, to show the date, too.
+We could reach that goal with the following script:
+
+ ::
+
+  #<clock2.py>
+
+  "Shows how to modify and enhances classes on the fly"
+
+  from oopp import *
+
+  clock=Clock() #creates a Clock instance
+  print clock.get_time() # print the current time
+
+  get_data=lambda : ' '.join(time.asctime().split()[0:3])+ \
+                         ' '+time.asctime().split()[-1]
+
+  get_data_and_time=lambda : "Today is: %s \nThe time is: %s" % (
+                         get_data(),get_time()) # enhances get_time
+
+  Clock.get_time=staticmethod(get_data_and_time)
+
+  print clock.get_time() # print the current time and data
+
+  #</clock2.py>
+
+The output of this script is:
+
+  12:51:25
+  Today is: Sat Feb 22 2003 
+  The time is: 12:51:25
+
+Notice that:
+
+1. I instantiated the ``clock`` object *before* redefining the ``get_time``
+   method, when it only could print the time and *not* the date.
+2. However, after the redefinition of the class, the behaviour of all its 
+   instances is changed, *including the behaviour of objects instantiated 
+   before the change!*. Then ``clock`` *can* print the date, too.
+
+This is not so surprising, once you recognize that Guido own a very famous
+time-machine ... ;-)
+
+Seriously, the reason is that an object does not contains a reserved copy
+of the attributes and methods of its class: it only contains *references*
+to them. If we change them in the class, the references to them in the
+object will stay the same, but the contents will change.
+
+In this example, I have solved the problem of enhancing the 'Clock' class
+without inheritance, but dynamically replaceing its ``get_time`` 
+(static) method with the `get_data_and_time`` (static) method. 
+The dynamics modification of methods can be cool, but it should be avoided 
+whenever possible, at least for two reasons [#]_:
+
+1. having a class and therefore all its instances (including the instances
+   created before the modification !) changed during the life-time of the
+   program can be very confusing to the programmer, if not to the interpreter.
+
+2. the modification is destructive: I cannot have the old ``get_time`` method
+   and the new one at the same time, unless one explicitly gives to it 
+   a new name (and giving new names increases the pollution of the namespace).
+
+Both these disadvantages can be solved by resorting to the mechanism of
+inheritance. For instance, in this example, we can derive a new class 
+``NewClock`` from ``Clock`` as follows:
+
+ ::
+
+  #<newclock.py>
+
+  import oopp,time
+  
+  get_data=lambda : ' '.join(time.asctime().split()[0:3])+ \
+                         ' '+time.asctime().split()[-1]
+
+  get_data_and_time=lambda : "Today is: %s \nThe time is: %s" % (
+                         get_data(),oopp.get_time()) # enhances get_time
+
+  class NewClock(oopp.Clock):
+         """NewClock is a class that inherits from Clock, provides get_data
+          and overrides get_time."""
+         get_data=staticmethod(get_data)
+         get_time=staticmethod(get_data_and_time)
+
+  clock=oopp.Clock(); print 'clock output=',clock.get_time() 
+  newclock=NewClock(); print 'newclock output=',newclock.get_time()
+
+  #</newclock.py>
+
+The output of this script is:
+
+ ::
+
+  clock output= 16:29:17
+  newclock output= Today is: Sat Feb 22 2003 
+  The time is: 16:29:17
+
+We see that the two problems previously discussed are solved since:
+
+i) there is no cut and paste: the old method ``Clock.get_time()`` is used
+   in the definition of the new method ``NewClock.get_time()``;
+ii) the old method is still accessible as ``Clock.get_time()``; there is
+    no need to invent a new name like ``get_time_old()``.
+
+We say that the method ``get_time`` in ``NewClock`` *overrides* the method
+``get_time`` in Clock.
+
+
+This simple example shows the power of inheritance in code
+reuse, but there is more than that.
+
+Inheritance is everywhere in Python, since
+all  classes inherit from object. This means that all classes
+inherit the methods and attributes of the object class, such as ``__doc__``,
+``__class__``, ``__str__``, etc.
+
+
+ .. [#] There are cases when run-time modifications of classes is useful
+        anyway: particularly when one wants to modify the behavior of
+        classes written by others without changing the source code. I
+        will show an example in next chapter.
+
+Inheriting from built-in types
+-----------------------------------------------------------------------
+
+However, one can subclass a built-in type, effectively creating an 
+user-defined type with all the feature of a built-in type, and modify it.
+
+Suppose for instance one has a keyword dictionary such as
+
+  >>> kd={'title': "OOPP", 'author': "M.S.", 'year': 2003}
+
+it would be nice to be able to access the attributes without
+excessive quoting, i.e. using ``kd.author`` instead of ``kd["author"]``.
+This can be done by subclassing the built-in class ``dict`` and
+by overriding the ``__getattr__`` and ``__setattr__`` special methods:
+
+ ::
+
+  #<oopp/py>
+
+  class kwdict(dict):
+      "Keyword dictionary base class"
+      def __getattr__(self,attr): 
+          return self[attr]
+      def __setattr__(self,key,val): 
+          self[key]=val
+      __str__ = pretty 
+
+  #</oopp/py>
+
+
+Here there is an example of usage:
+
+  >>> from oopp import kwdict
+  >>> book=kwdict({'title': "OOPP", 'author': "M.S."})
+  >>> book.author #it works
+  'M.S.'
+  >>> book["author"] # this also works
+  'M.S.'
+  >>> book.year=2003 #you may also add new fields on the fly
+  >>> print book
+  author = M.S.
+  title = OOPP
+  year = 2003
+  
+The advantage of subclassing the built-in 'dict', it that you have for free 
+all the standard dictionary methods, without having to reimplement them.
+
+However, to subclass built-in it is not always a piece of cake. In
+many cases there are complications, indeed. Suppose for instance
+one wants to create an enhanced string type, with
+the ability of indent and dedent a block of text provided by 
+the following functions:
+
+ ::
+
+  #<oopp.py>
+
+  def indent(block,n):
+       "Indent a block of code by n spaces"
+       return '\n'.join([' '*n+line for line in block.splitlines()])
+
+  from textwrap import dedent # available in 2.3 only
+  
+  #</oopp.py>
+
+The solution is to inherit from the built-in string type ``str``, and to 
+add to the new class the ``indent`` and ``dedent`` methods:
+
+  >>> from oopp import indent,dedent
+  >>> class Str(str):
+  ...    indent=indent
+  ...    dedent=dedent
+  >>> s=Str('spam\neggs')
+  >>> type(s)
+  <class '__main__.Str'>
+  >>> print s.indent(4)
+      spam
+      eggs
+
+However, this approach has a disadvantage, since the output of ``indent`` is
+not a ``Str``, but a normal ``str``, therefore without the additional 
+``indent`` and ``dedent`` methods:
+
+  >>> type(s.indent(4))
+  <type 'str'>
+  >>> s.indent(4).indent(4) #error
+  Traceback (most recent call last):
+    File "<stdin>", line 9, in ?
+  AttributeError: 'str' object has no attribute 'indent'
+  >>> s.indent(4).dedent(4) #error
+  Traceback (most recent call last):
+    File "<stdin>", line 9, in ?
+  AttributeError: 'str' object has no attribute 'dedent'
+
+We would like ``indent`` to return a ``Str`` object. To solve this problem
+it is enough to rewrite the class as follows:
+
+ ::
+
+  #<Str.py>
+
+  from oopp import indent,dedent
+
+  class Str(str):
+     def indent(self,n):
+         return Str(indent(self,n))
+     def dedent(self):
+         return Str(dedent(self))
+
+  s=Str('spam\neggs').indent(4)
+  print type(s)
+  print s # indented s
+  s=s.dedent()
+  print type(s)
+  print s # non-indented s
+  
+  #</Str.py>
+
+Now, everything works and the output of the previous script is
+
+ ::
+
+  <class 'Str'>
+      spam
+      eggs
+  <class 'Str'>
+  spam
+  eggs
+
+The solution works because now ``indent()`` returns an instance
+of ``Str``, which therefore has an ``indent`` method. Unfortunately,
+this is not the end. Suppose we want to add another food to our list:
+
+  >>> s2=s+Str("\nham")
+  >>> s2.indent(4) #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  AttributeError: 'str' object has no attribute 'indent'
+
+The problem is the same, again: the type of ``s2`` is ``str``
+
+  >>> type(s2)
+  <type 'str'>
+
+and therefore there is no ``indent`` method available. There is a
+solution to this problem, i.e. to redefine the addition operator
+for objects of the class ``Str``. This can be done directly by hand,
+but it is *ugly* for the following reasons:
+
+1. If you derive a new class from ``Str`` you have to redefine the
+   addition operator (both the left addition and the right addition [#]_)
+   again (ughh!);
+2. There are others operators you must redefine, in particular the
+   the augumented assignement operator ``+=``, the repetition operator ``*`` 
+   and its augmented version ``*=``; 
+3. In the case of numeric types, one must redefine, ``+,-,*,/,//, mod,``,
+   possibily ``<<,>>`` and others, including  the corresponding 
+   augumented assignement operators and the left and the right form of
+   the operators.
+
+This is a mess, especially since due to point 1, one has to redefined
+all the operators each time she defines a new subclass. I short, one has
+to write a lot of boilerplate for a stupid job that the language
+should be able to perform itself automatically. But here are the
+good news: Python *can* do all that automatically, in an elegant
+and beautiful way, which works for all types, too.
+
+But this requires the magic of metaclasses.
+
+ .. [#] The right addition works this way. Python looks at the expression x+y
+        and if x has an explicit__add__ method invokes it; on the other hand, 
+        if x does not define  an __add__ method, Python considers y+x. 
+        If y defines a __radd__ method, it invokes it, otherwise
+        raises an exception. The same is done for right multiplication, etc.
+
+Controlling the creation of objects
+---------------------------------------------------------------------------
+
+Before introducing multiple inheritance, let me make a short digression on
+the mechanism of object creation in Python 2.2+. The important point is
+that new style classes have a ``__new__`` static method that allows
+the user to take complete control of object creation. To understand how
+``__new__`` works, I must explain what happens when an object is instantiated
+with a statement like
+
+ ::
+  
+  s=Str("spam") #object creation
+
+What happens under the hood, is that the special static method  ``__new__`` 
+of the class ``Str`` (inherited from the built-in ``str`` class)
+is invoked ``before`` the ``Str.__init__`` method. This means that
+the previous line should really be considered syntactic sugar for:
+
+ ::
+
+  s=Str.__new__(Str,"spam") # Str.__new__ is actually str.__new__
+  assert isinstance(s,Str)
+  Str.__init__(s,"spam")  # Str.__init__ is actually str.__init__
+
+Put it more verbosely, what happens during the object creation is the
+following:
+
+1. the static method ``__new__``  is invoked with the class of the created 
+   object as first argument [#]_;
+
+2. ``__new__`` returns an instance of that class. 
+
+3. the instance is then initialized by the ``__init__`` method.
+
+Notice that both ``__new__`` and ``__init__`` are called with the same 
+argument list, therefore one must make sure that they have a compatible 
+signature.
+
+Let me discuss now why ``__new__`` must be a static method.
+First of all, it cannot be a normal method with a first argument which is an
+instance of the calling class, since at the time of ``__new__`` invocation
+that instance (``myclock`` in the example) has still to be created
+Since ``__new__`` needs information about the class calling it, one
+could think of implementing ``__new__`` as a class method. However,
+this would implicitly pass the caller class and return an instance
+of it. It is more convenient, to have the ability of creating
+instances of any class directly from C.__new__(B,*args,**kw)
+
+For this reasons, ``__new__`` must be a static method and pass explicitly
+the class which is calling it.
+ 
+Let me now show an important application of the ``__new__`` static method:
+forbidding object creation. For instance, sometimes it is useful to have 
+classes that cannot be instantiated. This kind of classes can be
+obtained by inheriting from a ``NonInstantiable`` class:
+
+ ::
+
+  #<oopp.py>
+
+  class NonInstantiableError(Exception): 
+      pass
+
+  class NonInstantiable(object): 
+      def __new__(cls,*args,**kw):
+          raise NonInstantiableError("%s cannot be instantiated" % cls)
+
+  #</oopp.py>
+
+Here there is an example of usage:
+
+  >>> from oopp import NonInstantiable,get_time
+  >>> class Clock(NonInstantiable): 
+  ...    get_time=staticmethod(get_time)
+  >>> Clock.get_time() # works
+  '18:48:08'
+  Clock() #error
+  Traceback (most recent call last):
+    File "<pyshell#6>", line 1, in ?
+      Clock()
+    File "oopp.py", line 257, in __new__
+      raise NonInstantiableError("%s cannot be instantiated" % cls)
+  NonInstantiableError: <class '__main__.Clock'> cannot be instantiated
+
+However, the approach pursued here has a disadvantage:``Clock`` was already 
+defined as a subclass of ``object`` and I has to change the source code
+to make it a subclass of 'NonInstantiable'. But what happens if 
+I cannot change the sources? How can I *reuse* the old code?
+
+The solution is provided by multiple inheritance.
+
+Notice that '__new__' is a staticmethod: [#]_
+
+  >>> type(NonInstantiable.__dict__['__new__'])
+  <type 'staticmethod'>
+
+ .. [#] This is how ``type(s)`` or ``s.__class__`` get to know that 
+        ``s`` is an instance of ``Str``, since the class information is 
+        explicitely passed to the newborn object trough ``__new__``.
+
+ .. [#] However ``object.__dict__['__new__']`` is not a staticmethod
+
+  >>> type(object.__dict__['__new__']) # special case
+  <type 'builtin_function_or_method'>
+
+
+Multiple Inheritance
+----------------------------------------------------------------------------
+
+Multiple Inheritance (often abbreviated as MI) is often 
+considered one of the most advanced topic in Object Oriented Programming. 
+It is also one of the most difficult features to implement
+in an Object Oriented Programming language. Even, some languages by design
+decided to avoid it. This is for instance the case of Java, that avoided
+MI having seen its implementation in C++ (which is not for the faint of
+heart ;-) and uses a poorest form of it trough interfaces.
+For what concerns the scripting languages, of which
+the most famous are Perl, Python and Ruby (in this order, even if
+the right order would be Python, Ruby and Perl), only Python
+implements Multiple Inheritance well (Ruby has a restricted form
+of it trough mix-ins, whereas Perl implementation is too difficult
+for me to understand what it does ;).
+
+The fact that Multiple Inheritance can be hairy, does not mean that it
+is *always* hairy, however. Multiple Inheritance is used with success
+in Lisp derived languages (including Dylan).
+
+The aims of this chapter is to discuss the
+Python support for MI in the most recent version (2.2 and 2.3), which
+has considerably improved with respect to previous versions.
+The message is the following: if Python 1.5 had a basic support for
+MI inheritance (basic but nevertheless with nice features, dynamic),
+Python 2.2 has *greatly* improved that support and with the
+change of the Method Resolution Order in Python 2.3, we may say
+that support for MI is now *excellent*.
+
+I strongly encourage Python programmers to use MI a lot: this will
+allows even a stronger reuse of code than in single inheritance.
+
+Often, inheritance is used when one has a complicate class B, and she wants 
+to modify (or enhance) its behavior, by deriving a child class C, which is 
+only slightly different from B. In this situation,  B is already a standalone 
+class, providing some non-trivial functionality, independently from 
+the existence of C.  This kind of design it typical of the so called
+*top-down* philosophy, where one builds the 
+all structure as a monolithic block, leaving room only for minor improvements.
+An alternative approach is the so called *bottom-up* programming, in 
+which one builds complicate things starting from very simple building blocks. 
+In this logic, it is very appealing the idea of creating classes with the
+only purpose of being derived. The 'NonInstantiable' just defined is a
+perfect example of this kind of classes, though with multiple inheritance
+in mind and often called *mixin* classes.
+It can be used to create a new class ``NonInstantiableClock`` 
+that inherits from ``Clock`` and from ``NonInstantiable``.
+
+ ::
+
+  #<oopp.py>
+
+  class NonInstantiableClock(Clock,NonInstantiable): 
+      pass
+
+  #</oopp.py>
+
+Now ``NonInstantiableClock`` is both a clock
+
+  >>> from oopp import NonInstantiableClock
+  >>> NonInstantiableClock.get_time() # works
+  '12:57:00' 
+
+and a non-instantiable class:
+
+  >>> NonInstantiableClock() # as expected, give an error
+  Traceback (most recent call last):
+    File "<pyshell#2>", line 1, in ?
+      NonInstantiableClock() # error
+    File "oopp.py", line 245, in __new__
+      raise NonInstantiableError("%s cannot be instantiated" % cls)
+  NonInstantiableError: <class 'oopp.NonInstantiableClock'> 
+  cannot be instantiated
+
+Let me give a simple example of a situation where the mixin approach 
+comes handy. Suppose that the owner of a 'Pizza-shop' needs a program to 
+take care of all the pizzas to-go he sell. Pizzas are distinguished 
+according to their size (small, medium or large) and their toppings. 
+The problem can be solved by inheriting from a generic pizza factory
+like this:
+
+ ::
+
+  #<oopp.py>
+
+  class GenericPizza(object): # to be customized
+      toppinglist=[] # nothing, default 
+      baseprice=1 # one dollar, default
+      topping_unit_price=0.5 # half dollar for each topping, default
+      sizefactor={'small':1, 'medium':2, 'large':3} 
+      # a medium size pizza costs twice a small pizza, 
+      # a large pizza costs three times
+      def __init__(self,size):
+          self.size=size
+      def price(self):
+          return (self.baseprice+
+                 self.toppings_price())*self.sizefactor[self.size]
+      def toppings_price(self):
+          return len(self.toppinglist)*self.topping_unit_price
+      def __str__(self):
+          return '%s pizza with %s, cost $ %s' % (self.size,
+                                            ','.join(self.toppinglist),
+                                            self.price())
+
+  #</oopp.py>
+
+Here the base class 'GenericPizza' is written with inheritance in mind: one
+can derives many pizza classes from it by overriding the ``toppinglist``;
+for instance one could define
+
+  >>> from oopp import GenericPizza
+  >>> class Margherita(GenericPizza): 
+  ...     toppinglist=['tomato']
+
+The problem of this approach is that one must define dozens of 
+different pizza subclasses (Marinara, Margherita, Capricciosa, QuattroStagioni, 
+Prosciutto, ProsciuttoFunghi, PizzaDellaCasa, etc. etc. [#]_). In such a 
+situation, it is better to perform the generation of subclasses in a smarter 
+way, i.e. via a customizable class factory.
+A simpler approach is to use always the same class and to customize
+its instances just after creation. Both approaches can be implemented via
+the following 'Customizable' mixin class, not meant to be instantiated, 
+but rather to be *inherited*:
+
+ ::
+
+  #<oopp.py>
+  
+  class Customizable(object):
+      """Classes inhering from 'Customizable' have a 'with' method acting as
+      an object modifier and 'With' classmethod acting as a class factory"""
+      def with(self,**kw):
+          customize(self,**kw)# customize the instance
+          return self # returns the customized instance
+      def With(cls,**kw):
+          class ChildOf(cls): pass # a new class inheriting from cls
+          ChildOf.__name__=cls.__name__ # by default, with the same name
+          customize(ChildOf,**kw)       # of the original class
+          return ChildOf
+      With=classmethod(With) 
+
+  #</oopp.py>
+
+Descendants of 'Customizable' can be customized by using
+'with', that directly acts on the instances, or 'With', that returns
+new classes. Notice that one could make 'With' to customize the
+original class, without returning a new one; however, in practice,
+this would not be safe: I remind that changing a class modifies
+automatically all its instances, even instances created *before*
+the modification. This could produce bad surprises: it is better to 
+returns new classes, that may have the same name of the original one, 
+but are actually completely independent from it.
+
+In order to solve the pizza shop problem we may define a 'CustomizablePizza' 
+class
+
+ ::
+
+  #<oopp.py>
+
+  class CustomizablePizza(GenericPizza,Customizable):
+      pass
+
+  #</oopp.py>
+
+which can be used in two ways: i) to customize instances just after creation:
+
+  >>> from oopp import CustomizablePizza
+  >>> largepizza=CustomizablePizza('large') # CustomizablePizza instance
+  >>> largemarinara=largepizza.with(toppinglist=['tomato'],baseprice=2)
+  >>> print largemarinara
+  large pizza with tomato mozzarella, cost $ 7.0
+
+and ii) to generated customized new classes:
+
+  >>> Margherita=CustomizablePizza.With(
+  ...    toppinglist=['tomato','mozzarella'], __name__='Margherita')
+  >>> print Margherita('medium')
+  medium pizza with tomato,mozzarella, cost $ 4.0
+
+The advantage of the bottom-up approach, is that the 'Customizable' class
+can be reused in completely different problems; for instance, it could
+be used as a class factory. For instance we could use it to generate a 
+'CustomizableClock' class as in this example:
+
+  >>> from oopp import *
+  >>> CustomizableClock=Customizable.With(get_time=staticmethod(Clock.get_time),
+  ... __name__='CustomizableClock') #adds get_time
+  >>> CustomizableClock.get_time() # now it works
+  '09:57:50'
+
+Here 'Customizable' "steal" the 'get_time' method from 'Clock'.
+However that would be a rather perverse usage ;) I wrote it to show
+the advantage of classmethods, more than to suggest to the reader that
+this is an example of good programming. 
+
+ .. [#]  In Italy, you can easily find "pizzerie" with more than 50 different 
+         kinds of pizzas (once I saw a menu with something like one hundred 
+         different combinations ;)
+
+Cooperative hierarchies
+-----------------------------------------------------------------------
+
+The examples of multiple inheritance hierarchies given until now were pretty 
+easy. The reason is that there was no interaction between the methods of the 
+children and of the parents. However, things get more complicated (and
+interesting ;) when the methods in the hierarchy call each other. 
+Let me consider an example coming from paleoantropology:
+
+ ::
+
+  #<paleoanthropology1.py>
+
+  class HomoHabilis(object):
+      def can(self):
+          print self,'can:'
+          print " - make tools"
+
+  class HomoSapiens(HomoHabilis):
+      def can(self): #overrides HomoHabilis.can
+          HomoHabilis.can(self)
+          print " - make abstractions"
+        
+  class HomoSapiensSapiens(HomoSapiens):
+      def can(self): #overrides HomoSapiens.can
+          HomoSapiens.can(self)
+          print " - make art"
+
+  modernman=HomoSapiensSapiens()
+  modernman.can()
+
+  #</paleoanthropology1.py>
+
+In this example children methods call parent methods:  
+'HomoSapiensSapiens.can' calls 'HomoSapiens.can' that in turns calls
+'HomoHabilis.can' and the final output is:
+
+ ::
+
+  <__main__.HomoSapiensSapiens object at 0x814e1fc> can:
+   - make tools
+   - make abstractions
+   - make art
+
+The script works, but it is far from ideal,  if code reuse and refactoring
+are considered important requirements. The point is that (very likely, as the
+research in paleoanthropology progresses) we may want to extend the 
+hierarchy, for instance by adding a class on the top or in the middle. 
+In the present form, this would require a non-trivial modification of 
+the source code (especially
+if one think that the hierarchy could be fleshed out with dozens of others
+methods and attributes). However, the aim of OOP is to avoid as 
+much as possible source code modifications. This goal can be attained in
+practice, if the source code is written to be friendly to extensions and 
+improvements as much as possible. I think it is worth to spend some time 
+in improving this example, since what can be learn here, 
+can be lifted to real life cases.
+
+First of all, let me define a generic *Homo* class, to be used
+as first ring of the inheritance chain (actually the first ring is
+'object'):
+
+ ::
+ 
+  #<oopp.py>
+ 
+  class Homo(PrettyPrinted): 
+      """Defines the method 'can', which is intended to be overriden 
+      in the children classes, and inherits '__str__' from PrettyPrinted,
+      ensuring a nice printing representation for all children."""
+      def can(self): 
+          print self,'can:'
+      
+  #</oopp.py>
+
+Now, let me point out one of the shortcomings of the previous code: in each
+subclass, we explicitly call its parent class (also called super class)
+by its name. This is inconvenient, both because a change of name in
+later stages of the project would require a lot of search and replace
+(actually not a lot in this toy example, but you can imagine having
+a very big projects with dozens of named method calls) and because it makes 
+difficult to insert a new element in the inheritance hierarchy. 
+The solution to this problems is the
+``super`` built-in, which provides an easy access to the methods
+of the superclass.
+``super`` objects comes in two flavors: ``super(cls,obj)`` objects return 
+bound methods whereas ``super(cls)`` objects return unbound methods.
+In the next code we will use the first form. The hierarchy can more elegantly 
+be rewritten as [#]_ :
+
+ ::
+
+  #<paleo2.py>
+  
+  from oopp import Homo
+
+  class HomoHabilis(Homo):
+      def can(self):
+          super(HomoHabilis,self).can()
+          print " - make tools"
+
+  class HomoSapiens(HomoHabilis):
+      def can(self):
+          super(HomoSapiens,self).can()
+          print " - make abstractions"
+        
+  class HomoSapiensSapiens(HomoSapiens):
+      def can(self):
+          super(HomoSapiensSapiens,self).can()
+          print " - make art"
+
+
+  HomoSapiensSapiens().can()
+
+  #</paleo2.py>
+
+with output
+  
+ ::
+
+  <HomoSapiensSapiens> can:
+   - make tools
+   - make abstractions
+   - make art
+  
+This is not yet the most elegant form, since even
+if ``super`` avoids naming the base class explicitely, still it
+requires to explicitely name the class where it is defined. This is
+rather annoying.
+Removing that restriction, i.e. implementing really anonymous 
+``super`` calls, is possible but requires a good understand of
+private variables in inheritance.
+
+Inheritance and privacy
+----------------------------------------------------------------------
+
+In order to define anonymous cooperative super calls,  we need classes 
+that know themselves, i.e. containing a reference to themselves. This
+is not an obvious problem as it could seems, since it cannot be solved
+without incurring in the biggest annoyance in inheritance: 
+*name clashing*. Name clashing happens when names and attributes defined 
+in different ancestors overrides each other in a unwanted order.
+Name clashing is especially painful in the case of cooperative 
+hierarchies and particularly in in the problem at hand. 
+
+
+A naive solution would be to attach a plain (i.e. non-private) 
+attribute '.this' to the class, containing a reference
+to itself, that can be invoked by the methods of the class.
+Suppose, for instance, that I want to use that attribute in the ``__init__``
+method of that class. A naive attempt would be to write something like:
+
+  >>> class B(object):
+  ...     def __init__(self): 
+  ...         print self.this,'.__init__' # .this defined later
+  >>> B.this=B # B.this can be set only after B has been created
+  >>> B()
+  <class '__main__.B'>
+
+Unfortunately, this approach does not work with cooperative hierarchies. 
+Consider, for instance, extending 'B' with a cooperative children 
+class 'C' as follows:
+
+  >>> class C(B):
+  ...    def __init__(self):
+  ...       super(self.this,self).__init__() # cooperative call
+  ...       print type(self).this,'.__init__'
+  >>> C.this=C
+
+``C.__init__`` calls ``B.__init__`` by passing a 'C' instance, therefore
+``C.this`` is printed and not ``B.this``:
+
+  >>> C()
+  <class '__main__.C'> .__init__
+  <class '__main__.C'> .__init__
+  <__main__.C object at 0x4042ca6c>
+
+The problem is that the ``C.this`` overrides ``B.this``. The only
+way of avoiding the name clashing is to use a private attribute 
+``.__this``, as in the following script:
+
+ ::
+
+  #<privateh.py>
+
+  class B(object):
+       def __init__(self): 
+          print self.__this,'.__init__'
+  B._B__this=B
+
+  class C(B):
+      def __init__(self):
+         super(self.__this,self).__init__() # cooperative __init__ 
+         print self.__this,'.__init__'
+  C._C__this=C
+
+  C()
+
+  # output:
+  # <class '__main__.B'> .__init__
+  # <class '__main__.C'> .__init__
+
+  #</privateh.py>
+
+The script works since, due to the magic of the mangling mechanism,
+in ``B.__init__``, ``self._B__this`` i.e. ``B`` is retrieved, whereas in 
+``C.__init__`` ``self._C__this`` i.e. ``C`` is retrieved.
+
+The elegance of the mechanism can be improved with an helper function
+that makes its arguments reflective classes, i.e. classes with a
+``__this`` private attribute:
+
+ ::
+
+  #<oopp.py>
+
+  def reflective(*classes):
+      """Reflective classes know themselves, i.e. they own a private
+      attribute __this containing a reference to themselves. If the class
+      name starts with '_', the underscores are stripped. This is needed
+      to make the mangling mechanism work."""
+      for c in classes:
+          name=c.__name__ .lstrip('_')  # in 2.3
+          setattr(c,'_%s__this' % name,c)
+
+  #</oopp.py>
+
+It is trivial to rewrite the paleonthropological hierarchy in terms of 
+anonymous cooperative super calls by using this trick.
+
+ ::
+
+  #<oopp.py>
+
+  class HomoHabilis(Homo):
+      def can(self):
+          super(self.__this,self).can()
+          print " - make tools"
+
+  class HomoSapiens(HomoHabilis):
+      def can(self):
+          super(self.__this,self).can()
+          print " - make abstractions"
+        
+  class HomoSapiensSapiens(HomoSapiens):
+      def can(self):
+          super(self.__this,self).can()
+          print " - make art"
+
+  reflective(HomoHabilis,HomoSapiens,HomoSapiensSapiens)
+
+  #</oopp.py>
+
+Here there is an example of usage:
+
+  >>> from oopp import *
+  >>> man=HomoSapiensSapiens(); man.can()
+  <HomoSapiensSapiens> can:
+   - make tools
+   - make abstractions
+   - make art
+
+We may understand why it works by looking at the attributes of man:
+
+  >>> print pretty(attributes(man))
+  _HomoHabilis__this = <class 'oopp.HomoHabilis'>
+  _HomoSapiensSapiens__this = <class 'oopp.HomoSapiensSapiens'>
+  _HomoSapiens__this = <class 'oopp.HomoSapiens'>
+  can = <bound method HomoSapiensSapiens.can of 
+        <oopp.HomoSapiensSapiens object at 0x404292ec>>
+  formatstring = %s
+
+It is also interesting to notice that the hierarchy can be entirely
+rewritten without using cooperative methods, but using private attributes,
+instead. This second approach is simpler, as the following script shows:
+
+ ::
+
+  #<privatehierarchy.py>
+
+  from oopp import PrettyPrinted,attributes,pretty
+
+  class Homo(PrettyPrinted):
+      def can(self):
+          print self,'can:'
+          for attr,value in attributes(self).iteritems(): 
+              if attr.endswith('__attr'): print value
+  class HomoHabilis(Homo): 
+      __attr=" - make tools"
+  class HomoSapiens(HomoHabilis): 
+      __attr=" - make abstractions"
+  class HomoSapiensSapiens(HomoSapiens): 
+      __attr=" - make art"
+
+  modernman=HomoSapiensSapiens()
+  modernman.can()
+  print '----------------------------------\nAttributes of',modernman
+  print pretty(attributes(modernman))
+
+  #</privatehierarchy.py>
+
+Here I have replaced the complicate chain of cooperative methods with 
+much simpler private attributes. Only the 'can' method in the 'Homo' 
+class survives, and it is modified to print the value of the '__attr' 
+attributes. Moreover, all the classes of the hierarchy have been made
+'Customizable', in view of future extensions.
+
+The second script is much shorter and much more elegant than the original
+one, however its logic can be a little baffling, at first. The solution
+to the mistery is provided by the attribute dictionary of 'moderman',
+given by the second part of the output:
+
+ ::
+
+  <HomoSapiensSapiens> can:
+   - make abstractions  
+   - make art  
+   - make tools 
+  ------------------------------------------
+  Attributes of <HomoSapiensSapiens>:
+  _HomoHabilis__attr =  - make tools
+  _HomoSapiensSapiens__attr =  - make art
+  _HomoSapiens__attr =  - make abstractions
+  can = <bound method HomoSapiensSapiens.can of 
+        <__main__.HomoSapiensSapiens object at 0x402d892c>>
+  formatstring = %s
+
+We see that, in addition to the 'can' method inherited from 'Homo',
+the 'with' and 'With' method inherited from 'Customizable' and
+the 'formatstring' inherited from 'PrettyPrinted', 
+``moderman`` has the attributes
+
+ ::
+
+  _HomoHabilis__attr:' - make tools' # inherited from HomoHabilis
+  _HomoSapiens__attr:' - make abstractions'# inherited from HomoSapiens
+  _HomoSapiensSapiens__attr: ' - make art' # inherited from HomoSapiensSapiens
+
+which origin is obvious, once one reminds the mangling mechanism associated
+with private variables. The important point is that the trick would *not*
+have worked for normal attributes. Had I used as variable name
+'attr' instead of '__attr', the name would have been overridden: the only
+attribute of 'HomoSapiensSapiens' would have been ' - make art'.
+
+This example explains the advantages of private variables during inheritance:
+they cannot be overridden. Using private name guarantees the absence of 
+surprises due to inheritance. If a class B has only private variables,
+deriving a class C from B cannot cause name clashes. 
+
+Private variables have a drawbacks, too. The most obvious disadvantages is
+the fact that in order to customize private variables outside their 
+defining class, one needs to pass explicitly the name of the class. 
+
+For instance we could not change an attribute with the syntax 
+``HomoHabilis.With(__attr=' - work the stone')``, we must write the 
+more verbose, error prone and redundant 
+``HomoHabilis.With(_HomoHabilis__attr=' - work the stone')``
+
+A subtler drawback will be discussed in chapter 6.
+
+ .. [#] In single inheritance hierarchies, ``super`` can be dismissed
+        in favor of ``__base__``: for instance, 
+        ``super(HomoSapiens,self).can()`` is equivalent to
+        ``HomoSapiens.__base__.can(self)``. Nevertheless, in view
+        of possible extensions to multiple inheritance, using ``super`` is a
+        much preferable choice.

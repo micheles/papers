@@ -1,0 +1,1024 @@
+THE MAGIC OF METACLASSES - PART I
+==========================================================================
+
+ .. line-block::
+
+    *Metaclasses are deeper magic than 99% of users should ever
+    worry about.  If you wonder whether you need them, you don't
+    (the people who actually need them know with certainty that
+    they need them, and don't need an explanation about why).*
+    --Tim Peters
+
+Python always had metaclasses, since they are inherent to its object
+model. However, before Python 2.2, metaclasses where tricky and their
+study could cause the programmer's brain to explode [#]_. Nowadays, 
+the situation has changed, and the reader should be able to understand 
+this chapter without risk for his/her brain (however I do not give any 
+warranty ;)
+
+Put it shortly, metaclasses give to the Python programmer
+complete control on the creation of classes. This simple statement
+has far reaching consequences, since the ability of interfering with
+the process of class creation, enable the programmer to make miracles.
+
+In this and in the following chapters, I will show some of these
+miracles.
+
+This chapter will focus on subtle problems of metaclasses in inheritance
+and multiple inheritance, including multiple inheritance of metaclasses
+with classes and metaclasses with metaclasses.
+
+The next chapter will focus more on applications.
+
+
+.. [#] Metaclasses in Python 1.5 [A.k.a the killer joke] 
+       http://www.python.org/doc/essays/metaclasses/
+
+There is very little documentation about metaclasses, except Guido's
+essays and the papers by David Mertz and myself published in IBMdeveloperWorks
+
+  http://www-106.ibm.com/developerworks/library/l-pymeta.html
+
+Metaclasses as class factories
+------------------------------------------------------------------------
+
+In the Python object model (inspired from the Smalltalk, that had metaclasses 
+a quarter of century ago!) classes themselves are objects. 
+Now, since objects are instances of classes, that means that classes 
+themselves can be seen as instances of special classes called *metaclasses*.
+Notice that things get hairy soon, since by following this idea, one could 
+say the metaclasses themselves are classes and therefore objects;  that 
+would mean than even metaclasses can be seen as 
+instances of special classes called meta-metaclasses. On the other hand,
+meta-meta-classes can be seen as instances of meta-meta-metaclasses,
+etc. Now, it should be obvious why metaclasses have gained such a 
+reputation of brain-exploders ;). However, fortunately, the situation 
+is not so bad in practice, since the infinite recursion of metaclasses is 
+avoided because there is a metaclass that is the "mother of all metaclasses": 
+the built-in metaclass *type*. 'type' has the property of being its own 
+metaclass, therefore the recursion stops. Consider for instance the following
+example:
+
+  >>> class C(object): pass # a generic class
+  >>> type(C) #gives the metaclass of C
+  <type 'type'>
+  >>> type(type(C)) #gives the metaclass of type
+  <type 'type'>
+
+The recursion stops, since the metaclass of 'type' is 'type'.
+One cool consequence of classes being instances of 'type', 
+is that since *type* is a subclass of object,
+
+  >>> issubclass(type,object)
+  True 
+
+any Python class is not only a subclass of ``object``, but also
+an instance of 'object':
+
+  >>> isinstance(C,type)
+  True
+  >>> isinstance(C,object) 
+  True
+  >>> issubclass(C,object) 
+  True
+
+Notice that 'type' is an instance of itself (!) and therefore of 'object':
+
+  >>> isinstance(type,type) # 'type' is an instance of 'type'
+  True
+  >>> isinstance(type,object) # therefore 'type' is an instance of 'object'
+  True
+
+As it is well known, ``type(X)`` returns the type of ``X``; however, 
+``type`` has also a second form in which it acts as a class factory.
+The form is ``type(name,bases,dic)`` where ``name`` is the name of
+the new class to be created, bases is the tuple of its bases and dic
+is the class dictionary. Let me give a few examples:
+
+  >>> C=type('C',(),{})
+  >>> C
+  <class '__main__.C'>
+  >>> C.__name__
+  'C'
+  >>> C.__bases__
+  (<type 'object'>,)
+  >>> C.__dict__
+  <dict-proxy object at 0x8109054>
+
+Notice that since all metaclasses inherits from ``type``, as a consequences
+all metaclasses can be used as class factories. 
+
+A fairy tale example will help in understanding the concept
+and few subtle points on how attributes are transmitted from metaclasses
+to their instances.
+
+Let me start by defining a 'Nobility' metaclass :
+
+  >>> class Nobility(type): attributes="Power,Richness,Beauty"
+
+instances of 'Nobility' are classes such 'Princes', 'Dukes', 'Barons', etc.
+
+  >>> Prince=Nobility("Prince",(),{})
+
+Instances of 'Nobility' inherits its attributes, just as instances of normal
+classes inherits the class docstring:
+
+  >>> Prince.attributes
+  'Power,Richness,Beauty'
+
+Nevertheless, 'attributes' will not be retrieved by the ``dir`` function:
+
+  >>> print dir(Prince)
+  ['__class__', '__delattr__', '__dict__', '__doc__', '__getattribute__', 
+   '__hash__', '__init__', '__module__', '__new__', '__reduce__', '__repr__', 
+   '__setattr__', '__str__', '__weakref__']
+
+However, this is a limitation of ``dir``, in reality ``Prince.attributes``
+is there. On the other hand, the situation is different for a specific 
+'Prince' object
+
+  >>> charles=Prince()
+  >>> charles.attributes #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  AttributeError: 'Prince' object has no attribute 'attributes'
+
+The transmission of metaclass attributes is not transitive:
+instances of the metaclass inherits the attributes, but not the instances 
+of the instances. This behavior is by design and is needed in order to avoid 
+troubles with special methods. This point will be throughly 
+explained in the last paragraph. For the moment, I my notice that the
+behaviour is reasonable, since the abstract qualities  'Power,Richness,Beauty'
+are more qualities of the 'Prince' class than of one specific representative.
+They can always be retrieved via the ``__class__`` attribute:
+
+  >>> charles.__class__.attributes
+  'Power,Richness,Beauty'
+
+Le me now define a metaclass 'Froggyness':
+
+  >>> class Frogginess(type): attributes="Powerlessness,Poverty,Uglyness"
+
+Instances of 'Frogginess' are classes like 'Frog', 'Toad', etc.
+
+  >>> Frog=Frogginess("Frog",(),{})
+  >>> Frog.attributes
+  'Powerlessness,Poverty,Uglyness'
+
+However, in Python miracles can happen:
+
+  >>> def miracle(Frog): Frog.__class__=Nobility
+  >>> miracle(Frog); Frog.attributes
+  'Powerlessness,Richness,Beauty'
+
+In this example a miracle happened on the class 'Frog', by changing its
+(meta)class to 'Nobility'; therefore its attributes have changed accordingly.
+
+However, there is subtle point here. Suppose we explicitly specify the 'Frog'
+attributes, in such a way that it can be inherited by one of its specific
+representative:
+
+  >>> Frog.attributes="poor, small, ugly"
+  >>> jack=Frog(); jack.attributes
+  'poor, small, ugly'
+
+Then the miracle cannot work:
+
+ ::
+
+  #<fairytale2.py>
+
+  class Nobility(type): attributes="Power, Richness, Beauty"
+  Prince=Nobility("Prince",(),{})
+  charles=Prince()
+
+  class Frogginess(type): attributes="Inpuissance, Poverty, Uglyness"
+  Frog=Frogginess("Frog",(),{})
+  Frog.attributes="poor, small, ugly"
+  jack=Frog()
+
+  def miracle(Frog): Frog.__class__=Nobility
+
+  miracle(Frog)
+
+  print "I am",Frog.attributes,"even if my class is",Frog.__class__
+
+  #</fairytale2.py>
+
+Output:
+
+ ::
+
+  I am poor, small, ugly even if my class is <class '__main__.Nobility'>
+
+The reason is that Python first looks at specific attributes of an object
+(in this case the object is the class 'Frog') an only if they are not found, 
+it looks at the attributes of its class (here the metaclass 'Nobility').Since 
+in this example the 'Frog' class has explicit attributes, the
+result is ``poor, small, ugly``. If you think a bit, it makes sense.
+
+Remark:
+
+In Python 2.3 there are restrictions when changing the ``__class__`` 
+attribute for classes:
+
+  >>> C=type('C',(),{})
+  >>> C.__class__ = Nobility #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: __class__ assignment: only for heap types
+
+Here changing ``C.__class__`` is not allowed, since 'C' is an instance
+of the built-in metaclass 'type'. This restriction, i.e. the fact that 
+the built-in metaclass cannot be changed, has been imposed for
+security reasons, in order to avoid dirty tricks with the built-in
+classes. For instance, if it was possible to change the metaclass
+of the 'bool' class, we could arbitrarily change the behavior of
+boolean objects. This could led to abuses. 
+Thanks to this restriction,
+the programmer is always sure that built-in classes behaves as documented.
+This is also the reason why 'bool' cannot be subclassed:
+
+  >>> print bool.__doc__ # in Python 2.2 would give an error
+  bool(x) -> bool
+  Returns True when the argument x is true, False otherwise.
+  The builtins True and False are the only two instances of the class bool.
+  The class bool is a subclass of the class int, and cannot be subclassed.
+
+In any case, changing the class of a class is not a good idea, since it
+does not play well with inheritance, i.e. changing the metaclass of a base 
+class does not change the metaclass of its children:
+
+  >>> class M1(type): f=lambda cls: 'M1.f' #metaclass1
+  >>> class M2(type): f=lambda cls: 'M2.f' #metaclass2
+  >>> B=M1('B',(),{}) # B receives M1.f
+  >>> class C(B): pass #C receives M1.f
+  >>> B.f()
+  'M1.f'
+  B.__class__=M2 #change the metaclass
+  >>> B.f() #B receives M2.f
+  'M2.f'
+  C.f() #however C does *not* receive M2.f
+  >>> C.f()
+  'M1.f'
+  >>> type(B)
+  <class '__main__.M2'>
+  >>> type(C)
+  <class '__main__.M1'>
+
+Metaclasses as class modifiers
+----------------------------------------------------------------------  
+
+The interpretation of metaclasses in terms of class factories is quite
+straightforward and I am sure that any Pythonista will be at home 
+with the concept. However, metaclasses have such a reputation of black 
+magic since their typical usage is *not* as class factories, but as 
+*class modifiers*. This means that metaclasses are typically
+used to modify *in fieri* classes. The trouble is that the
+modification can be utterly magical.
+Here there is another fairy tale example showing the syntax
+(via the ``__metaclass__`` hook) and the magic of the game:
+
+ ::
+
+  #<oopp.py>
+
+  class UglyDuckling(PrettyPrinted):
+      "A plain, regular class"
+      formatstring="Not beautiful, I am %s"
+
+  class MagicallyTransformed(type):
+      "Metaclass changing the formatstring of its instances"
+      def __init__(cls,*args):
+          cls.formatstring="Very beautiful, since I am %s"
+          
+  class TransformedUglyDuckling(PrettyPrinted):
+      "A class metamagically modified"
+      __metaclass__ = MagicallyTransformed
+      formatstring="Not beautiful, I am %s" # will be changed
+
+  #</oopp.py>
+
+  >>> from oopp import *
+  >>> print UglyDuckling()
+  Not beautiful, I am <UglyDuckling>
+
+In this example, even if in 'TransformedUglyDuckling' we explicitely
+set the formatstring to  "Not beautiful, I am %s", the metaclass changes 
+it to "Very beautiful, even if I am %s" and thus
+
+  >>> print TransformedUglyDuckling() # gives
+  Very beautiful, since I am <TransformedUglyDuckling>
+
+Notice that the ``__metaclass__`` hook passes to the metaclass 
+``MagicallyTransformed`` the name, bases and dictionary of the class 
+being created, i.e. 'TransformedUglyDucking'.
+
+Metaclasses, when used as class modifiers, act *differently*
+from functions, when inheritance is
+involved. To clarify this subtle point, consider a subclass 'Swan' 
+of 'UglyDuckling':
+
+
+  >>> from oopp import *
+  >>> class Swan(UglyDuckling): 
+  ...     formatstring="Very beautiful, I am %s"
+  >>> print Swan()
+  Very beautiful, I am <Swan>
+
+Now, let me define a simple function acting as a class modifier:
+
+  >>> def magicallyTransform(cls): 
+  ...    "Modifies the class formatstring"
+  ...    customize(cls,formatstring="Very beautiful, even if I am %s")
+  ...    return cls
+
+The function works:
+
+  >>> magicallyTransform(UglyDuckling)
+  >>> print UglyDuckling()
+  Very beautiful, even if I am <UglyDuckling>
+
+This approach is destructive, since we cannot have the original 
+and the transformed class at the same time, and has potentially bad side
+effects in the derived classes. Nevertheless, in this case it works
+and it is not dangereous for the derived class 'Swan', since 'Swan' 
+explicitly overrides the 'formatstring' attribute and doesn't care about 
+the change in 'UglyDuckling.formatstring'. Therefore the output
+of 
+
+  >>> print Swan()
+  Very beautiful, I am <Swan>
+
+is still the same as before the action of the function ``magicallyTransform``.
+The situation is quite different if we use the 'MagicallyTransformed'
+metaclass:
+
+  >>> from oopp import *
+  >>> class Swan(TransformedUglyDuckling): 
+  ...     formatstring="Very beautiful, I am %s"
+
+  >>> print TransformedUglyDuckling() 
+  Very beautiful, since I am <UglyDuckling>
+  >>> print Swan() # does *not* print "Very beautiful, I am <Swan>"
+  Very beautiful, since I am <Swan> 
+
+Therefore,  not only the metaclass has magically transformed the 
+'TransformedUglyDuckling.formatstring', it has also transformed the 
+'Swan.formatstring'! And that, despite the fact that 
+'Swan.formatstring' is explicitly set. 
+
+The reason for this behaviour is that since 'UglyDuckling' is a base 
+class with metaclass 'MagicallyTransformed', and since 'Swan' inherits from
+'UglyDuckling', then 'Swan' inherits the metaclass 'MagicallyTransformed',
+which is automatically called at 'Swan' creation time.
+That's the reason why metaclasses are much more magical and much 
+more dangerous than
+functions: functions do not override attributes in the derived classes,
+metaclasses do, since they are automagically called at the time of
+creation of the subclass. In other words, functions are explicit,
+metaclasses are implicit. Nevertheless, this behavior can be pretty
+useful in many circumstances, and it is a feature, not a bug. In the
+situations where this behavior is not intended, one should use a function,
+not a metaclass. In general, metaclasses are better than functions,
+since metaclasses are classes and as such they can inherit one from each 
+other. This means that one can improve a basic metaclass trough 
+(multiple) inheritance, with *reuse* of code.
+
+A few caveats about the usage of metaclasses
+------------------------------------------------------------------------
+
+Let me start with some caveats about the ``__metaclass__`` hook, which
+commonly used and quite powerful, but also quite dangereous. 
+
+Let's imagine a programmer not
+knowing about metaclasses and looking at the 'TransformedUglyDuckling'
+code (assuming there are no comments): she would probably think
+that "__metaclass__" is some special attribute used for introspection
+purposes only, with no other effects, and she would probably expect
+the output of the script to be "Not much, I am the class 
+TransformedUglyDucking" whereas it is exacly the contrary! In other
+words, when metaclasses are involved,  *what you see, is not what you get*.
+The situation is even more implicit when the metaclass is inherited
+from some base class, therefore lacking also the visual clue of the hook.
+
+For these reasons, metaclasses are something to be used with great care; 
+they can easily make your code unreadable and confuse inexpert programmers. 
+Moreover, it is more difficult to debug programs involving metaclasses, since
+methods are magically transformed by routines defined in the metaclass,
+and the code you see in the class is *not* what Python sees. I think
+the least confusing way of using metaclasses, is to concentrate all
+the dynamics on them and to write empty classes except for the
+metaclass hook. If you write a class with no methods such as
+
+ ::
+
+  class TransformedUglyDuckling(object):
+      __metaclass__=MagicallyTransformed
+
+then the only place to look at, is the metaclass. I have found extremely
+confusing to have some of the methods defined in the class and some in
+the metaclass, especially during debugging. 
+
+Another point to make, is that the ``__metaclass__``
+hook should not be used to modify pre-existing classes, 
+since it requires modifying the source code (even if it is enough to 
+change one line only). Moreover, it is confusing, since adding a 
+``__metaclass__`` attribute *after* the class creation would not do the job:
+
+  >>> from oopp import UglyDuckling, MagicallyTransformed
+  >>> UglyDuckling.__metaclass__=MagicallyTransformed
+  >>> print UglyDuckling()
+  "Not much, I am the class UglyDuckling"
+
+The reason is that we have to think of UglyDuckling as an instance of 
+``type``, the built-in metaclasses; merely adding a ``__metaclass__`` 
+attribute does not re-initialize the class.
+The problem is elegantly solved by avoiding the hook and creating
+an enhanced copy of the original class trough ``MagicallyTransformed``
+used as a class factory.
+
+  >>> name=UglyDuckling.__name__
+  >>> bases=UglyDuckling.__bases__
+  >>> dic=UglyDuckling.__dict__.copy()
+  >>> UglyDuckling=MagicallyTransformed(name,bases,dic)
+
+Notice that I have recreated 'UglyDuckling', giving to the new class
+the old identifier. 
+
+  >>> print UglyDuckling()
+  Very beautiful, since I am <UglyDuckling>>
+
+The metaclass of this new 'UglyDuckling' has been specified and will 
+accompanies all future children of 'UglyDuckling':
+
+  >>> class Swan(UglyDuckling): pass
+  ...
+  >>> type(Swan)
+  <class '__main__.MagicallyTransformed'>
+
+Another caveat, is in the overridding of `` __init__`` in the metaclass.
+This is quite common in the case of metaclasses called trough the
+``__metaclass__`` hook mechanism, since in this case the class
+has been already defined (if not created) in the class statement,
+and we are interested in initializing it, more than in recreating
+it (which is still possible, by the way). 
+The problem is that overriding ``__init__`` has severe limitations 
+with respect to overriding ``__new__``,
+since the 'name', 'bases' and 'dic' arguments cannot be directly
+changed. Let me show an example:
+
+ ::
+
+  #<init_in_metaclass.py>
+
+  from oopp import *
+
+  class M(type):
+      "Shows that dic cannot be modified in __init__, only in __new__"
+      def __init__(cls,name,bases,dic):
+          name='C name cannot be changed in __init__'
+          bases='cannot be changed'
+          dic['changed']=True
+
+  class C(object):
+      __metaclass__=M
+      changed=False
+
+  print C.__name__  # => C
+  print C.__bases__ # => (<type 'object'>,)
+  print C.changed   # => False
+
+  #</init_in_metaclass.py>
+
+The output of this script is ``False``: the dictionary cannot be changed in 
+``__init__`` method. However, replacing ``dic['changed']=True`` with 
+``cls.changed=True`` would work. Analougously, changing  ``cls.__name__`` 
+would work. On the other hand, ``__bases__`` is a read-only attribute and 
+cannot be changed once the class has been created, therefore there is no 
+way it can be touched in ``__init__``. However, ``__bases__`` could be
+changed in ``__new__`` before the class creation.
+
+Metaclasses and inheritance 
+-------------------------------------------------------------------------
+
+It is easy to get confused about the difference between a metaclass
+and a mix-in class in multiple inheritance, since 
+both are denoted by adjectives and both share the same idea of 
+enhancing a hierarchy. Moreover, both mix-in classes and metaclasses 
+can be inherited in the whole hierarchy.
+Nevertheless, they behaves differently
+and there are various subtle point to emphasize. We have already
+noticed in the first section that attributes of a metaclass
+are transmitted to its instances, but not to the instances of the
+instances, whereas the normal inheritance is transitive: the 
+grandfather transmits its attributes to the children and to the grandchild 
+too. The difference can be represented with the following picture, where
+'M' is the metaclass, 'B' a base class, 'C' a children of 'B'
+and c an instance of 'C':
+
+ ::
+
+           M (attr)         B (attr)   
+           :                |
+           C (attr)         C (attr)    
+           :                :
+           c ()             c (attr)    
+
+Notice that here the relation of instantiation is denoted by a dotted line. 
+
+This picture is valid when C has metaclass M but not base class, on when C
+has base class but not metaclass. However, what happens whrn the class C has 
+both a metaclass M and a base class B ?
+
+  >>> class M(type): a='M.a'
+  >>> class B(object): a='B.a'
+  >>> class C(B): __metaclass__=M
+  >>> c=C()
+
+The situation can be represented by in the following graph,
+
+ ::
+
+      (M.a)   M   B  (B.a)
+              :  /
+              : /
+         (?)  C
+              :
+              :
+         (?)  c
+
+
+Here the metaclass M and the base class B are fighting one against the other.
+Who wins ? C should inherit the attribute 'B.a' from its base B, however,
+the metaclass would like to induce an attribute 'M.a'.
+The answer is that the inheritance constraint wins on the metaclass contraint:
+
+  >>> C.a
+  'B.a'
+  >>> c.a
+  'B.a'
+
+The reason is the same we discussed in the fairy tale example: 'M.a' is
+an attribute of the metaclass, if its instance C has already a specified
+attributed C.a (in this case specified trough inheritance from B), then
+the attribute is not modified. However, one could *force* the modification:
+
+  >>> class M(type):
+  ...     def __init__(cls,*args): cls.a='M.a'
+  >>> class C(B): __metaclass__=M
+  >>> C.a
+  'M.a'
+
+In this case the metaclass M would win on the base class B. Actually,
+this is not surprising, since it is explicit. What could be surprising,
+had we not explained why inheritance silently wins, is that
+
+  >>> c.a
+  'B.a'
+
+This explain the behaviour for special methods like  
+``__new__,__init__,__str__``, 
+etc. which are defined both in the class and the metaclass with the same 
+name (in both cases,they are inherited from ``object``).
+
+In the chapter on objects, we learned that the printed representation of
+an object can be modified by overring the ``__str__`` methods of its
+class. In the same sense, the printed representation of a class can be 
+modified by overring the ``__str__`` methods of its metaclass. Let me show an 
+example:
+
+ ::
+
+  #<oopp.py>
+
+  class Printable(PrettyPrinted,type):
+     """Apparently does nothing, but actually makes PrettyPrinted acting as
+        a metaclass."""
+
+  #</oopp.py>
+
+Instances of 'Printable' are classes with a nice printable representation:
+
+  >>> from oopp import Printable 
+  >>> C=Printable('Classname',(),{})
+  >>> print C
+  Classname
+
+However, the internal string representation stays the same:
+
+  >>> C # invokes Printable.__repr__
+  <class '__main__.Classname'>
+
+Notice that the name of class 'C' is ``Classname`` and not 'C' !
+
+Consider for instance the following code:
+
+  >>> class M(type):
+  ...    def __str__(cls):
+  ...        return cls.__name__
+  ...    def method(cls):
+  ...        return cls.__name__
+  ...
+  >>> class C(object):
+  ...    __metaclass__=M
+  >>> c=C()
+
+In this case the ``__str__`` method in ``M`` cannot override the 
+``__str__`` method in C, which is inherited from ``object``.
+Moreover, if you experiment a little, you will see that
+ 
+  >>> print C # is equivalent to print M.__str__(C)
+  C
+  >>> print c # is equivalent to print C.__str__(c)
+  <__main__.C object at 0x8158f54>
+
+
+The first ``__str__`` is "attached" to the metaclass and the
+second to the class. 
+
+Consider now the standard method "method". It is both attached to the
+metaclass 
+
+  >>> print M.method(C)
+  C
+
+and to the class
+
+  >>> print C.method() #in a sense, this is a class method, i.e. it receives 
+  C                    #the class as first argument
+
+Actually it can be seen as a class method of 'C' (cfr. Guido van Rossum
+"Unifying types and classes in Python 2.2". When he discusses
+classmethods he says: *"Python also has real metaclasses, and perhaps 
+methods defined in a metaclass have more right to the name "class method"; 
+but I expect that most programmers won't be using metaclasses"*). Actually,
+this is the SmallTalk terminology, Unfortunately, in Python the word
+``classmethod`` denotes an attribute descriptor, therefore it is better
+to call the methods defined in a metaclass *metamethods*, in order to avoid
+any possible confusion.
+
+The difference between ``method`` and ``__str__`` is that you cannot use the
+syntax
+
+  >>> print C.__str__() #error
+  TypeError: descriptor '__str__' of 'object' object needs an argument
+
+because of the confusion with the other __str__; you can only use the
+syntax
+
+  >>> print M.__str__(C)
+
+Suppose now I change C's definition by adding a method called "method":
+
+ ::
+
+  class C(object):
+      __metaclass__=M
+      def __str__(self):
+          return "instance of %s" % self.__class__
+      def method(self):
+          return "instance of %s" % self.__class__
+
+If I do so, then there is name clashing and the previously working
+statement print C.method() gives now an error:
+
+ ::
+
+  Traceback (most recent call last):
+    File "<stdin>", line 24, in ?
+  TypeError: unbound method method() must be called with C instance as
+  first argument (got nothing instead)
+
+Conclusion: ``__str__, __new__, __init__`` etc. defined in the metaclass
+have name clashing with the standard methods defined in the class, therefore
+they must be invoked with the extended syntax (ex. ``M.__str__(C)``),
+whereas normal methods in the metaclass with no name clashing with the methods
+of the class can be used as class methods (ex. ``C.method()`` instead of
+``M.method(C)``).
+Metaclass methods are always bound to the metaclass, they bind to the class 
+(receiving the class as first argument) only if there is no name clashing with 
+already defined methods in the class. Which is the case for ``__str__``,
+``___init__``, etc. 
+
+Conflicting metaclasses
+----------------------------------------------------------------------------
+
+Consider a class 'A' with metaclass 'M_A' and a class 'B' with 
+metaclass 'M_B'; suppose I derive 'C' from 'A' and 'B'. The question is: 
+what is the metaclass of 'C' ? Is it 'M_A' or 'M_B' ?
+
+The correct answer (see "Putting metaclasses to work" for a thought 
+discussion) is 'M_C', where 'M_C' is a metaclass that inherits from 
+'M_A' and 'M_B', as in the following graph:
+
+
+ .. figure:: fig1.gif
+
+However, Python is not yet that magic, and it does not automatically create 
+'M_C'. Instead, it will raise a ``TypeError``, warning the programmer of
+the possible confusion:
+
+  >>> class M_A(type): pass
+  >>> class M_B(type): pass
+  >>> A=M_A('A',(),{})
+  >>> B=M_B('B',(),{})
+  >>> class C(A,B): pass #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: metatype conflict among bases
+
+This is an example where the metaclasses 'M_A' and 'M_B' fight each other
+to generate 'C' instead of cooperating. The metatype conflict can be avoided 
+by assegning the correct metaclass to 'C' by hand:
+
+  >>> class C(A,B): __metaclass__=type("M_AM_B",(M_A,M_B),{})
+  >>> type(C)
+  <class '__main__.M_AM_B'>
+
+In general, a class A(B, C, D , ...) can be generated without conflicts only
+if type(A) is a  subclass of each of type(B), type(C), ...
+
+In order to avoid conflicts, the following function, that generates
+the correct metaclass by looking at the metaclasses of the base
+classes, is handy:
+
+ ::
+
+  #<oopp.py>
+
+  metadic={}
+
+  def _generatemetaclass(bases,metas,priority):
+      trivial=lambda m: sum([issubclass(M,m) for M in metas],m is type)
+      # hackish!! m is trivial if it is 'type' or, in the case explicit
+      # metaclasses are given, if it is a superclass of at least one of them
+      metabs=tuple([mb for mb in map(type,bases) if not trivial(mb)])
+      metabases=(metabs+metas, metas+metabs)[priority]
+      if metabases in metadic: # already generated metaclass
+          return metadic[metabases]
+      elif not metabases: # trivial metabase
+          meta=type 
+      elif len(metabases)==1: # single metabase
+          meta=metabases[0]
+      else: # multiple metabases
+          metaname="_"+''.join([m.__name__ for m in metabases])
+          meta=makecls()(metaname,metabases,{})
+      return metadic.setdefault(metabases,meta)
+
+  #</oopp.py>
+
+This function is particularly smart since:
+
+  1. Avoid duplications ..
+
+  2. Remember its results.
+
+We may generate the child of a tuple of base classes with a given metaclass 
+and avoiding metatype conflicts thanks to the following ``child`` function:
+
+ ::
+
+  #<oopp.py>
+
+  def makecls(*metas,**options):
+      """Class factory avoiding metatype conflicts. The invocation syntax is
+      makecls(M1,M2,..,priority=1)(name,bases,dic). If the base classes have 
+      metaclasses conflicting within themselves or with the given metaclasses,
+      it automatically generates a compatible metaclass and instantiate it. 
+      If priority is True, the given metaclasses have priority over the 
+      bases' metaclasses"""
+
+      priority=options.get('priority',False) # default, no priority
+      return lambda n,b,d: _generatemetaclass(b,metas,priority)(n,b,d)
+
+  #</oopp.py>
+
+Here is an example of usage:
+
+  >>> class C(A,B): __metaclass__=makecls()
+  >>> print C,type(C)
+  <class 'oopp.AB_'> <class 'oopp._M_AM_B'>
+
+Notice that the automatically generated metaclass does not pollute the 
+namespace:
+
+  >>> _M_A_M_B #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  NameError: name '_M_A_M_B' is not defined
+
+It can only be accessed as ``type(C)``.
+
+Put it shortly, the ``child`` function allows to generate a child from bases 
+enhanced by different custom metaclasses, by generating under the hood a 
+compatibile metaclass via multiple inheritance from the original metaclasses. 
+However, this logic can only work if the original metaclasses are
+cooperative, i.e. their methods are written in such a way to avoid
+collisions. This can be done by using the cooperative the ``super`` call 
+mechanism discussed in chapter 4.
+
+Cooperative metaclasses 
+----------------------------------------------------------------------------
+
+In this section I will discuss how metaclasses can be composed with
+classes and with metaclasses, too. Since we will discuss even
+complicated hierarchies, it is convenient to have an utility 
+routine printing the MRO of a given class:
+
+ ::
+
+  #<oopp.py>
+
+  def MRO(cls):
+      count=0; out=["MRO of %s:" % cls.__name__]
+      for c in cls.__mro__:
+          name=c.__name__
+          bases=','.join([b.__name__ for b in c.__bases__])
+          s="  %s - %s(%s)" % (count,name,bases)
+          if type(c) is not type: s+="[%s]" % type(c).__name__
+          out.append(s); count+=1
+      return '\n'.join(out)
+
+  #</oopp.py>
+
+Notice that ``MRO`` also prints the metaclass' name in square brackets, for
+classes enhanced by a non-trivial metaclass.
+
+Consider for instance the following hierarchy:
+
+  >>> from oopp import MRO
+  >>> class B(object): pass
+  >>> class M(B,type): pass
+  >>> class C(B): __metaclass__=M
+
+Here 'M' is a metaclass that inherits from 'type' and the base class 'B'
+and 'C' is both an instance of 'M' and a child of 'B'. The inheritance
+graph can be draw as
+
+ ::
+
+                 object
+                 /   \
+                B    type
+                | \  /
+                |  M
+                \  :
+                 \ :     
+                   C
+  
+Suppose now we want to retrieve the ``__new__`` method of B's superclass
+with respect to the MRO of C: obviously, this is ``object.__new__``, since
+
+  >>> print MRO(C)
+  MRO of C:
+    0 - C(B)[M]
+    1 - B(object)
+    2 - object()
+
+This allows to create an instance of 'C' in this way:
+
+  >>> super(B, C).__new__(C) 
+  <__main__.C object at 0x4018750c>
+
+It is interesting to notice that this would not work in Python 2.2,
+due to a bug in the implementation of ``super``, therefore do not
+try this trick with older version of Python. 
+
+Notice that everything works 
+only because ``B`` inherits the ``object.__new__`` staticmethod that 
+is cooperative and it turns out that it calls ``type.__new__``. However, 
+if I give to 'B' a non-cooperative method
+
+  >>> B.__new__=staticmethod(lambda cls,*args: object.__new__(cls))
+
+things do not work:
+
+  >>> M('D',(),{}) #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+    File "<stdin>", line 1, in <lambda>
+  TypeError: object.__new__(M) is not safe, use type.__new__()
+
+A cooperative method would solve the problem:
+
+  >>> B.__new__=staticmethod(lambda m,*args: super(B,m).__new__(m,*args))
+  >>> M('D',(),{}) # calls B.__new__(M,'D',(),{})
+  <class '__main__.D'>
+
+Cooperation between classes and metaclasses is pretty tricky.
+This is why autosuper is so difficult to get right.
+
+Consider this example, with object and type instances of MetaSuper::
+
+  class B(object):
+      def __init__(self, *args):
+          print "B.__init__"
+          self.__super.__init__(*args)
+
+  class M(B, type):
+      def __init__(self, n, b, d):
+          print "M.__init__"
+          self.__super.__init__(n, b, d)
+       
+  class C(B):
+      __metaclass__ = M
+      def __init__(self):
+          print "C.__init__"
+          self.__super.__init__()
+ 
+What happens here at C creation? The metaclass _MMetaSuper is generated,
+with ancestors M, B, superobject, supertype, MetaSuper, safetype, type,
+which calls M.__init_(C, )_ and then B.__init__(C) which calls
+the *unbound* method superobject.__init__(C ..) and NOT the *bound* method
+MetaSuper.__init__(C, ) which would be the "right" thing to do in this 
+situation (but not in other situations). So C._C__super is NOT initialized :-(
+
+Metamethods vs class methods
+-------------------------------------------------------------------
+
+Meta-methods, i.e. methods defined in
+a metaclass. 
+
+Python has already few built-in metamethods such as ``.mro()``,
+ ``__subclass__()``, ``__delattr__`` and possibly others. 
+Moreover ``__name__`` is an example of meta-descriptor.
+These are methods of the metaclass 'type' and there of any of its 
+sub-metaclasses.
+
+  >>> dir(type)
+  ['__base__', '__bases__', '__basicsize__', '__call__', '__class__', 
+   '__cmp__', '__delattr__', '__dict__', '__dictoffset__', '__doc__', 
+   '__flags__', '__getattribute__', '__hash__', '__init__', '__itemsize__', 
+   '__module__', '__mro__', '__name__', '__new__', '__reduce__', '__repr__', 
+   '__setattr__', '__str__', '__subclasses__', '__weakrefoffset__', 'mro']
+
+
+  >>> print type.mro.__doc__
+  mro() -> list
+  return a type's method resolution order
+  >>> print type.__subclasses__.__doc__
+  __subclasses__() -> list of immediate subclasses
+
+  >>> class A(object): pass
+  >>> class B(A): pass
+  >>> B.mro()
+  [<class '__main__.B'>, <class '__main__.A'>, <type 'object'>]
+  >>> A.__subclasses__()
+  [<class '__main__.B'>]
+
+Notice that ``mro()`` and ``__subclasses__`` are not retrieved by ``dir``.
+
+Let me constrast metamethods with the more traditional classmethods.
+In many senses, the to concepts are akin:
+
+  >>> class M(type): 
+  ...    "Metaclass with a (meta)method mm"
+  ...    def mm(cls): return cls
+  >>> D=M('D',(),{'cm':classmethod(lambda cls: cls)}) 
+  >>> # instance of M with a classmethod cm
+  >>> D.mm # the metamethod
+  <bound method M.mm of <class '__main__.C'>>
+  >>> D.cm # the classmethod
+  <unbound method D.<lambda>>
+
+Notice the similarities between the classmethod and the metamethod:
+
+  >>> D.mm.im_self, D.cm.im_self # the same
+  (<class '__main__.D'>, <class '__main__.D'>)
+  >>> D.mm.im_class, D.cm.im_class # still the same
+  (<class '__main__.M'>, <class '__main__.M'>)
+
+There are no surprises for ``im_func``:
+
+  >>> D.mm.im_func, D.cm.im_func
+  (<function mm at 0x402c272c>, <function <lambda> at 0x402c280c>)
+
+Nevertheless, there are differences: metamethods are not bounded to
+instances of the class 
+
+  >>> D().cm() # the classmethod works fine
+  <class '__main__.D'>
+  >>> D().mm() # the metamethod does not: error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  AttributeError: 'D' object has no attribute 'mm'
+
+and they are not retrieved by ``dir``:
+
+  >>> from oopp import *
+  >>> attributes(D).keys() # mm is not retrieved, only cm
+  ['cm']
+
+  >>> cm.__get__('whatever') #under Python 2.2.0 would give a serious error
+  Segmentation fault
+  >>> cm.__get__(None) #under Python 2.3 there is no error
+  <bound method type.<lambda> of <type 'NoneType'>>
+
+Moreover metamethods behaves differently with respect to multiple
+inheritance. If a class A define a classmethod cA and a class B
+defines a classmethod cB, then the class C(A,B) inherits both the
+classmethods cA and cB. In the case of metamethods defined in M_A
+and M_B, the same is true only if one resolves the meta-type
+conflict by hand, by generating the metaclass M_C(M_A,M_B). In this
+sense, classmethods are simpler to use than metamethods.

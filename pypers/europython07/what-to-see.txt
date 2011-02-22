@@ -1,0 +1,39 @@
+9 July
+------
+
+Morning
+
+50 Extending Python with EasyExtend
+50 Parsing Languages with mxTextTools
+300 Googled Python
+
+60 Case study of a Pylons project
+60 KSS, Ajax development with style
+60 Using FormEncode for web data validation
+
+Afternoon
+
+300 PyPy 1.0 and Beyond
+300 py.test 
+300 unittest is Broken
+
+10 July
+-------
+
+Morning
+
+100 RPython: Need for speed aka C and C# considered harmful
+100 How our Python trading platform got 40 times faster by switching to RPython
+100 Stackless
+
+Afternoon
+
+50 Taking advantage of multiple CPUs for games - simply.
+50 Integrating Python and TeX: MathTran and beyond
+
+
+10 July
+-------
+
+100 What Zope did wrong (and what to do instead) 
+50 Measuring Python Performance

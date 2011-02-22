@@ -1,0 +1,14 @@
+Nota biografica
+---------------
+
+Michele Simionato e' conosciuto nella comunita' internazionale per la sua
+attivita' nei newsgroups di Python, per la sua partecipazione a conferenze, 
+per i suoi articoli divulgativi, come autore di ricette pubblicate nel Python 
+cookbook e per un modulo open source sui decoratori. Michele e' anche socio 
+fondatore dell'associazione Python Italia. 
+In una vita precedente Michele si e' occupato di Fisica Teorica, lavorando per
+vari anni in Francia e negli Stati Uniti come ricercatore post-doc. Adesso
+Michele vive e lavora a Milano per StatPro Italia, occupandosi di software
+finanziario e programmazione Web. Nel suo tempo libero, quando non e' impegnato
+con la visione di vecchi cartoni animati giapponesi, Michele cerca sempre di
+imparare qualche cosa di nuovo.

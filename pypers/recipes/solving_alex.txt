@@ -1,0 +1,209 @@
+
+-- recipe: 204197 #34
+
+-- title: Solving Metaclass Conflicts
+
+-- credits:
+Michele Simionato (mis6@pitt.edu)
+
+-- comments:
++1, hard but crucial, check Eby and Mertz are also credited -- SOLVING THE METACLASS CONFLICT
+
+-- problem:
+You need to need to multiply inherit from several classes that may come
+from several metaclasses; therefore, you need to generate automatically
+a custom metaclass to solve any possible metaclass conflicts.
+
+-- solution
+-- p
+Given a set of metaclasses, adding a further metaclass <r>m</r> to the
+mix will give no problem if if <r>m</r> is already a superclass of any
+of them.  In particular, there is no problem if <c>m is type</c>, since
+<t>type</t> is the superclass of all metaclasses, like <t>object</t> is
+the superclass of all classes.  Thus, we first need this easy function:
+-- code
+def _problem_m(m, metas):
+    if m is type: return False
+    for M in metas:
+        if issubclass(M, m): return False
+    return True
+-- !code
+Given a set of base classes as well as a set of existing metaclasses,
+then, we can determine the set of metaclasses of those base classes'
+that need to be added as they might otherwise give conflicts.  Since
+order of inheritance matters in Python, we need to return a sequence of
+such metas; for convenience, we build and return a list of them.
+-- code
+def _metas_to_add(bases, metas):
+    metas = list(metas)
+    must_add = []
+    for b in bases:
+        m = type(b)
+        if _problem_m(m, metas):
+            must_add.append(m)
+            metas.append(m)
+    return must_add
+-- !code
+We now have the tools to obtain (and generate, if needed) a suitable
+metaclass, given a set of base classes and a set of metaclasses to
+inject explicitly.  Since, again, order of inheritance matters in
+Python, we also need a boolean parameter to indicate whether the new or
+injected metaclasses get priority, that is, go to the front of the
+sequence of metaclasses.  It's also important to avoid generating more
+than one metaclass to solve the same potential conflicts, so we will
+also keep a <q>memoization</q> dictionary to ensure that:
+-- code
+noconflict_metaclass_for_metaclasses_memo = {}
+def _obtain_noconflict_metaclass(bases, injected_metas, injected_priority):
+    must_add = tuple(_metas_to_add(bases, injected_metas))
+    # make the tuple of all needed metaclasses in specified priority order
+    if injected_priority:
+        all_metas = must_add + tuple(injected_metas)
+    else:
+        all_metas = tuple(injected_metas) + must_add
+    # return existing confict-solving meta if any
+    if all_metas in noconflict_metaclass_for_metaclasses_memo:
+        return noconflict_metaclass_for_metaclasses_memo[all_metas]
+    # nope: compute, memoize and return needed conflict-solving meta
+    if not all_metas:         # wee, a trivial case, happy us
+        meta = type
+    elif len(all_metas) == 1: # another trivial case
+        meta = all_metas[0]
+    else:                     # nontrivial, gotta work...
+        metaname = '_' + ''.join([m.__name__ for m in all_metas])
+        meta = classmaker()(metaname, all_metas, {})
+    noconflict_metaclass_for_metaclasses_memo[all_metas] = meta
+    return meta
+-- !code
+If you're reading this code carefully, you will have noticed towards the
+end of this function <v>_obtain_supermetaclass</v> the appearance of a
+name that is yet unknown, specifically <v>classmaker</v>, called without
+arguments.  You may have recognized by the pattern of the code where
+this new name is used that we are generating a class (specifically, a
+conflict-resolving metaclass that inherits from all needed metas) by
+calling <q>something</q> and passing as arguments the name, bases and
+dictionary (here, an empty dictionary).  So, why don't we just call the
+<t>type</t> built-in?  Answer: because metaclasses could have custom
+metaclasses, too &mdash; and so on, if not ad infinitum, at least for
+more than one metalevel, until we do get to the base class of all
+metaclasses, <t>type</t>.  So, we need mutual recursion between the
+function we just wrote, to obtain (possibly build) a metaclass to solve
+conflicts, and the factory-function <v>classmaker</v> that uses this
+conflict-solving metaclass appropriately for class-building purposes.
+Specifically, <v>classmaker</v> needs to be a closure, and here it is:
+-- code
+def classmaker(*metas, **options):
+    injected_priority = options.pop('injected_priority', True)
+    if options:
+        raise TypeError, 'ignored options: %r' % options
+    def make_class(name, bases, adict):
+        metaclass = _obtain_noconflict_metaclass(bases, metas, injected_priority)
+        return metaclass(name, bases, adict)
+    return make_class
+-- !code
+In all of our code outside of this <f>noconflict.py</f> module, we will
+only use <v>noconflict.classmaker</v>, calling it with metaclasses we
+want to inject, and optionally the priority-indicator flag, to obtain a
+callable that we can then use just like a metaclass to build new class
+objects given names, bases and dictionary, but with the assurance that
+metatype conflicts cannot occur.  Phew.  Now <h>that</h> was worth it,
+wasn't it?!
+
+-- discuss:
+-- p
+Here is the simplest case where we can have a metatype confict: multiply
+inheriting from two classes with independent metaclasses.  In a
+pedagogically simplified toy-level examples, that could be, say:
+-- code
+>>> class Meta_A(type): pass
+... 
+>>> class Meta_B(type): pass
+... 
+>>> class A: __metaclass__ = Meta_A
+... 
+>>> class B: __metaclass__ = Meta_B
+... 
+>>> class C(A, B): pass
+<o>Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+TypeError: Error when calling the metaclass bases
+    metaclass conflict: the metaclass of a derived class must be a
+(non-strict) subclass of the metaclasses of all its bases</o>
+>>>
+-- !code
+A class normally inherits its metaclass from its bases, but when the
+bases have distinct metaclasses, the metatype constraint that Python
+expresses so tersely in this error message applies.  So, we need to
+build a new metaclass, say <r>Meta_C</r>, which inherits from both
+<r>Meta_A</r> and <r>Meta_B</r>.  For a demonstration, see the book
+that's rightly considered the Bible of metaclasses, <citetitle>Putting
+Metaclasses to Work: A New Dimension in Object-Oriented
+Programming</citetitle>, by <citation>Ira R. Forman and Scott H.
+Danforth</citation> (Addison Wesley, 1999).
+
+-- p
+Python does not do magic: it does not automatically create
+<r>Meta_C</r>.  Rather, it raises a <t>TypeError</t> to ensure the
+programmer is aware of the problem.  In simple cases, the programmer can
+solve the metatype conflict by hand, as follows:
+-- code
+>>> class Meta_C(Meta_A, Meta_B): pass
+>>> class C(A, B): __metaclass__ = Meta_C
+-- !code
+In this case, everything works smoothly.
+
+-- p
+The key point of this recipe is to show an automatic way to resolve
+metatype conflicts, rather than having to do it by hand every time.
+Having saved all the code from this recipe's <q>Solution</q> into module
+<f>noconflict.py</f> somewhere along your Python's <t>sys.path</t>, you
+may then make class <v>C</v> with automatic conflict resolution, as
+follows:
+-- code
+>>> import noconflict
+>>> class C(A, B): __metaclass__ = noconflict.classmaker()
+-- !code
+Automating the resolution of the metatype conflict has many pluses, even
+in simple cases.  Thanks to the <q>memoizing</q> technique used in
+<v>noconflict.py</v>, the same conflict-resolving metaclass will get
+used for any sequence of conflicting metaclasses.  Moreover, with this
+approach you may also inject other metaclasses explicitly, beyond those
+you get from your base classes, and again avoid conflicts.  Consider:
+-- code
+>>> class D(A): __metaclass__ = Meta_B
+<o>Traceback (most recent call last):
+  File "<stdin>", line 1, in ?
+TypeError: Error when calling the metaclass bases
+    metaclass conflict: the metaclass of a derived class must be a
+(non-strict) subclass of the metaclasses of all its bases</o>
+-- !code
+This metatype conflict is resolved just as easily as the former one:
+-- code
+>>> class D(A): __metaclass__ = noconflict.classmaker(Meta_B)
+-- !code
+If you want the the implicitly inherited <v>Meta_A</v> to take priority
+over the explicitly injected <v>Meta_B</v>, <v>noconflict.classmaker</v>
+allows that easily, too:
+-- code
+>>> class D(A): __metaclass__ = noconflict.classmaker(Meta_B, injected_priority=False)
+-- !code
+
+-- p
+The code presented in this recipe's <q>Solution</q> takes pains to avoid
+any subclassing that is not strictly necessary, and also uses mutual
+recursion to avoid any meta-level of meta-meta-type conflicts.  You
+might never meet higher-order-meta conflict anyway, but if you adopt the
+code presented in this recipe you need not even worry about them.
+
+-- p
+I thank David Mertz for help in polishing the original version of the code.
+This version has largerly benefited from discussions with Phillip J.
+Eby, and Alex Martelli did his best to try to make the recipe's code as
+explicit and understandable as he could make it.
+
+-- see_also
+-- p
+<citetitle>Putting Metaclasses to Work: A New Dimension in
+Object-Oriented Programming</citetitle>, by <citation>Ira R. Forman and
+Scott H.  Danforth</citation> (Addison Wesley, 1999).
+

@@ -1,0 +1,28 @@
+SciPy on WSGI
+--------------
+
+Nonostante il titolo esoterico, il talk sara' molto concreto ed
+illustrera' come implementare un'interfaccia Web per una semplice
+applicazione scientifica. Prendero' spunto da una mia esperienza 
+personale considerando come esmpio uno script per l'interpolazione di 
+dati con una curva non lineare. L'enfasi sara' sulla semplicita' d'uso e
+sulla velocita' di implementazione. L'audience ideale e' costituita
+da persone che non sono sviluppatori Web di professione.
+
+Python e' l'unico linguaggio con piu' Web frameworks che keywords. 
+Per cercare di dare ordine all'anarchia e permettere una maggiore 
+interoperabilita' tra i diversi frameworks, Phillip H. Eby ha 
+inventato nel 2003 il protocollo WSGI (Web Server Gateway Interface, 
+per gli amici Whiskey) che regola la comunicazione fra Web framework 
+e Web server. Il protocollo ha avuto largo successo ed oggigiorno
+praticamente tutti i Web frameworks per Python lo implementano.
+
+Nel talk discutero':
+
+1. Che cosa e' esattamente WSGI;
+2. Come usare l'implementazione di riferimento di WSGI (wsgiref, parte
+   della libreria standard di Python dalla versione 2.5);
+3. Come scrivere un object publisher in 20 righe;
+4. Come implementare un semplice servizio Web per il fitting di dati 
+   sperimentali;
+5. Come migrare un'applicazione WSGI da un framework ad un altro.

@@ -1,0 +1,76 @@
+This recipe is here for a couple of reasons:
+1) discourage a common misuse of __slots__;
+2) show how to restrict Python dynamism.
+
+__slots__ are a Python 2.2 feature intended as a memory optimization:
+however, judging from recent posts in c.l.py, lots of people have misunderstood 
+its aim, and think __slots__ is used to introduce declarations in Python. 
+The reason why they think so is that it is impossible to add undeclared 
+run-time attributes to instances of classes with __slots__. 
+This is a limitation of __slots__, not a feature! 
+
+Nevertheless there are people who want to restrict Python dynamism,
+for various reasons. The right way to do it is not via __slots__, but 
+via __setattr__. Here I show a simple recipe - which maybe expanded 
+and customized - to restrict the dynamism of Python classes. 
+
+Notice that the recipe inhibits not only the addition of
+runtime attributes to objects, but even to classes.
+
+def frozen(set):
+    "Raise an error when trying to set an undeclared name."
+    def set_attr(self,name,value):
+        if hasattr(self,name):
+            set(self,name,value) 
+        else:
+            raise AttributeError("You cannot add attributes to %s" % self)
+    return set_attr
+
+class Frozen(object):
+    """Subclasses of Frozen are frozen, i.e. it is impossibile to add
+     new attributes to them and their instances."""
+    __setattr__=frozen(object.__setattr__)
+    class __metaclass__(type):
+        __setattr__=frozen(type.__setattr__)
+
+
+Here is an example of usage:
+
+class Person(Frozen):
+    firstname=""
+    lastname=""
+    def __init__(self,firstname,lastname):
+        self.firstname=firstname
+        self.lastname=lastname
+       
+me=Person("Michele","Simionato")
+
+Using this "feature" one is forced to declare the attributes of a
+class explicitly since setting an undeclared attribute raises an error:
+
+>>> Person.add_an_attribute="something" # => Attribute Error
+>>> me.add_an_attribute="something" # => Attribute Error
+
+Also, the normal Python idiom "self.somename=something" raises an error
+if "somename" is not explicitely declared in the class. In other words,
+subclasses of "Frozen" behaves as Java/C++ classes, so this limitation
+may be useful in the coding of prototypes to be converted in static
+languages.
+
+Consider for instance the following class, which declares the slots 
+"x" and "y":
+
+>>> class C(object):
+... 	__slots__=["x","y"]
+... 	x=1
+... 	y=2
+
+If you try to add a new undeclared attribute to C instances
+
+>>> c=C() 	
+>>> c.z=3
+Traceback (most recent call last):
+  File "<interactive input>", line 1, in ?
+AttributeError: 'C' object has no attribute 'z'
+
+you get an attribute error. 

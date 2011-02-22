@@ -1,0 +1,56 @@
+
+  class SuperAware(type,Customizable):
+      """Instances of SuperAware inherit a private attribute __sup
+      which provide a handy way to call cooperative methods."""
+      # DOES NOT WORK WITH NEW, calls (super).__new__, not (super.__new__)
+      sup=super # default, customizable
+      def __init__(cls,*args):
+          setattr(cls,'_%s__sup' % cls.__name__,cls.sup(cls))
+          super(SuperAware,cls).__init__(*args) # usual cooperative call
+
+
+Notice that this trick comes from Guido himself (in his essay on
+"Type/class unification")
+
+Let me show how ``SuperAware`` can be used in practice. 
+
+A common requirement for a class is the ability to count the number of its
+instances. This is a quite easy problem: it is enough to increments a counter 
+each time an instance of that class is initialized. However, this idea can
+be implemented in the wrong way. i.e. naively one could implement
+counting capabilities in a class without such capabilities by modifying the
+``__init__`` method explicitly in the original source code. 
+A better alternative is to follow the bottom-up approach and to implement 
+the counting 
+feature in a separate mix-in class: then the feature can be added to the
+original class via multiple inheritance, without touching the source.
+Moreover, the counter class becomes a reusable components that can be
+useful for other problems, too. In order to use the mix-in approach, the 
+``__init__`` method of the counter class must me cooperative. The 
+SuperAware metaclass provides some syntactic sugar for this job:
+
+ ::
+
+  #<oopp.py>
+
+  #  class WithCounter(object):
+  #      """Mixin class counting the total number of its instances and storing 
+  #         it in the class attribute count."""
+
+  #      __metaclass__=SuperAware
+  #      count=1 # class attribute (or static attribute in C++/Java terminology)
+  
+  #      def __init__(self,*args,**kw): 
+  #          self.__sup.__init__(*args,**kw) # anonymous cooperative call
+  #          type(self).counter+=1 # increments the class attribute
+
+  #  class WithCounter(object):
+  #      """Mixin class counting the total number of its instances and storing 
+  #         it in the class attribute count."""
+
+  #      count=1 # class attribute (or static attribute in C++/Java terminology)
+
+  #      def __init__(self,*args,**kw):  
+  #          super(WithCounter,self).__init__(*args,**kw) 
+  #          # anonymous cooperative call
+  #          type(self).counter+=1 # increments the class attribute

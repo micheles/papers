@@ -1,0 +1,99 @@
+RCare Internals
+-------------------
+
+:author: Michele Simionato
+:date: 2007-01-30
+
+
+  **StatPro Milan**
+
+.. include:: <s5defs.txt>
+.. footer:: StatPro Milan
+
+Some numbers
+---------------------------
+
+.. class:: incremental
+
+ files [('.py', 273), ('.pt', 62), ('.zsql', 28)]
+
+ lines [('.py', 48327), ('.pt', 12124), ('.zsql', 1726)]
+
+ files, lines: (363, 62177)
+
+Where?
+----------------------------------------
+
+.. class:: incremental
+
+- interaction with SRS (send_rhp.py, Issuer.py)
+- interaction with SRM (MissingProductLogLoader.py)
+- interaction with SDM (SRSTool)
+- interaction with customers (report_tool, CheckProduct)
+
+
+RCare Internals
+-------------------------
+
+.. class:: incremental
+ 
+  or
+
+  how to write UIs
+
+  or 
+
+  Real Men Don't Click! (TM)
+
+
+Examples
+--------------------------
+
+.. class:: incremental
+
+ http://cvs2/logmanager
+
+ http://simionm01:5555
+
+ http://cvs2:8888
+
+ http://sdm3.statpro.com:8080/rcare/issuer_manager
+
+
+Zope Integration (1)
+-----------------------------
+
+.. class:: incremental
+  
+  1 assume you have a Plone Site product
+
+  2 assume you have a Plone tool
+
+  3 assume the SitePolicy is installing the new tool
+
+  4 assume the SitePolicy is defining your users and roles
+  
+  5 add a method to the Plone tool
+
+Zope Integration (2)
+-----------------------------
+
+.. class:: incremental
+  
+  6 set the right permissions
+
+  7 make a new skins directory
+
+  8 write your template calling the tool method
+
+  9 possibly add a tab into Extensions/Install.py
+
+  10 restart the server
+
+  11 *regenerate* the Plone site
+  
+
+Zope Integration (3)
+-----------------------------
+
+  ... and *maybe* you are done!

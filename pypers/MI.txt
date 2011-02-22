@@ -1,0 +1,1381 @@
+THE SUBTLETIES OF MULTIPLE INHERITANCE
+==========================================================================
+
+In chapter 4 we introduced the concept of multiple inheritance and discussed
+its simplest applications in absence of name collisions. When with methods
+with different names are derived from different classes multiple inheritance
+is pretty trivial. However, all kind of subtilites comes in presence of name 
+clashing, i.e. when we multiply inherits different methods defined in different
+classes but with the *same* name.
+In order to understand what happens in this situation, it is essential to 
+understand the concept of Method Resolution Order (MRO). For reader's
+convenience, I collect in this chapter some of the information
+reported in http://www.python.org/2.3/mro.html.
+
+A little bit of history: why Python 2.3 has changed the MRO
+------------------------------------------------------------------------------
+
+Everything started with a post by Samuele Pedroni to the Python
+development mailing list [#]_.  In his post, Samuele showed that the
+Python 2.2 method resolution order is not monotonic and he proposed to
+replace it with the C3 method resolution order.  Guido agreed with his
+arguments and therefore now Python 2.3 uses C3.  The C3 method itself
+has nothing to do with Python, since it was invented by people working
+on Dylan and it is described in a paper intended for lispers [#]_.  The
+present paper gives a (hopefully) readable discussion of the C3
+algorithm for Pythonistas who want to understand the reasons for the
+change.
+
+First of all, let me point out that what I am going to say only applies
+to the *new style classes* introduced in Python 2.2:  *classic classes*
+maintain their old method resolution order, depth first and then left to
+right.  Therefore, there is no breaking of old code for classic classes;
+and even if in principle there could be breaking of code for Python 2.2
+new style classes, in practice the cases in which the C3 resolution
+order differs from the Python 2.2 method resolution order are so rare
+that no real breaking of code is expected.  Therefore: don't be scared!
+
+Moreover, unless you make strong use of multiple inheritance and you
+have non-trivial hierarchies, you don't need to understand the C3
+algorithm, and you can easily skip this paper.  On the other hand, if
+you really want to know how multiple inheritance works, then this paper
+is for you.  The good news is that things are not as complicated as you
+might expect.
+
+Let me begin with some basic definitions.
+
+1) Given a class C in a complicated multiple inheritance hierarchy, it
+   is a non-trivial task to specify the order in which methods are
+   overridden, i.e. to specify the order of the ancestors of C.
+
+2) The list of the ancestors of a class C, including the class itself,
+   ordered from the nearest ancestor to the furthest, is called the
+   class precedence list or the *linearization* of C.
+
+3) The *Method Resolution Order* (MRO) is the set of rules that
+   construct the linearization.  In the Python literature, the idiom
+   "the MRO of C" is also used as a synonymous for the linearization of
+   the class C.
+
+4) For instance, in the case of single inheritance hierarchy, if C is a
+   subclass of C1, and C1 is a subclass of C2, then the linearization of
+   C is simply the list [C, C1 , C2].  However, with multiple
+   inheritance hierarchies, it is more difficult to construct a
+   linearization that respects *local precedence ordering* and
+   *monotonicity*.
+
+5) I will discuss the local precedence ordering later, but I can give
+   the definition of monotonicity here.  A MRO is monotonic when the
+   following is true:  *if C1 precedes C2 in the linearization of C,
+   then C1 precedes C2 in the linearization of any subclass of C*.
+   Otherwise, the innocuous operation of deriving a new class could
+   change the resolution order of methods, potentially introducing very
+   subtle bugs.  Examples where this happens will be shown later.
+
+6) Not all classes admit a linearization.  There are cases, in
+   complicated hierarchies, where it is not possible to derive a class
+   such that its linearization respects all the desired properties.
+
+Here I give an example of this situation. Consider the hierarchy 
+
+  >>> O = object
+  >>> class X(O): pass
+  >>> class Y(O): pass
+  >>> class A(X,Y): pass
+  >>> class B(Y,X): pass
+
+which can be represented with the following inheritance graph, where I
+have denoted with O the ``object`` class, which is the beginning of any
+hierarchy for new style classes:
+
+ ::
+
+          -----------
+         |           |
+         |    O      |
+         |  /   \    |
+          - X    Y  /
+            |  / | /
+            | /  |/
+            A    B
+            \   /
+              ?
+
+In this case, it is not possible to derive a new class C from A and B,
+since X precedes Y in A, but Y precedes X in B, therefore the method
+resolution order would be ambiguous in C.
+
+Python 2.3 raises an exception in this situation (TypeError:  MRO
+conflict among bases Y, X) forbidding the naive programmer from creating
+ambiguous hierarchies.  Python 2.2 instead does not raise an exception,
+but chooses an *ad hoc* ordering (CABXYO in this case).
+
+The C3 Method Resolution Order
+------------------------------
+
+Let me introduce a few simple notations which will be useful for the
+following discussion.  I will use the shortcut notation
+
+  C1 C2 ... CN
+
+to indicate the list of classes [C1, C2, ... , CN].
+
+The *head* of the list is its first element:
+
+  head = C1
+
+whereas the *tail* is the rest of the list:
+
+  tail = C2 ... CN.
+
+I shall also use the notation
+
+  C + (C1 C2 ... CN) = C C1 C2 ... CN
+
+to denote the sum of the lists [C] + [C1, C2, ... ,CN].
+
+Now I can explain how the MRO works in Python 2.3.
+
+Consider a class C in a multiple inheritance hierarchy, with C
+inheriting from the base classes B1, B2, ...  , BN.  We want to compute
+the linearization L[C] of the class C. In order to do that, we need the
+concept of *merging* lists, since the rule says that
+
+  *the linearization of C is the sum of C plus the merge of a) the
+  linearizations of the parents and b) the list of the parents.*
+
+In symbolic notation:
+
+   L[C(B1 ... BN)] = C + merge(L[B1] ... L[BN], B1 ... BN)
+
+How is the merge computed? The rule is the following:
+
+  *take the head of the first list, i.e L[B1][0]; if this head is not in
+  the tail of any of the other lists, then add it to the linearization
+  of C and remove it from the lists in the merge, otherwise look at the
+  head of the next list and take it, if it is a good head.  Then repeat
+  the operation until all the class are removed or it is impossible to
+  find good heads.  In this case, it is impossible to construct the
+  merge, Python 2.3 will refuse to create the class C and will raise an
+  exception.*
+
+This prescription ensures that the merge operation *preserves* the
+ordering, if the ordering can be preserved.  On the other hand, if the
+order cannot be preserved (as in the example of serious order
+disagreement discussed above) then the merge cannot be computed.
+
+The computation of the merge is trivial if:
+
+1. C is the ``object`` class, which has no parents; in this case its
+   linearization coincides with itself,
+
+       L[object] = object.
+
+2. C has only one parent (single inheritance); in this case
+
+       L[C(B)] = C + merge(L[B],B) = C + L[B]
+
+However, in the case of multiple inheritance things are more cumbersome
+and I don't expect you can understand the rule without a couple of
+examples ;-)
+
+Examples
+--------
+
+First example. Consider the following hierarchy:
+
+  >>> O = object
+  >>> class F(O): pass
+  >>> class E(O): pass
+  >>> class D(O): pass
+  >>> class C(D,F): pass
+  >>> class B(D,E): pass
+  >>> class A(B,C): pass
+
+In this case the inheritance graph can be drawn as 
+
+ ::
+ 
+                            6
+                           ---
+  Level 3                 | O |                  (more general)
+                        /  ---  \
+                       /    |    \                      |
+                      /     |     \                     |
+                     /      |      \                    |
+                    ---    ---    ---                   |
+  Level 2        3 | D | 4| E |  | F | 5                |
+                    ---    ---    ---                   |
+                     \  \ _ /       |                   |
+                      \    / \ _    |                   |
+                       \  /      \  |                   |
+                        ---      ---                    |
+  Level 1            1 | B |    | C | 2                 |
+                        ---      ---                    |
+                          \      /                      |
+                           \    /                      \ /
+                             ---
+  Level 0                 0 | A |                (more specialized)
+                             ---
+
+
+The linearizations of O,D,E and F are trivial:
+
+ ::
+
+  L[O] = O
+  L[D] = D O
+  L[E] = E O
+  L[F] = F O
+
+The linearization of B can be computed as
+
+ ::
+
+  L[B] = B + merge(DO, EO, DE)
+
+We see that D is a good head, therefore we take it and we are reduced to
+compute merge(O,EO,E).  Now O is not a good head, since it is in the
+tail of the sequence EO.  In this case the rule says that we have to
+skip to the next sequence.  Then we see that E is a good head; we take
+it and we are reduced to compute merge(O,O) which gives O. Therefore
+
+ ::
+
+  L[B] =  B D E O
+
+Using the same procedure one finds:
+
+ ::
+
+  L[C] = C + merge(DO,FO,DF)
+       = C + D + merge(O,FO,F)
+       = C + D + F + merge(O,O)
+       = C D F O
+
+Now we can compute:
+
+ ::
+
+  L[A] = A + merge(BDEO,CDFO,BC)
+       = A + B + merge(DEO,CDFO,C)
+       = A + B + C + merge(DEO,DFO)
+       = A + B + C + D + merge(EO,FO)
+       = A + B + C + D + E + merge(O,FO)
+       = A + B + C + D + E + F + merge(O,O)
+       = A B C D E F O
+
+In this example, the linearization is ordered in a pretty nice way
+according to the inheritance level, in the sense that lower levels (i.e.
+more specialized classes) have higher precedence (see the inheritance
+graph).  However, this is not the general case.
+
+I leave as an exercise for the reader to compute the linearization for
+my second example:
+
+  >>> O = object
+  >>> class F(O): pass
+  >>> class E(O): pass
+  >>> class D(O): pass
+  >>> class C(D,F): pass
+  >>> class B(E,D): pass
+  >>> class A(B,C): pass
+
+The only difference with the previous example is the change B(D,E) -->
+B(E,D); however even such a little modification completely changes the
+ordering of the hierarchy
+
+ ::
+
+                             6
+                            ---
+  Level 3                  | O |
+                         /  ---  \
+                        /    |    \
+                       /     |     \
+                      /      |      \
+                    ---     ---    ---
+  Level 2        2 | E | 4 | D |  | F | 5
+                    ---     ---    ---
+                     \      / \     /
+                      \    /   \   /
+                       \  /     \ /
+                        ---     ---
+  Level 1            1 | B |   | C | 3
+                        ---     ---
+                         \       /
+                          \     /
+                            ---
+  Level 0                0 | A |
+                            ---
+
+
+Notice that the class E, which is in the second level of the hierarchy,
+precedes the class C, which is in the first level of the hierarchy, i.e.
+E is more specialized than C, even if it is in a higher level.
+
+A lazy programmer can obtain the MRO directly from Python 2.2, since in
+this case it coincides with the Python 2.3 linearization.  It is enough
+to invoke the .mro() method of class A:
+
+  >>> A.mro()
+  (<class '__main__.A'>, <class '__main__.B'>, <class '__main__.E'>,
+  <class '__main__.C'>, <class '__main__.D'>, <class '__main__.F'>,
+  <type 'object'>)
+
+Finally, let me consider the example discussed in the first section,
+involving a serious order disagreement.  In this case, it is
+straightforward to compute the linearizations of O, X, Y, A and B:
+
+ ::
+
+  L[O] = 0
+  L[X] = X O
+  L[Y] = Y O
+  L[A] = A X Y O
+  L[B] = B Y X O
+
+However, it is impossible to compute the linearization for a class C
+that inherits from A and B:
+
+ ::
+
+  L[C] = C + merge(AXYO, BYXO, AB)
+       = C + A + merge(XYO, BYXO, B)
+       = C + A + B + merge(XYO, YXO)
+
+At this point we cannot merge the lists XYO and YXO, since X is in the
+tail of YXO whereas Y is in the tail of XYO:  therefore there are no
+good heads and the C3 algorithm stops.  Python 2.3 raises an error and
+refuses to create the class C.
+
+Bad Method Resolution Orders
+----------------------------
+
+A MRO is *bad* when it breaks such fundamental properties as local
+precedence ordering and monotonicity.  In this section, I will show
+that both the MRO for classic classes and the MRO for new style classes
+in Python 2.2 are bad.
+
+It is easier to start with the local precedence ordering.  Consider the
+following example:
+
+  >>> F=type('Food',(),{'remember2buy':'spam'})
+  >>> E=type('Eggs',(F,),{'remember2buy':'eggs'})
+  >>> G=type('GoodFood',(F,E),{}) #under Python 2.3 this is an error
+
+with inheritance diagram
+
+ ::
+
+                O
+                |
+   (buy spam)   F
+                | \
+                | E   (buy eggs)
+                | /
+                G
+
+         (buy eggs or spam ?)
+
+
+We see that class G inherits from F and E, with F *before* E:  therefore
+we would expect the attribute *G.remember2buy* to be inherited by
+*F.rembermer2buy* and not by *E.remember2buy*:  nevertheless Python 2.2
+gives
+
+  >>> G.remember2buy #under Python 2.3 this is an error
+  'eggs'
+
+This is a breaking of local precedence ordering since the order in the
+local precedence list, i.e. the list of the parents of G, is not
+preserved in the Python 2.2 linearization of G:
+
+ ::
+
+  L[G,P22]= G E F object   # F *follows* E
+
+One could argue that the reason why F follows E in the Python 2.2
+linearization is that F is less specialized than E, since F is the
+superclass of E; nevertheless the breaking of local precedence ordering
+is quite non-intuitive and error prone.  This is particularly true since
+it is a different from old style classes:
+
+  >>> class F: remember2buy='spam'
+  >>> class E(F): remember2buy='eggs'
+  >>> class G(F,E): pass
+  >>> G.remember2buy
+  'spam'
+
+In this case the MRO is GFEF and the local precedence ordering is
+preserved.
+
+As a general rule, hierarchies such as the previous one should be
+avoided, since it is unclear if F should override E or viceversa.
+Python 2.3 solves the ambiguity by raising an exception in the creation
+of class G, effectively stopping the programmer from generating
+ambiguous hierarchies.  The reason for that is that the C3 algorithm
+fails when the merge
+
+ ::
+
+   merge(FO,EFO,FE)
+
+cannot be computed, because F is in the tail of EFO and E is in the tail
+of FE.
+
+The real solution is to design a non-ambiguous hierarchy, i.e. to derive
+G from E and F (the more specific first) and not from F and E; in this
+case the MRO is GEF without any doubt.
+
+ ::
+
+                O
+                |
+                F (spam)
+              / |
+     (eggs)   E |
+              \ |
+                G
+                  (eggs, no doubt)
+
+
+Python 2.3 forces the programmer to write good hierarchies (or, at
+least, less error-prone ones).
+
+On a related note, let me point out that the Python 2.3 algorithm is
+smart enough to recognize obvious mistakes, as the duplication of
+classes in the list of parents:
+
+  >>> class A(object): pass
+  >>> class C(A,A): pass # error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: duplicate base class A
+
+Python 2.2 (both for classic classes and new style classes) in this
+situation, would not raise any exception.
+
+Finally, I would like to point out two lessons we have learned from this
+example:
+
+1. despite the name, the MRO determines the resolution order of
+   attributes, not only of methods;
+
+2. the default food for Pythonistas is spam !  (but you already knew
+   that ;-)
+
+Having discussed the issue of local precedence ordering, let me now
+consider the issue of monotonicity.  My goal is to show that neither the
+MRO for classic classes nor that for Python 2.2 new style classes is
+monotonic.
+
+To prove that the MRO for classic classes is non-monotonic is rather
+trivial, it is enough to look at the diamond diagram:
+
+ ::
+
+
+                   C
+                  / \
+                 /   \
+                A     B
+                 \   /
+                  \ /
+                   D
+
+One easily discerns the inconsistency:
+
+ ::
+
+  L[B,P21] = B C        # B precedes C : B's methods win
+  L[D,P21] = D A C B C  # B follows C  : C's methods win!
+
+On the other hand, there are no problems with the Python 2.2 and 2.3
+MROs, they give both
+
+ ::
+
+  L[D] = D A B C
+
+Guido points out in his essay [#]_ that the classic MRO is not so bad in
+practice, since one can typically avoids diamonds for classic classes.
+But all new style classes inherit from object, therefore diamonds are
+unavoidable and inconsistencies shows up in every multiple inheritance
+graph.
+
+The MRO of Python 2.2 makes breaking monotonicity difficult, but not
+impossible.  The following example, originally provided by Samuele
+Pedroni, shows that the MRO of Python 2.2 is non-monotonic:
+
+  >>> class A(object): pass
+  >>> class B(object): pass
+  >>> class C(object): pass
+  >>> class D(object): pass
+  >>> class E(object): pass
+  >>> class K1(A,B,C): pass
+  >>> class K2(D,B,E): pass
+  >>> class K3(D,A):   pass
+  >>> class Z(K1,K2,K3): pass
+
+Here are the linearizations according to the C3 MRO (the reader should
+verify these linearizations as an exercise and draw the inheritance
+diagram ;-)
+
+ ::
+
+  L[A] = A O
+  L[B] = B O
+  L[C] = C O
+  L[D] = D O
+  L[E] = E O
+  L[K1]= K1 A B C O
+  L[K2]= K2 D B E O
+  L[K3]= K3 D A O
+  L[Z] = Z K1 K2 K3 D A B C E O
+
+Python 2.2 gives exactly the same linearizations for A, B, C, D, E, K1,
+K2 and K3, but a different linearization for Z:
+
+ ::
+
+  L[Z,P22] = Z K1 K3 A K2 D B C E O
+
+It is clear that this linearization is *wrong*, since A comes before D
+whereas in the linearization of K3 A comes *after* D. In other words, in
+K3 methods derived by D override methods derived by A, but in Z, which
+still is a subclass of K3, methods derived by A override methods derived
+by D!  This is a violation of monotonicity.  Moreover, the Python 2.2
+linearization of Z is also inconsistent with local precedence ordering,
+since the local precedence list of the class Z is [K1, K2, K3] (K2
+precedes K3), whereas in the linearization of Z K2 *follows* K3.  These
+problems explain why the 2.2 rule has been dismissed in favor of the C3
+rule.
+
+.. [#] The thread on python-dev started by Samuele Pedroni:
+       http://mail.python.org/pipermail/python-dev/2002-October/029035.html
+
+.. [#] The paper *A Monotonic Superclass Linearization for Dylan*:
+       http://www.webcom.com/haahr/dylan/linearization-oopsla96.html
+
+.. [#] Guido van Rossum's essay, *Unifying types and classes in Python 2.2*:
+       http://www.python.org/2.2.2/descrintro.html
+
+.. [#] The (in)famous book on metaclasses, *Putting Metaclasses to Work*:
+       Ira R. Forman, Scott Danforth, Addison-Wesley 1999 (out of print,
+       but probably still available on http://www.amazon.com)
+
+
+Understanding the Method Resolution Order
+--------------------------------------------------------------------------
+
+The MRO of any given (new style) Python class is given
+by the special attribute ``__mro__``. Notice that since
+Python is an extremely dynamic language it is possible
+to delete and to generate whole classes at run time, therefore the MRO
+is a dynamic concept. For instance, let me show how it is possibile to 
+remove a class from my 
+paleoanthropological hierarchy: for instance I can
+replace the last class 'HomoSapiensSapiens' with 'HomoSapiensNeardenthalensis'
+(changing a class in the middle of the hierarchy would be more difficult). The
+following lines do the job dynamically:
+
+  >>> from oopp import *
+  >>> del HomoSapiensSapiens
+  >>> class HomoSapiensNeardenthalensis(HomoSapiens):
+  ...     def can(self):
+  ...         super(self.__this,self).can()
+  ...         print " - make something"
+  >>> reflective(HomoSapiensNeardenthalensis)
+  >>> HomoSapiensNeardenthalensis().can()
+  HomoSapiensNeardenthalensis can:
+   - make tools
+   - make abstractions
+   - make something
+
+In this case the MRO of 'HomoSapiensNeardenthalensis', i.e. the list of
+all its ancestors, is
+
+  >>> HomoSapiensNeardenthalensis.__mro__
+  [<class '__main__.HomoSapiensNeardenthalensis'>,<class 'oopp.HomoSapiens'>, 
+   <class 'oopp.HomoHabilis'>, <class 'oopp.Homo'>, 
+   <class 'oopp.PrettyPrinted'>, <class 'oopp.object'>]
+
+The ``__mro__`` attribute gives the *linearization* of the class, i.e. the
+ordered list of its ancestors, starting from the class itself and ending
+with object. The linearization of a class is essential in order to specify
+the resolution order of methods and attributes, i.e. the Method Resolution
+Order (MRO). In the case of single inheritance hierarchies, such the
+paleonthropological example, the MRO is pretty obvious; on the contrary
+it is a quite non-trivial concept in the case of multiple inheritance 
+hierarchies. 
+
+For instance, let me reconsider my first example of multiple inheritance,
+the ``NonInstantiableClock`` class, inheriting from 'NonInstantiable' and 
+'Clock'. I may represent the hierarchy with the following inheritance graph:
+
+ ::
+
+
+                     --   object   -- 
+                   /     (__new__)    \
+                  /                    \
+                 /                      \
+              Clock                NonInstantiable
+           (get_time)                 (__new__)
+                \                         /
+                 \                       /
+                  \                     /
+                   \                   /
+                    \                 /
+                    NonInstantiableClock   
+                     (get_time,__new__)
+
+
+The class ``Clock`` define a ``get_time`` method, whereas the class 
+``NonInstantiable`` overrides the ``__new__`` method of the ``object`` class; 
+the class ``NonInstantiableClock`` inherits ``get_time`` from 'Clock' and 
+``__new__`` from 'NonInstantiable'.
+
+The linearization of 'NonInstantiableClock' is 
+
+  >>> NonInstantiableClock.mro()
+  [<class '__main__.NonInstantiableClock'>, <class 'oopp.Clock'>, 
+   <class 'oopp.NonInstantiable'>, <type 'object'>]
+
+
+In particular, since 'NonInstantiable' precedes 'object', its ``__new__`` 
+method overrides the ``object`` new method. However, with the MRO used before
+Python 2.2, the linearization would have been ``NonInstantiableClock, Clock, 
+object, NonInstantiable, object`` and the ``__new__`` method of object would 
+have (hypothetically, of course, since before Python 2.2 there was not 
+``__new__`` method! ;-)  overridden the ``__new__``
+method of ``NonInstantiable``, therefore ``NonInstantiableClock`` would 
+have lost the property of being non-instantiable!
+
+This simple example shows that the choice of a correct Method Resolution 
+Order is far from being obvious in general multiple inheritance hierarchies. 
+After a false start in Python 2.2, (with a MRO failing in some subtle cases)
+Python 2.3 decided to adopt the so-called C3 MRO, invented by people working 
+on Dylan (even if Dylan itself uses the MRO of Common Lisp CLOS). Since this 
+is quite a technical matter, I defer the interested reader to appendix 2 
+for a full discussion of the C3 algorithm. 
+
+Here, I prefer to point out how the built-in
+``super`` object works in multiple inheritance situations. To this aim, it 
+is convenient to define an utility function that retrieves the ancestors
+of a given class with respect to the MRO of one of its subclasses:
+
+ ::
+
+  #<oopp.py>
+
+  def ancestor(C,S=None):
+      """Returns the ancestors of the first argument with respect to the 
+      MRO of the second argument. If the second argument is None, then 
+      returns the MRO of the first argument."""
+      if C is object:
+          raise TypeError("There is no superclass of object")
+      elif S is None or S is C:
+          return list(C.__mro__)
+      elif issubclass(S,C): # typical case
+          mro=list(S.__mro__)
+          return mro[mro.index(C):] # compute the ancestors from the MRO of S
+      else:
+          raise TypeError("S must be a subclass of C")
+
+  #</oopp.py>
+
+Let me show how the function ``ancestor`` works. 
+Consider the class ``Clock`` in isolation: then 
+its direct superclass, i.e. the first ancestor, is ``object``,
+
+  >>> from oopp import *
+  >>> ancestor(Clock)[1]
+  <type 'object'>
+
+therefore ``super(Clock).__new__`` retrieves the ``object.__new__`` method:
+
+  >>> super(Clock).__new__
+  <built-in method __new__ of type object at 0x80e6fc0>
+
+Consider now the ``Clock`` class together with its subclass 
+``NonInstantiableClock``:
+in this case the first ancestor of ``Clock``, *with respect to the MRO of 
+'NonInstantiableClock'* is ``NonInstantiable``
+
+  >>> ancestor(Clock,NonInstantiableClock)[1] 
+  <class 'oopp.NonInstantiable'>
+
+Therefore ``super(Clock,NonInstantiableClock).__new__`` retrieves the 
+``NonInstantiable.__new__`` method:
+
+  >>> super(Clock,NonInstantiableClock).__new__
+  <function __new__ at 0x81b293c>
+  >>> NonInstantiable.__new__
+  <function __new__ at 0x81b293c>
+
+It must be pointed out that ``super(C,S)`` is equivalent but not the same 
+than ``ancestor(C,S)[1]``, since it does not return the superclass: 
+it returns a super object, instead:
+
+  >>> super(Clock,NonInstantiableClock)
+  <super: <class 'Clock'>, <type object>>
+
+  #<oopp.py>
+
+  #class Super(super):
+  #    def __init__(self,C,S=None):
+  #        super(Super,self).__init__(C,S)
+  #        self.__name__="Super(%s)" % C.__name__
+
+  #</oopp.py>
+
+Finally, there is little quirk of super:
+
+  >>> class C(PrettyPrinted): pass
+  >>> s=super(C,C())
+  >>> s.__str__()
+
+but 
+
+  >>> str(s) # idem for print s
+  "<super: <class 'C'>, <C object>>"
+
+Idem for non-pre-existing methods:
+
+  >>> class D(list): pass
+  ...
+  >>> s=super(D,D())
+  >>> s.__len__()
+  0
+  >>> len(s) #error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: len() of unsized object
+
+The same problem comes with ``__getattr__``:
+
+  >>> class E(object):
+  ...     def __getattr__(self,name):
+  ...             if name=='__len__': return lambda:0
+  ...
+  >>> e=E()
+  >>> e.__len__()
+  0
+  >>> len(e) # error
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in ?
+  TypeError: len() of unsized object
+
+Counting instances
+----------------------------------------------------------------------
+ 
+ .. line-block::
+
+  *Everything should be built top-down, except the first time.*
+  -- Alan Perlis
+
+Multiple inheritance adds a step further to the bottom-up philosophy and
+it makes appealing the idea of creating classes with the only 
+purpose of being derived. Whereas in the top-down approach one starts
+with full featured standalone classes, to be further refined, in the
+mix-in approach one starts with bare bone classes, providing very simple 
+or even trivial features, with the purpose of providing 
+basic reusable components in multiple inheritance hierarchies.
+At the very end, the idea is to generate a library of *mixin* classes, to be
+composed with other classes. We already saw a couple of examples of
+mixin classes: 'NonInstantiable' and 'Customizable'. In this paragraph
+I will show three other examples: 'WithCounter','Singleton' and
+'AvoidDuplication'.
+
+A common requirement for a class is the ability to count the number of its
+instances. This is a quite easy problem: it is enough to increments a counter 
+each time an instance of that class is initialized. However, this idea can
+be implemented in the wrong way. i.e. naively one could implement
+counting capabilities in a class without such capabilities by modifying the
+``__init__`` method explicitly in the original source code. 
+A better alternative is to follow the bottom-up approach and to implement 
+the counting feature in a separate mix-in class: then the feature can be 
+added to the original class via multiple inheritance, without touching 
+the source.
+Moreover, the counter class becomes a reusable components that can be
+useful for other problems, too. In order to use the mix-in approach, the 
+``__new__`` method of the counter class must me cooperative, and preferably
+via an anonymous super call.
+
+ ::
+
+  #<oopp.py>
+
+  class WithCounter(object): 
+      """Mixin class counting the total number of its instances and storing 
+       it in the class attribute counter."""
+  
+      counter=0 # class attribute (or static attribute in C++/Java terms)
+   
+      def __new__(cls,*args,**kw):
+          cls.counter+=1 # increments the class attribute
+          return super(cls.__this,cls).__new__(cls,*args,**kw)  
+          #anonymous cooperative call to the superclass's method __new__
+
+  reflective(WithCounter)
+
+  #</oopp.py>
+
+Each time an instance of 'WithCounter' is initialized, the counter 'count' is
+incremented and when 'WithCounter' is composed trough multiple inheritance, 
+its '__new__'  method cooperatively invokes the ``__new__`` method 
+of the other components.
+
+For instance, I can use 'WithCounter' to implement a 'Singleton', i.e. 
+a class that can have only one instance. This kind of classes can be
+obtained as follows:
+
+ ::
+
+  #<oopp.py>
+
+  class Singleton(WithCounter):
+      "If you inherit from me, you can only have one instance"
+      def __new__(cls,*args,**kw):
+          if cls.counter==0: #first call
+              cls.instance=super(cls.__this,cls).__new__(cls,*args,**kw)
+          return cls.instance
+
+  reflective(Singleton)
+
+  #</oopp.py>
+
+As an application, I can create a 
+class ``SingleClock`` that inherits from ``Clock`` 
+*and* from ``Singleton``. This means that ``SingleClock`` is both a 
+'Clock' and a 'Singleton', i.e. there can be only a clock:
+
+  >>> from oopp import Clock,Singleton
+  >>> class SingleClock(Clock,Singleton): pass
+  ...
+  >>> clock1=SingleClock()
+  >>> clock2=SingleClock()
+  >>> clock1 is clock2
+  True
+
+Instantiating many clocks is apparently possible (i.e. no error
+message is given) but you always obtain the same instance. This makes
+sense, since there is only one time on the system and a single
+clock is enough.
+
+A variation of the 'Singleton' is a class that generates a new
+instance only when a certain condition is satisfied. Suppose for instance
+one has a 'Disk' class, to be instantiated with the syntax 
+``Disk(xpos,ypos,radius)``.
+It is clear that two disks with the same radius and the same position in
+the cartesian plane, are essentially the same disk (assuming there are no
+additional attributes such as the color). Therefore it is a vaste of memory
+to instantiate two separate objects to describe the same disk. To solve
+this problem, one possibility is to store in a list the calling arguments.
+When it is time to instanciate a new objects with arguments args = xpos,ypos,
+radius, Python should check if a disk with these arguments has already
+been instanciated: in this case that disk should be returned, not a new
+one. This logic can be elegantly implemented in a mix-in class such as the 
+following (compare with the ``withmemory`` wrapper in chapter 2):
+
+ ::
+
+  #<oopp.py>
+
+  class AvoidDuplication(object):
+      def __new__(cls,*args,**kw):
+          return super(cls.__this,cls).__new__(cls,*args,**kw) 
+      __new__=withmemory(__new__) # collects the calls in __new__.result
+
+  reflective(AvoidDuplication)
+
+  #</oopp.py>
+
+Notice that 'AvoidDuplication' is introduced with the only purpose of
+giving its functionality to 'Disk': in order to reach this goal, it is enough 
+to derive 'Disk' from this class and our previously
+introduced 'GeometricFigure' class by writing something like
+
+  >>> from oopp import *
+  >>> class Disk(GeometricFigure,AvoidDuplication): 
+  ...     def __init__(self,xpos,ypos,radius):
+  ...         return super(Disk,self).__init__('(x-x0)**2+(y-y0)**2 <= r**2', 
+  ...                                          x0=xpos,y0=ypos,r=radius)
+
+Now, if we create a disk
+
+  >>> c1=Disk(0,0,10) #creates a disk of radius 10
+
+it is easy enough to check that trying to instantiate a new disk with the
+*same* arguments return the old disk:
+
+  >>> c2=Disk(0,0,10) #returns the *same* old disk
+  >>> c1 is c2
+  True
+
+Here, everything works, because through the 
+cooperative ``super`` mechanism, ``Disk.__init__`` calls 
+``AvoidDuplication.__init__`` that calls ``GeometricFigure.__init__`` 
+that in turns initialize the disk. Inverting the order of
+'AvoidDuplication' and 'GeometricFigure' would case a disaster, since
+``GeometricFigure.__init__`` would override ``AvoidDuplication.__init__``.
+
+Alternatively, one could use the object factory 'Makeobj' implemented in 
+chapter 3:
+  
+  >>> class NonDuplicatedFigure(GeometricFigure,AvoidDuplication): pass
+  >>> makedisk=Makeobj(NonDuplicatedFigure,'(x-x0)**2/4+(y-y0)**2 <= r**2')
+  >>> disk1=makedisk(x0=38,y0=7,r=5)
+  >>> disk2=makedisk(x0=38,y0=7,r=5)
+  >>> disk1 is disk2
+  True
+
+Remark: it is interesting to notice that the previous approach would not work
+for keyword arguments, directly, since dictionary are unhashable.
+
+The pizza-shop example 
+----------------------------------------------------------------
+
+Now it is time to give a non-trivial example of multiple inheritance with
+cooperative and non-cooperative classes. The point is that multiple 
+inheritance can easily leads to complicated hierarchies: where the
+resolution order of methods is far from being obvious and actually
+can give bad surprises.
+
+To explain the issue, let me extend the program for the pizza-shop owner of
+chapter 4, by following the bottom-up approach and using anonymous
+cooperative super calls.
+In this approach, one starts from the simplest thing. 
+It is clear that the pizza-shop owner has interest in recording all the 
+pizzas he sell. 
+To this aim, he needs a class providing logging capabilities: 
+each time a new instance is created, its features are stored in a log file. In
+order to count the total number of instances, 'WithLogger' must derive from
+the 'WithCounter' class. In order to have a nicely printed message,
+'WithLogger' must derive from 'PrettyPrinted'. Finally, 
+since 'WithLogger' must be a general purpose 
+class that I will reuse in other problem as a mixin class, it must be 
+cooperative. 'WithLogger' can be implemented as follows:
+
+ ::
+
+  #<oopp.py>
+
+  class WithLogger(WithCounter,PrettyPrinted):
+      """WithLogger inherits from WithCounter the 'count' class attribute; 
+      moreover it inherits '__str__' from PrettyPrinted"""
+      logfile=sys.stdout #default
+      verboselog=False #default
+      def __init__(self,*args,**kw): 
+          super(self.__this,self).__init__(*args,**kw) # cooperative
+          dic=attributes(self) # non-special attributes dictionary
+          print >> self.logfile,'*'*77
+          print >> self.logfile, time.asctime()
+          print >> self.logfile, "%s. Created %s" % (type(self).counter,self)
+          if self.verboselog:
+              print >> self.logfile,"with accessibile non-special attributes:"
+              if not dic: print >> self.logfile,"<NOTHING>",
+              else: print >> self.logfile, pretty(dic)
+
+  reflective(WithLogger)
+
+  #</oopp.py>
+
+Here I could well use ``super(self.__this,self).__init__(*args,**kw)`` 
+instead of ``super(self.__this,self).__init__(*args,**kw)``, nevertheless 
+the standard ``super`` works in this case and I can use it with better 
+performances.
+Thanks to the power of multiple inheritance, we may give logging features
+to the 'CustomizablePizza' class defined in chapter 4 
+with just one line of code:
+
+  >>> from oopp import *
+  >>> class Pizza(WithLogger,CustomizablePizza):
+  ...     "Notice, WithLogger is before CustomizablePizza"
+  >>> Pizza.With(toppinglist=['tomato'])('small')
+  ****************************************************************************
+  Sat Feb 22 14:54:44 2003
+  1. Created <Pizza>
+  <__main__.Pizza object at 0x816927c>
+
+It is also possible to have a more verbose output:
+
+  >>> Pizza.With(verboselog=True)
+  <class '__main__.Pizza'>
+  >>> Pizza('large')
+  ****************************************************************************
+  Sat Feb 22 14:59:51 2003
+  1. Created <Pizza>
+  with accessibile non-special attributes: 
+  With = <bound method type.customized of <class '__main__.Pizza'>>
+  baseprice = 1
+  count = 2
+  formatstring = %s
+  logfile = <open file '<stdout>', mode 'w' at 0x402c2058>
+  price = <bound method Pizza.price of <__main__.Pizza object at 0x402f6c8c>>
+  size = large
+  sizefactor = {'small': 1, 'large': 3, 'medium': 2}
+  topping_unit_price = 0.5
+  toppinglist = ['tomato']
+  toppings_price = <bound method Pizza.toppings_price of 
+    <__main__.Pizza object at 0x402f6c8c>>
+  verboselog = True
+  with = <bound method Pizza.customized of 
+  <__main__.Pizza object at 0x402f6c8c>>
+  <__main__.Pizza object at 0x401ce7ac>
+
+However, there is a problem here, since the output is '<Pizza>' and
+not the nice 'large pizza with tomato, cost $ 4.5' that we would
+expect from a child of 'CustomizablePizza'. The solution to the
+puzzle is given by the MRO:
+
+  >>> Pizza.mro()
+  [<class '__main__.Pizza'>, <class 'oopp.WithLogger'>, 
+   <class 'oopp.WithCounter'>, <class 'oopp.PrettyPrinted'>,
+   <class 'oopp.CustomizablePizza'>, <class 'oopp.GenericPizza'>, 
+   <class 'oopp.Customizable'>,  <type 'object'>]
+
+The inheritance graph is rather complicated:
+
+ ::
+                                 
+                              object  7
+
+                           /     /   \     \
+                         /      /     \      \
+                       /       /       \       \
+                     /        /         \        \
+                   /         /           \         \
+                 /          /             \          \
+               /           /               \           \
+             /            /                 \            \
+           /             /                   \             \
+    2  WithCounter   PrettyPrinted 3    GenericPizza 5  Customizable 6
+      (__new__)    (__str__,__init__)      (__str__)       /              
+          \            /                       /        /    
+           \          /                       /      /         
+            \        /                       /    /
+             \      /                       /  /
+              \    /            CustomizablePizza  4
+               \  /                      /       
+       1     WithLogger                /
+             (__init__)              /        
+                  \                /
+                   \             /
+                    \          /
+                     \       /
+                      \    /
+  
+                      Pizza  O
+                              
+
+As we see, the precedence in the resolution of methods is far from being 
+trivial. It is denoted in the graph with numbers
+from 0 to 7: first the methods of 'Pizza' (level 0), then the methods of 
+'WithLogger' (level 1), then the methods of 'WithCounter' (level 2),  then 
+the methods of 'PrettyPrinted' (level 3), then the methods of
+'CustomizablePizza' (level 4), then the methods of 'GenericPizza' (level 5),
+then the level of 'Customizable' (level 6), finally the 'object' methods 
+(level 7). 
+
+The reason why the MRO is so, can be understood by studying 
+appendix 1.
+
+We see that the ``__init__`` methods of 'WithLogger' and 
+the ``__new__`` method of 'WithCounter' are cooperative. 
+``WithLogger.__init__`` 
+calls ``WithCounter.__init__`` that is
+inherited from ``CustomizablePizza.__init__`` which is not cooperative, 
+but this is not dangerous since ``CustomizablePizza.__init__`` does not need 
+to call any other ``__init__``. 
+
+However, ``PrettyPrinted.__str__`` and ``GenericPizza.__str__`` are not
+cooperative and since 'PrettyPrinted' precedes 'GenericPizza', the
+``GenericPizza.__str__`` method is overridden, which is bad.
+
+If  ``WithLogger.__init__``  and ``WithCounter.__new__`` were not 
+cooperative, they would therefore badly breaking the program.
+
+The message is: when you inherit from both cooperative and non-cooperative
+classes, put cooperative classes first. The will be fair and will not
+blindly override methods of the non-cooperative classes.
+
+
+With multiple inheritance you can reuse old code a lot,
+however the price to pay, is to have a non-trivial hierarchy. If from
+the beginning we knew that 'Pizza' was needing a 'WithLogger', 
+a 'WithCounter' and the
+ability to be 'Customizable' we could have put everything in an unique
+class. The problem is that in real life one never knows ;) 
+Fortunately, Python dynamism allows to correct design mistakes
+
+Remark: in all text books about inheritance, the authors always stress
+that inheritance should be used as a "is-a" relation, not
+and "has-a" relation. In spite of this fact, I have decided to implement
+the concept of having a logger (or a counter) via a mixin class. One 
+should not blindly believe text books ;)
+
+Fixing wrong hierarchies
+-----------------------------------------------------------------------------
+
+A typical metaprogramming technique, is the run-time modification of classes.
+As I said in a previous chapter, this feature can confuse the programmer and 
+should not be abused (in particular it should not be used as a replacement 
+of inheritance!); nevertheless, there applications where the ability of 
+modifying classes at run time is invaluable: for instance, 
+it can be used to correct design mistakes. 
+
+In this case we would like the ``__str__ method`` of 'PrettyPrinted' to be
+overridden by ``GenericPizza.__str__``. Naively, this can be solved by
+putting 'WithLogger' after 'GenericPizza'. Unfortunately, doing so 
+would cause ``GenericPizza.__init__`` to override ``WithLogger.__init__``,
+therefore by loosing logging capabilitiesr, unless countermeasures
+are taken.
+
+A valid countermeasure could be to replace the non-cooperative
+``GenericPizza.__init__`` with a cooperative one. This can miraculously
+done at run time in few lines of code:
+
+ ::
+
+  #<oopp.py>
+
+  def coop_init(self,size): # cooperative __init__ for GenericPizza
+      self.size=size
+      super(self._GenericPizza__this,self).__init__(size)
+
+  GenericPizza.__init__=coop_init # replace the old __init__
+
+  reflective(GenericPizza) # define GenericPizza.__this
+
+  #</oopp.py>
+
+Notice the usage of the fully qualified private attribute
+``self._GenericPizza__this`` inside ``coop_init``: since this function 
+is defined outside any class, the automatica mangling mechanism cannot 
+work and has to be implemented by hand. Notice also that 
+``super(self._GenericPizza__this,self)`` could be replaced by
+``super(GenericPizza,self)``; however the simpler approach is
+less safe against possible future manipulations of the hierarchy. 
+Suppose, for example, we want to create a copy of the hierarchy
+with the same name but slightly different features (actually,
+in chapter 8 we will implement a traced copy of the pizza hierarchy, 
+useful for debugging purposes): then, using ``super(GenericPizza,self)``
+would raise an error, since self would be an instance of the traced
+hierarchy and ``GenericPizza``  the original nontraced class. Using
+the form ``super(self._GenericPizza__this,self)`` and making 
+``self._GenericPizza__this`` pointing to the traced 'GenericPizza'
+class (actually this will happen automatically) the problems goes
+away.
+
+Now everything works if 'WithLogger' is put after 'CustomizablePizza'
+
+  >>> from oopp import *
+  >>> class PizzaWithLog(CustomizablePizza,WithLogger): pass 
+  >>> PizzaWithLog.With(toppinglist=['tomato'])('large')
+  ****************************************************************************
+  Sun Apr 13 16:19:12 2003
+  1. Created large pizza with tomato, cost $ 4.5
+  <class '__main__.PizzaWithLog'>
+
+The log correctly  says ``Created large pizza with tomato, cost $ 4.5`` and not
+``Created <Pizza>`` as before since now ``GenericPizza.__str__``
+overrides ``PrettyPrinted.__str__``. Moreover, the hierarchy is logically
+better organized:
+
+  >>> PizzaWithLog.mro()
+  [<class '__main__.PizzaWithLog'>, <class 'oopp.CustomizablePizza'>, 
+  <class 'oopp.GenericPizza'>,  <class 'oopp.Customizable'>, 
+  <class 'oopp.WithLogger'>, <class 'oopp.WithCounter'>, 
+  <class 'oopp.PrettyPrinted'>, <type 'object'>]
+
+I leave as an exercise for the reader to make the ``__str__`` methods
+cooperative ;)
+ 
+Obviously, in this example it would have been better to correct the
+original hierarchy, by leaving 'Beautiful' instantiable from the beginning
+(that's why I said the 'Beautiful' is an example of wrong mix-in class): 
+nevertheless, sometimes, one has do to with wrong hierarchies written by 
+others, and it can be a pain to fix them, both directly by modifying the 
+original source code, and indirectly
+by inheritance, since one must change all the names, in order to distinghish
+the original classes from the fixed ones. In those cases Python
+dynamism can save your life. This also allows you enhance original
+classes which are not wrong, but that simply don't do something you want
+to implement.
+
+Modifying classes at run-time can be trivial, as in the examples I have
+shown here, but can also be rather tricky, as in this example
+
+  >>> from oopp import PrettyPrinted
+  >>> class PrettyPrintedWouldBe(object): __str__ = PrettyPrinted.__str__
+  >>> print PrettyPrintedWouldBe() #error
+  Traceback (most recent call last):
+   File "<stdin>", line 1, in ?
+  TypeError: unbound method __str__() must be called with PrettyPrinted 
+  instance as first argument (got nothing instead)
+
+As the error message says, the problem here, is that the 
+``PrettyPrinted.__str__`` unbound method, has not received any argument. 
+This is because in this
+form ``PrettyPrintedWouldBe.__str__`` has been defined as an attribute, 
+not as a real method. The solution is to write
+
+  >>> class PrettyPrintedWouldBe(object): 
+  ...     __str__ = PrettyPrinted.__dict__['__str__']
+  ...
+  >>> print PrettyPrintedWouldBe() # now it works
+  <PrettyPrintedWouldBe>
+
+This kind of run-time modifications does not work when private variables
+are involved:
+
+ ::
+
+  #<changewithprivate.py>
+
+  class C(object):
+      __x='C.__init__'
+      def __init__(self): 
+          print self.__x # okay
+
+  class D(object):
+      __x='D.__init__'
+      __init__=C.__dict__['__init__'] # error
+
+  class New:
+      class C(object):
+          __x='New.C.__init__'
+          __init__=C.__dict__['__init__'] # okay
+
+  C()
+  try: D()
+  except AttributeError,e: print e
+
+  #</changewithprivate.py>
+
+Gives as result
+
+ ::
+
+  C.__init__
+  'D' object has no attribute '_C__x'
+  New.C.__init__
+
+The problem is that when ``C.__dict__['__init__']`` is compiled 
+(to byte-code) ``self.__x`` is expanded to ``self._C__x``. However,
+when one invokes ``D.__init__``, a D-object is passed, which has
+a ``self._D__x`` attribute, but not a ``self._C__x`` attribute (unless
+'D' is a subclass of 'C'. Fortunately, Python wisdom
+
+  *Namespaces are one honking great idea -- let's do more of those!*
+
+suggests the right solution: to use a new class with the *same name*
+of the old one, but in a different namespace, in order to avoid
+confusion. The simplest way to generate a new namespace is to
+declare a new class (the class 'New' in this example): then 'New.C'
+becomes an inner class of 'New'. Since it has the same name of the
+original class, private variables are correctly expanded and one
+can freely exchange methods from 'C' to 'New.C' (and viceversa, too).
+
+Modifying hierarchies
+-------------------------------------------------------------------------
+
+ ::
+
+  def mod(cls): return cls
+
+  class New: pass
+
+  for c in HomoSapiensSapiens.__mro__:
+      setattr(New,c.__name__,mod(c))
+
+Inspecting Python code
+-------------------------------------------------------------------------
+
+how to inspect a class, by retrieving useful informations about its
+information.
+
+A first possibility is to use the standard ``help`` function.
+The problem of this approach is that ``help`` gives too much 
+information.
+
+ ::
+
+  #<oopp.py>
+
+  #plaindata=
+  plainmethod=lambda m:m #identity function
+
+  class Get(object):
+      """Invoked as Get(cls)(xxx) where xxx = staticmethod, classmethod,
+      property, plainmethod, plaindata, returns the corresponding 
+      attributes as a keyword dictionary. It works by internally calling 
+      the routine inspect.classify_class_attrs. Notice that special data
+      attributes are not retrieved (this is by design)."""
+      def __init__(self,cls):
+          self.staticmethods=kwdict()
+          self.classmethods=kwdict()
+          self.properties=kwdict()
+          self.methods=kwdict()
+          self.data=kwdict()
+          for name, kind, klass, attr in inspect.classify_class_attrs(cls):
+              if kind=='static method':
+                  self.staticmethods[name]=attr
+              elif kind=='class method':
+                  self.classmethods[name]=attr
+              elif kind=='property':
+                  self.properties[name]=attr
+              elif kind=='method':
+                  self.methods[name]=attr
+              elif kind=='data':
+                 if not special(name): self.data[name]=attr
+      def __call__(self,descr): #could be done with a dict
+          if descr==staticmethod: return self.staticmethods 
+          elif descr==classmethod: return self.classmethods
+          elif descr==property: return self.properties 
+          elif descr==plainmethod: return self.methods
+          elif descr==plaindata: return self.data
+          else: raise SystemExit("Invalid descriptor")
+
+  #</oopp.py>
+
+With similar tricks one can automatically recognize cooperative methods:
+#it is different, (better NOT to use descriptors)
+
+ ::
+
+  #<oopp.py>
+  
+  #class Cooperative(Class):
+  #    __metaclass__ = WithWrappingCapabilities
+  #
+  #    def cooperative(method):
+  #         """Calls both the superclass method and the class
+  #         method (if the class has an explicit method). 
+  #         Works for methods returning None."""
+  #         name,cls=Cooperative.parameters # fixed by the meta-metaclass
+  #         def _(*args,**kw):
+  #            getattr(super(cls,args[0]),name)(*args[1:],**kw) 
+  #            if method: method(*args,**kw) # call it
+  #         return _
+  #    
+  #    cooperative=staticmethod(cooperative)
+
+  
+  #</oopp.py>
+
+ ::
+
+  #<oopp.py>
+
+  def wrapH(cls):
+      for c in cls.__mro__[:-2]:
+          tracer.namespace=c.__name__
+          new=vars(c).get('__new__',None)
+          if new: c.__new__=tracedmethod(new)
+
+  #</oopp.py>
+

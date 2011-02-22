@@ -1,0 +1,37 @@
+Design Patterns, Idioms, and Other Wonders of Today's Python
+presented by Alex Martelli and Anna Ravenscroft
+
+The Second Edition of the Python Cookbook is out -- just
+in time for the ACCU conference! Of course, we couldn't fit in the
+book all the in-depth analysis and explanations we'd have liked
+to. So, for this seminar, we picked some of our favourite stuff from
+the book, and beefed it up with a thorough grounding in the relevant
+language mechanisms, examples big and small, and related materials. We
+explore in depth a variety of design choices that today's Python makes
+available to you.
+
+Learn about Design Patterns and other Object-Oriented idioms and
+mechanisms. Python is a multi-paradigm language, but OOP is its core
+paradigm. Understand the pros and cons of your alternatives: When
+should you use closures, rather than callable instances? When is
+inheritance OK, and when is it better to hold-and-delegate? What
+classical Design Patterns are built-in to Python, and which others are
+appropriate to consider, when?
+
+Iterators and Generators underlie Python's new approach to looping --
+it's not your grandparents' loop any more! Learn how to encapsulate
+the underlying logic of your control structures and make it
+reusable. See how itertools can turn the "abstraction penalty" typical
+of other languages into an abstraction _bonus_, making your code
+faster at the same time as more abstract and general.
+
+Descriptors and Metaclasses are the underpinnings of today's Python's
+OOP -- Python exposes them and lets you customize them for your own
+purposes. Add Decorators, the new syntax just introduced in Python 2.4
+(a systematic application of a crucial use case for higher-order
+functions), and you'll see why the working title of that chapter was
+"Black Magic"... Learn important use cases for each of these advanced
+mechanisms.
+
+Prerequisites: you need a solid grasp of Python fundamentals to start
+with. Course objectives: you'll walk out of this a Python wizard!

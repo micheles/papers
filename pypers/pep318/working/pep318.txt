@@ -1,0 +1,1048 @@
+Implementing PEP 318 (decorators)
+======================================================================
+
+.. contents::
+
+Having plenty of free time in these days, I have finished an old 
+project of mine, the implementation of PEP 318 in pure Python.
+ 
+Here is the rationale:
+
+* some kind of decorator syntax is scheduled to go in Python 2.4,
+  therefore it is interesting to play with the concept;
+
+* it is nice to play with decorators now, without having to
+  wait for one year or so;
+
+* it is much easier to experiment with the pure Python implementation;
+
+* the implementation can be seen as an exercise on modern Python
+  programming and may be valuable to people wanting to study the most
+  advanced new constructs in Python 2.2 (descriptors, metaclasses, 
+  cooperative methods, etc.)
+    
+Basics
+--------------------------------------------------------------------
+
+As people in this list most probably know, PEP 318 has the goal 
+of providing a nice syntactic sugar for expressions like
+
+ ::
+
+  def identity(x):
+      return x
+  identity=staticmethod(identity)
+
+or
+
+ ::
+
+  def nameof(cls):
+     return cls.__name__
+  nameof=classmethod(nameof)
+
+which are pretty verbose. It is clear that having new syntax (as 
+for instance the proposed square bracket notation)
+
+ ::
+
+  def identity(x)[staticmethod]:
+      return x
+
+  def nameof(cls)[classmethod]:
+      return cls.__name__
+
+involves changing the grammar and modifying the interpreter at the
+C level. However, it is possible to have the same effect without
+changing the Python grammar. The idea is to use magic docstrings
+like this:
+
+ ::
+
+  def identity(x):
+      "[staticmethod]"
+      return x
+
+  def nameof(cls):
+      "[classmethod]"
+      return cls.__name__
+
+The implementation is able to recognize such docstrings
+and to automagically convert the functions in (method) decorators. 
+
+Method decorators are nothing else than a sophisticated kind of wrappers.
+``staticmethod`` and ``classmethod`` are two examples of already existing
+decorators (actually my implementation rewrites them, but let me pass on
+this detail). Technically speaking, method decorators are classes 
+taking a single function as input and producing a descriptor object 
+as output (properties are not decorators according to this definition, 
+since they take four functions as input, ``get, set, del_`` and ``doc``). 
+Descriptors_ are objects with a ``__get__`` method; they are quite 
+sophisticated, but fortunately they have been wonderfully explained by 
+Raymond Hettinger already, so  I am allowed to skip this point ;). A knowledge
+of descriptors is not needed in order to use the ``decorator`` module;
+however it is welcomed for advanced users wanting to implement
+custom decorators.
+
+Simple usage of decorators
+------------------------------------------------------------------------
+
+Before talking about the implementation details, I will show
+how the ``decorators`` module works in practice. The simplest and
+safest usage is by means of the functions ``decorators.decorate`` 
+and ``decorators.decorated``:
+
+1. ``decorators.decorated(obj)`` takes an object and checks its docstring; 
+   if a magic docstring is found, it returns a decorated version of the 
+   object, otherwise it returns ``None``;
+
+2. ``decorators.decorate(obj)`` takes a dictionary or an object with a 
+   ``.__dict__`` attribute and returns ``None``. It works by
+   invoking ``decorators.decorated`` on the elements of the dictionary 
+   and by modifying them if needed.
+
+Here is an example:
+
+ ::
+
+  #<example1.py>
+
+  "How to use ``decorators.decorate`` and ``decorators.decorated``"
+
+  import decorators
+
+  def do_nothing(self):
+     "No magic docstring here"
+
+  def identity(x):
+      "[staticmethod]" # magic docstring here
+      return x
+ 
+  def nameof(cls):
+      "[classmethod]" # magic docstring here too
+      return cls.__name__
+
+  dic={'nameof': nameof, 'do_nothing': do_nothing}
+  decorators.decorate(dic) # converts nameof -> classmethod
+
+  C=type('C',(),dic) # creates the class with the modified dictionary
+  C.identity=decorators.decorated(identity) # converts identity -> staticmethod
+  c=C() # creates the instance
+
+  #</example1.py>
+
+and here is the testing:
+
+>>> from example1 import C,c
+>>> assert c.do_nothing() is None
+>>> assert C.identity(1) == 1
+>>> assert C.nameof() == 'C'
+>>> assert c.identity(1) == 1 
+>>> assert c.nameof() == 'C' 
+
+One can even pass the ``globals()`` dictionary since objects without 
+a magic docstring are simply ignored. Therefore the previous example
+can be rewritten as 
+
+ ::
+
+  #<example2.py>
+
+  import decorators
+
+  def do_nothing(self):
+     "No magic docstring here"
+
+  def identity(x):
+      "[staticmethod]"
+      return x
+
+  def nameof(cls):
+      "[classmethod]"
+      return cls.__name__
+
+  decorators.decorate(globals()) # decorates the functions
+
+  class C(object):
+     identity=identity
+     nameof=nameof
+     do_nothing=do_nothing
+
+  c=C() 
+
+  #</example2.py>
+
+Here is the testing:
+
+>>> from example2 import c,C
+>>> assert c.do_nothing() is None
+>>> assert C.identity(1) == 1
+>>> assert C.nameof() == 'C'
+>>> assert c.identity(1) == 1 
+>>> assert c.nameof() == 'C' 
+
+Notice that the call to ``decorators.decorate(globals())`` must be done 
+*after* the function definitions, otherwise the functions would 
+not converted, since they were not in the global dictionary at the 
+time of the call. Moreover, one should not try to pass the ``locals()`` 
+dictionary, since it will not work when ``locals() != globals()``.
+
+Alternatively, one can just decorate the class:
+
+ ::
+
+  #<example3.py>
+
+  import decorators
+
+  def identity(x):
+      "[staticmethod]"
+      return x
+
+  def nameof(cls):
+      "[classmethod]"
+      return cls.__name__
+
+  class C:
+     identity=identity
+     nameof=nameof
+
+  decorators.decorate(C)
+
+  c=C() 
+
+  # testing
+  assert C.identity(1) == 1
+  assert C.nameof() == 'C'
+  assert c.identity(1) == 1 
+  assert c.nameof() == 'C' 
+
+  #</example3.py>
+
+This example also shows that decorators work both for `new style classes
+and old style classes`_:
+
+>>> from example3 import *
+>>> type(C) # C is an old style class
+<type 'classobj'>
+
+At this point the difference between ``decorators.decorate`` and 
+``decorators.decorated`` should be pointed out. The first syntax
+modifies the class dictionary, whereas the second creates a new
+class with the same name of the first one:
+
+>>> class D:
+...     identity=identity
+>>> decorators.decorated(D)
+<class 'D'>
+>>> D.identity(1) # this is the old D
+Traceback (most recent call last):
+  ...
+TypeError: unbound method identity() must be called with D instance as first argument (got int instance instead)
+
+Therefore one has to redefine to old class in order the statement to
+have effect:
+
+
+>>> D=decorators.decorated(D)
+>>> D.identity(1) # this is the new D
+1
+
+Adding a bit of magic
+----------------------------------------------------------------------
+
+It would be nice to have classes with the ability of automatically 
+converting their methods to method decorators according to the docstrings. 
+This sounds a bit of magic, but actually can be done very simply by adding 
+to the class a docstring starting with "[Decorated]". 
+Here is an example:
+
+ ::
+
+  #<example.py>
+
+  import decorators
+
+  class C: # works for old style classes too
+      "[Decorated]"
+      def identity(x):
+          "[staticmethod]"
+          return x
+
+  decorators.decorate(globals())
+
+  c=C()
+
+  # test
+  assert C.identity(1) == 1
+  assert c.identity(1) == 1 
+
+  #</example.py>
+
+Under the hood, the magic docstring "[Decorated]" creates an instance of the 
+``decorators.Decorated`` metaclass and replace the original class ``C``
+in the global namespace with the new class ``C``; incidentally, 
+this converts ``C`` in a new style class: 
+
+>>> from example import C
+>>> type(C)
+<class 'decorators.Decorated'>
+
+On the other hand using ``decorators.decorate(C)`` would decorate ``C``, but
+without re-creating it as an instance of "[Decorated]". One can also 
+forget the docstring in subclasses of decorated classes:
+
+>>> class D(C):
+...     def nameof(cls):
+...          "[classmethod]"
+...          return cls.__name__
+>>> print D.nameof()
+D
+
+The trick works for classes containing inner classes, too:
+
+ ::
+
+  #<example4.py>
+
+  import decorators
+
+  class C:
+      "[Decorated]" # required docstring 
+      def identity(x):
+          "[staticmethod]"
+          return x
+      class Inner:
+          "[Decorated]" # required docstring   
+          def nameof(cls):
+              "[classmethod]"
+              return cls.__name__
+
+  decorators.decorate(globals())
+
+  assert C.identity(1) == 1
+  assert C.Inner.nameof() == 'Inner'
+
+  #</example4.py>
+
+
+Adding more magic
+----------------------------------------------------------------------------
+
+There is a neat trick to simplify the usage of decorators: decorating the
+``object`` class. Then all methods in all new style classes of your module 
+will be checked for magic docstrings and automagically decorated if needed. 
+This can be done by simply writing 
+
+ ::
+
+  import decorators
+  object=decorators.decorated(object)
+
+on top of your module. Here is an example:
+
+ ::
+
+  #<example.py>
+
+  import inspect, decorators
+  object=decorators.decorated(object)
+
+  def identity(x): 
+      "[staticmethod] defined outside a class"
+      return x
+
+  assert inspect.isfunction(identity) # not yet a decorator
+
+  class C1(object):
+     def nameof(cls):
+          "[classmethod] defined inside a class"
+          return cls.__name__
+     identity=identity # automagically converted to a decorator
+
+  c1=C1() # C1 instance
+
+  # testing
+
+  assert C1.identity(1) == 1
+  assert C1.nameof() == 'C1'
+  assert c1.identity(1) == 1 
+  assert c1.nameof() == 'C1' 
+
+  #</example.py>
+
+Notice that adding ``identity`` after the class creation with the syntax 
+``C.identity=identity`` would not work. Moreover, the magic only works 
+for new style classes, since the implementation operates 
+by enhancing the ``object`` class in the calling module. 
+The enhancement includes providing a new default printing representation
+for instances:
+
+>>> from example import c1
+>>> print c1
+<instance of C1>
+
+
+The ``decorated(object)`` trick (and the "[Decorated]" syntax too)
+is not 100% safe, because of possible metaclass conflicts:
+
+>>> import decorators; object=decorators.decorated(object)
+>>> class M(type): pass
+...
+>>> class D(object):
+...     __metaclass__=M
+Traceback (most recent call last):
+  ...
+TypeError: metaclass conflict: the metaclass of a derived class must be a (non-strict) subclass of the metaclasses of all its bases
+
+The decorators module imports the ``makecls`` function from my
+``noconflict`` module just to avoid this kind of problems:
+
+>>> class D(object):
+...     __metaclass__=decorators.makecls(M)
+>>> type(D)
+<class 'noconflict._DecoratedM'>
+
+It is possible to go even deeper in black magic, and to decorate all 
+the new style classes in *all* modules, by decorating ``__builtin__.object``:
+
+ ::
+
+  import decorators,__builtin__
+  __builtin.object=decorators.decorated(object)
+
+Still, redefining ``__builtin__object`` is not recommended since it 
+may induce metaclass conflicts in other modules using metaclasses. 
+It will work only if you import modules not using metaclasses, or 
+modules using metaclasses safely, i.e. modules taking care of 
+possible conflicts by using the ``makecls`` function or an equivalent one.
+
+Defining method decorators
+-----------------------------------------------------------------------
+
+The decorators module contains two predefinite method decorators, 
+``staticmethod`` and ``classmethod``, which emulate the built-ins 
+with the same names. However, it is possible to write your own
+custom decorators. The ``decorators`` module provides a 
+``MethodDecorator`` class which is here exactly for that purpose.
+
+Custom decorators are expected to be implemented by subclassing
+``MethodDecorator`` and by overriding its ``get`` method, which 
+automagically induces a ``__get__`` method, turning the class 
+in a descriptor. This 
+machinery is needed since ``__get__`` cannot be made cooperative
+using  the standard ``super`` mechanism (there would be a confusion
+between ``super.__get__`` and the decorator ``__get__``). This is a bit
+tricky, but the causal programmer is not expected to write custom
+decorators, and actually I don't want to make the access to decorators 
+*too* easy
+
+For instance, let me show the implementation of a ``chattymethod``
+that prints a message when it is called:
+
+ ::
+
+  #<customdec.py>
+
+  from decorators import *  
+
+  class chattymethod(MethodDecorator):
+      logfile=file('file1.log','w')
+      def get(self,obj,cls=None): # same signature as __get__
+          print >> self.logfile,'calling %s from %s' % (self,obj or cls)
+          return super(chattymethod,self).get(obj,cls)
+
+  #</customdec.py>
+
+Notice the usage of the ``super().get`` trick. This guarantees that 
+``chattymethod`` will play well with other decorators (i.e. it
+can be nicely composed via multiple inheritance)
+
+Here is an example of usage 
+
+ ::
+
+  #<chatty.py>
+
+  from customdec import decorated,chattymethod
+  object=decorated(object)
+
+  class C(object):
+      def f():
+          "[chattymethod,staticmethod]"
+
+  c=C()
+
+  c.f()
+  C.f()
+
+  #</chatty.py>
+
+The content of the logfile is then
+
+ ::
+
+  calling <chattymethodstaticmethod:f> from <instance of C>
+  calling <chattymethodstaticmethod:f> from <class C[Decorated]>
+
+From this output we see how the "[chattymethod,staticmethod]"
+magic docstring is responsible for the creation of a new decorator class
+``chattymethodstaticmethod``, obtained via multiple inheritance from
+``chattymethod`` and ``staticmethod`` respectively. 
+
+One can easily change the logfile, if need there is
+
+ ::
+
+  #<chatty.py>
+
+  chattymethod.logfile=file('file2.log','w')
+  
+  def g(): 
+      "[chattymethod,staticmethod]"
+
+  C.g=decorated(g)
+  C.g # message written in file2.log
+  C.f # message written in file2.log
+
+  #</chatty.py>
+
+Now ``file2.log`` will contains the messages
+
+ ::
+
+  calling <chattymethodstaticmethod:g> from <class C[Decorated]>
+  calling <chattymethodstaticmethod:f> from <class C[Decorated]>
+
+This approach has the drawback that chattymethods created before changing 
+the logfile will also print to the new logfile, if invoked after the
+change. This can be avoided by converting ``logfile`` from a class variable
+to an instance variable in the ``__init__`` method:
+
+ ::
+
+  #<chatty2.py>
+
+  import sys
+  from chatty import *
+
+  class chattymethod2(chattymethod):
+      def __init__(self,func):
+          super(chattymethod2,self).__init__(func)
+          self.logfile=self.logfile # class variable becomes instance variable
+
+  class C(object):
+      chattymethod2.logfile=sys.stdout
+      f=chattymethod2(lambda self:None) 
+      chattymethod2.logfile=file('file3.log','w')
+      g=chattymethod2(lambda self:None) 
+
+  c=C()
+
+  #</chatty2.py>
+
+Notice that the ``__init__`` method should have the signature
+``__init__(self,func)``, where ``func`` is the function to be
+converted in the decorator object. Here is the testing:
+
+>>> from chatty2 import c
+>>> c.f()
+calling <chattymethod2:<lambda>> from <instance of C>
+>>> c.g() # message written in file3.log
+>>> c.f() # message written in stdout, not in file3.log!
+calling <chattymethod2:<lambda>> from <instance of C>
+
+Tracing methods
+--------------------------------------------------------------------------
+
+In order to show a non-trivial example, I will show how
+decorators can be used to implement traced methods. 
+Here is the code (notice: the lazy reader can safely skip the 
+implementation details and go directly to the usage section ;)
+
+ ::
+
+  #<customdec.py>
+
+  class tracedmethod(MethodDecorator):
+    "Descriptor class, converts a method in a traced method"
+    indent=0; output=sys.stdout # defaults
+    def __init__(self,func):
+        super(tracedmethod,self).__init__(func)
+        self.funcname=self.func.__name__
+    def get(self,obj,cls): 
+        if obj is None: name=self.inside.__name__ # called from class
+        else: name='<%s>' % self.inside.__name__ # from instance
+        methodwrapper=super(tracedmethod,self).get(obj,cls)
+        def _(*args,**kw):
+            i=' '*self.indent # default indentation
+            self.__class__.indent+=4 # increases indentation
+            self.output.write("%sCalling '%s.%s' with arguments " % 
+                              (i,name,self.funcname))
+            self.output.write("%s ...\n" % (str(args)+str(kw)))
+            res=methodwrapper(*args,**kw)
+            self.output.write("%s'%s.%s' called with result: %s\n"
+                              % (i,name,self.funcname,res))
+            self.__class__.indent-=4 # restores default indentation
+            return res
+        return _
+
+  #</customdec.py>
+
+As soon as the ``tracedmethod`` module is loaded, the ``tracedmethod`` class
+is added to the list of know decorators, so one should use the  "[tracedmethod]"
+docstring instead and not "[tracedmethod.tracedmethod]".
+
+``tracedmethod`` which is quite useful during 
+debugging. Here is an example of usage, in tracing the internal working
+of a recursive function:
+
+ ::
+
+  #<example4.py>
+
+  import decorators,customdec
+
+  class C(object):
+      def fact(self,n):
+          "[tracedmethod]"
+          if n==0: return 1
+          else: return n*self.fact(n-1)
+
+  decorators.decorate(C)
+
+  c=C()
+
+  #</example4.py>
+
+>>> from example4 import c
+>>> c.fact(2)
+Calling '<C>.fact' with arguments (2,){} ...
+    Calling '<C>.fact' with arguments (1,){} ...
+        Calling '<C>.fact' with arguments (0,){} ...
+        '<C>.fact' called with result: 1
+    '<C>.fact' called with result: 1
+'<C>.fact' called with result: 2
+2
+
+An alternative spelling, not involving magic docstrings, nor the
+decorators module, is the following:
+
+ ::
+
+  #<example5.py>
+
+  from customdec import tracedmethod
+
+  class C(object):
+      def fact(self,n):
+          if n==0: return 1
+          else: return n*self.fact(n-1)
+      fact=tracedmethod(fact)
+
+  c=C()
+
+  #</example5.py>
+
+>>> from example5 import c
+>>> c.fact(2)
+Calling '<?>.fact' with arguments (2,){} ...
+    Calling '<?>.fact' with arguments (1,){} ...
+        Calling '<?>.fact' with arguments (0,){} ...
+        '<?>.fact' called with result: 1
+    '<?>.fact' called with result: 1
+'<?>.fact' called with result: 2
+2
+
+Notice that in this second syntax ``fact`` does not know where it 
+is defined; however the containing class can be explicitly set:
+
+  ``C.__dict__['fact'].inside=C``
+
+The ``inside`` attribute is automagically set if the docstring syntax 
+is used.
+
+Here is how to trace cooperative methods in complicate hierarchies
+(which is useful for debugging):
+
+ ::
+
+  #<tracing.py>
+
+  import decorators,customdec
+  object=decorators.decorated(object)
+   
+  class B(object): 
+      def __init__(self):
+          "[tracedmethod]"
+          super(B,self).__init__()
+  
+  class D(object): 
+      def __init__(self):
+          "[tracedmethod]"
+          super(D,self).__init__()
+  
+  class E(B,D):
+      def __init__(self):
+          "[tracedmethod]"
+          super(E,self).__init__()
+
+   #</tracing.py>
+
+>>> from tracing import E
+>>> e=E()
+Calling '<E>.__init__' with arguments (){} ...
+    Calling '<B>.__init__' with arguments (){} ...
+        Calling '<D>.__init__' with arguments (){} ...
+        '<D>.__init__' called with result: None
+    '<B>.__init__' called with result: None
+'<E>.__init__' called with result: None
+
+In this example decorating ``object`` is the easiest way to go.
+
+Composition of decorators
+--------------------------------------------------------------------
+
+Decorators can be composed: for instance, you can trace a
+classmethod as in this example:
+
+ ::
+
+  #<example6.py>
+
+  import customdec
+  from decorators import decorated
+  object=decorated(object)
+
+  class C(object):
+      def fact(cls,n):
+          "[tracedmethod,classmethod]"
+          if n==0: return 1
+          else: return n*cls.fact(n-1)
+  
+  #</example6.py>
+
+>>> from example6 import C
+>>> C.fact(2)
+Calling 'C.fact' with arguments (2,){} ...
+    Calling 'C.fact' with arguments (1,){} ...
+        Calling 'C.fact' with arguments (0,){} ...
+        'C.fact' called with result: 1
+    'C.fact' called with result: 1
+'C.fact' called with result: 2
+2
+
+Under the hood the syntax
+
+ ::
+
+  [tracedmethod,classmethod]
+
+generates a ``tracedmethodclassmethod`` class obtained via
+multiple inheritance:
+
+>>> for c in type(C.__dict__['fact']).__mro__: print c
+...
+<class 'noconflict.tracedmethodclassmethod'>
+<class 'customdec.tracedmethod'>
+<class 'decorators.classmethod'>
+<class 'decorators.MethodDecorator'>
+<class 'decorators.Decorator'>
+<type 'object'>
+
+In this case the order does not matter and using the docstring 
+"[classmethod,tracedmethod]" would work too, but
+in general one must pay attention to precedence issues. 
+For instance the following will not work:
+
+>>> class C(object):
+...    def fact(n):
+...        "[staticmethod,tracedmethod]"
+...        if n==0: return 1
+...        else: return n*C.fact(n-1)
+>>> C.fact(2)
+Traceback (most recent call last):
+  ...
+AttributeError: 'function' object has no attribute 'im_func'
+
+The problem here is that ``staticmethod.get`` invokes ``tracedmethod.get``
+which  returns a function and not a method-wrapper with an ``im_func`` method.
+On the other hand, composing the decorators in the other order
+"[tracedmethod,staticmethod]" will work just fine.
+
+Class decorators
+-----------------------------------------------------------------------
+
+PEP 318 proposes to decorate methods by using descriptors; it is
+quite natural to extend this idea and to decorate classes by using 
+class decorators implemented as metaclasses. We already saw a
+class decorator at work, the metaclass ``Decorated``, giving
+to its instances the ability to interpret magic docstrings,
+and converting functions in method decorators.
+
+To define a custom class decorator is easy: one defines a custom metaclasses 
+as usual, with the only difference from deriving by ``ClassDecorator`` instead
+of deriving from ``type``. To understand how this works in practice, let me 
+show how to add logging capabilities to a given class. The first
+step is to define a suitable class decorator, such as the following:
+
+ ::
+
+  #<customdec.py>
+
+  class Logged(ClassDecorator):
+      def __init__(cls,name,bases,dic):
+          super(Logged,cls).__init__(name,bases,dic)
+          print "%s created" % cls
+
+  #</customdec.py>
+
+``Logged`` is derived by the metaclass ``ClassDecorator``, 
+which provides a certain amount of magic under the hood (in particular
+its printing representation and its calling syntax are redefined by its
+metaclass ``MetaDecorator``). Logging capabilities can be added to a class 
+by simply using the magic docstring syntax:
+
+>>> from customdec import Logged
+>>> object=decorators.decorated(object)
+>>> class D(object):
+...     "[Logged]"
+<class D[_DecoratedLogged]> created
+
+Notice that ``D`` inherits the ``Decorated`` metaclass from ``object``
+and the ``Logged`` metaclass from the docstring; the conflict is
+automagically avoid by the miracolous creation of a ``_DecoratedLogged``
+metaclass, obtained via multiple inheritance from ``Decorated`` and
+``Logged``. All the magic is performed in the ``noconflict`` module,
+discussed in a cookbook_ recipe of mine.
+
+Notice that the printing representation of ``D`` involves the name
+of ``D`` preceded by the name of its metaclass, which in this case
+is ``_DecoratedLogged``
+
+Each time an instance of ``Logged`` is created, a similar message is printed:
+
+>>> class E(D):
+...     pass
+<class E[_DecoratedLogged]> created
+
+Notice that ``E`` does not have any magic docstring
+
+>>> E.__doc__ # no docstring
+
+but still it inherits its magic from ``D``.
+
+The ``decorators`` module provides the already saw class decorator 
+``Decorated``, which converts methods in method decorators.
+
+Another example is 
+
+ ::
+
+  #<customdec.py>
+
+  from types import FunctionType  
+
+  class Traced(ClassDecorator):
+      def __init__(cls,n,b,d):
+          for name,func in d.iteritems():
+              if isinstance(func,FunctionType):
+                  func.__doc__="[tracedmethod] " + (func.__doc__ or '')
+          super(Traced,cls).__init__(n,b,d)
+
+
+  #</customdec.py>
+
+Here is an example of usage:
+
+>>> from customdec import *
+>>> object=decorated(object)
+>>> class C(object):
+...     """[Traced] The class decorator adds the magic docstring
+...     '[tracedmethod]' to f1 and f2, which are then converted 
+...     to method decorator objects."""
+...     def f1(self): pass
+...     def f2(self): pass
+...
+>>> c=C()
+>>> c.f1()
+Calling '<C>.f1' with arguments (){} ...
+'<C>.f1' called with result: None
+>>> c.f2()
+Calling '<C>.f2' with arguments (){} ...
+'<C>.f2' called with result: None
+
+Module decorators
+-----------------------------------------------------------------------
+
+Finally, one can decorate entire modules through the concept of 
+*module decorators*. Module decorators have the ability of decorating
+modules by changing their dictionary. Custom module decorators 
+should be derived from the class ``decorators.ModuleDecorator``, by 
+cooperatively overriding its ``__init__(self,mod)`` method. Writing
+a module decorator is a bit tricky, but I do expect only
+expert programmers to play this kind of game. 
+For instance, suppose one wants to trace all the functions in a module,
+unless they have the docstring "-untraced-" . This can be done with a 
+suitable module decorator which modifies the module dictionary.  
+Here is an example
+
+ ::
+
+  #<customdec.py>
+  
+  from decorators import *
+
+  class TraceFunctions(ModuleDecorator):
+      def __init__(self,mod):
+          super(TraceFunctions,self).__init__(mod)
+          for name,func in self.__dict__.items():
+              if inspect.isfunction(func):
+                  doc=func.__doc__ or ''
+                  if doc.startswith('-untraced-'):
+                      pass # do nothing
+                  else:
+                      def tracedfunc(func=func): # default argument trick
+                          def _(*args,**kw):
+                              print 'called',func.__name__
+                              return func(*args,**kw)
+                          return _ 
+                      setattr(self,name,tracedfunc())
+
+  #</customdec.py>
+
+Let me test that the module decorator does its job. Consider the module
+
+ ::
+
+  #<mod.py>
+
+  #"[TraceFunctions]"
+
+  def f1(): pass
+ 
+  def f2(): pass
+
+  def f3(): "-untraced-"
+
+  #</mod.py>
+
+By importing this module, only the functions ``f1`` and ``f2`` should
+be traced. This is indeed the case:
+
+>>> from customdec import TraceFunctions
+>>> mod=TraceFunctions('mod',{})
+>>> mod.f1()
+called f1
+>>> mod.f2()
+called f2
+>>> mod.f3() # does nothing, correct
+
+ ::
+
+  #<module.py>
+
+  "Magically decorated module"
+  
+  import decorators,sys
+
+  thismodule=sys.modules[__name__]
+
+  class MyClass: "[Decorated]"
+
+  newmod=decorators.decorated(thismodule)
+
+  #</module.py>
+
+>>> from module import *
+>>> assert isinstance(newmod.MyClass, decorators.Decorated)
+>>> assert isinstance(newmod,decorators.DecoratedModule)
+  
+The implementation
+-----------------------------------------------------------------------
+
+This part can be safely skipped, unless you are a *really* curious and
+you want to know how the implementation works.
+
+The module is rather short (~250 lines) but far from being trivial,
+since it is based on extensive usage of metaclass wizardry.
+
+The main class-metaclass hierarchy is represented in figure 1, where
+boxes denote classes and ovals denote metaclasses; instantiation is
+denoted by dashed lines whereas inheritance is denoted by continuous
+lines.
+
+.. figure:: decorators.png
+
+The implementation is relatively smart. Suppose for instance
+that a programmer wrote something like
+
+>>> from decorators import *
+>>> object=decorated(object)
+>>> class C(object):
+...     def f():
+...         "[staticmethod,MethodDecorator]"
+
+to document the fact that ``staticmethod`` is a method decorator
+and not the built-in  ``staticmethod``. Since ``staticmethod`` already 
+derives from ``MethodDecorator``, it is redundant to repeat 
+``MethodDecorator``. Apparently, there is the risk of generating
+an useless ``staticmethodMethodDecorator`` class, doing the same
+as ``staticmethod``. Fortunately, the implementation is able
+to recognize redundant class. In this case, a class called
+``MethodDecoratorDecorator`` is *not* created; ``staticmethod``
+is used instead:
+
+>>> print type(C.__dict__['f'])
+<class 'decorators.staticmethod'>
+
+The module provides three utilities functions to retrieve the list of
+recognized decorators: ``decorators.methodlike()``, ``decorators.classlike()``
+and ``decorators.modulelike()``:
+
+>>> for d in decorators.methodlike(): print d
+...
+<class 'decorators.MethodDecorator'>
+<class 'decorators.staticmethod'>
+<class 'decorators.classmethod'>
+<class 'customdec.chattymethod'>
+<class 'customdec.tracedmethod'>
+<class 'noconflict.chattymethodstaticmethod'>
+<class 'chatty2.chattymethod2'>
+<class 'noconflict.tracedmethodclassmethod'>
+<class 'noconflict.staticmethodtracedmethod'>
+
+>>> for d in decorators.classlike(): print d
+...
+<class 'decorators.ClassDecorator'>
+<class 'decorators.Decorated'>
+<class 'noconflict._DecoratedM'>
+<class 'customdec.Logged'>
+<class 'customdec.Traced'>
+<class 'noconflict._DecoratedLogged'>
+<class 'noconflict._DecoratedTraced'>
+
+>>> for d in decorators.modulelike(): print d
+...
+<class 'decorators.ModuleDecorator'>
+<class 'decorators.DecoratedModule'>
+<class 'customdec.TraceFunctions'>
+
+The current implementation does not make any attempt of optimization and
+there may be alternative implementations faster or more memory efficient.
+At this experimental level I didn't care to explore about performances 
+issues. They does not probably matter unless one has to decorate
+thousands or millions of functions and classes.
+
+Finally, a word about bugs. The ``decorators`` module is fairly sophisticated,
+therefore whereas I can guarantee that it passes my test suite (which involves
+~100 tests automatically extracted from the documentation you are reading), 
+I cannot guarantee that it is correct. If somebody finds a bug or an unexpected 
+behavior, please let me know and I will try to fix it.
+
+.. References:
+
+.. _new style classes and old style classes: 
+    http://www.python.org/2.3/descrintro.html
+.. _Descriptors: http://users.rcn.com/python/download/Descriptor.htm
+.. _cookbook: http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/204197

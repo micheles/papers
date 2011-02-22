@@ -1,0 +1,48 @@
+\documentclass[]{slides}
+\begin{document}
+
+delta-distribution
+
+$$
+f_\delta(x;\mu,\sigma) = 
+\frac{C_\delta(\delta^2\sigma^2)^{1+\delta^2/2}}
+{[(x-\mu)^2+\delta^2\sigma^2]^{3/2+\delta^2/2}}
+$$
+
+$$
+C_\delta = \frac{\Gamma(3/2+\delta^2/2)}{\Gamma(1/2)/\Gamma(1+\delta^2/2)}
+$$
+
+$$\frac12 < C_\delta < \frac1{\sqrt\pi}\simeq 0.5642$$
+
+$$
+\int dx\ f_\delta(x;\mu,\sigma) = 1,\quad \forall \delta
+$$
+
+$$
+\int dx\ (x-\mu)^2f_\delta(x;\mu,\sigma) = \sigma^2,\quad \forall \delta
+$$
+
+$$
+f_\delta(x;\mu,\sigma) \sim \frac1{x^{3+\delta^2}},\quad x\to\infty
+$$
+
+The average absolute deviation of the curve is $\delta\sigma$
+
+$$
+\int dx\ |x-\mu|f_\delta(x;\mu,\sigma) = 
+\frac{\Gamma(1/2+\delta^2/2)}{\Gamma(1/2)\Gamma(1+\delta^2/2)}\delta\sigma
+$$
+
+Cumulative distribution function
+
+$$
+F_\delta(x;\mu,\sigma) = \int_{-\infty}^x\ dx'\ f_\delta(x';\mu,\sigma) =
+$$
+
+$$
+\frac12 + C_\delta\frac{x-\mu}{\delta\sigma}
+{}_2F_1\left(\frac12, \frac{\delta^2+3}2, \frac32, -\frac{(x-\mu)^2}
+{\delta^2\sigma^2}\right)
+$$
+\end{document}

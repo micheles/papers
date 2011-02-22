@@ -1,0 +1,232 @@
+Additional tests
+=======================================================================
+
+You cannot add magic methods magically *after*:
+
+>>> from customdec import *
+>>> enhance_classes()
+
+
+>>> class C: 
+...     "[Decorated]"
+...
+>>> identity=lambda x:x
+>>> C.identity=identity
+>>> C.identity(1)
+Traceback (most recent call last):
+  ...
+TypeError: unbound method <lambda>() must be called with C instance as first argument (got int instance instead)
+
+(it could be done by modifying ``__setattr__`` in ``Decorated``).
+
+
+Usage of decorator
+------------------------------------------------------------------------
+
+>>> decorator(1)
+
+
+Printing representation
+------------------------------------------------------------------------
+
+A delicate point: inverting the docstring with __metaclass__
+
+>>> class M(type):
+...     def __str__(cls):
+...         return cls.__name__
+>>> class C(object): 
+...     __metaclass__=M 
+...     "[Decorated]" # not considered docstring!
+...     def __str__(self):
+...         return '<C>'
+>>> print C.__doc__
+None
+>>> C=decorator(C)
+>>> print type(C),C,C()
+<class 'safetype.MClassDecorator'> C <C>
+
+
+>>> class C(object): 
+...     "[Decorated]"
+...     __metaclass__=M
+...     def __str__(self):
+...         return '<C>'
+>>> C=decorator(C)
+>>> print type(C),C,C()
+<class 'safetype.MClassDecoratorDecorated'> C <C>
+>>> #from MROgraph import MROgraph; g=MROgraph(type(C))
+
+Tricky ways of passing parameters to decorators
+------------------------------------------------------------------------
+
+This can be avoided by converting ``logfile`` from a class variable
+to an instance variable in the ``__init__`` method:
+
+ ::
+
+  #<chatty1.py>
+
+  import sys,customdec,decorators
+
+  class chattymethod1(customdec.chattymethod):
+      def __init__(self,func):
+          super(chattymethod1,self).__init__(func)
+          self.logfile=self.logfile # class variable -> instance variable
+
+  class D:
+      chattymethod1.logfile=sys.stdout
+      def f(self): pass
+      f=chattymethod1(f)
+
+      chattymethod1.logfile=file('file.log','w')
+      def g(self): pass
+      g=chattymethod1(g) 
+
+  d=D()
+
+  #</chatty1.py>
+
+Here is the testing:
+
+>>> from chatty1 import D,d
+>>> D.f(d)
+calling <chattymethod1:f> from chatty1.D
+
+>>> D.g(d) # message written in file.log
+>>> D.f(d) # message correctly written in stdout, not in file.log
+calling <chattymethod1:f> from chatty1.D
+
+This works as it is but it is really ugly and fragile: for instance
+the magic docstring syntax
+
+ ::
+
+  class D:
+      "[Decorated]"
+      chattymethod1.logfile=sys.stdout
+      def f(self): "[chattymethod1]"
+
+      chattymethod1.logfile=file('file.log','w')
+      def g(self):"[chattymethod1]"
+
+
+will not work since the logfile attribute will be modified *before*
+the conversion in decorators, so both ``f`` and ``g`` will output to
+'file.log'. 
+
+Tests on method wrappers
+-------------------------------------------------------
+
+>>> class C: pass
+...
+>>> c=C()
+>>> def f(x): return x
+...
+>>> sm=staticmethod(f)
+>>> C.sm=sm
+>>> C.sm.im_func # correct
+Traceback (most recent call last):
+  ...
+AttributeError: 'function' object has no attribute 'im_func'
+
+(idem for ``c.sm.im_func``). On the other hand
+
+>>> cm=classmethod(f)
+>>> C.cm=cm
+>>> assert C.cm.im_func is f
+>>> assert c.cm.im_func is f
+>>> assert C.cm.im_class is C
+>>> assert c.cm.im_class is C
+>>> assert C.cm.im_self is C
+>>> assert c.cm.im_self is C
+
+Test on tracedmethod from the instance
+-------------------------------------------------
+
+>>> from example6 import C 
+>>> print C.__dict__['fact']
+<classmethodtracedmethod:fact>
+>>> C().fact(2)
+Calling 'C.fact' with arguments <class C[Decorated]>(2,){} ...
+    Calling 'C.fact' with arguments <class C[Decorated]>(1,){} ...
+        Calling 'C.fact' with arguments <class C[Decorated]>(0,){} ...
+        'C.fact' called with result: 1
+    'C.fact' called with result: 1
+'C.fact' called with result: 2
+2
+
+
+Tests on composition of decorators
+-------------------------------------------------:
+
+To decorate something which is already decorated:
+
+>>> def g(x): "[tracedmethod]"
+...
+>>> tm=decorator(g) # creates a tracedmethod from f
+>>> print decorator(tm) # trying to decorate a tracedmethod
+<tracedmethod:g>
+
+Staticmethod vs classmethod.
+
+Staticmethod is non-cooperative, therefore staticmethodclassmethod
+acts as a pure staticmethod:
+
+>>> class C: 
+...     pass
+>>> c=C()
+>>> smcm=staticmethod(classmethod(f))
+>>> print smcm 
+<staticmethodclassmethod:f>
+>>> C.smcm=smcm
+>>> C.smcm(1)
+1
+>>> c.smcm(1)
+1
+
+
+Classmethod vs staticmethod
+
+Idem: staticmethod gains:
+
+>>> cmsm=classmethod(staticmethod(f))
+>>> print cmsm 
+<classmethodstaticmethod:f>
+>>> C.cmsm=cmsm
+>>> C.cmsm(1)
+1
+>>> c.cmsm(1)
+1
+
+
+Staticmethod vs tracedmethod works:
+
+>>> class C(object):
+...    "[Decorated]"
+...    def fact(n):
+...        "[staticmethod, tracedmethod]"
+...        if n==0: return 1
+...        else: return n*C.fact(n-1)
+>>> C=decorator(C)
+
+Called from the class:
+
+>>> C.fact(2)
+Calling 'C.fact' with arguments 2(){} ...
+    Calling 'C.fact' with arguments 1(){} ...
+        Calling 'C.fact' with arguments (){} ...
+        'C.fact' called with result: 1
+    'C.fact' called with result: 1
+'C.fact' called with result: 2
+2
+
+Called from the instance:
+
+>>> C().fact(2)
+Calling 'C.fact' with arguments 2(){} ...
+    Calling 'C.fact' with arguments 1(){} ...
+        Calling 'C.fact' with arguments (){} ...
+        'C.fact' called with result: 1
+    'C.fact' called with result: 1
+'C.fact' called with result: 2
+2

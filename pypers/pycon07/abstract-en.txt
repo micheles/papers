@@ -1,0 +1,12 @@
+As the old saying goes, Python is the only language with more Web frameworks than 
+keywords. This is sometimes an advantage, but more often than not, it is an issue. 
+In order to improve the interoperability between different frameworks, Phillip 
+J. Eby proposed in 2003 a specification, the WSGI or Web Server Gateway 
+Interface, a.k.a Whiskey. In my talk I will discuss how you can achieve portability
+of your application by following the WSGI protocol. I will give practical
+examples of how to use the WSGI reference implementation which is part of the
+standard library (wsgiref), of how to supplement it with other WSGI-compliant 
+libraries (notably Paste by Ian Bicking) and of how to integrate your WSGI 
+application in different frameworks including Zope, Twisted, TurboGears et al. 
+The talk is intended as a tutorial and requires only elementary knowledge of 
+Web programming, at the level of simple CGI. 

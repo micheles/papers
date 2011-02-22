@@ -1,0 +1,387 @@
+Functional Programming For Dynamic Programmers - Part 3
+=======================================================
+
+:author: Michele Simionato
+:date: December 2007
+
+This is the third of a series of articles on functional programming in
+statically typed languages. It is intended for dynamic programmers, i.e. 
+for programmers with a background in dynamically typed languages, such as Perl, 
+Python, Ruby, or languages in the Lisp family. The approch is eminently practical
+and example-based; the main goal is to see if we can stole some good idea from
+statically typed languages. In order to be concrete, I will consider languages
+in the ML family, because they are pretty nice and much easier to understand
+that Haskell.
+
+Writing your first module
+------------------------------------------------------
+
+Usually programs start small, but they have an unfortunate tendency to
+grow, getting larger and larger and eventually to explode. To control
+this tendency, programmers have invented various techniques, which are
+essentially all variations of a same idea: large programs should be
+decomposed in smaller, more manageable, conceptually connected units
+of code. These units of code go under various names, depending on the
+language you are using; common terms are structures, classes,
+namespaces, modules, packages, libraries, components etc. In this
+article I will focus on the ML terminology and tecniques.
+
+In SML, the basic mechanism of code control is the structure, which
+takes the place of what is called a module in other languages.  We
+already encountered structures before, such as the ``TextIO``
+structure, containing functions such as ``TextIO.openIn``,
+``TextIO.closeIn`` etc.
+
+It is also possible to define custom structures. For instance, suppose
+we want to implement Python-like file-iteration in SML in order to be
+able to write things like ``Iter.app print (Iter.file fname)`` to
+print all the lines in a text file. We can do so with the following
+structure::
+
+ - structure Iter = struct
+
+      exception StopIteration
+
+      fun app func iter = 
+          (while true do func (iter ())) handle StopIteration => ()
+
+       fun map func iter = 
+          fn () => func (iter ())
+
+      fun file fname = let
+          val inp = TextIO.openIn fname
+      in  fn () => 
+          (case TextIO.inputLine inp 
+            of NONE => raise StopIteration
+             | SOME line => line)
+          handle err => (TextIO.closeIn inp; raise err) 
+      end
+   end;
+  structure Iter :
+     sig
+        exception StopIteration
+        val app : ('a -> 'b) -> (unit -> 'a) -> unit
+        val map : ('a -> 'b) -> (unit -> 'a) -> unit -> 'b
+        val file : string -> unit -> string
+     end
+
+We see many interesting things here. First of all, the REPL returns us
+a string representation of the so-called *signature* of the structure,
+i.e. a description of the types of the objects encapsulated by the
+structure. Iterators have been implemented as thunks, i.e. functions
+of type ``unit -> 'a``; in particular, ``file`` is a higher order
+function taking a filename and returning a string-value thunk: at each
+call of the closure``Iter.file fname`` we get a different line of the
+file. All types have been inferred correctly: ``Iter.app`` is an
+higher order function taking a generic function ``'a->'b`` (which
+means a function taking an unspecified type ``'a`` and returning an
+unspecified type ``'b``, possibly different from ``'a``) and
+converting it into a function ``iterator -> unit``, whereas
+``Iter.map`` applies a generic function to an iterator and returns an
+iterator.  For instance, suppose we want to define an utility to
+convert to upper case a text file, by applying the function [#]_
+
+ ``- fun upper str = String.map Char.toUpper str;``
+
+to each line; we can test it by writing a file like the following::
+
+ $ cat three-lines.txt
+  line 1
+  line 2
+  line 3
+
+and by defining
+
+::
+
+ - val next = Iter.map upper (Iter.file "three-lines.txt");
+ val next : unit -> string = _fn
+
+With this definitions, we get the same behavior as in Python [#]_ ::
+
+ - next ();
+ val it : string = " LINE 1\n"
+ - next ();
+ val it : string = " LINE 2\n"
+ - next ();
+ val it : string = " LINE 3\n"
+ - next ();
+ Uncaught exception
+    StopIteration
+
+.. [#] In this example I am using the ``String`` and ``Char`` structures of the
+        SML standard library, documented here
+        http://www.standardml.org/Basis/string.html and here
+        http://www.standardml.org/Basis/char.html
+
+.. [#] In Python we would have
+
+::
+
+  >>> it = itertools.imap(str.upper, file("three-lines.txt"))
+  >>> it.next()
+  ' LINE 1\n'
+  >>> it.next()
+  ' LINE 2\n'
+  >>> it.next()
+  ' LINE 3\n'
+  >>> it.next()
+  Traceback (most recent call last):
+    File "<stdin>", line 1, in <module>
+  StopIteration
+
+Importing modules
+----------------------------------------------------
+
+Structures in the standard library are automatically available; on the other
+hand, if you write your own structure and save it into a file, you need to 
+import the file before you can use it. The simplest way to import a file is
+through the ``use`` expression::
+
+ - use "<filename.aml>"; 
+
+This simply includes the imported file in the current program, and everything
+is compiled together. In most SML implementation it is also possible to compile 
+a file as a standalone component; the details vary with the implementation.
+In Alice you can just save the above structure into a file called ``iter.aml``
+and compile it as
+
+  ``alicec iter.aml``
+
+This creates a bytecode compiled file called ``iter.alc``.
+The compiled structure can be imported in your programs with the line
+
+  ``import structure Iter from "iter"``
+
+assuming ``iter.alc`` is in the same directory as your main program.
+If you want to import in the program namespace all the objects defined
+inside the structure, you can open it:
+
+  ``- open Iter;``
+
+this is however actively discouraged, to prevent namespace pollution,
+i.e.  name conflicts, since an exported name can shadow a pre-existent
+name.  There is actually a good use case for opening a structure,
+i.e. inside another structure. In particular, it is possible to
+redefine structures, augmenting them with additional objects.
+For instance, we could supplement the ``Iter`` structure with 
+a routine to read binary files in chunks::
+
+ - structure Iter = struct
+      open Iter
+      fun binfile (fname, chunksize) = let
+          val inp = BinIO.openIn fname
+      in 
+        fn () => let
+           val vec = BinIO.inputN (inp, chunksize) (* read N bytes *)
+        in
+           if Word8Vector.length(vec) = 0 then raise StopIteration else vec
+           handle err => (BinIO.closeIn inp; raise err) 
+        end
+     end
+ end;
+
+Notice that ``BinIO.inputN`` returns a vector
+of bytes, not a string; however, you can get a *bona fide*  string by
+applying the standard library function Byte.bytesToString_ to
+the returned chunks. Here is an example::
+
+ - Byte.bytesToString (Iter.binfile("three-lines.txt", 40) ());
+ val it : string = " line 1\n line 2\n line 3\n"
+
+An importanting to notice is that *you can redefine even standard library
+structures*, augmenting them with new features, or replacing objects
+with others, even *with a different signature*. This is similar to what
+happens in Ruby, where you can add methods even to builtin classes,
+and should be done with care.
+
+.. _Byte.bytesToString: http://www.standardml.org/Basis/byte.html
+
+Structures are not first class values
+-----------------------------------------------------------
+ 
+The problem with structures is that they are not first class values,
+i.e. they cannot be passed to functions and they cannot be
+inspected. This is the reason why giving at the prompt the name of a
+structure does not work::
+
+ - TextIO;
+ 1.0-1.6: unknown value or constructor `TextIO'
+
+``TextIO`` is not recognized as the name of a know value. Structures live
+in a completely separate namespace [#]_, so that you can associate any value
+to the name ``TextIO`` and still you can access the contents of the structure 
+without any problem::
+
+ - val TextIO = "astring";
+ 1.4-1.10: warning: value identifier `TextIO' violates standard naming conventions, 
+ which suggest value names of the form   foo, foo', fooBar
+ val TextIO : string = "astring"
+
+ -   TextIO.print;
+ val it : string -> unit = _lazy
+
+Notice the warning about violating standard naming conventions, since
+a regular value such as a string should be denoted with a
+non-capitalized identitifier, whereas capitalized identitifiers should
+be reserved to structures.
+
+Structures can be given name and aliases via the ``structure`` declaration;
+for instance, if you  want to give a shorter alias to ``TextIO`` you can define
+
+ ``- structure T = TextIO;``
+
+Structures can be arbitrarily nested, i.e they can contain
+substructures at any level of nesting. For instance, if you want to
+extract the substructure ``StreamIO`` from ``TextIO`` you can define
+
+ ``- structure S = TextIO.StreamIO;``
+
+The lack of first class structures is motivated by reasons of
+(premature) optimization.  Suppose structure where first class values:
+then you could write things like
+
+ ``val S = if someRuntimeCondition() then struct ... end else struct ... end``
+
+and that would make life pretty hard for the compiler: basically, it would be
+impossible to compile the structure once and for all, and you would be forced
+to recompile it at runtime. In these days of just-in-time
+compilation this is less of an issue than in the past, and in particular
+Alice ML allows you to do that, by wrapping structures in packages.
+But in order to discuss that, we must first discuss signatures, which is
+the SML name for interfaces.
+
+.. [#] Readers familiar with Common Lisp will be familiar with the concept
+       of having separate namespaces for different kind of objects.
+
+Abstract signatures and abstract types
+---------------------------------------
+
+Strictly speaking, it is not necessary to define signatures for your
+own structures, since even if you do not specify a signature, the
+compiler is able to figure out the complete signature, thanks to type
+inference. The problem is exactly that: the compiler extracts the
+*complete* signature, a.k.a. the *principal* signature of you library,
+which is too much. Typically, you don't want to expose all the objects
+in your structure, for safety reason (your structure may contain
+private functions which should not be exported to client code), for
+sake of simplicity (you may want to implement the `facade pattern`_)
+or for code reuse.  Using computer science buzzwords, we may say that
+`information hiding`_ is implemented in SML by defining *abstract
+signatures*, as opposed to the *concrete* (or principal) signatures we
+saw until now.
+
+To give a concrete example, let me consider the ``List`` and
+``Vector`` structures in the standard library: the ``List`` structure
+defines the type ``list``, whereas the ``Vector`` structure defines
+the type ``vector``; both types have a common alias ``t``. 
+``list`` and ``vector`` are container types, in the sense that a 
+list/vector may contain objects of any type, as long as all the elements
+are homogenous, so you may have a ``string list``, an ``int list``,
+a ``string list list``, etc  [#]_::
+
+ - val lst = [0,1,2];
+ val lst : int list = [0, 1, 2]
+ - val vec = #[0,1,2];
+ val vec : int vector = #[0, 1, 2]
+ - val lst = [["hello", "world"]];
+ val lst : string list list = [["hello", "world"]]
+
+Both ``List`` and ``Vector`` provide a function ``length`` returning the
+number of elements of the list/vector, and a function ``sub`` return
+the i-th element of the list/vector::
+
+ - List.length(lst);
+ val it : int = 3
+ - Vector.length(vec);
+ val it : int = 3
+
+ -List.sub(lst, 1) (*) take the second element of the list
+ val it : int = 1
+ -Vector.sub(vec, 1) (*) take the second element of the vector
+ val it : int = 1
+
+We may abstract this common behavior by defining an abstract signature::
+
+ - signature SIMPLE_SEQUENCE = sig
+     type 'a t
+     val length: 'a t -> int
+     val sub: 'a t * int -> 'a
+   end
+      sig
+         type 'a t
+         val length : 'a t -> int
+         val sub : 'a t * int -> 'a
+      end
+
+Here the type t is *abstract*: it becomes concrete only if you *ascribe*
+the signature to a concrete structure::
+
+ - structure L=List:SIMPLE_SEQUENCE;
+ structure L :
+     sig
+        type t = list
+        val length : 'a List.t -> int
+        val sub : 'a List.t * int -> 'a
+    end = List
+
+ - structure V=Vector:SIMPLE_SEQUENCE;
+ structure V :
+     sig
+        type t = vector
+         val length : 'a Vector.t -> int
+        val sub : 'a Vector.t * int -> 'a
+     end = Vector
+
+i.e. the abstract type ``t`` is replaced by the concrete type ``list``
+when the signature is ascribed to the ``List`` structure and by the
+concrete type ``vector`` when the signature is ascribed to the
+``Vector`` structure.  Moreover, having ascribed the
+``SIMPLE_SEQUENCE`` signature to the structures ``L`` and ``V``, we
+have automatically hidden all the additional functionality of the
+original structures, so that for instance ``L.map`` and ``V.map`` are
+not accessible, even if ``List.map`` and ``Vector.map`` do exists::
+
+ - L.map
+ 1.2-1.5: unknown value or constructor `map'
+ - V.map;
+ 1.2-1.5: unknown value or constructor `map'
+
+In a sense, you may see ascribing the signature as a way of importing
+a selected subset of the functionality of the original structure; you
+could even import a subset of the names defined in the original
+structures in the current namespace by opening the ascribed
+structure::
+
+ - open Vector:SIMPLE_SEQUENCE;
+ structure _id20 :
+    sig
+       type t = vector
+       val length : 'a Vector.t -> int
+       val sub : 'a Vector.t * int -> 'a
+    end = Vector
+ val sub : 'a Vector.t * int -> 'a = _fn
+ val length : 'a Vector.t -> int = _fn
+ type t = Vector.t
+
+Signatures allows much more than that, and the practical usage of abstract 
+signatures in SML will become clear once we will introduce the concept of 
+functors and packages. Nevertheless, I am sure that the
+expert object oriented programmer has already understood the point
+behind abstract signatures: they are nothing else than
+interfaces. Code written to work with a ``SIMPLE_SEQUENCE`` interface
+will automatically work with lists, vectors, and any data structure
+(builtin *and* custom) satisfying the interface.
+
+.. [#] Notice that since SML is a functional language, both lists and
+        vectors are immutable.
+
+.. _information hiding: http://en.wikipedia.org/wiki/Information_hiding
+.. _facade pattern: http://en.wikipedia.org/wiki/Facade_pattern
+
+----
+
+    *divide et impera*
+
+        -- old Roman saying
+

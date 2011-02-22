@@ -1,0 +1,18 @@
+Title of the Blog: The Explorer
+
+The author: Michele Simionato is an eclectic software developer with
+an interest in languages and programming techniques who would like
+to make the programmer's life easier.
+
+Bio: Michele Simionato started his career as a Theoretical Physicist,
+working in Italy, France and the U.S. He turned to programming in
+2003; since then he has been working professionally as a Python developer
+and now he lives in Milan, Italy. Michele is well known in the Python community for
+his posts in the newsgroup(s), his articles and his Open
+Source libraries and recipes. His interests include 
+object oriented programming, functional programming,
+and in general programming metodologies that enable us to manage the
+complexity of modern software developement.
+
+
+

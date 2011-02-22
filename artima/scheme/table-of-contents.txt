@@ -1,0 +1,106 @@
+The `Adventures of a Pythonista in Schemeland`_ have grown to become a
+rather big series. I think a table of contents is needed to index all
+the episodes. Here it is.
+
+Part I - Introduction
+ Ep1_ A bit of history
+
+ Ep2_ About scheme implementations
+
+ Ep3_ Of parenthesis and indentation
+
+ Ep4_ Scheme bibliography (and a first program)
+
+ Ep5_ About tail call optimization (and the module system)
+
+ Ep6_ The danger of benchmarks
+
+Part II - Macros
+ Ep7_ Symbols and lists
+
+ Ep8_ Quoting and quasi-quoting
+
+ Ep9_ Introduction to (sweet-)macros
+
+ Ep10_ Features of (sweet-)macros
+
+ Ep11_ The multiple evaluation problem (and easy-test)
+
+ Ep12_ Are macros really useful?
+
+Part III - Functional Aspects
+ Ep13_ Micro-introduction to functional programming
+
+ Ep14_ Currying, partial application, and fold
+
+ Ep15_ List destructuring
+
+ Ep16_ Multiple values (and opt-lambda)
+
+ Ep17_ List comprehension
+
+ Ep18_ Streams
+
+Part IV - The Module System
+
+ Ep19_ Using modules
+
+ Ep20_ Evaluation strategy of Scheme programs
+
+ Ep21_ The different meanings of phase separation
+ 
+ Ep22_ The Dark Tower of Meta-levels
+
+ Ep23_ Separate compilation and import semantics
+
+ Ep24_ Mutating variables across modules
+
+Part V - Macros, again
+
+ Ep25_ Back to macros (and accumulators)
+
+ Ep26_ Macros taking macros as arguments (and the beauty of parentheses)
+
+ Ep27_ Syntax objects and syntax transformers
+
+ Ep28_ Hygienic macros
+
+ Ep29_ Breaking hygiene
+
+ Ep30_ Comparing identifiers
+
+You can find an (experimental) book version of the Adventures (in PDF)
+here_ .
+
+.. _Ep1: http://www.artima.com/weblogs/viewpost.jsp?thread=238789
+.. _Ep2: http://www.artima.com/weblogs/viewpost.jsp?thread=238941
+.. _Ep3: http://www.artima.com/weblogs/viewpost.jsp?thread=239466
+.. _Ep4: http://www.artima.com/weblogs/viewpost.jsp?thread=239568
+.. _Ep5: http://www.artima.com/weblogs/viewpost.jsp?thread=239699
+.. _Ep6: http://www.artima.com/weblogs/viewpost.jsp?thread=240198
+.. _Ep7: http://www.artima.com/weblogs/viewpost.jsp?thread=240781
+.. _Ep8: http://www.artima.com/weblogs/viewpost.jsp?thread=240793
+.. _Ep9: http://www.artima.com/weblogs/viewpost.jsp?thread=240804
+.. _Ep10: http://www.artima.com/weblogs/viewpost.jsp?thread=240805
+.. _Ep11: http://www.artima.com/weblogs/viewpost.jsp?thread=240833
+.. _Ep12: http://www.artima.com/weblogs/viewpost.jsp?thread=240836
+.. _Ep13: http://www.artima.com/weblogs/viewpost.jsp?thread=248953
+.. _Ep14: http://www.artima.com/weblogs/viewpost.jsp?thread=249198
+.. _Ep15: http://www.artima.com/weblogs/viewpost.jsp?thread=249681
+.. _Ep16: http://www.artima.com/weblogs/viewpost.jsp?thread=249685
+.. _Ep17: http://www.artima.com/weblogs/viewpost.jsp?thread=251156
+.. _Ep18: http://www.artima.com/weblogs/viewpost.jsp?thread=251159
+.. _Ep19: http://www.artima.com/weblogs/viewpost.jsp?thread=251476
+.. _Ep20: http://www.artima.com/weblogs/viewpost.jsp?thread=255303
+.. _Ep21: http://www.artima.com/weblogs/viewpost.jsp?thread=255612
+.. _Ep22: http://www.artima.com/weblogs/viewpost.jsp?thread=256848
+.. _Ep23: http://www.artima.com/weblogs/viewpost.jsp?thread=257998
+.. _Ep24: http://www.artima.com/weblogs/viewpost.jsp?thread=258103
+.. _Ep25: http://www.artima.com/weblogs/viewpost.jsp?thread=258580
+.. _Ep26: http://www.artima.com/weblogs/viewpost.jsp?thread=259977
+.. _Ep27: http://www.artima.com/weblogs/viewpost.jsp?thread=260182
+.. _Ep28: http://www.artima.com/weblogs/viewpost.jsp?thread=260195
+.. _Ep29: http://www.artima.com/weblogs/viewpost.jsp?thread=261363
+.. _Ep30: http://www.artima.com/weblogs/viewpost.jsp?thread=261364
+.. _Adventures of a Pythonista in Schemeland: http://micheles.googlecode.com/hg/artima/scheme/TheAdventuresofaPythonistainSchemeland.pdf
+.. _here: http://micheles.googlecode.com/hg/artima/scheme/TheAdventuresofaPythonistainSchemeland.pdf

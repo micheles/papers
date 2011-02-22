@@ -1,0 +1,57 @@
+line 17 column 27 - Warning: missing </small> before <table>
+line 98 column 1 - Warning: discarding unexpected </small>
+line 12 column 1 - Warning: <body> attribute "bgcolor" has invalid value "lightblue"
+line 17 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 20 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 23 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 29 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 32 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 32 column 60 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 35 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 35 column 61 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 38 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 38 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 41 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 41 column 33 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 47 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 50 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 50 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 53 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 53 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 56 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 56 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 59 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 59 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 62 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 62 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 65 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 65 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 68 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 68 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 71 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 71 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 74 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 74 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 77 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 77 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 80 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 80 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 83 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 83 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 86 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 86 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 89 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 89 column 59 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 92 column 3 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 92 column 33 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 98 column 15 - Warning: <td> attribute "bgcolor" has invalid value "lightblue"
+line 17 column 27 - Warning: trimming empty <small>
+Info: Doctype given is "-//W3C//DTD HTML 4.01//EN"
+Info: Document content looks like HTML 4.01 Transitional
+48 warnings, 0 errors were found!
+
+
+To learn more about HTML Tidy see http://tidy.sourceforge.net
+Please send bug reports to html-tidy@w3.org
+HTML and CSS specifications are available from http://www.w3.org/
+Lobby your company to join W3C, see http://www.w3.org/Consortium

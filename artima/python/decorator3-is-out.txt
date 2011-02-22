@@ -1,0 +1,135 @@
+This post is intended for users of `old versions of the decorator
+module`_ who want to know what's new and the reasons for the change.
+Version 3 is a major release and it breaks compatibility with the past
+in a minor way, but I expect 99.9% of my users to upgrade 
+to the new version without seeing any difference. You can download
+the tarball here_.
+
+Here is a list of the most relevant changes/improvements.
+
+- I have completed the move to PyPI. For a long time I have wanted to
+  move the package from my site (which is hosted on the Pittsburgh
+  University servers and completely out of my control) to PyPI. The
+  first version to be hosted on PyPI was version 2.3.2, released two
+  weeks ago. The impressive thing - to me, at least - is that I had 1008
+  downloads in thirteen days: incredible! I have no idea of how many
+  downloads I had for the previous versions, so I cannot compare, but 
+  from now on I can have an idea of the popularity of the module. 
+  That's good. The move to PyPI was not complete however, since, the 
+  documentation for the module was still hosted on my site.
+  With version 3.0, instead, everything is hosted on PyPI.
+
+- The documentation now is extracted from a Python file containing lots
+  of doctests, following an approach that I have called *geek publishing* 
+  and that I have described here:
+  http://stacktrace.it/2008/01/geek-publishing/ (I intend to translate
+  that article and to republish it here soon or later).
+  That means that all the examples provided are doctested by using the 
+  standard Python module: I do not need to supplement a custom
+  doctester script as I did in the past. The documentation is extracted
+  by using a custom script, by I do not need to distribute it, I have
+  just included in the tarball the generated .html and .pdf files.
+
+- I have substantially modified the documentation. Various sections have
+  been removed. In particular the examples ``redirecting_stdout`` and 
+  ``locked`` are no more there, since the functionality is better implemented
+  by using the ``with`` statement instead of a decorator. At the time of 
+  the first version of the module, in early 2005, those
+  examples were good examples, but Python has changed in the meanwhile. You can
+  still find them in the old documentation of the module, which
+  will stay on my personal site for the foreseeable future:
+  http://www.phyast.pitt.edu/~micheles/python/documentation.html.
+  The example of a permission system based on decorators has been
+  removed because the documentation is already quite long (the PDF
+  version takes 18 pages).
+
+- Various examples have been substantially improved. For instance,
+  the new implementation of the ``memoize`` decorator if much nicer 
+  than the old one, and it is easier to compare the approach suggested
+  by the ``decorator`` module with the approach suggested by the
+  standard library, i.e. ``functool.update_wrapper`` trick. The ``delayed``
+  decorator example has been removed: instead a much more interesting
+  ``async`` decorator has been added, showing how to run a blocking
+  function in a separated thread or process.
+
+- The utility functions ``new_wrapper`` and ``get_info`` have been
+  deprecated, since they were little used. Their job can be better
+  performed by the new class ``FunctionMaker``, which is the building
+  block over which ``decorator`` is implemented. That allows you to define 
+  your own custom version of ``decorator``, if you really want.
+
+- There was a long standing issue with the decorator module, i.e. the
+  problem of extracting the source code from a decorated function.
+  Version 3.0 gives a workaround. It adds an attribute ``.undecorated``
+  to the decorated function, a reference to the original function,
+  so that you can get the wanted source code with the trick
+  ``inspect.getsource(func.undecorated)``. This is actually possible
+  even in version 2.3, but it was (intentionally) left undocumented,
+  since I hoped in a better solution such as a patch to the ``inspect``
+  module. However, the fix did not make it through Python 2.6 and 3.0, so
+  I have decided to document the workaround for the time being.
+
+- The ``decorator`` function has been extended and now it may take one or
+  two arguments. ``decorator(caller)`` still returns a decorator, as before,
+  but now you can also use the syntax ``decorator(caller, func)`` which
+  returns directly the decorated function; ``decorator(caller, func)`` is
+  akin to ``decorator(caller)(func)`` but more efficient. The new syntax
+  made possible to simplify many examples and I could remove the explicit
+  support for `decorator factories`_ which I added in haste in version 2.3
+  and I regretted pretty soon.
+
+There are also a few considerations I would like to make.
+
+From the start the ``decorator`` module was developed with the
+attitude of *teach a man to fish*: instead of providing a large
+API, I have provided a significant collections of examples and recipes.
+The idea is that you should be able to write your own decorators by 
+yourselves. Version 3 of the module
+is going even more in that direction.
+
+I have refactored the internals
+so that now you can not only write you decorators on your own, but
+you can also write your own decorator facility - the equivalent of
+``decorator`` - by means of the ``FunctionMaker`` class.
+At the same time the rewriting makes the module more of a library
+and less of a framework. For instance, in past versions you were forced
+to write your decorators in terms of caller functions with the signature
+``caller(f, *args, **kw)``; now you can write your own decorator
+framework and use the conventions you like. In the documentation I
+give the example of ``decorator_apply``, which is able to convert
+third party decorators into signature preserving decorators without
+rewriting them.
+
+I did not expect the ``decorator`` module to leave so long (it is
+nearly four years old already). In my original intentions, the module
+was intended to be provisional, a workaround that should have been dropped
+once better support for decorators entered in the standard library.
+Unfortunately that never happened. It is true that Python 2.5 added
+some support for decorators in the ``functools`` module, but that
+support is insufficient in my opinion. Also, I had great hopes for
+the *Function Signature Object* (`PEP 362`_) but after more than two
+years nothing happened.
+I still hope it will become possible to change the signature of functions
+in future versions of Python: when that will happen, the ``decorator``
+module will become obsolete and I will have less code to maintain.
+
+Finally, I have a couple of questions for you, PyPI experts. 
+Is there a simple way to
+remove the annoying excessive vertical space in the PyPI style-sheet?
+Look at http://pypi.python.org/pypi/decorator to see what I am
+referring to. I have uploaded the documentation simply by inserting
+raw XHTML into the ``long_description`` field of the ``setup.py``
+script and running ``python setup.py register``. It worked but it is
+kind of a hack. I see that there is the possibility to upload the
+documentation as a zip file, labeled as experimental feature. 
+I tried it by hand and it works, but I
+would like to know if there is a way to perform the upload
+automatically, with some option in the ``setup.py`` script.
+
+.. _here: http://pypi.python.org/packages/source/d/decorator/decorator-3.0.0.tar.gz
+.. http://pypi.python.org/pypi/decorator
+.. _old versions of the decorator module: http://www.phyast.pitt.edu/~micheles/python/documentation.html
+
+.. _decorator factories: http://www.phyast.pitt.edu/~micheles/python/documentation.html#class-decorators-and-decorator-factories
+
+.. _PEP 362: http://www.python.org/dev/peps/pep-0362/

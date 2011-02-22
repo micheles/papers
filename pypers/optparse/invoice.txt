@@ -1,0 +1,47 @@
+From::
+
+  Michele Simionato, Ph. D.
+  Via Nervi 2
+  00055 Ladispoli (ROMA)
+  Email michele.simionato@gmail.com
+  Partita IVA:    07905191008
+
+To::
+
+  beehive KG
+  Neues Kranzler Eck
+  Kurfuerstendamm 21
+
+  D - 10719  Berlin
+  Germany
+
+Invoice for:
+
+  Article optparse published in Py magazine
+
+
+Amount:
+ 
+  Euro 97,02 
+
+
+Bank info::
+
+  Cassa di Risparmio di Venezia
+  Filiale di Pianiga
+  Via Roma 1
+  ITALY
+
+  ABI:  C 06345
+  CAB:  36230
+  Account:  0700075870H 
+  Code swift/bic:  CVCEIT2V 
+  IBAN: IT47 C063 4536 2300 7400 0758 70H
+
+
+Signed
+  Michele Simionato
+
+
+Date
+  31 Aug 2004

@@ -1,0 +1,65 @@
+Those who can, do; those who can't, teach -- G. B. Shaw
+
+Programmers don't die, they just GOSUB without RETURN. (*continuations*)
+
+
+#Why I Hate Frameworks
+http://discuss.joelonsoftware.com/default.asp?joel.3.219431.12
+
+-- SQL injection
+http://blog.michaeltrier.com/assets/2008/10/8/exploits_of_a_mom.jpg
+
+-- design patterns in Java: the dead of Hello World
+http://www.mortendahl.dk/thoughts/blog/view.aspx?id=122
+
+
+"One of my most productive days was throwing away 1000 lines of code"
+- Ken Thompson 
+
+
+-- Eli explaining phase separation:
+http://groups.google.com/group/comp.lang.scheme/msg/a1e76fd2d76cd47d?hl=en
+
+-- REST
+http://www.turbogears.org/2.0/docs/main/RestControllers.html
+
+Sometimes Python is accused of having too many web frameworks. And it’
+s true, there are a lot. That said, I think writing a framework is a
+useful exercise. It doesn’t let you skip over too much without
+understanding it. It removes the magic. So even if you go on to use
+another existing framework (which I’d probably advise you do), you’
+ll be able to understand it better if you’ve written something like
+it on your own. -- Ian Bicking http://pythonpaste.org/webob/do-it-yourself.html
+
+
+ Scheme had a dual
+defined purpose as an implementation experimental platform and as a
+teaching language ... the fact that it can actually be used
+productively is, in some sense, incidental. -- George Neuner on c.l.s.
+
+
+
+I think one good outcome of R6RS is that library writers form a
+bridge between implementors who would not be collaborating otherwise -- Aziz
+
+Enterprise Scale
+------------------ 
+
+In talking with a sysadmin about installs, it occurred to me what the working definition of Enterprise Scale is
+
+    The install is not "next-next-done" wizard
+
+
+Desktop and "departmental" applications have easy-to-use installers with few options and simple configurations.
+
+Enterprise applications do not have installers and have configurations so complex and terrifying that it takes numerous specialists (Sysadmins, DBA's, programmers, managers, business analysts and users) to install and configure the application.
+
+That's how we know that a LAMP-based application stack involving Python can't be enterprise-ready. Python and MySQL install with "next-next-done" wizards. The application suite installs with a few dozen easy_install steps followed by a database build script.
+
+Anything that simple can't scale. *S.Lott*
+
+multiple-inheritance can be seen as required for basic
+object-oriented programming, because many objects in the real world belong to
+several classes. In classical systems without MI, a class which should inherit
+from more than one class must textually include all but one of those classes in
+its interface, causing code duplication (and a messy interface) - http://stason.org/TULARC/software/object-oriented-programming/1-9-Does-Multiple-Inheritance-Pose-Any-Additional-Difficult.html

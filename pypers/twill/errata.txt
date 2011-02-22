@@ -1,0 +1,18 @@
+I scanned the paper and found a few misprints. You should be able to do
+the changes with a search and replace:
+
+
+'the app calls'                ->  'the application calls'
+'even if have used'            ->  'even if you have used'
+'in order togenerate'          ->  'in order to generate'
+'is not that difficilt'        ->  'is not that difficult'
+'--. small languages'           ->  '-- small languages'
+'convert it in a twill script'  ->  'convert it into a twill script'
+'previous code had to fill it'  ->  'previously we had to fill it'
+'sometimes don't need'          ->  'sometimes you don't need'
+'at highest possible level'     ->  'at the highest possible level'
+
+For the rest, it looks fine.
+Cheers,
+
+        Michele

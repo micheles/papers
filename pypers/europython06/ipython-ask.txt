@@ -1,0 +1,20 @@
+Can I cut and paste a doctest into IPython?
+I mean, if I have the doctest
+
+>>> 1+1
+2
+
+and I cut and past it into IPython I obviously get
+
+File "<console>", line 1
+     >>> 1+1
+      ^
+SyntaxError: invalid syntax
+
+but I guess there is an automagic option to avoid this. Am I right?
+
+Alternatively, I would like leading spaces to be stripped, so that
+I could cut and paste example from a reStructuredText document.
+
+
+            Michele Simionato
