@@ -162,7 +162,7 @@ class FunctionMaker(object):
 
     @classmethod
     def create(cls, obj, body, evaldict, defaults=None,
-               doc=None, module=None, addsource=True,**attrs):
+               doc=None, module=None, addsource=True, **attrs):
         """
         Create a function from the strings name, signature and body.
         evaldict is the evaluation dictionary. If addsource is true an attribute
@@ -193,7 +193,7 @@ def decorator(caller, func=None):
         evaldict['_func_'] = func
         return FunctionMaker.create(
             func, "return _call_(_func_, %(shortsignature)s)",
-            evaldict, undecorated=func)
+            evaldict, undecorated=func, __wrapped__=func)
     else: # returns a decorator
         if isinstance(caller, partial):
             return partial(decorator, caller)
@@ -205,5 +205,5 @@ def decorator(caller, func=None):
         return FunctionMaker.create(
             '%s(%s)' % (caller.__name__, first), 
             'return decorator(_call_, %s)' % first,
-            evaldict, undecorated=caller,
+            evaldict, undecorated=caller, __wrapped__=caller,
             doc=caller.__doc__, module=caller.__module__)
