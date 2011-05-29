@@ -579,10 +579,7 @@ if __name__ == '__main__':
     main(arg.dsn)
 
 </pre>
-<p>However saving three lines does not justify introducing the external
-dependency: most people will not switch to Python 2.7, which at the time of
-this writing is just about to be released, for many years.
-Moreover, it just feels too complex to instantiate a class and to
+<p>However, it just feels too complex to instantiate a class and to
 define a parser by hand for such a trivial task.</p>
 <p>The <a class="reference external" href="http://pypi.python.org/pypi/plac">plac</a> module is designed to manage well such use cases, and it is able
 to reduce the original nine lines of boiler plate to two lines. With the
@@ -661,14 +658,16 @@ Do something on the database
 
 positional arguments:
   dsn
-  table
-  today
+  table       [product]
+  today       [YYYY-MM-DD]
 
 optional arguments:
   -h, --help  show this help message and exit
 
 </pre>
-<p><a class="reference external" href="http://pypi.python.org/pypi/plac">plac</a> manages transparently even the case when you want to pass a
+<p>Notice that by default <a class="reference external" href="http://pypi.python.org/pypi/plac">plac</a> prints the string representation
+of the default values (with square brackets) in the usage message.
+<a class="reference external" href="http://pypi.python.org/pypi/plac">plac</a> manages transparently even the case when you want to pass a
 variable number of arguments. Here is an example, a script running
 on a database a series of SQL scripts:</p>
 <pre class="literal-block">
@@ -703,7 +702,7 @@ optional arguments:
 the command-line arguments parser to use from the signature of the main
 function</em>. This is the whole idea behind <a class="reference external" href="http://pypi.python.org/pypi/plac">plac</a>: if the intent is clear,
 let's the machine take care of the details.</p>
-<p><a class="reference external" href="http://pypi.python.org/pypi/plac">plac</a> is inspired to an old Python Cookbook recipe (<a class="reference external" href="http://code.activestate.com/recipes/278844-parsing-the-command-line/">optionparse</a>), in
+<p><a class="reference external" href="http://pypi.python.org/pypi/plac">plac</a> is inspired to an old Python Cookbook recipe of mine (<a class="reference external" href="http://code.activestate.com/recipes/278844-parsing-the-command-line/">optionparse</a>), in
 the sense that it delivers the programmer from the burden of writing
 the parser, but is less of a hack: instead of extracting the parser
 from the docstring of the module, it extracts it from the signature of

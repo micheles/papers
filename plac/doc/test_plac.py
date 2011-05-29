@@ -2,13 +2,16 @@
 The tests are runnable with nose, with py.test, or even as standalone script
 """
 
-import os, sys, doctest, subprocess
+import os, sys, datetime, doctest, subprocess
 import plac
 
 sys_argv0 = sys.argv[0]
 os.chdir(os.path.dirname(__file__) or '.') # work in the current directory
 
 ######################## helpers #######################
+
+def fix_today(text):
+    return text.replace('YYYY-MM-DD', str(datetime.date.today()))
 
 def expect(errclass, func, *args, **kw):
     try:
@@ -34,7 +37,7 @@ def check_help(name):
             else:  # not expected for Python 3.X
                 raise
         p = plac.parser_from(main)
-        expected = open(name + '.help').read().strip()
+        expected = fix_today(open(name + '.help').read()).strip()
         got = p.format_help().strip()
         assert got == expected, got
     finally:

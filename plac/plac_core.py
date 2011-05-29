@@ -69,7 +69,7 @@ def is_annotation(obj):
             and hasattr(obj, 'choices') and hasattr(obj, 'metavar'))
 
 class Annotation(object):
-    def __init__(self, help="", kind="positional", abbrev=None, type=None,
+    def __init__(self, help=None, kind="positional", abbrev=None, type=None,
                  choices=None, metavar=None):
         assert kind in ('positional', 'option', 'flag'), kind
         if kind == "positional":
@@ -245,6 +245,8 @@ class ArgumentParser(argparse.ArgumentParser):
                 dflt = None
             else:
                 dflt = default
+                if a.help is None:
+                    a.help = '[%s]' % dflt
             if a.kind in ('option', 'flag'):
                 if a.abbrev:
                     shortlong = (prefix + a.abbrev, prefix*2 + name)

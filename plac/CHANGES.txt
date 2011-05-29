@@ -1,6 +1,8 @@
 HISTORY
 ----------
 
+0.8.2 Default values are now displayed in the help message if no
+      help is specified (2011-05-29)
 0.8.1 Removed a stray newline in the output of plac, as signaled
       by Daniele Pighin; fixed a bug in the doctest method raising
       non-existing exceptions; turned the notification messages into
