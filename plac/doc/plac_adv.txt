@@ -1246,7 +1246,7 @@ pretty well for most users.
 .. _opterator: http://pypi.python.org/pypi/opterator
 .. _advanced usage document: in-writing
 .. _twill: http://twill.idyll.org/
-.. _basic documentation: http://micheles.googlecode.com/hg/plac/doc/plac.html
+.. _basic documentation: http://plac.googlecode.com/hg/doc/plac.html
 .. _shlex: http://docs.python.org/library/shlex.html
 .. _multiprocessing: http://docs.python.org/library/multiprocessing.html
 .. _distutils: http://docs.python.org/distutils/

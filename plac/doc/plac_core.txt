@@ -5,7 +5,7 @@ Plac: Parsing the Command Line the Easy Way
 :E-mail: michele.simionato@gmail.com
 :Date: August 2010
 :Download page: http://pypi.python.org/pypi/plac
-:Project page: http://micheles.googlecode.com/hg/plac/doc/plac.html
+:Project page: http://plac.googlecode.com/hg/doc/plac.html
 :Requires: Python 2.3+
 :Installation: ``easy_install -U plac``
 :License: BSD license
