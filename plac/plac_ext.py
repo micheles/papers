@@ -721,7 +721,7 @@ class _AsynHandler(asynchat.async_chat):
         line = ''.join(self.data)
         self.log('Received line %r from %s' % (line, self.addr))
         if line == 'EOF':
-            self.i.__exit__()
+            self.i.__exit__(None, None, None)
             self.handle_close()
         else:
             task = self.i.submit(line)
@@ -990,14 +990,10 @@ class Interpreter(object):
         _AsynServer(self, _AsynHandler, port) # register the server
         try:
             asyncore.loop(**kw)
-        except KeyboardInterrupt:
+        except (KeyboardInterrupt, TerminatedProcess):
             pass
         finally:
             asyncore.close_all()
-
-    def stop_server(self, after=0.0):
-        "Stops the asyncore server, possibly after a given number of seconds"
-        threading.Timer(after, asyncore.socket_map.clear).start()
 
     def add_monitor(self, mon):
         self.man.add(mon)
