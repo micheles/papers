@@ -3,7 +3,7 @@ The tests are runnable with nose, with py.test, or even as standalone script
 """
 
 import os, sys, datetime, doctest, subprocess
-import plac
+import plac, plac_core
 
 sys_argv0 = sys.argv[0]
 os.chdir(os.path.dirname(__file__) or '.') # work in the current directory
@@ -27,7 +27,7 @@ def parser_from(f, **kw):
 
 def check_help(name):
     sys.argv[0] = name + '.py' # avoid issue with nosetests
-    plac.parser_registry.clear() # makes different imports independent
+    plac_core._parser_registry.clear() # makes different imports independent
     try:
         try:
             main = plac.import_main(name + '.py')
