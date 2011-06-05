@@ -5,7 +5,7 @@ from ishelve2 import ShelveInterface
 i = plac.Interpreter(ShelveInterface(configfile=None))
 
 COMMANDS = ['''\
-.help
+help
 set a 1
 ''',
 '''\
