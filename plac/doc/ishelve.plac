@@ -1,7 +1,0 @@
-#!ishelve.py
-.clear 
-a=1 b=2
-.show
-.del a
-.dl b
-.show

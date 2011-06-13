@@ -1,8 +1,0 @@
-usage: example9.py [-h] [-v] dsn
-
-positional arguments:
-  dsn            connection string
-
-optional arguments:
-  -h, --help     show this help message and exit
-  -v, --verbose  prints more info
