@@ -1,0 +1,299 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>The Adventures of a Pythonista in Schemeland &mdash; The Adventures of a Pythonista in Schemeland v0.1 documentation</title>
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.1',
+        COLLAPSE_MODINDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <link rel="top" title="The Adventures of a Pythonista in Schemeland v0.1 documentation" href="" />
+    <link rel="next" title="A bit of history" href="scheme1.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="scheme1.html" title="A bit of history"
+             accesskey="N">next</a> |</li>
+        <li><a href="">The Adventures of a Pythonista in Schemeland v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="the-adventures-of-a-pythonista-in-schemeland">
+<h1>The Adventures of a Pythonista in Schemeland<a class="headerlink" href="#the-adventures-of-a-pythonista-in-schemeland" title="Permalink to this headline">¶</a></h1>
+<p>Contents:</p>
+<ul>
+<li class="toctree-l1"><a class="reference external" href="scheme1.html">A bit of history</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme1.html#my-target">My target</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme1.html#a-bit-of-history-fortran-and-lisp">A bit of history: Fortran and Lisp</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme1.html#the-algorithmic-language-scheme">The algorithmic language Scheme</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme2.html">About Scheme implementations</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme2.html#id1">About Scheme implementations</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme2.html#about-the-library-problem">About the library problem</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme2.html#additional-difficulties">Additional difficulties</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme3.html">Of parentheses and indentation</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme3.html#of-parens-and-indentation">Of parens and indentation</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme3.html#about-the-prefix-syntax">About the prefix syntax</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme4.html">Scheme bibliography (and a first program)</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme4.html#scheme-resources-for-beginners">Scheme resources for beginners</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme4.html#a-simple-scheme-program">A simple Scheme program</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme5.html">About tail call optimization (and the module system)</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme5.html#there-are-no-for-loops-in-scheme">There are no <tt class="docutils literal"><span class="pre">for</span></tt> loops in Scheme</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme5.html#there-is-no-portable-module-system">There is no portable module system</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme5.html#a-simple-benchmark">A simple benchmark</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme6.html">The danger of benchmarks</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme6.html#beware-of-wasted-cycles">Beware of wasted cycles</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme6.html#beware-of-cheats">Beware of cheats</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme6.html#beware-of-naive-optimization">Beware of naive optimization</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme6.html#recursion-vs-iteration">Recursion vs iteration</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme7.html">Symbols and lists</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme7.html#symbols">Symbols</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme7.html#lists">Lists</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme7.html#some-example">Some example</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme8.html">Quoting and quasi-quoting</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme8.html#quoting">Quoting</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme8.html#quasi-quoting">Quasi-quoting</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme8.html#programs-writing-programs">Programs writing programs</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme8.html#appendix-solution-of-the-exercises">Appendix: solution of the exercises</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme9.html">Introduction to (sweet-)macros</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme9.html#a-minimal-introduction-to-scheme-macros">A minimal introduction to Scheme macros</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme9.html#which-macrology-should-i-teach">Which macrology should I teach?</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme9.html#enter-sweet-macros">Enter sweet-macros</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme9.html#an-example-multi-define">An example: <tt class="docutils literal"><span class="pre">multi-define</span></tt></a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme10.html">Features of (sweet-)macros</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme10.html#syntax-match-and-introspection-features-of-sweet-macros"><tt class="docutils literal"><span class="pre">syntax-match</span></tt> and introspection features of sweet-macros</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme10.html#a-couple-of-common-mistakes">A couple of common mistakes</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme10.html#guarded-patterns">Guarded patterns</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme10.html#literal-identifiers">Literal identifiers</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme11.html">The multiple evaluation problem (and easy-test)</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme11.html#the-problem-of-multiple-evaluation">The problem of multiple evaluation</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme11.html#taking-advantage-of-multiple-evaluation">Taking advantage of multiple evaluation</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme11.html#a-micro-framework-for-unit-tests">A micro-framework for unit tests</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme12.html">Are macros really useful?</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme12.html#are-macros-just-syntactic-sugar">Are macros &#8220;just syntactic sugar&#8221;?</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme12.html#about-the-usefulness-of-macros-for-application-programmers">About the usefulness of macros for application programmers</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme12.html#appendix-a-pythonic-for-loop">Appendix: a Pythonic <tt class="docutils literal"><span class="pre">for</span></tt> loop</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme13.html">Micro-introduction to functional programming</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme13.html#a-minimal-introduction-to-functional-programming">A minimal introduction to functional programming</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme13.html#functional-data-structures-pairs-and-lists">Functional data structures: pairs and lists</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme13.html#functional-update">Functional update</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme14.html">Currying, partial application, and fold</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme14.html#higher-order-functions-and-curried-functions">Higher order functions and curried functions</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme14.html#partial-application-cut-and-cute">Partial application: cut and cute</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme14.html#fold-left-and-fold-right">fold-left and fold-right</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme15.html">List destructuring</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme15.html#about-pattern-matching">About pattern matching</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme15.html#a-list-destructuring-binding-form-let">A list destructuring binding form (let+)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme16.html">Multiple values (and opt-lambda)</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme16.html#list-destructuring-versus-let-values">list destructuring versus let-values</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme16.html#variadic-functions-from-unary-functions">Variadic functions from unary functions</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme16.html#further-examples-of-destructuring-opt-lambda">Further examples of destructuring: opt-lambda</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme17.html">List comprehension</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme17.html#the-aps-library">The APS library</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme17.html#implementing-list-comprehension">Implementing list comprehension</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme17.html#a-tricky-point">A tricky point</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme18.html">Streams</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme18.html#the-eight-queens-puzzle">The eight queens puzzle</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme18.html#iterators-and-streams">Iterators and streams</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme18.html#lazyness-is-a-virtue">Lazyness is a virtue</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme19.html">The R6RS module system</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme19.html#modules-are-not-first-class-objects">Modules are not first class objects</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme19.html#compiling-scheme-modules-vs-compiling-python-modules">Compiling Scheme modules vs compiling Python modules</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme19.html#compiling-is-not-the-same-than-executing">Compiling is not the same than executing</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme20.html">The compilation and evaluation strategy of Scheme programs</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme20.html#interpreter-semantics-vs-compiler-semantics">Interpreter semantics vs compiler semantics</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme20.html#macros-and-helper-functions">Macros and helper functions</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme20.html#a-note-about-incremental-compilers-and-interpreters">A note about incremental compilers and interpreters</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme20.html#discussion">Discussion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme21.html">The different meanings of phase separation</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme21.html#compile-time-run-time-and-optimization-time">Compile-time, run-time and optimization-time</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme21.html#strong-vs-weak-phase-separation">Strong vs weak phase separation</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme21.html#a-note-about-politics">A note about politics</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme22.html">The Dark Tower of Meta-levels</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme22.html#an-easy-looking-macro-with-a-deep-portability-issue">An easy-looking macro with a deep portability issue</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme22.html#negative-meta-levels">Negative meta-levels</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme22.html#meta-levels-greater-than-one">Meta-levels greater than one</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme22.html#discussion">Discussion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme23.html">Separate compilation and import semantics</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme23.html#the-mysterious-import-semantics">The mysterious import semantics</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme23.html#more-implementation-dependent-details">More implementation-dependent details</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme24.html">Mutating variables across modules</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme24.html#mutating-internal-variables">Mutating internal variables</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme24.html#mutating-variables-across-phases">Mutating variables across phases</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme24.html#cross-phase-side-effects-and-separate-compilation">Cross-phase side effects and separate compilation</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme24.html#conclusion">Conclusion</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme25.html">Back to macros</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme25.html#writing-your-own-programming-language">Writing your own programming language</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme25.html#recursive-macros-with-accumulators">Recursive macros with accumulators</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme25.html#a-trick-to-avoid-auxiliary-macros">A trick to avoid auxiliary macros</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme26.html">Macros taking macros as arguments</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme26.html#scheme-as-an-unfinished-language">Scheme as an unfinished language</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme26.html#two-second-order-macros-to-reduce-parentheses">Two second order macros to reduce parentheses</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme26.html#the-case-for-parentheses">The case for parentheses</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme27.html">Syntax objects</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme27.html#what-syntax-match-really-is">What <tt class="docutils literal"><span class="pre">syntax-match</span></tt> really is</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme27.html#what-macros-really-are">What macros really are</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme27.html#a-nicer-syntax-for-association-lists">A nicer syntax for association lists</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme28.html">Hygienic macros</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme28.html#syntax-match-vs-syntax-rules"><tt class="docutils literal"><span class="pre">syntax-match</span></tt> vs <tt class="docutils literal"><span class="pre">syntax-rules</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme28.html#syntax-match-vs-syntax-case"><tt class="docutils literal"><span class="pre">syntax-match</span></tt> vs <tt class="docutils literal"><span class="pre">syntax-case</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme28.html#syntax-match-versus-define-macro"><tt class="docutils literal"><span class="pre">syntax-match</span></tt> versus <tt class="docutils literal"><span class="pre">define-macro</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme28.html#the-hygiene-problem">The hygiene problem</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme29.html">Breaking hygiene</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme29.html#datum-syntax-revisited"><tt class="docutils literal"><span class="pre">datum-&gt;syntax</span></tt> revisited</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme29.html#playing-with-the-lexical-context">Playing with the lexical context</a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme29.html#hygienic-vs-non-hygienic-macro-systems">Hygienic vs non-hygienic macro systems</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference external" href="scheme30.html">Comparing identifiers</a><ul>
+<li class="toctree-l2"><a class="reference external" href="scheme30.html#symbol-identifier"><tt class="docutils literal"><span class="pre">symbol-identifier=?</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme30.html#bound-identifier"><tt class="docutils literal"><span class="pre">bound-identifier=?</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme30.html#free-identifier"><tt class="docutils literal"><span class="pre">free-identifier=?</span></tt></a></li>
+<li class="toctree-l2"><a class="reference external" href="scheme30.html#literal-identifiers-and-auxiliary-syntax">Literal identifiers and auxiliary syntax</a></li>
+</ul>
+</li>
+</ul>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference external" href="genindex.html"><em>Index</em></a></li>
+<li><a class="reference external" href="search.html"><em>Search Page</em></a></li>
+</ul>
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+            <h3><a href="">Table Of Contents</a></h3>
+            <ul>
+<li><a class="reference external" href="">The Adventures of a Pythonista in Schemeland</a><ul>
+</ul>
+</li>
+<li><a class="reference external" href="#indices-and-tables">Indices and tables</a></li>
+</ul>
+
+            <h4>Next topic</h4>
+            <p class="topless"><a href="scheme1.html"
+                                  title="next chapter">A bit of history</a></p>
+            <h3>This Page</h3>
+            <ul class="this-page-menu">
+              <li><a href="_sources/index.txt"
+                     rel="nofollow">Show Source</a></li>
+            </ul>
+          <div id="searchbox" style="display: none">
+            <h3>Quick search</h3>
+              <form class="search" action="search.html" method="get">
+                <input type="text" name="q" size="18" />
+                <input type="submit" value="Go" />
+                <input type="hidden" name="check_keywords" value="yes" />
+                <input type="hidden" name="area" value="default" />
+              </form>
+              <p class="searchtip" style="font-size: 90%">
+              Enter search terms or a module, class or function name.
+              </p>
+          </div>
+          <script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="scheme1.html" title="A bit of history"
+             >next</a> |</li>
+        <li><a href="">The Adventures of a Pythonista in Schemeland v0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+      &copy; Copyright 2009, Michele Simionato.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 0.6.2.
+    </div>
+  </body>
+</html>
