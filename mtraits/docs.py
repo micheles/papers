@@ -715,18 +715,16 @@ thinking that the ``s`` also stands for Simionato ;)
 
 """
 from datetime import datetime
-TODAY = datetime.today().isoformat()[:10]
-VERSION = '0.5.1'
-
-__doc__ = __doc__.replace('VERSION', VERSION).replace('TODAY', TODAY)
-
 import time
 import cPickle as pickle
 from strait import *
 from Tkinter import *
 
+TODAY = datetime.today().isoformat()[:10]
+__doc__ = __doc__.replace('VERSION', __version__).replace('TODAY', TODAY)
 
-#Tkinter.BaseWidget.__bases__ = (LogOnInit, Tkinter.Misc)
+
+# Tkinter.BaseWidget.__bases__ = (LogOnInit, Tkinter.Misc)
 
 class TOSWidget(BaseWidget):
     __metaclass__ = include(Pack, Place, Grid)

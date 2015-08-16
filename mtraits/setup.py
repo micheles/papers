@@ -1,3 +1,4 @@
+import ast
 try:
     from setuptools import setup
 except ImportError:
@@ -10,7 +11,9 @@ else:
     doc = docfile.read()
     docfile.close()
 
-VERSION = '0.5.2'
+firstline = next(open('strait.py'))  # extract the version string
+VERSION = ast.literal_eval(firstline.split('=')[1].strip())
+
 setup(name='strait',
       version=VERSION,
       description='Simple Traits for Python',

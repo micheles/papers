@@ -1,2 +1,1 @@
-include docs.pdf
-exclude doc.py mtrait.py 
+include docs.py docs.pdf
