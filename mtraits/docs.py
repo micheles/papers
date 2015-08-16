@@ -157,12 +157,16 @@ Tkinter class to use traits instead of mixins. Consider the
 ``Tkinter.Grid``, ``Tkinter.Pack`` and ``Tkinter.Place``: I want to
 rewrite it by using traits. The ``strait`` module
 provides a factory function named ``include`` that does the job.
-It is enough to replace the multiple inheritance syntax::
+It is enough to replace the multiple inheritance syntax:
+
+.. code:: python
 
   class Widget(BaseWidget, Grid, Pack, Place):
        pass
 
-with the following syntax::
+with the following syntax:
+
+.. code:: python
 
  class Widget(BaseWidget):
      __metaclass__ = include(Pack, Place, Grid)
@@ -170,6 +174,8 @@ with the following syntax::
 I said that the conversion from mixins to traits was easy: but actually
 I lied since if you try to execute the code I just wrote you will
 get an ``OverridingError``:
+
+.. code:: python
 
  >>> from Tkinter import *
  >>> class Widget(BaseWidget):
@@ -197,10 +203,14 @@ You can check that the TOSWidget class works, for instance by defining a
 label widget as follows (remember that ``TOSWidget`` inherits its signature
 from  ``BaseWidget``):
 
+.. code:: python
+
  >>> label = TOSWidget(master=None, widgetName='label',
  ...                   cnf=dict(text="hello"))
 
 You may visualize the widget by calling the ``.pack`` method:
+
+.. code:: python
 
  >>> label.pack()
 
@@ -213,14 +223,18 @@ First of all, let me notice that, in spite of apparency, ``include``
 does not return a metaclass. Insted, it returns a class factory
 function with signature ``name, bases, dic``:
 
->>> print include(Pack, Place, Grid) #doctest: +ELLIPSIS
-<function include_Pack_Place_Grid at 0x...>
+.. code:: python
+
+ >>> print include(Pack, Place, Grid) #doctest: +ELLIPSIS
+ <function include_Pack_Place_Grid at 0x...>
 
 This function will create the class by using a suitable
 metaclass:
 
->>> type(TOSWidget)
-<class 'strait.MetaTOS'>
+.. code:: python
+
+ >>> type(TOSWidget)
+ <class 'strait.MetaTOS'>
 
 In simple cases the metaclass will be ``MetaTOS``, the main class
 of the trait object system, but in general it can be a different
@@ -229,6 +243,8 @@ one not inheriting from ``MetaTOS``. The exact rules followed by
 
 Here I want to remark that according to rule 6 traits take the precedence
 over the base class attributes. Consider the following example:
+
+.. code:: python
 
  >>> class Base(object):
  ...     a = 1
@@ -245,11 +261,15 @@ over the base class attributes. Consider the following example:
 In regular multiple inheritance you would do the same by including
 ``ATrait`` *before* ``Base``, i.e.
 
+.. code:: python
+
  >>> type('Class', (ATrait, Base), {}).a
  2
 
 You should take care to not mix-up the order, otherwise you will get a
 different result:
+
+.. code:: python
 
  >>> type('Class', (Base, ATrait), {}).a
  1
@@ -266,6 +286,8 @@ TOS classes behave differently from regular
 classes. In particular TOS classes do not support multiple inheritance.
 If you try to multiple inherit from a TOS
 class and another class you will get a ``TypeError``:
+
+.. code:: python
 
  >>> class M:
  ...     "An empty class"
@@ -331,8 +353,10 @@ if your base class was an old-style
 class or a plain new style class (i.e. a direct instance of the
 ``type`` metaclass), them ``include`` will change it to ``MetaTOS``:
 
->>> type(TOSWidget)
-<class 'strait.MetaTOS'>
+.. code:: python
+
+ >>> type(TOSWidget)
+ <class 'strait.MetaTOS'>
 
 In general you may need to build your Trait Based Framework
 on top of pre-existing classes possessing a nontrivial metaclass, for
@@ -348,6 +372,8 @@ $$PackWidget
 ``include`` automatically generates the right metaclass as
 a subclass of ``AddGreetings``:
 
+.. code:: python
+
  >>> print type(PackWidget).__mro__
  (<class 'strait._TOSAddGreetings'>, <class '__main__.AddGreetings'>, <type 'type'>, <type 'object'>)
  
@@ -361,6 +387,8 @@ other hand, ``_TOSMetaAddGreetings`` is a subclass of ``AddGreetings``
 which calls ``AddGreetings.__new__``, so the features provided by
 ``AddGreetings`` are not lost either; in this example you may check
 that the greetings attribute is correctly set:
+
+.. code:: python
 
  >>> PackWidget.greetings
  'hello!'
@@ -397,31 +425,37 @@ of the multiple inheritance system is that ``LogOnInitMI`` and
 both of them, you get both features:
 
 $$C_MI
->>> c = C_MI() #doctest: +ELLIPSIS
-Initializing <__main__.C_MI object at 0x...>
-Registering <__main__.C_MI object at 0x...>
+
+.. code:: python
+
+ >>> c = C_MI() #doctest: +ELLIPSIS
+ Initializing <__main__.C_MI object at 0x...>
+ Registering <__main__.C_MI object at 0x...>
 
 You cannot get the same behaviour if you use the trait object system
 naively:
 
->>> class C_MI(object):
-...      __metaclass__ = include(LogOnInitMI, RegisterOnInitMI)
-...
-Traceback (most recent call last):
-  ...
-OverridingError: LogOnInitMI overrides names in RegisterOnInitMI: {__init__}
+.. code:: python
+
+ >>> class C_MI(object):
+ ...      __metaclass__ = include(LogOnInitMI, RegisterOnInitMI)
+ ...
+ Traceback (most recent call last):
+   ...
+ OverridingError: LogOnInitMI overrides names in RegisterOnInitMI: {__init__}
 
 This is a feature, of course, since the trait object system is designed
 to avoid name clashes. However, the situation is worse than that:
 even if you try to mixin a single class you will run into trouble
 
->>> class C_MI(object):
-...      __metaclass__ = include(LogOnInitMI)
+.. code:: python
 
->>> c = C_MI()
-Traceback (most recent call last):
+ >>> class C_MI(object):
+ ...      __metaclass__ = include(LogOnInitMI)
+ >>> c = C_MI()
+ Traceback (most recent call last):
   ...
-TypeError: super(type, obj): obj must be an instance or subtype of type
+ TypeError: super(type, obj): obj must be an instance or subtype of type
 
 What's happening here? The situation is clear if you notice that the
 ``super`` call is actually a call of kind ``super(LogOnInitMI, c)``
@@ -460,21 +494,27 @@ Now you can include the ``RegisterOnInit`` functionality as follows:
 
 $$C_Register
 
->>> _ = C_Register() #doctest: +ELLIPSIS
-Registering <__main__.C_Register object at 0x...>
+.. code:: python
+
+ >>> _ = C_Register() #doctest: +ELLIPSIS
+ Registering <__main__.C_Register object at 0x...>
 
 Everything works because ``include`` has added the right attribute:
 
->>> C_Register._RegisterOnInit__super
-<super: <class 'C_Register'>, <C_Register object>>
+.. code:: python
+
+ >>> C_Register._RegisterOnInit__super
+ <super: <class 'C_Register'>, <C_Register object>>
 
 Moreover, you can also include the ``LogOnInit`` functionality:
 
 $$C_LogAndRegister
 
->>> _ = C_LogAndRegister() #doctest: +ELLIPSIS
-Initializing <__main__.C_LogAndRegister object at 0x...>
-Registering <__main__.C_LogAndRegister object at 0x...>
+.. code:: python
+
+ >>> _ = C_LogAndRegister() #doctest: +ELLIPSIS
+ Initializing <__main__.C_LogAndRegister object at 0x...>
+ Registering <__main__.C_LogAndRegister object at 0x...>
 
 As you see, the cooperation mechanism works just fine. I will call
 *cooperative trait* a class intended for inclusion in other classes
@@ -626,7 +666,9 @@ way they can.
 
 In previous versions I did provide some syntactic sugar for ``include``
 so that it was possible to write something like the following
-(using a trick discussed here_)::
+(using a trick discussed here_):
+
+.. code:: python
 
   class C(Base):
      include(Trait1, Trait2)
@@ -695,11 +737,14 @@ class TOSWidget(BaseWidget):
     forget = Pack.forget.im_func
     propagate = Pack.propagate.im_func
 
+
 class HTTP(object):
     def GET(self):
         print 'calling HTTP.GET from %s' % self
+
     def POST(self):
         print 'calling HTTP.POST from %s' % self
+
     @classmethod
     def cm(cls):
         print 'calling HTTP.cm from %s' % cls
@@ -707,11 +752,14 @@ class HTTP(object):
 class FTP(object):
     def SEND(self):
         print 'calling FTP.SEND from %s' % self
+
     def RECV(self):
         print 'calling FTP.RECV from %s' % self
+
     @staticmethod
     def sm():
         print 'calling staticmethod'
+
 
 class AddGreetings(type):
     "A metaclass adding a 'greetings' attribute for exemplification purposes"
@@ -719,19 +767,24 @@ class AddGreetings(type):
         dic['greetings'] = 'hello!'
         return super(AddGreetings, mcl).__new__(mcl, name, bases, dic)
 
+
 class WidgetWithGreetings(BaseWidget, object):
     __metaclass__ = AddGreetings
+
 
 class PackWidget(WidgetWithGreetings):
     __metaclass__ = include(Pack)
 
+
 def test_multi_include():
     class B(WidgetWithGreetings):
         __metaclass__ = include(FTP)
+
     class C(B):
         __metaclass__ = include(HTTP)
         def __init__(self, a):
             self.a = a
+
     class D(C):
         pass
     x = D(1)
@@ -740,16 +793,19 @@ def test_multi_include():
     x.sm()
     print type(B), type(C)
 
+
 def timethis(thunk, N=10000):
     t0 = time.time()
     for i in xrange(N):
         thunk()
     return time.time() - t0
 
+
 def test_speed():
     t1 = timethis(lambda : TOSWidget.size)
     t2 = timethis(lambda : Widget.size)
     print 'TOS lookup:', t1, 'Regular lookup', t2, 'Slowdown', int(t1/t2)
+
 
 class Mixin(object):
     def _helper(self):
@@ -757,65 +813,80 @@ class Mixin(object):
     def method(self):
         return self._helper() + 1
 
+
 class A(object):
     def save(self):
         print 'A.save'
+
 
 class AM(A):
     __metaclass__ = include(Mixin)
 
 assert AM().method() == 2
 
+
 class ThirdPartyMeta(type):
     def __new__(mcl, name, bases, dic):
         print 'Using ThirdPartyMeta to create %s' % name
         return super(ThirdPartyMeta, mcl).__new__(mcl, name, bases, dic)
 
+
 class EnhancedMetaTOS(ThirdPartyMeta):
     __metaclass__ = include(MetaTOS)
+
 
 def enhanced_include(*traits):
     return include(MetaTOS=EnhancedMetaTOS, *traits)
 
-class FrameworkMeta(type): # example metaclass
-  def __new__(mcl, name, bases, dic):
-      print "Adding framework features to %s" % name
-      return type.__new__(mcl, name, bases, dic)
 
-class DebugMeta(type): # mixin metaclass
-  def __new__(mcl, name, bases, dic):
-      print "Adding debugging features to %s" % name
-      return mcl.__super.__new__(mcl, name, bases, dic)
+class FrameworkMeta(type):  # example metaclass
+    def __new__(mcl, name, bases, dic):
+        print "Adding framework features to %s" % name
+        return type.__new__(mcl, name, bases, dic)
 
-class RemotableMeta(type): # another mixin metaclass
-  def __new__(mcl, name, bases, dic):
-      print "Adding remoting features to %s" % name
-      return mcl.__super.__new__(mcl, name, bases, dic)
+
+class DebugMeta(type):  # mixin metaclass
+    def __new__(mcl, name, bases, dic):
+        print "Adding debugging features to %s" % name
+        return mcl.__super.__new__(mcl, name, bases, dic)
+
+
+class RemotableMeta(type):  # another mixin metaclass
+    def __new__(mcl, name, bases, dic):
+        print "Adding remoting features to %s" % name
+        return mcl.__super.__new__(mcl, name, bases, dic)
+
 
 class FrameworkClass(object):
    __metaclass__ = FrameworkMeta
 
+
 class DebugFrameworkMeta(FrameworkMeta):
     __metaclass__ = enhanced_include(DebugMeta)
-
 print '**************** creating DebugFrameworkClass'
+
+
 class DebugFrameworkClass(FrameworkClass):
    __metaclass__ = DebugFrameworkMeta
+
 
 class RemotableDebugFrameworkMeta(DebugFrameworkMeta):
     __metaclass__ = enhanced_include(RemotableMeta)
 
 print '**************** creating RemotableDebugFrameworkClass'
 
-class RemotableDebugFrameworkClass(FrameworkClass):
-   __metaclass__ = RemotableDebugFrameworkMeta
 
-## cooperation in Multiple Inheritance
+class RemotableDebugFrameworkClass(FrameworkClass):
+    __metaclass__ = RemotableDebugFrameworkMeta
+
+
+# cooperation in Multiple Inheritance
 
 class LogOnInitMI(object):
     def __init__(self, *args, **kw):
         print 'Initializing %s' % self
         super(LogOnInitMI, self).__init__(*args, **kw)
+
 
 class RegisterOnInitMI(object):
     register = []
@@ -824,34 +895,41 @@ class RegisterOnInitMI(object):
         self.register.append(self)
         super(RegisterOnInitMI, self).__init__(*args, **kw)
 
+
 class C_MI(LogOnInitMI, RegisterOnInitMI):
     pass
 
-## cooperation in TOS
+# cooperation in TOS
+
 
 class LogOnInit(object):
     def __init__(self, *args, **kw):
         print 'Initializing %s' % self
         self.__super.__init__(*args, **kw)
 
+
 class RegisterOnInit(object):
     register = []
+
     def __init__(self, *args, **kw):
         print 'Registering %s' % self
         self.register.append(self)
         self.__super.__init__(*args, **kw)
 
+
 class C_Register(object):
     __metaclass__ = include(RegisterOnInit)
+
 
 class C_LogAndRegister(C_Register):
     __metaclass__ = include(LogOnInit)
 
-## run tests
+# run tests
 
 if __name__ == '__main__':
-    import doctest; doctest.testmod()
-    try:        
+    import doctest
+    doctest.testmod()
+    try:
         import nose
     except ImportError:
         pass

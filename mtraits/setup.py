@@ -2,24 +2,24 @@ try:
     from setuptools import setup
 except ImportError:
     from distutils.core import setup
-
 try:
-    docfile = file('/tmp/docs.html')
-except IOError: # file not found, ignore
+    docfile = open('/tmp/docs.rst')
+except IOError:  # file not found, ignore
     doc = ''
 else:
     doc = docfile.read()
+    docfile.close()
 
-VERSION = '0.5.1'
+VERSION = '0.5.2'
 setup(name='strait',
       version=VERSION,
       description='Simple Traits for Python',
-      long_description="</pre>%s<pre>" % doc,
+      long_description=doc,
       author='Michele Simionato',
       author_email='michele.simionato@gmail.com',
       url='http://pypi.python.org/pypi/strait',
       license="BSD License",
-      py_modules = ['strait'],
+      py_modules=['strait'],
       keywords='',
       platforms=['any'],
       classifiers=['Development Status :: 3 - Alpha',
@@ -29,4 +29,4 @@ setup(name='strait',
                    'Operating System :: OS Independent',
                    'Programming Language :: Python',
                    'Topic :: Software Development :: Libraries'],
-       zip_safe=False)
+      zip_safe=False)
