@@ -1,6 +1,7 @@
 HISTORY
 -----------------------------
 
+0.5.2. Updated the documentation building mechanism (2015-08-16)
 0.5.1. First published version (2009-01-05)
 0.5.0. Major rewriting: abandoned the original idea of traits as
        mechanism to control namespace pollution and added support for
