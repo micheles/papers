@@ -1,5 +1,11 @@
-Hello
+Python in scientific computing
+==============================
 
-+++
+what works and what doesn't
+---------------------------
 
-World
+Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
+
+---
+
+
