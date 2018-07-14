@@ -11,8 +11,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-What I mean by scientific computing
------------------------------------
+**What I mean by scientific computing**
 
 - Big (cluster size) numerical simulations
 - Lots of data being generated
