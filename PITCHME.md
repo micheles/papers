@@ -21,3 +21,13 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 +++
 
 ![all-cores](all-cores.png)
+
+---
+
+***numpy**
+
+- numpy is good
+
+CAVEATS:
+
+- had troubles with returning back structured arrays in earlier versions
