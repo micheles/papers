@@ -102,9 +102,25 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 **dask**
 
-- I know about dask since the beginning
+- I knew about dask since the beginning
 - I was waiting for it to mature
 - the documentation has improved a lot now
-- dask.distributed.Client.map is the easy migration path I was looking for
-- we are testing it right now
+- `dask.distributed.Client.map` is the easy migration path I was looking for
+- we are testing it, love to hear from you :-)
 
+---
+
+*What works and what doesn't** 
+
+what about architecture?
+
++++
+
+- I reading the data is a big issue, consider using a distributed filesystem
+- NFS worked really well for us
+- I you need to write a lot of data, the single writer architecture scales
+  a lot more than one could expect
+- for speed, it is *essential* to find out the right data structure in HDF5
+- a lot of trial and error was involved; at the end a structured array
+  plus a dataset with indices was the best approach
+- variable-length data types are convenient, but tricky;
