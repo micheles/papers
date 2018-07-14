@@ -111,8 +111,8 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-![taiwan](collapse.jpg)
 **what about architecture?**
+![taiwan](collapse.jpg)
 
 +++
 
