@@ -113,6 +113,8 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 # what about architecture?
 
+![taiwan](collapse.jpg)
+
 +++
 
 - if reading data is the big issue, consider using a distributed filesystem
@@ -127,16 +129,13 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 +++
 
 - for speed, it is *essential* to find out the right data structure in HDF5
-
-+++
-
 - at the end a structured array
   plus a dataset with indices was the best approach
 
 +++
 
 - variable-length data types are convenient, but tricky and not well
-  supported by the tools (HDFView, silx)
+  supported by the tools (HDFView, silx view)
 
 ---
 
