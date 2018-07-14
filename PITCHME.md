@@ -110,14 +110,13 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-*What works and what doesn't** 
+**What works and what doesn't** 
 
 what about architecture?
 
 +++
 
-- I reading the data is a big issue, consider using a distributed filesystem
-- NFS worked really well for us
+- if reading data is the big issue, consider using a distributed filesystem
 - I you need to write a lot of data, the single writer architecture scales
   a lot more than one could expect
 - for speed, it is *essential* to find out the right data structure in HDF5
