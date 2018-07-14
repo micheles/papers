@@ -24,21 +24,21 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**numpy**
+**what's behind: numpy**
 
 - numpy is good
 - had troubles with returning back structured arrays in earlier versions
 
 ---
 
-**scipy**
+**what's behind: scipy**
 
 - scipy is good
 - and it keeps improving
 
 ---
 
-**h5py/hdf5**
+**what's behind: h5py/hdf5**
 
 - it is good but tricky
 - lots and lots of issues with structured arrays/variable length arrays
@@ -48,7 +48,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**geospatial features**
+**what's behind: geospatial**
 
 - scipy.spatial.distance is good
 - scipy.spatial.KDTree is fine except the documentation
@@ -56,7 +56,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**celery/rabbitmq**
+**what's behind: celery/rabbitmq**
 
 - celery/rabbitmq is not ideal
 - we have it for legacy reasons and because there was no dominant task
@@ -69,7 +69,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**celery/rabbitmq**
+**what's behind: celery/rabbitmq**
 
 - we had problems with specific versions of rabbitmq
 - using celery/redis did not work out (missing revoke)
@@ -79,7 +79,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**celery/rabbitmq**
+**what's behind: celery/rabbitmq**
 
 - celery has 50,000+ lines of code, while rabbitmq is even more alien
 - if it does not work, you are dead (but the mailing list is helpful)
@@ -88,7 +88,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**zmq**
+**what's behind: zmq**
 
 - zmq is good
 - I studied the zmq book after EuroPython 2017
@@ -100,7 +100,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**dask**
+**what's behind: dask**
 
 - I knew about dask since the beginning
 - I was waiting for it to mature
@@ -110,9 +110,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**What works and what doesn't** 
-
-what about architecture?
+# what about architecture?
 
 +++
 
@@ -154,6 +152,6 @@ what about architecture?
          obj = f[key] 
 ```
 
-- right now we are converting our input files from XML to HDF5
+- we are converting our input files from XML to HDF5
 - USGS will provide ShakeMaps in HDF5 format
 - if you are not using HDF5, you should ;-)
