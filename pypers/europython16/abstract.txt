@@ -1,0 +1,23 @@
+How to migrate from PostgreSQL to HDF5 and live happily ever after
+==================================================================
+
+This talk is for people who have a lot of floating numbers inside
+PostgreSQL tables and have problems with that. I will narrate my
+experience with a scientific project that used PostgreSQL as storage
+for a rather complex set of composite multidimensional arrays and ran
+into all sorts of performances issues, both in reading and writing the
+data.  I will discuss the issues and the approach that was taken first
+to mitigate them (unsuccessfully) and then to remove them
+(successfully) by a complete rethinking of the underlying architecture
+and eventually the removal of the database. I will talk about the
+migration strategies that were employed in the transition period and
+how to live with a mixed environment of metadata in PostgreSQL and
+data in an HDF5 file. I will also talk about concurrency, since the
+underlying application is distributed and massively parallel, and
+still it uses the purely sequential version of HDF5. Questions from
+the audience are expected and welcome.
+The talk is of interest to a large public, since it is mostly about
+measuring things, monitoring and testing a legacy system,
+making sure that the changes do not break the previous behavior
+and keeping the users happy, while internally rewriting
+all of the original code. And doing that in a small enough number of years!

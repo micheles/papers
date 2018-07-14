@@ -1,0 +1,7 @@
+In this talk I will share some hard-learned knowledge gained in several
+years of parallel programming. Covered topics will include
+performance, ways to measure the performance, memory occupation, data
+transfer and ways to reduce the data transfer, how to debug parallel
+programs and useful libraries. I will give some practical examples,
+both in enterprise programming (importing CSV files in a database) and
+in scientific programming (numerical simulations).

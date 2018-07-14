@@ -1,0 +1,17 @@
+Starting from October 2012 I work with GEM, a non-profit foundation
+specialized on earthquakes and seismic risk assessment. I am the
+maintainer of the [Openquake Engine](https://github.com/gem/oq-engine)
+and since March 2014 I have been working full time on it. Before that
+I had a long and variegated professional history. I started out as a
+Theoretical Physicist, working on General Relativity, Supergravity and
+then going into the Renormalization of Quantum Field Theory which was
+the subject of my Ph. D. I have been doing several years of postdoc
+research on Equilibrium and Out of Equilibrium Quantum Field Theory.
+In 2003 I quit Physics and moved into software development, working
+with Plone and several Web technologies. I am a Python expert, but I
+also have experience with several other languages. I wrote several
+technical papers and a book-size collection of articles called The
+Adventures of a Pythonista in Schemeland. In 2005 I was hired by
+StatPro in Milan and spent 7 years working with databases and web
+applications in the field of financial risk assessment. I am also one
+of the founders of the Italian Python Association.
