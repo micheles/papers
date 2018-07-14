@@ -139,10 +139,14 @@ what about architecture?
         
     def __fromh5__(self, array, attrs):
         ...
-        
+```
++++
+```python
     with openquake.baselib.hdf5.File('x.hdf5', 'w') as f:
          f[key] = obj 
         
     with openquake.baselib.hdf5.File('x.hdf5', 'r') as f:
          return f[key] 
 ```
+
+We are converting our input files from XML to hdf5
