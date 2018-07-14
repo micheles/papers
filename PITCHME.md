@@ -28,3 +28,20 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 - numpy is good
 - had troubles with returning back structured arrays in earlier versions
+
+---
+
+**scipy**
+
+- scipy is good
+- and it keeps improving
+
+---
+
+**h5py/hdf5**
+
+- it is good but tricky
+- lots and lots of issues with structured arrays/variable length arrays
+- several issues with bytes/strings at the time of the Python 2->3 migration
+- recent debacle with the HDF5 1.8 -> 1.10 upgrade
+- silx view is a lot better than HDFView!
