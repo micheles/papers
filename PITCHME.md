@@ -126,7 +126,7 @@ what about architecture?
 
 ---
 
-**more of h5py/hdf5**
+**More on h5py/hdf5**
 
 - in spite of its bugs, h5py is really nice and Pythonic
 - it makes a lot of sense to serialize Python objects to HDF5
@@ -135,10 +135,11 @@ what about architecture?
 ```python
     def __toh5__(self):
         ...
-        return array, attrs
+        return self.array, self.attrs
         
     def __fromh5__(self, array, attrs):
-        ...
+        self.array = array
+        self.attrs = attrs
 ```
 +++
 ```python
