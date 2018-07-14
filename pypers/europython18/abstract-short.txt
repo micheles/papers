@@ -1,0 +1,6 @@
+In this talk I will share some hard-learned knowledge
+about what works and what doesn't with the sofware stack I have been
+using at work for years, i.e. h5py, celery/rabbitmq, PyZMQ, numpy/scipy,
+rtree and other libraries. I will discuss the tradeoff we made between
+performance, simplicity, and reliability and how did we cope with some
+hard library bugs.

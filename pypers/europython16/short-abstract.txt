@@ -1,0 +1,8 @@
+This talk is for people who have a lot of floating numbers inside
+PostgreSQL tables. I will bring as an example my personal experience
+with a scientific project that used PostgreSQL as storage for a rather
+complex set of composite multidimensional arrays and ran into all
+sorts of performances issues, both in reading and writing the data. I
+will explain how I solved all that by dropping the database in favor
+of an HDF5 file, while keeping the application running and the users
+happy.
