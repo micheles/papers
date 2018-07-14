@@ -65,7 +65,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
   huge messages
 - rabbitmq is meant for resilience and stores everything in the mnesia
   database, but we do not need that and it is counterproductive
-- there are lots of configurations the users can get wrong
+- lots of configurations the users can get wrong
 
 +++
 
@@ -77,7 +77,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 - the default configuration is not the ideal one for our use case
 - we had celery waiting for already completed tasks :-(
 
----
++++
 
 **celery/rabbitmq**
 
@@ -91,13 +91,12 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 **zmq**
 
 - zmq is good
-- I studied the zmq book last summer after EuroPython
+- I studied the zmq book after EuroPython 2017
 - I implemented what I needed in 2-3 days plus some adjustment
-- it works really well, even if not at the first attempt
+- it worked really well, even if not at the first attempt
 - we have now a plan B if celery/rabbitmq should fail us again
-- the performance is excellent, essentially there is no limit
-- one must be careful that sent packets keeps circulating in the system
-
+- the performance is excellent, there is no limit
+- one must be careful that sent packets keeps circulating
 
 
 
