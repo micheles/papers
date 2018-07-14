@@ -82,7 +82,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: celery/rabbitmq**
 
-- celery has 50,000+ lines of code, while rabbitmq is even more alien
+- celery has 50,000+ lines of code, while rabbitmq is in Erlang
 - if it does not work, you are dead (but the mailing list is helpful)
 - there are strong limits on the amount of data you can transfer in a
   short time
@@ -103,7 +103,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: dask**
 
-- I knew about dask since the beginning
+- we are not using it in production but we have experimental support for it
 - I was waiting for it to mature
 - the documentation has improved a lot now
 - `dask.distributed.Client.map` is the easy migration path I was looking for
@@ -116,11 +116,13 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 +++
 
 - if reading data is the big issue, consider using a distributed filesystem
+- the performance of NFS was really good for us
 
 +++
 
 - I you need to write a lot of data, the single writer architecture scales
   a lot more than one could expect
+- we saw peak writing speeds of ~ 500 MB/s (30 GB/minute!)
 
 +++
 
