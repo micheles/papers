@@ -65,7 +65,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
   huge messages
 - rabbitmq is meant for resilience and stores everything in the mnesia
   database, but we do not need that and it is counterproductive
-- there are lots of configurations that the users can get wrong
+- there are lots of configurations the users can get wrong
 
 +++
 
@@ -77,12 +77,14 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 - the default configuration is not the ideal one for our use case
 - we had celery waiting for already completed tasks :-(
 
+---
+
 **celery/rabbitmq**
 
 - celery has 50,000+ lines of code, while rabbitmq is even more alien
 - if it does not work, you are dead (but the mailing list is helpful)
 - there are strong limits on the amount of data you can transfer in a
-  small amount of time
+  short time
 
 ---
 
