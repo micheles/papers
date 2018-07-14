@@ -116,6 +116,11 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
+- however good the underlying libraries, your software will collapse
+  if you have the wrong architecture (speaking from experience)
+
++++
+
 - if reading data is the big issue, consider using a distributed filesystem
 - the performance of NFS was really good for us
 
