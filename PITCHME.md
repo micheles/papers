@@ -48,11 +48,12 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**what's behind: geospatial**
+**what's behind: geospatial libraries**
 
 - scipy.spatial.distance is good
 - scipy.spatial.KDTree is fine except the documentation
 - rtree is fine but I had problems with the index bulk insert in release 0.8.2 
+- ask me more after the end of the talk
 
 ---
 
@@ -115,11 +116,23 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 +++
 
 - if reading data is the big issue, consider using a distributed filesystem
+
++++
+
 - I you need to write a lot of data, the single writer architecture scales
   a lot more than one could expect
+
++++
+
 - for speed, it is *essential* to find out the right data structure in HDF5
+
++++
+
 - at the end a structured array
   plus a dataset with indices was the best approach
+
++++
+
 - variable-length data types are convenient, but tricky
 
 ---
