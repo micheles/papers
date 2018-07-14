@@ -130,11 +130,10 @@ what about architecture?
 
 - in spite of its bugs, h5py is really nice and Pythonic
 - it makes a lot of sense to serialize Python objects to HDF5
-- it was easy to define a serialization protocol
+- it was easy to define a serialization protocol:
 
 ```python
     def __toh5__(self):
-        ...
         return self.array, self.attrs
         
     def __fromh5__(self, array, attrs):
