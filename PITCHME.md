@@ -144,6 +144,8 @@ what about architecture?
 
 **The OpenQuake HDF5 serialization library**
 
+*(free, with AGPL licence :-)*
+
 ```python
     with openquake.baselib.hdf5.File('x.hdf5', 'w') as f:
          f[key] = obj 
@@ -152,6 +154,6 @@ what about architecture?
          obj = f[key] 
 ```
 
-We are converting our input files from XML to HDF5.
-
-*It is free, with AGPL licence, you can use it :-)*
+- right now we are converting our input files from XML to HDF5
+- USGS will provide ShakeMaps in HDF5 format
+- if you are not using HDF5, you should ;-)
