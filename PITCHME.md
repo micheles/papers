@@ -92,11 +92,17 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 - zmq is good
 - I studied the zmq book after EuroPython 2017
-- I implemented what I needed in 2-3 days plus some adjustment
+- I implemented what I needed in 2-3 days
 - it worked really well, even if not at the first attempt
 - we have now a plan B if celery/rabbitmq should fail us again
 - the performance is excellent, there is no limit
 - one must be careful that sent packets keeps circulating
 
+**dask**
 
+- I know about dask since the beginning
+- I was waiting for it to mature
+- the documentation has improved a lot now
+- dask.distributed.Client.map is the easy migration path I was looking for
+- we are testing it right now
 
