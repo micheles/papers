@@ -124,13 +124,13 @@ what about architecture?
   plus a dataset with indices was the best approach
 - variable-length data types are convenient, but tricky
 
-+++
+---
+
+**more of h5py/hdf5**
 
 - in spite of its bugs, h5py is really nice and Pythonic
 - it makes a lot of sense to serialize Python objects to HDF5
 - it was easy to define a serialization protocol
-
-+++
 
 ```python
     def __toh5__(self):
