@@ -7,4 +7,4 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-
+![california](hazard_map.png)
