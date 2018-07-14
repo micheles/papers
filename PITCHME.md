@@ -133,7 +133,8 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-- variable-length data types are convenient, but tricky
+- variable-length data types are convenient, but tricky and not well
+  supported by the tools (HDFView, silx)
 
 ---
 
