@@ -11,7 +11,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**What I mean by scientific computing**
+**what I mean by scientific computing**
 
 - Distributed numerical simulations
 - Lots of data being generated
@@ -111,9 +111,8 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**what about architecture?**
-
 ![taiwan](collapse.jpg)
+**what about architecture?**
 
 +++
 
