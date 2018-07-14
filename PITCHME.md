@@ -13,7 +13,11 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 **What I mean by scientific computing**
 
-- Big (cluster size) numerical simulations
+- Distributed numerical simulations
 - Lots of data being generated
 - Nontrivial postprocessing
 - Issues with CPU time, memory and data transfer
+
++++
+
+![all-cores](all-cores.png)
