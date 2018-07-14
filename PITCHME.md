@@ -120,6 +120,6 @@ what about architecture?
 - I you need to write a lot of data, the single writer architecture scales
   a lot more than one could expect
 - for speed, it is *essential* to find out the right data structure in HDF5
-- a lot of trial and error was involved; at the end a structured array
+- at the end a structured array
   plus a dataset with indices was the best approach
-- variable-length data types are convenient, but tricky;
+- variable-length data types are convenient, but tricky
