@@ -141,6 +141,9 @@ what about architecture?
         self.attrs = attrs
 ```
 +++
+
+**The OpenQuake HDF5 serialization library**
+
 ```python
     with openquake.baselib.hdf5.File('x.hdf5', 'w') as f:
          f[key] = obj 
@@ -149,4 +152,4 @@ what about architecture?
          return f[key] 
 ```
 
-We are converting our input files from XML to hdf5
+We are converting our input files from XML to HDF5.
