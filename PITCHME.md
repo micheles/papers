@@ -149,7 +149,9 @@ what about architecture?
          f[key] = obj 
         
     with openquake.baselib.hdf5.File('x.hdf5', 'r') as f:
-         return f[key] 
+         obj = f[key] 
 ```
 
 We are converting our input files from XML to HDF5.
+
+*It is free, with AGPL licence, you can use it :-)*
