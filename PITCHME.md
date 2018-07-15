@@ -28,12 +28,13 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 - numpy is good
 - had troubles with returning back structured arrays in earlier versions
-- scipy is good
-- and it keeps improving
+- scipy is good too
 
 ---
 
 **what's behind: @color[green](h5py/hdf5)**
+
+[@ul]
 
 - it is good but tricky
 - lots and lots of issues with structured arrays/variable length arrays
@@ -41,14 +42,20 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - recent debacle with the HDF5 1.8 -> 1.10 upgrade
 - tip: silx view is a lot better than HDFView
 
+[@ulend]
+
 ---
 
 **what's behind: @color[green](geospatial libraries)**
 
-- scipy.spatial.distance is good
+[@ul]
+
+- scipy.spatial.distance is @color[green](really good)
 - scipy.spatial.KDTree is fine except the documentation
 - rtree is fine but I had problems with the index bulk insert in release 0.8.2 
 - ask me more after the end of the talk
+
+[@ulend]
 
 ---
 
@@ -119,13 +126,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what we are NOT using**
 
-[@ul]
-
-- C extensions
-- Cython
-- numba
-
-[@ulend]
+- @color[red](C extensions)
+- @color[red](Cython)
+- @color[red](numba)
 
 ---
 
