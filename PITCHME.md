@@ -29,7 +29,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 ![numpy](numpy.jpeg)
 
 - numpy and scipy are good @fa[thumbs-up]
-- had troubles with returning back structured arrays in earlier versions
+- had troubles with returning back structured arrays
 
 ![scipy](scipy.jpeg)
 
