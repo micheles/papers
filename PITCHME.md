@@ -112,9 +112,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 - data is sent back via zmq now (PUSH/PULL pattern)
 - we bypassed celery/rabbitmq limits completely
+- one must be careful that sent packets keeps circulating
 - we have a plan B if celery/rabbitmq should fail us, but we are
   not reinventing the wheel
-- one must be careful that sent packets keeps circulating
 
 ---
 
@@ -137,6 +137,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - @color[red](C extensions)
 - @color[red](Cython)
 - @color[red](numba)
+
+we do not add dependencies lightly
 
 ---?image=collapse.jpg
 
