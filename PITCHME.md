@@ -90,9 +90,13 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - there are strong limits on the amount of data you can transfer in a
   short time
 
----?image=zeromq-logo.jpg
+---
 
 **what's behind: @color[green](zmq)**
+
+![zeromq](zeromq-logo.jpg)
+
+---
 
 [@ul]
 
