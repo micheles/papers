@@ -30,7 +30,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - had troubles with returning back structured arrays in earlier versions
 - scipy is good too
 
-@fa[badge-check]
+@fa[thumbs-up]
 
 ---
 
@@ -71,6 +71,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
   
 +++
 
+**what's behind: @color[gray](celery/rabbitmq)**
+
 - rabbitmq is meant for resilience more than performance
 - it stores everything in the mnesia
   database, but we do not need that and it is counterproductive
@@ -82,7 +84,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 **what's behind: @color[gray](celery/rabbitmq)**
 
 - using celery/redis did not work out (missing revoke)
-- celery was keeping in memory all task results (memory leak)
+- celery was keeping in memory all task results
 - the default configuration is not the ideal one for our use case
   (*worker_prefetch_multiplier*, *result_cache_max*)
 - we had celery waiting for already completed tasks :-(
