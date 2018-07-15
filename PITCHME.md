@@ -158,14 +158,13 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 - I you need to write a lot of data (> 10 GB/minute) the single writer
   architecture scales a lot more than one could expect
-- we saw peak writing speeds of ~ 500 MB/s
-- disabling the swap is a good idea
+- tip: disabling the swap is a good idea
 
 +++
 
 - for speed, it is *essential* to find out the right data structure in HDF5
-- at the end a structured array
-  plus a dataset with indices was the best approach
+- at the end a structured array plus a dataset with variable-length indices
+  was the best approach for the GMFs
 
 +++
 
