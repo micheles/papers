@@ -26,9 +26,10 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: @color[green](numpy/scipy)**
 
-- numpy is good
+![numpy](numpy.jpeg)
+
+- numpy and scipy are good
 - had troubles with returning back structured arrays in earlier versions
-- scipy is good too
 
 @fa[thumbs-up]
 
@@ -118,8 +119,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - not used until now because we are conservative
 - the documentation has improved a lot now
 - `dask.distributed.Client.map` is the easy migration path I was looking for
-- we are testing it, love to hear from you :-)
 - we are not using it in production but we have experimental support for it
+- we'd love to hear from you :-)
 
 [@ulend]
 
