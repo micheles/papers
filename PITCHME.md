@@ -139,7 +139,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---?image=collapse.jpg
 
-**what about architecture?**
+@color[white](what about architecture?)
 
 +++
 
