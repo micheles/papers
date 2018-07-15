@@ -5,7 +5,7 @@ Python in scientific computing
 
 Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
-+++?image=pypers/europython16/share.jpeg
++++?image=SHARE.jpeg
 
 ---
 
