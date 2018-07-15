@@ -24,15 +24,10 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**what's behind: numpy**
+**what's behind: numpy/scipy**
 
 - numpy is good
 - had troubles with returning back structured arrays in earlier versions
-
----
-
-**what's behind: scipy**
-
 - scipy is good
 - and it keeps improving
 
@@ -64,15 +59,19 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
   scheduler in the Python world
 - rabbitmq is meant for lots of small messages, but instead we have few
   huge messages
-- rabbitmq is meant for resilience and stores everything in the mnesia
+  
++++
+
+- rabbitmq is meant for resilience more than performance
+- it stores everything in the mnesia
   database, but we do not need that and it is counterproductive
+- we had problems with specific versions of rabbitmq
 - lots of configurations the users can get wrong
 
 +++
 
 **what's behind: celery/rabbitmq**
 
-- we had problems with specific versions of rabbitmq
 - using celery/redis did not work out (missing revoke)
 - celery by default was keeping in memory all task results (memory leak)
 - the default configuration is not the ideal one for our use case
@@ -101,13 +100,25 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**what's behind: dask**
+**what we might be using: dask**
 
 - we are not using it in production but we have experimental support for it
 - I was waiting for it to mature
 - the documentation has improved a lot now
 - `dask.distributed.Client.map` is the easy migration path I was looking for
 - we are testing it, love to hear from you :-)
+
+---
+
+**what we are NOT using**
+
+[@ul]
+
+- C extensions
+- Cython
+- numba
+
+[@ulend]
 
 ---
 
@@ -122,13 +133,14 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 +++
 
 - if reading data is the big issue, consider using a distributed filesystem
-- the performance of NFS was really good for us
+- NFS was really good for us
 
 +++
 
-- I you need to write a lot of data, the single writer architecture scales
-  a lot more than one could expect
-- we saw peak writing speeds of ~ 500 MB/s (30 GB/minute!)
+- I you need to write a lot of data (> 10 GB/minute) the single writer
+  architecture scales a lot more than one could expect
+- we saw peak writing speeds of ~ 500 MB/s
+- disabling the swap is a good idea
 
 +++
 
