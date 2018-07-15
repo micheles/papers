@@ -49,7 +49,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - scipy.spatial.KDTree is fine except the documentation
 - rtree is fine but I had problems with the index bulk insert in
   the previous release
-- rtree/shapely/libgeos/gdal/etc are really hard to support on all platforms
+- rtree/shapely/libgeos/gdal/basemap/cartopy etc are really hard to support
+  on all platforms
 - ask me more after the end of the talk
 
 ---
