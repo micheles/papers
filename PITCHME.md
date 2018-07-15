@@ -91,6 +91,9 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 **what's behind: zmq**
 
 - zmq is good
+
+[@ul]
+
 - I studied the zmq book after EuroPython 2017
 - I implemented what I needed in 2-3 days
 - it worked really well, even if not at the first attempt
@@ -98,15 +101,21 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 - the performance is excellent, there is no limit
 - one must be careful that sent packets keeps circulating
 
+[@ulend]
+
 ---
 
 **what we might be using: dask**
+
+[@ul]
 
 - we are not using it in production but we have experimental support for it
 - I was waiting for it to mature
 - the documentation has improved a lot now
 - `dask.distributed.Client.map` is the easy migration path I was looking for
 - we are testing it, love to hear from you :-)
+
+[@ulend]
 
 ---
 
