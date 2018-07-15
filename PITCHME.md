@@ -43,7 +43,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**what's behind: @color[gray](geospatial libraries)**
+**what's behind: @color[green](geospatial libraries)**
 
 - scipy.spatial.distance is really good
 - scipy.spatial.KDTree is fine except the documentation
@@ -60,15 +60,15 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 ![rabbitmq](rabbitmq.png)
 
 - celery/rabbitmq is not ideal
-- we have it for legacy reasons and because there was no dominant task
+- we have celery for legacy reasons and because there was no dominant task
   scheduler in the Python world
-- rabbitmq is meant for lots of small messages, but instead we have few
-  huge messages
   
 +++
 
 **what's behind: @color[gray](celery/rabbitmq)**
 
+- rabbitmq is meant for lots of small messages, but instead we have few
+  huge messages
 - rabbitmq is meant for resilience more than performance
 - it stores everything in the mnesia
   database, but we do not need that and it is counterproductive
@@ -139,7 +139,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---?image=collapse.jpg
 
-@color[white](what about software architecture?)
+@color[white](what about architecture?)
 
 +++
 
