@@ -92,7 +92,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 **what's behind: @color[gray](celery/rabbitmq)**
 
 - celery has 50,000+ lines of code, while rabbitmq is in Erlang
-- if it does not work, you are dead (but the mailing list is helpful)
+- if something does not work, you are dead (but the mailing list is helpful)
 - there are strong limits on the amount of data you can transfer in a
   short time
 
@@ -112,7 +112,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 - data is sent back via zmq now (PUSH/PULL pattern)
 - we bypassed celery/rabbitmq limits completely
-- we have a plan B if celery/rabbitmq should fail us
+- we have a plan B if celery/rabbitmq should fail us, but we are
+  not reinventing the wheel
 - one must be careful that sent packets keeps circulating
 
 ---
