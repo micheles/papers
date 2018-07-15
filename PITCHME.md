@@ -96,8 +96,6 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ![zeromq](zeromq-logo.jpg)
 
----
-
 - I studied the zmq book after EuroPython 2017
 - I implemented what I needed in 2-3 days
 - it worked really well, even if not at the first attempt
