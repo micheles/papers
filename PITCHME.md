@@ -52,7 +52,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 [@ul]
 
-- scipy.spatial.distance is @color[green](really good)
+- scipy.spatial.distance is really good
 - scipy.spatial.KDTree is fine except the documentation
 - rtree is fine but I had problems with the index bulk insert in release 0.8.2 
 - ask me more after the end of the talk
@@ -82,8 +82,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 **what's behind: @color[gray](celery/rabbitmq)**
 
 - using celery/redis did not work out (missing revoke)
-- celery by default was keeping in memory all task results (memory leak)
+- celery was keeping in memory all task results (memory leak)
 - the default configuration is not the ideal one for our use case
+  (`worker_prefetch_multiplier`, `result_cache_max`)
 - we had celery waiting for already completed tasks :-(
 
 +++
