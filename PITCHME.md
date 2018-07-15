@@ -120,15 +120,11 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what we might be using: @color[gray](dask)**
 
-[@ul]
-
 - not used until now because we are conservative
 - the documentation has improved a lot
 - `dask.distributed.Client.map` is the easy migration path I was looking for
 - we are not using it in production but we have experimental support for it
 - we'd love to hear from you :-)
-
-[@ulend]
 
 ---
 
@@ -181,10 +177,10 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ```python
     def __toh5__(self):
-        return self.array, self.attrs
+        return self.grouparray, self.attrs
         
-    def __fromh5__(self, array, attrs):
-        self.array = array
+    def __fromh5__(self, grouparray, attrs):
+        self.grouparray = grouparray
         self.attrs = attrs
 ```
 +++
