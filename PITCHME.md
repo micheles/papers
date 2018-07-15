@@ -36,28 +36,20 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: @color[green](h5py/hdf5)**
 
-[@ul]
-
 - it is good but tricky
 - lots and lots of issues with structured arrays/variable length arrays
 - several issues with bytes/strings at the time of the Python 2->3 migration
 - recent debacle with the HDF5 1.8 -> 1.10 upgrade
 - tip: silx view is a lot better than HDFView
 
-[@ulend]
-
 ---
 
 **what's behind: @color[green](geospatial libraries)**
-
-[@ul]
 
 - scipy.spatial.distance is really good
 - scipy.spatial.KDTree is fine except the documentation
 - rtree is fine but I had problems with the index bulk insert in release 0.8.2 
 - ask me more after the end of the talk
-
-[@ulend]
 
 ---
 
@@ -98,7 +90,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - there are strong limits on the amount of data you can transfer in a
   short time
 
----
+---?image=zeromq-logo.jpg
 
 **what's behind: @color[green](zmq)**
 
