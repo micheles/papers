@@ -27,10 +27,11 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 **what's behind: @color[green](numpy/scipy)**
 
 ![numpy](numpy.jpeg)
-![scipy](scipy.jpeg)
 
 - numpy and scipy are good @fa[thumbs-up]
 - had troubles with returning back structured arrays in earlier versions
+
+![scipy](scipy.jpeg)
 
 ---
 
