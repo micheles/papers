@@ -30,6 +30,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - had troubles with returning back structured arrays in earlier versions
 - scipy is good too
 
+[fa](badge-check)
+
 ---
 
 **what's behind: @color[green](h5py/hdf5)**
