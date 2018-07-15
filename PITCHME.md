@@ -104,8 +104,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: @color[green](zmq)**
 
-- we have now a plan B if celery/rabbitmq should fail us again
-- the performance is excellent, there is no limit
+- data is sent back via zmq now (PUSH/PULL pattern)
+- the performance is excellent
+- we have a plan B if celery/rabbitmq should fail us again
 - one must be careful that sent packets keeps circulating
 
 ---
