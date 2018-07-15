@@ -79,7 +79,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: @color[gray](celery/rabbitmq)**
 
-![celery](celery.png)
+![celery](celery.jpeg)
 
 - using celery/redis did not work out (missing revoke)
 - celery was keeping in memory all task results
