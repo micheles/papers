@@ -57,6 +57,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: @color[gray](celery/rabbitmq)**
 
+![rabbitmq](rabbitmq.png)
+
 - celery/rabbitmq is not ideal
 - we have it for legacy reasons and because there was no dominant task
   scheduler in the Python world
