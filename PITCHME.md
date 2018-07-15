@@ -98,16 +98,17 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-[@ul]
-
 - I studied the zmq book after EuroPython 2017
 - I implemented what I needed in 2-3 days
 - it worked really well, even if not at the first attempt
+
+---
+
+**what's behind: @color[green](zmq)**
+
 - we have now a plan B if celery/rabbitmq should fail us again
 - the performance is excellent, there is no limit
 - one must be careful that sent packets keeps circulating
-
-[@ulend]
 
 ---
 
