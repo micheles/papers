@@ -138,7 +138,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - @color[red](Cython)
 - @color[red](numba)
 
-we do not add dependencies lightly
+*we do not add dependencies lightly*
 
 ---?image=collapse.jpg
 
