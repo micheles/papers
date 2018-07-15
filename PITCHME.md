@@ -52,7 +52,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**what's behind: @color[yellow](celery/rabbitmq)**
+**what's behind: @color[gray](celery/rabbitmq)**
 
 - celery/rabbitmq is not ideal
 - we have it for legacy reasons and because there was no dominant task
@@ -70,7 +70,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**what's behind: @color[yellow](celery/rabbitmq)**
+**what's behind: @color[gray](celery/rabbitmq)**
 
 - using celery/redis did not work out (missing revoke)
 - celery by default was keeping in memory all task results (memory leak)
@@ -79,7 +79,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**what's behind: @color[yellow](celery/rabbitmq)**
+**what's behind: @color[gray](celery/rabbitmq)**
 
 - celery has 50,000+ lines of code, while rabbitmq is in Erlang
 - if it does not work, you are dead (but the mailing list is helpful)
@@ -103,7 +103,7 @@ Michele Simionato [GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**what we might be using: @color[yellow](dask)**
+**what we might be using: @color[gray](dask)**
 
 [@ul]
 
