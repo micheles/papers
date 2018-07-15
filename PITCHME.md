@@ -122,7 +122,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 [@ul]
 
 - not used until now because we are conservative
-- the documentation has improved a lot now
+- the documentation has improved a lot
 - `dask.distributed.Client.map` is the easy migration path I was looking for
 - we are not using it in production but we have experimental support for it
 - we'd love to hear from you :-)
@@ -137,10 +137,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - @color[red](Cython)
 - @color[red](numba)
 
----
+---?image=collapse.jpg
 
 **what about architecture?**
-![taiwan](collapse.jpg)
 
 +++
 
