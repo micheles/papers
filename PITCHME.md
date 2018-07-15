@@ -84,7 +84,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - using celery/redis did not work out (missing revoke)
 - celery was keeping in memory all task results (memory leak)
 - the default configuration is not the ideal one for our use case
-  (`worker_prefetch_multiplier`, `result_cache_max`)
+  (*worker_prefetch_multiplier*, *result_cache_max*)
 - we had celery waiting for already completed tasks :-(
 
 +++
