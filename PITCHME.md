@@ -106,7 +106,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 - data is sent back via zmq now (PUSH/PULL pattern)
 - we bypassed celery/rabbitmq limits completely
-- we have a plan B if celery/rabbitmq should fail us again
+- we have a plan B if celery/rabbitmq should fail us
 - one must be careful that sent packets keeps circulating
 
 ---
@@ -115,11 +115,11 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 [@ul]
 
-- we are not using it in production but we have experimental support for it
-- I was waiting for it to mature
+- not used until now because we are conservative
 - the documentation has improved a lot now
 - `dask.distributed.Client.map` is the easy migration path I was looking for
 - we are testing it, love to hear from you :-)
+- we are not using it in production but we have experimental support for it
 
 [@ulend]
 
