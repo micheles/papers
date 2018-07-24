@@ -135,8 +135,6 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - @color[red](numba)
 - @color[red](Intel Python)
 
-*we do not add dependencies lightly*
-
 ---?image=collapse.jpg
 
 @color[white](what about architecture?)
