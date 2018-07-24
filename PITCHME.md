@@ -189,7 +189,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 ```
 +++
 
-**The OpenQuake HDF5 serialization library**
+**There is an OpenQuake HDF5 serialization library**
 
 *(free, with AGPL licence :-)*
 
