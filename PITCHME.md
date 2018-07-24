@@ -46,12 +46,12 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 **what's behind: @color[green](geospatial libraries)**
 
 - scipy.spatial.distance is really good
-- scipy.spatial.KDTree is fine except the documentation
-- rtree is fine but I had problems with the index bulk insert in
+- scipy.spatial.KDTree is fine except the docs
+- rtree is fine but I had problems with index bulk inserts in
   the previous release
 - rtree/shapely/libgeos/gdal/basemap/cartopy etc are really hard to support
   on all platforms
-- ask me more after the end of the talk
+- QGIS: ask me more after the end of the talk
 
 ---
 
