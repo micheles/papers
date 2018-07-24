@@ -133,6 +133,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - @color[red](C extensions)
 - @color[red](Cython)
 - @color[red](numba)
+- @color[red](Intel Python)
 
 *we do not add dependencies lightly*
 
