@@ -207,7 +207,6 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++?image=thats-all-folks.jpg
 
-.
-.
-.
-https://github.com/gem/oq-engine
+@snap[north]
+@color[white](https://github.com/gem/oq-engine)
+@snapend
