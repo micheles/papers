@@ -205,4 +205,6 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - USGS will provide ShakeMaps in HDF5 format
 - if you are not using HDF5, you should ;-)
 
++++?image=thats-all-folks.jpg
+
 https://github.com/gem/oq-engine
