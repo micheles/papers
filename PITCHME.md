@@ -154,6 +154,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
+**some bottleneck are just not there**
+
 - I you need to write a lot of data (> 10 GB/minute) the single writer
   architecture scales a lot more than one could expect
 - tip: disabling the swap is a good idea
@@ -173,7 +175,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **More on h5py/hdf5**
 
-- in spite of its bugs, h5py is really nice and Pythonic
+- h5py is really nice and Pythonic (but comes with caveats)
 - it makes a lot of sense to serialize Python objects to HDF5
 - it was easy to define a serialization protocol:
 
