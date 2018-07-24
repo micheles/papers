@@ -157,8 +157,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **some bottleneck are just not there**
 
-- I you need to write a lot of data (> 10 GB/minute) the single writer
-  architecture scales a lot more than one could expect
+- I you need to write a lot of data the single writer
+  architecture scales a lot more than one could expect (> 10 GB/minute)
 - tip: disabling the swap is a good idea
 
 +++
