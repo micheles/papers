@@ -147,7 +147,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-- if reading data is the big issue, consider using a distributed filesystem
+**some bottleneck are less obvious**
+
+- if transferring data is the big issue, consider using a distributed filesystem
 - NFS was really good for us
 
 +++
