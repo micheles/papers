@@ -197,7 +197,7 @@ h5py/hdf5 is @color[red](evil)
 
 https://github.com/gem/oq-engine
 
-*(free, with AGPL licence :-)*
+*(free, with AGPL licence)*
 
 ```python
     with openquake.baselib.hdf5.File('x.hdf5', 'w') as f:
