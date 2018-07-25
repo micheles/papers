@@ -43,7 +43,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**the (only) workflow that works**
+**the workflow that works**
 
 1. create an .hdf5 file and write data on it
 2. @color[red](close) the file
@@ -70,9 +70,8 @@ h5py/hdf5 is @color[red](evil)
 
 ![rabbitmq](rabbitmq.png)
 
-- celery/rabbitmq is not ideal
-- we have celery for legacy reasons and because there was no dominant task
-  scheduler in the Python world
+- celery/rabbitmq is not ideal for our use case
+- we have celery for legacy reasons and because it sort of worked until now
   
 +++
 
