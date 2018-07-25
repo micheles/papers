@@ -168,6 +168,17 @@ h5py/hdf5 is @color[red](evil)
 - in any case most our code is not suitable for Cythonization
 - it was deemed not worthy
 
++++
+
+**@color[red](numba)**
+
+- I tried it on our code computing the distances
+- the only way I could get a substantial speedup was by using the parallel
+  option
+- but we are already parallelizing, so we would have risked oversubscription
+- I am also worried about memory consumption
+- at the end @color[green](scipy.spatial.distance) saved the day!
+
 ---?image=collapse.jpg
 
 @color[white](what about architecture?)
