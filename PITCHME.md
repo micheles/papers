@@ -93,7 +93,7 @@ h5py/hdf5 is @color[red](evil)
 ![celery](celery.jpeg)
 
 - using celery/redis did not work out (missing revoke)
-- the default configuration is not the ideal one for use
+- the default configuration is not the ideal one for us
   (*worker_prefetch_multiplier*, *result_cache_max*)
 - celery was keeping in memory all task results and we had to monkey patch it
 - we had celery waiting for already completed tasks :-(
@@ -178,7 +178,7 @@ h5py/hdf5 is @color[red](evil)
 
 ---
 
-**More on h5py/hdf5**
+**more on h5py/hdf5**
 
 - h5py is really nice and Pythonic (but comes with caveats)
 - it makes a lot of sense to serialize Python objects to HDF5
@@ -194,7 +194,7 @@ h5py/hdf5 is @color[red](evil)
 ```
 +++
 
-**There is an OpenQuake HDF5 serialization library**
+**there is an OpenQuake HDF5 serialization library**
 
 part of https://github.com/gem/oq-engine
 
