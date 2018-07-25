@@ -50,6 +50,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 3. fork, read the data from the workers and return the results
 4. save on a @color[red](different) file
 
+h5py/hdf5 is ruthless
+
 ---
 
 **what's behind: @color[green](geospatial libraries)**
