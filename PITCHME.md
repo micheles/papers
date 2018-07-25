@@ -131,7 +131,7 @@ h5py/hdf5 is @color[red](evil)
 **what we might be using: @color[gray](dask)**
 
 - not used until now because we are conservative
-- the documentation has improved a lot
+- dask documentation has improved a lot
 - `dask.distributed.Client.map` is the easy migration path I was looking for
 - we are not using it in production but we have experimental support for it
 - we'd love to hear from you :-)
@@ -165,7 +165,7 @@ h5py/hdf5 is @color[red](evil)
 
 **some bottleneck are just not there**
 
-- I you need to write a lot of data the single writer
+- if you need to write a lot of data the single writer
   architecture scales a lot more than one could expect (> 10 GB/minute)
 - tip: disabling the swap is a good idea
 
@@ -174,11 +174,6 @@ h5py/hdf5 is @color[red](evil)
 - for speed, it is *essential* to find out the right data structure in HDF5
 - at the end a structured array plus a dataset with variable-length indices
   was the best approach for the GMFs
-
-+++
-
-- variable-length data types are convenient, but tricky and not well
-  supported by the tools (HDFView, silx view)
 
 ---
 
@@ -200,6 +195,8 @@ h5py/hdf5 is @color[red](evil)
 
 **There is an OpenQuake HDF5 serialization library**
 
+https://github.com/gem/oq-engine
+
 *(free, with AGPL licence :-)*
 
 ```python
@@ -213,5 +210,3 @@ h5py/hdf5 is @color[red](evil)
 - we are converting our input files from XML to HDF5
 - USGS will provide ShakeMaps in HDF5 format
 - if you are not using HDF5, you should ;-)
-
-see the code on https://github.com/gem/oq-engine
