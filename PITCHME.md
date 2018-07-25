@@ -43,14 +43,14 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**the workflow that works**
+**the (only) workflow that works**
 
 1. create an .hdf5 file and write data on it
 2. @color[red](close) the file
 3. fork, read the data from the workers and return the results
 4. save on a @color[red](different) file
 
-*h5py/hdf5 is ruthless!*
+h5py/hdf5 is @color[red](evil)
 
 ---
 
