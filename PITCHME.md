@@ -124,7 +124,7 @@ h5py/hdf5 is @color[red](evil)
 - we bypassed celery/rabbitmq limits completely
 - one must be careful: packets keep circulating
 - we have a plan B if celery/rabbitmq should fail us again, but we are
-  not reinventing the wheel
+  not going to reinvent the wheel
 
 ---
 
