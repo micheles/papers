@@ -189,7 +189,7 @@ h5py/hdf5 is @color[red](evil)
 
 ---
 
-# Algoritmic solutions are always better than technological solutions
+@size[1.5m](Algoritmic solutions are always better than technological solutions)
 
 ---?image=collapse.jpg
 
