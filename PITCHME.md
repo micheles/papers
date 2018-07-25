@@ -183,8 +183,9 @@ h5py/hdf5 is @color[red](evil)
 
 **@color[red](Intel Python)**
 
-- there is some concerns about vendor locking, of course
+- there are some concerns about vendor locking, of course
 - but the real reason is that I got a 20% slowdown, even yesterday
+- it will wait, still
 
 ---?image=collapse.jpg
 
