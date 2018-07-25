@@ -122,8 +122,8 @@ h5py/hdf5 is @color[red](evil)
 
 - data is sent back via zmq now (PUSH/PULL pattern)
 - we bypassed celery/rabbitmq limits completely
-- one must be careful: sent packets keep circulating
-- we have a plan B if celery/rabbitmq should fail us, but we are
+- one must be careful: packets keep circulating
+- we have a plan B if celery/rabbitmq should fail us again, but we are
   not reinventing the wheel
 
 ---
