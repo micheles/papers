@@ -185,7 +185,7 @@ h5py/hdf5 is @color[red](evil)
 
 - there are some concerns about vendor locking, of course
 - but the real reason is that I got a 20% slowdown, even yesterday
-- it will wait another year
+- we will wait another year
 
 ---
 
