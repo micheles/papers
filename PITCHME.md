@@ -26,8 +26,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ![numpy](numpy.jpeg)
 
-- numpy and scipy are good @fa[thumbs-up]
-- had troubles with returning back big structured arrays
+- numpy and scipy are good @fa[thumbs-up] except I had troubles when
+  returning back big structured arrays
 
 ![scipy](scipy.jpeg)
 
