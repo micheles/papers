@@ -44,7 +44,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**the workflow that works**
+**h5py/hdf5: the workflow that works**
 
 1. create an .hdf5 file and write data on it
 2. @color[red](close) the file
