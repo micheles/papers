@@ -92,9 +92,9 @@ h5py/hdf5 is @color[red](evil)
 ![celery](celery.jpeg)
 
 - using celery/redis did not work out (missing revoke)
-- celery was keeping in memory all task results
 - the default configuration is not the ideal one for use
   (*worker_prefetch_multiplier*, *result_cache_max*)
+- celery was keeping in memory all task results and we had to monkey patch it
 - we had celery waiting for already completed tasks :-(
 
 +++
