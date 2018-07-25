@@ -176,8 +176,8 @@ h5py/hdf5 is @color[red](evil)
 - the only way I could get a substantial speedup was by using the parallel
   option
 - but we are already parallelizing, so we would have risked oversubscription
-- I am also worried about memory consumption
-- at the end @color[green](scipy.spatial.distance) saved the day!
+- I was also worried about memory consumption
+- at the end @color[green](scipy.spatial.distance) saved the day
 
 ---?image=collapse.jpg
 
