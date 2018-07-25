@@ -35,7 +35,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: @color[green](h5py/hdf5)**
 
-- it is good but tricky
+- hyerarchical file format and library to store arrays and more
 - several issues with structured arrays/variable length arrays
 - issues with bytes/strings at the time of the Python 2->3 migration
 - recent debacle with the HDF5 1.8 -> 1.10 upgrade
