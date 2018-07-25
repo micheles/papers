@@ -137,6 +137,15 @@ h5py/hdf5 is @color[red](evil)
 - we are not using it in production but we have experimental support for it
 - we'd love to hear from you :-)
 
+---
+
+**what we are NOT using**
+
+- @color[red](C extensions)
+- @color[red](Cython)
+- @color[red](numba)
+- @color[red](Intel Python)
+
 +++
 
 **@color[red](C extensions)**
@@ -146,15 +155,6 @@ h5py/hdf5 is @color[red](evil)
 - otherwise a slower fallback was used
 - there was duplication between Python/numpy and C
 - I was able to speedup the Python/numpy part
-
----
-
-**what we are NOT using**
-
-- @color[red](C extensions)
-- @color[red](Cython)
-- @color[red](numba)
-- @color[red](Intel Python)
 
 ---?image=collapse.jpg
 
