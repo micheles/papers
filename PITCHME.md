@@ -117,7 +117,7 @@ h5py/hdf5 is @color[red](evil)
 - I implemented what I needed in 2-3 days @fa[thumbs-up]
 - it worked really well, even if not at the first attempt
 
----
++++
 
 **what's behind: @color[green](zmq)**
 
