@@ -154,8 +154,19 @@ h5py/hdf5 is @color[red](evil)
 - gcc was required to install the software
 - otherwise a slower fallback was used
 - there was duplication between Python and C
-- I was able to speedup the Python(numpy) part
+- migrating to Python 3 would have been hard
+- but I was able to speedup the Python(numpy) part!
 - now the code base is 100% pure Python @fa[thumbs-up]
+
++++
+
+**@color[red](Cython)**
+
+- Cython is better than plain C
+- and we have wheels now
+- however I could not get impressive speedups in the test bed
+  of the distance calculations
+- it was deemed not worthy
 
 ---?image=collapse.jpg
 
