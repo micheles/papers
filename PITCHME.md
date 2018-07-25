@@ -187,6 +187,10 @@ h5py/hdf5 is @color[red](evil)
 - but the real reason is that I got a 20% slowdown, even yesterday
 - it will wait another year
 
+---
+
+# Algoritmic solutions are always better than technological solutions
+
 ---?image=collapse.jpg
 
 @color[white](what about architecture?)
