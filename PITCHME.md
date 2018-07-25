@@ -113,7 +113,7 @@ h5py/hdf5 is @color[red](evil)
 ![zeromq](zeromq-logo.jpg)
 
 - I studied the zmq book after EuroPython 2017
-- I implemented what I needed in 2-3 days
+- I implemented what I needed in 2-3 days @fa[thumbs-up]
 - it worked really well, even if not at the first attempt
 
 ---
