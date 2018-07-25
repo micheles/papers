@@ -164,8 +164,8 @@ h5py/hdf5 is @color[red](evil)
 
 - Cython is better than plain C
 - and we have wheels now
-- however I could not get impressive speedups in the test bed
-  of the distance calculations
+- however I could not get impressive speedups
+- in any case most our code is not suitable for Cythonization
 - it was deemed not worthy
 
 ---?image=collapse.jpg
