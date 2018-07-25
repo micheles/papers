@@ -27,7 +27,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 ![numpy](numpy.jpeg)
 
 - numpy and scipy are good @fa[thumbs-up]
-- had troubles with returning back structured arrays
+- had troubles with returning back big structured arrays
 
 ![scipy](scipy.jpeg)
 
@@ -40,6 +40,15 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - several issues with bytes/strings at the time of the Python 2->3 migration
 - recent debacle with the HDF5 1.8 -> 1.10 upgrade
 - tip: silx view is a lot better than HDFView
+
++++
+
+**the workflow that works**
+
+1. create an .hdf5 file and write data on it
+2. @color[red](close) the file
+3. fork, read the data from the workers and return the results
+4. save on a @color[red](different) file
 
 ---
 
