@@ -179,6 +179,13 @@ h5py/hdf5 is @color[red](evil)
 - I was also worried about memory consumption
 - at the end @color[green](scipy.spatial.distance) saved the day
 
++++
+
+**@color[red](Intel Python)**
+
+- there is some concerns about vendor locking
+- but the real reason is that I got a 20% slowdown
+
 ---?image=collapse.jpg
 
 @color[white](what about architecture?)
