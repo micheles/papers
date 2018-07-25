@@ -137,6 +137,16 @@ h5py/hdf5 is @color[red](evil)
 - we are not using it in production but we have experimental support for it
 - we'd love to hear from you :-)
 
++++
+
+**@color[red](C extensions)**
+
+- we had C extensions in the past, before the wheels
+- gcc was required to install the software
+- otherwise a slower fallback was used
+- there was duplication between Python/numpy and C
+- I was able to speedup the Python/numpy part
+
 ---
 
 **what we are NOT using**
