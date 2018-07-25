@@ -153,8 +153,9 @@ h5py/hdf5 is @color[red](evil)
 - we had C extensions in the past, before the wheels
 - gcc was required to install the software
 - otherwise a slower fallback was used
-- there was duplication between Python/numpy and C
-- I was able to speedup the Python/numpy part
+- there was duplication between Python and C
+- I was able to speedup the Python(numpy) part
+- now the code base is 100% pure Python @fa[thumbs-up]
 
 ---?image=collapse.jpg
 
