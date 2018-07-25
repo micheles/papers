@@ -195,7 +195,7 @@ h5py/hdf5 is @color[red](evil)
 
 **There is an OpenQuake HDF5 serialization library**
 
-https://github.com/gem/oq-engine
+part of https://github.com/gem/oq-engine
 
 *(free, with AGPL licence)*
 
