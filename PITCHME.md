@@ -35,7 +35,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **what's behind: @color[green](h5py/hdf5)**
 
-*hierarchical file format and library to store arrays and more*
+*file format and library to store arrays (and more)*
 
 - several issues with structured arrays/variable length arrays
 - issues with bytes/strings at the time of the Python 2->3 migration
