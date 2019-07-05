@@ -80,6 +80,12 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **Breakthrough: subtasks**
 
++++
+
+We made the output receiver able to recognize tuples of the form
+`(callable, arg1, arg2, ...)`;
+this made it possible to define task splitters
+
 ```python
 def task_splitter(elements, arg1, arg2, ...):
     blocks = split_in_blocks(elements, maxweight)
@@ -87,10 +93,6 @@ def task_splitter(elements, arg1, arg2, ...):
          yield (task_func, block, arg1, arg2, ...)
     yield task_func(block[-1], arg1, arg2, ...)
 ```
-We made the task launcher able to recognize tuples of the form
-`(callable, arg1, arg2, ...)`;
-this made it possible to define task splitters
-
 ---
 
 **Data transfer**
