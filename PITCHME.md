@@ -49,6 +49,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 - .hdf5
 - .toml
+- .sqlite
 
 ---
 
@@ -57,18 +58,23 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - XML/CSV exporters
 - XML/CSV importers
 - Clearly the choice of the internal formats is even more important:
-  HDF5 is the way to go
+  @color[green](HDF5 is the way to go)
 
 ---
 
-**what's behind: @color[gray](celery/rabbitmq)**
+**Task distribution**
+
+- we are using *multiprocessing* on a single machine
+- and celery/rabbitmq on a cluster
 
 ![rabbitmq](rabbitmq.png)
+![celery](celery.jpeg)
 
-- celery/rabbitmq is not ideal for our use case
-- we have celery for legacy reasons and because it sort of worked until now
+- celery/rabbitmq is not ideal for our use case but it sort of worked
+  until nowm including the @color[green](REVOKE) functionality
   
-+++
++++?image=slow-task.png
+**The biggest problem we have**
 
 **what's behind: @color[gray](celery/rabbitmq)**
 
