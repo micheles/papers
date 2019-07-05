@@ -141,6 +141,8 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 
 - It is all about the tradeoff memory/speed
 
+---
+
 **How to reduce the required memory**
 
 - use as much as possible numpy arrays instead of Python objects
