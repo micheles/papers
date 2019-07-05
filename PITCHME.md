@@ -78,7 +78,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**Breakthrough: subtasks**
+Slow tasks have been PITA for years
+
+A few months ago we had a breakthrough: subtasks
 
 +++
 
@@ -93,6 +95,19 @@ def task_splitter(elements, arg1, arg2, ...):
          yield (task_func, block, arg1, arg2, ...)
     yield task_func(block[-1], arg1, arg2, ...)
 ```
+
++++
+
+We have task a task splitter which is able to perform a subset of the
+calculation and to estimate the expected total time to perform the task:
+then it splits the calculation in subtasks with estimated runtime smaller
+that an user-given `task_duration`
+
++++
+
+Successively, we made the engine smart enough to determine a sensible default
+for the `task_duration`, depending on the number of ruptures, sites and levels
+
 ---
 
 **Data transfer**
