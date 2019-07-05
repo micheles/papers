@@ -70,21 +70,13 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 ![rabbitmq](rabbitmq.png)
 ![celery](celery.jpeg)
 
-- celery/rabbitmq is not ideal for our use case but it sort of worked
-  until nowm including the @color[green](REVOKE) functionality
+- celery/rabbitmq is not ideal for our use case but it worked
+  until now, including the @color[green](REVOKE) functionality
   
 +++?image=slow-task.png
 **The biggest problem we have**
 
-**what's behind: @color[gray](celery/rabbitmq)**
-
-- rabbitmq is meant for lots of small messages, but instead we have few
-  huge messages
-- rabbitmq is meant for resilience more than performance
-- it stores everything in the mnesia
-  database, but we do not need that and it is counterproductive
-- we had problems with specific versions of rabbitmq
-- lots of configurations the users can get wrong
+---
 
 +++
 
