@@ -9,9 +9,10 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **This talk is not about micro-optimizations**
 
-- old tricks like replacing
-  sqrt(x^2 + y^2) < R => x\*x + y\*y < R\*R
-  are not really interesting
+- we do not have full control on the source code, which is very often
+  user-contributed
+- profiling is essential to find bottlenecks like duplicated operations
+  in inner loops, but I do that 1-2 times per year
 - what makes the difference is using the right library
   (i.e. *scipy.spatial.distance*)
 - *and* using the right architecture
@@ -78,7 +79,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-Slow tasks have been PITA for years @fa[frown]
+Slow tasks have been a PITA for years @fa[frown]
 
 A few months ago we had a breakthrough: @color[green](subtasks)
 
@@ -111,44 +112,16 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 @color[green](=> slow tasks are greatly reduced)
 
 @color[red](except for non-splittable sources)
+
 ---
 
 **Data transfer**
 
-- we use zmq to return the outputs
+- we use zmq to return the outputs @fa[thumbs-up]
+![zeromq](zeromq-logo.jpg)
 - we use NFS to read the inputs
 
 +++
----
-
-**what's behind: @color[green](zmq)**
-
-![zeromq](zeromq-logo.jpg)
-
-- I studied the zmq book after EuroPython 2017
-- I implemented what I needed in 2-3 days @fa[thumbs-up]
-- it worked really well, even if not at the first attempt
-
-+++
-
-**what's behind: @color[green](zmq)**
-
-- data is sent back via zmq now (PUSH/PULL pattern)
-- we bypassed celery/rabbitmq limits completely
-- one must be careful: packets keep circulating
-- we have a plan B if celery/rabbitmq should fail us again, but we are
-  not going to reinvent the wheel
-
----
-
-**what we might be using: @color[gray](dask)**
-
-- not used until now because we are conservative
-- dask documentation has improved a lot
-- `dask.distributed.Client.map` is the easy migration path I was looking for
-- we are not using it in production but we have experimental support for it
-- we'd love to hear from you :-)
-
 ---
 
 **what we are NOT using**
