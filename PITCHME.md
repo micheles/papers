@@ -27,7 +27,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **Inputs formats we are using**
 
-- INI (TOML would have been better)
+- INI (good, but TOML would have been better)
 - XML/NRML/XSD (could have been simpler)
 - CSV (should have been used more)
 - HDF5 (UCERF3, GMPE tables)
@@ -37,9 +37,11 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 **Output formats we are using**
 
 - XML / NRML: we are removing it
-- CSV: good
-- HDF5: sometimes
+- CSV with pre-header: we are using it more and more
+- HDF5: used sometimes
 - NPZ: by necessity
+
++++?image=hazard_outputs.png
 
 +++
 
@@ -50,6 +52,10 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
+**The input/outputs format have a big performance impact**
+
+- XML/CSV exporters
+- XML/CSV importers
 
 ---
 
