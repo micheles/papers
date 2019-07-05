@@ -13,9 +13,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
   user-contributed
 - profiling is essential to find bottlenecks like duplicated operations
   in inner loops, but I do that 1-2 times per year
-- what makes the difference is using the right library
-  (i.e. *scipy.spatial.distance*)
-- *and* using the right architecture
+- what really makes the difference is using the right library
+  *and* using the right architecture / data structures
 
 ---
 
@@ -24,7 +23,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - *never*, EVER change the input formats
 - there is more freedom with the output formats
 
----
++++
 
 **Inputs formats we are using**
 
@@ -52,7 +51,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - .toml
 - .sqlite
 
----
++++
 
 **The choice of the input/outputs format has a big performance impact**
 
@@ -117,49 +116,15 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 
 **Data transfer**
 
-- we use zmq to return the outputs @fa[thumbs-up]
+- don't split too much, to avoid too many outputs
+- we switched to using zmq to return the outputs @fa[thumbs-up]
 ![zeromq](zeromq-logo.jpg)
-- we use NFS to read the inputs
+- we switched to NFS to read the inputs
 
-+++
 ---
 
-**what we are NOT using**
+**Memory occupation**
 
-- @color[red](C extensions)
-- @color[red](Cython)
-- @color[red](numba)
-- @color[red](Intel Python)
+Another big problem we had to fight constantly is the memory occupation
 
-+++
-
-**@color[red](C extensions)**
-
-- we had C extensions in the past, before the wheels
-- gcc was required to install the software
-- otherwise a slower fallback was used
-- there was duplication between Python and C
-- migrating to Python 3 would have been hard
-- but I was able to speedup the Python(numpy) part!
-- now the code base is 100% pure Python @fa[thumbs-up]
-
-+++
-
-**@color[red](Cython)**
-
-- Cython is better than plain C
-- and we have wheels now
-- however I could not get impressive speedups
-- in any case most our code is not suitable for Cythonization
-- it was deemed not worthy
-
-+++
-
-**@color[red](numba)**
-
-- I tried it on our code computing the distances
-- the only way I could get a substantial speedup was by using the parallel
-  option
-- but we are already parallelizing, so we would have risked oversubscription
-- I was also worried about memory consumption
-- at the end @color[green](scipy.spatial.distance) saved the day
+Notice that running out of memory *early* @color[green](can be a good thing)
