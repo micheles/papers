@@ -4,6 +4,7 @@ Tips for the scientific programmer
 Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++?image=hazard_map_small.png
++++?image=risk_map_small.png
 
 ---
 
