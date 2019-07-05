@@ -22,7 +22,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 Here I learned the hard way a very essential lesson:
 
-@color[red](*never, EVER change the input formats*)
+@color[red](*never, EVER change the input formats.*)
+
+You cannot. Really, you can not.
 
 There is more freedom with the output formats
 
