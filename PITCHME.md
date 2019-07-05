@@ -22,7 +22,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 Here I learned the hard way a very essential lesson:
 
-@color[red](*never, EVER change the input formats.*)
+@color[red](*never, EVER change the input formats*)
 
 You cannot. Really, you can not.
 
@@ -35,7 +35,7 @@ There is more freedom with the output formats
 - INI (good, but TOML would have been better)
 - XML/NRML/XSD (could have been simpler)
 - CSV (should have been used more)
-- HDF5 (UCERF3, GMPE tables)
+- HDF5 (in rare cases: UCERF3, GMPE tables)
 
 +++
 
