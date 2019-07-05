@@ -80,8 +80,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ** Breakthrough: subtasks **
 
-We made the task launcher able the resubmit a task with different parameters
-if it receive a tuple of the form `(callable, arg1, arg2, ...)`
+We made the task launcher able the resubmit a task
+when receiving a tuple of the form `(callable, arg1, arg2, ...)`
 
 ```python
 def task_splitter(elements, arg1, arg2, ...):
