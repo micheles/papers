@@ -56,8 +56,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 - XML/CSV exporters
 - XML/CSV importers
-
-*The choice of the internal formats is even more important*
+- The choice of the internal formats is even more important
 
 ---
 
