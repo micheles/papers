@@ -1,4 +1,5 @@
-# Tips for the Scientific Programmer
+Tips for the Scientific Programmer
+----------------------------------
 
 Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
@@ -6,13 +7,13 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-## I will not talk about micro-optimizations
+**I will not talk about micro-optimizations**
 
-- very old tricks like replacing
-  sqrt(x^2 + y^2) < R => x\*x + y\*y < R\*R
+- old tricks like replacing
+  *sqrt(x^2 + y^2) < R => x\*x + y\*y < R\*R*
   are not really interesting
 - what makes the difference is using the right library
-  (i.e. `scipy.spatial.distance`)
+  (i.e. *scipy.spatial.distance*)
 - *and* using the right architecture
 
 +++
