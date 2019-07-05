@@ -78,7 +78,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-** Breakthrough: subtasks **
+**Breakthrough: subtasks**
 
 ```python
 def task_splitter(elements, arg1, arg2, ...):
