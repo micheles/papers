@@ -36,6 +36,7 @@ There is more freedom with the output formats
 - XML/NRML/XSD (could have been simpler)
 - CSV (should have been used more)
 - HDF5 (in rare cases: UCERF3, GMPE tables)
+- ZIP (okay)
 
 +++
 
@@ -56,9 +57,11 @@ There is more freedom with the output formats
 - .toml
 - .sqlite
 
+@color[green](They are good) @fa[thumbs-up]
+
 +++
 
-**The choice of the input/outputs format has a big performance impact**
+**The choice of the data format has a big performance impact**
 
 - XML/CSV exporters
 - XML/CSV importers
@@ -70,7 +73,7 @@ There is more freedom with the output formats
 **Task distribution**
 
 - we are using *multiprocessing* on a single machine
-- and celery/rabbitmq on a cluster
+- and *celery/rabbitmq* on a cluster
 
 ![rabbitmq](rabbitmq.png)
 ![celery](celery.jpeg)
@@ -79,7 +82,7 @@ There is more freedom with the output formats
   until now, including the @color[green](REVOKE) functionality
   
 +++?image=slow-task.png
-**slow tasks :-(**
+**our biggest issue :-(**
 
 +++
 
@@ -104,9 +107,9 @@ def task_splitter(sources, arg1, arg2, ...):
 +++
 
 We introduced a task splitter able to perform a subset of the
-calculation and to estimate the expected total time:
+calculation and to estimate the expected total time: then,
 it can split the calculation in subtasks with estimated runtime smaller
-that an user-given `task_duration`
+that an user-given `task_duration` parameter
 
 +++
 
@@ -125,11 +128,21 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 - we switched to using zmq to return the outputs @fa[thumbs-up]
 ![zeromq](zeromq-logo.jpg)
 - we switched to NFS to read the inputs
+ (in the future we will also @color[green](share) the code)
 
 ---
 
 **Memory occupation**
 
-Another big problem we had to fight constantly is the memory occupation
+- Another big problem we had to fight constantly is running out of memory
+  (even with 1280 GB split on 10 machines)
 
-Notice that running out of memory *early* @color[green](can be a good thing)
+- Notice that running out of memory *early* @color[green](can be a good thing)
+
+- It is all about the tradeoff memory/speed
+
+**How to reduce the required memory**
+
+- use as much as possible numpy arrays instead of Python objects
+- use a point-by-point algorithm if you really must
+- remember that big tasks are still better, if you have enough memory
