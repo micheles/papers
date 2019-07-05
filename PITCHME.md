@@ -1,5 +1,4 @@
-Tips for the Scientific Programmer
-==================================
+# Tips for the Scientific Programmer
 
 Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
@@ -7,8 +6,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-I will not talk about micro-optimizations
------------------------------------------
+## I will not talk about micro-optimizations
 
 - very old tricks like replacing
   sqrt(x^2 + y^2) < R => x\*x + y\*y < R\*R
