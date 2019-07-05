@@ -9,7 +9,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **I will not talk about micro-optimizations**
 
-- sqrt(x**2 + y**2) < R => x*x + y*y < R**2
+- sqrt(x^2 + y^2) < R => x\*x + y\*y < R**2
 
 +++
 
