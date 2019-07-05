@@ -52,10 +52,12 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**The input/outputs format have a big performance impact**
+**The choice of the input/outputs format has a big performance impact**
 
 - XML/CSV exporters
 - XML/CSV importers
+
+*The choice of the internal formats is even more important*
 
 ---
 
