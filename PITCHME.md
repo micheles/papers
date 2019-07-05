@@ -108,7 +108,7 @@ that an user-given `task_duration`
 Successively, we made the engine smart enough to determine a sensible default
 for the `task_duration`, depending on the number of ruptures, sites and levels
 
-~color[green](=> slow tasks are greatly reduced)
+@color[green](=> slow tasks are greatly reduced)
 
 @color[red](except for non-splittable sources)
 ---
