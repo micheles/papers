@@ -20,8 +20,11 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **Input/output formats**
 
-- *never*, EVER change the input formats
-- there is more freedom with the output formats
+Here I learned the hard way a very essential lesson:
+
+*never, EVER change the input formats*
+
+There is more freedom with the output formats
 
 +++
 
