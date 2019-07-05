@@ -74,31 +74,27 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
   until now, including the @color[green](REVOKE) functionality
   
 +++?image=slow-task.png
-**The biggest problem we have**
+**slow tasks :-(**
 
++++
+
+** Breakthrough: subtasks **
+
+```python
+def task_splitter(elements, arg1, arg2, ...):
+    blocks = split_in_blocks(elements, maxweight)
+    for block in blocks[:-1]:
+         yield (task_func, block, arg1, arg2, ...)
+    yield task_func(block[-1], arg1, arg2, ...)
+```
 ---
 
-+++
+**Data transfer**
 
-**what's behind: @color[gray](celery/rabbitmq)**
-
-![celery](celery.jpeg)
-
-- using celery/redis did not work out (missing revoke)
-- the default configuration is not the ideal one for us
-  (*worker_prefetch_multiplier*, *result_cache_max*)
-- celery was keeping in memory all task results and we had to monkey patch it
-- we had celery waiting for already completed tasks :-(
+- we use zmq to return the outputs
+- we use NFS to read the inputs
 
 +++
-
-**what's behind: @color[gray](celery/rabbitmq)**
-
-- celery has 50,000+ lines of code, while rabbitmq is in Erlang
-- if something does not work, you are dead (but the mailing list is helpful)
-- there are strong limits on the amount of data you can transfer in a
-  short time
-
 ---
 
 **what's behind: @color[green](zmq)**
@@ -170,81 +166,3 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - but we are already parallelizing, so we would have risked oversubscription
 - I was also worried about memory consumption
 - at the end @color[green](scipy.spatial.distance) saved the day
-
-+++
-
-**@color[red](Intel Python)**
-
-- there are some concerns about vendor locking, of course
-- but the real reason is that I got a 20% slowdown, even yesterday
-- we will wait another year
-
----
-
-@color[green](@size[2em](Algorithmic solutions are always better than technological solutions))
-
----?image=collapse.jpg
-
-@color[white](what about architecture?)
-
-+++
-
-- however good the underlying libraries, your software will collapse
-  if you have the wrong architecture (speaking from experience)
-
-+++
-
-**some bottleneck are less obvious**
-
-- if transferring data is the big issue, consider using a distributed filesystem
-- NFS was really good for us
-
-+++
-
-**some bottleneck are just not there**
-
-- if you need to write a lot of data the single writer
-  architecture scales a lot more than one could expect (> 10 GB/minute)
-- tip: disabling the swap is a good idea
-
-+++
-
-- for speed, it is *essential* to find out the right data structure in HDF5
-- at the end a structured array plus a dataset with variable-length indices
-  was the best approach for the GMFs
-
----
-
-**more on h5py/hdf5**
-
-- h5py is really nice and Pythonic (but comes with caveats)
-- it makes a lot of sense to serialize Python objects to HDF5
-- it was easy to define a serialization protocol:
-
-```python
-    def __toh5__(self):
-        return self.grouparray, self.attrs
-        
-    def __fromh5__(self, grouparray, attrs):
-        self.grouparray = grouparray
-        self.attrs = attrs
-```
-+++
-
-**there is an OpenQuake HDF5 serialization library**
-
-part of https://github.com/gem/oq-engine
-
-*(free, with AGPL licence)*
-
-```python
-    with openquake.baselib.hdf5.File('x.hdf5', 'w') as f:
-         f[key] = obj 
-        
-    with openquake.baselib.hdf5.File('x.hdf5', 'r') as f:
-         obj = f[key] 
-```
-
-- we are converting our input files from XML to HDF5
-- USGS will provide ShakeMaps in HDF5 format
-- if you are not using HDF5, you should ;-)
