@@ -106,10 +106,10 @@ def task_splitter(sources, arg1, arg2, ...):
 
 +++
 
-We introduced a task splitter able to perform a subset of the
-calculation and to estimate the expected total time: then,
-it can split the calculation in subtasks with estimated runtime smaller
-that an user-given `task_duration` parameter
+- we introduced a task splitter able to perform a subset of the
+  calculation and to estimate the expected total time
+- it can split the calculation in subtasks with estimated runtime smaller
+  that an user-given `task_duration` parameter
 
 +++
 
@@ -126,7 +126,6 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 
 - don't split too much, to avoid too many outputs
 - we switched to using zmq to return the outputs @fa[thumbs-up]
-![zeromq](zeromq-logo.jpg)
 - we switched to NFS to read the inputs
  (in the future we will also @color[green](share) the code)
 
