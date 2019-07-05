@@ -148,3 +148,7 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 - use as much as possible numpy arrays instead of Python objects
 - use a point-by-point algorithm if you really must
 - remember that big tasks are still better, if you have enough memory
+
+---?image=collapse.jpg
+
+Questions?
