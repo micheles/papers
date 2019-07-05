@@ -12,9 +12,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - we do not have full control on the source code, which is very often
   user-contributed
 - profiling is essential to find bottlenecks like duplicated operations
-  in inner loops, but I do that 1-2 times per year
-- what really makes the difference is using the right library
-  *and* using the right architecture / data structures
+  in inner loops, @color[grey](but I do that 1-2 times per year)
+- what really makes the difference is using the @color[green](right library)
+  and the right @color[green](architecture / data structures)
 
 ---
 
