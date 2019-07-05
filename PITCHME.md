@@ -107,7 +107,7 @@ def task_splitter(sources, arg1, arg2, ...):
 +++
 
 - we introduced a task splitter able to perform a subset of the
-  calculation and to estimate the expected total time
+  calculation and to @color[green](estimate) the expected task duration
 - it can split the calculation in subtasks with estimated runtime smaller
   that an user-given `task_duration` parameter
 
