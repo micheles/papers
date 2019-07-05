@@ -78,7 +78,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-Slow tasks have been PITA for years
+Slow tasks have been PITA for years @fa[frown]
 
 A few months ago we had a breakthrough: @color[green](subtasks)
 
