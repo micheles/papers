@@ -5,65 +5,51 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++?image=risk_map_small.png
 
----
++++
 
-**I will not talk about micro-optimizations**
+**This talk is not about micro-optimizations**
 
 - old tricks like replacing
-  *sqrt(x^2 + y^2) < R => x\*x + y\*y < R\*R*
+  sqrt(x^2 + y^2) < R => x\*x + y\*y < R\*R
   are not really interesting
 - what makes the difference is using the right library
   (i.e. *scipy.spatial.distance*)
 - *and* using the right architecture
 
-+++
+---
 
-![all-cores](all-cores.png)
+**Input/output formats**
+
+- *never*, EVER change the input formats
+- there is more freedom with the output formats
 
 ---
 
-**what's behind: @color[green](numpy/scipy)**
+**Inputs formats we are using**
 
-![numpy](numpy.jpeg)
-
-- numpy and scipy are good @fa[thumbs-up] except I had troubles when
-  returning back big structured arrays
-
-![scipy](scipy.jpeg)
-
----
-
-**what's behind: @color[green](h5py/hdf5)**
-
-*file format and library to store arrays (and more)*
-
-- several issues with structured arrays/variable length arrays
-- issues with bytes/strings at the time of the Python 2->3 migration
-- recent debacle with the HDF5 1.8 -> 1.10 upgrade
-- tip: silx view is a lot better than HDFView
+- INI (TOML would have been better)
+- XML/NRML/XSD (could have been simpler)
+- CSV (should have been used more)
+- HDF5 (UCERF3, GMPE tables)
 
 +++
 
-**h5py/hdf5: the workflow that works**
+**Output formats we are using**
 
-1. create an .hdf5 file and write data on it
-2. @color[red](close) the file
-3. fork, read the data from the workers and return the results
-4. save on a @color[red](different) file
+- XML / NRML: we are removing it
+- CSV: good
+- HDF5: sometimes
+- NPZ: by necessity
 
-h5py/hdf5 is @color[red](evil)
++++
+
+**Internal formats we are using**
+
+- .hdf5
+- .toml
 
 ---
 
-**what's behind: @color[green](geospatial libraries)**
-
-- scipy.spatial.distance is really good
-- scipy.spatial.KDTree is fine except the docs
-- rtree is fine but I had problems with index bulk inserts in
-  the previous release
-- rtree/shapely/libgeos/gdal/basemap/cartopy etc are really hard to support
-  on all platforms
-- QGIS: ask me more after the end of the talk
 
 ---
 
