@@ -1,4 +1,4 @@
-Tips for the scientific programmer
+Tips for the Scientific Programmer
 ----------------------------------
 
 Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
@@ -7,12 +7,9 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 ---
 
-**what I mean by scientific computing**
+**I will not talk about micro-optimizations**
 
-- Distributed numerical simulations
-- Lots of data being generated
-- Nontrivial postprocessing
-- Issues with CPU time, memory and data transfer
+- sqrt(x**2 + y**2) < R => x*x + y*y < R**2
 
 +++
 
