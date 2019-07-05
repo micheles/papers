@@ -80,7 +80,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 Slow tasks have been PITA for years
 
-A few months ago we had a breakthrough: subtasks
+A few months ago we had a breakthrough: @color[green](subtasks)
 
 +++
 
@@ -89,8 +89,8 @@ We made the output receiver able to recognize tuples of the form
 this made it possible to define task splitters
 
 ```python
-def task_splitter(elements, arg1, arg2, ...):
-    blocks = split_in_blocks(elements, maxweight)
+def task_splitter(sources, arg1, arg2, ...):
+    blocks = split_in_blocks(sources, maxweight)
     for block in blocks[:-1]:
          yield (task_func, block, arg1, arg2, ...)
     yield task_func(block[-1], arg1, arg2, ...)
@@ -98,9 +98,9 @@ def task_splitter(elements, arg1, arg2, ...):
 
 +++
 
-We have task a task splitter which is able to perform a subset of the
-calculation and to estimate the expected total time to perform the task:
-then it splits the calculation in subtasks with estimated runtime smaller
+We introduced a task splitter able to perform a subset of the
+calculation and to estimate the expected total time:
+it can split the calculation in subtasks with estimated runtime smaller
 that an user-given `task_duration`
 
 +++
@@ -108,6 +108,9 @@ that an user-given `task_duration`
 Successively, we made the engine smart enough to determine a sensible default
 for the `task_duration`, depending on the number of ruptures, sites and levels
 
+=> slow tasks are greatly reduced
+
+@color[red](except for non-splittable sources)
 ---
 
 **Data transfer**
