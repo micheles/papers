@@ -1,11 +1,9 @@
-Python in scientific computing
-------------------------------
-
-*what works and what doesn't*
+Tips for the scientific programmer
+----------------------------------
 
 Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
-+++?image=SHARE.png
++++?image=hazard_map_small.png
 
 ---
 
