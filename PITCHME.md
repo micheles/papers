@@ -151,4 +151,4 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 
 ---?image=collapse.jpg
 
-@color[green](Questions?)
+@color[white](**Questions?**)
