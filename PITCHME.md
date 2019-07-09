@@ -147,8 +147,7 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 - use as much as possible numpy arrays instead of Python objects
 - use a point-by-point algorithm if you really must
 - remember that big tasks are still better, if you have enough memory
-
-NB: we measure the memory with `psutil.Process(pid).memory_info()`
+- we measure the memory with `psutil.Process(pid).memory_info()`
 
 ---?image=collapse.jpg
 
