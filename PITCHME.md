@@ -9,10 +9,10 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **This talk is not about micro-optimizations**
 
+- profiling is essential to find bottlenecks like slow operations
+  in inner loops, @color[grey](but I do that 1-2 times per year)
 - we do not have full control on the source code, which is very often
   user-contributed
-- profiling is essential to find bottlenecks like duplicated operations
-  in inner loops, @color[grey](but I do that 1-2 times per year)
 - what really makes the difference is using the @color[green](right library)
   and the right @color[green](architecture / data structures)
 
@@ -20,7 +20,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **Input/output formats**
 
-Here I learned the hard way a very essential lesson:
+I learned the hard way a very essential lesson:
 
 @color[red](*never, EVER change the input formats*)
 
@@ -127,7 +127,7 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 - don't split too much, to avoid too many outputs
 - we switched to using zmq to return the outputs @fa[thumbs-up]
 - we switched to NFS to read the inputs
- (in the future we will also @color[green](share) the code)
+ (in the future we will also use it to @color[green](share) the code)
 
 ---
 
@@ -139,6 +139,8 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 - Notice that running out of memory *early* @color[green](can be a good thing)
 
 - It is all about the tradeoff memory/speed
+
+NB: we measure the memory with `psutil.Process(pid).memory_info()`
 
 ---
 
