@@ -127,7 +127,7 @@ for the `task_duration`, depending on the number of ruptures, sites and levels
 - don't split too much, to avoid too many outputs
 - we switched to using zmq to return the outputs @fa[thumbs-up]
 - we switched to NFS to read the inputs
- (in the future we will also use it to @color[green](share) the code)
+ (it is also useful to @color[green](share) the code)
 
 ---
 
