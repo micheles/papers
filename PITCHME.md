@@ -110,6 +110,7 @@ Heavy tasks can be split in many light tasks
 
 - we introduced a task splitter able to perform a subset of the
   calculation and to @color[green](estimate) the expected task duration
+  depending on the weight
 - it can split the calculation in subtasks with estimated runtime smaller
   that an user-given `task_duration` parameter
 
