@@ -160,9 +160,10 @@ def big_task(sources, arg1, arg2, ...):
    accum = []
    for src in sources:
        accum.append(process(src, args, arg2, ...)
-   if len(accum) > max_size:
-       yield accum
-       accum.clear()
+       if len(accum) > max_size:
+          yield accum
+          accum.clear()  # save memory
+   yield accum
 ```       
 
 ---?image=collapse.jpg
