@@ -94,7 +94,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-- Task producing subtasks
+- task producing subtasks:
 ```python
 def task_splitter(sources, arg1, arg2, ...):
     blocks = split_in_blocks(sources, maxweight)
@@ -103,8 +103,7 @@ def task_splitter(sources, arg1, arg2, ...):
     yield task_func(block[-1], arg1, arg2, ...)
 ```
 - heavy tasks can be split in many light tasks
-- BTW, the weight of the seismic sources is the number of earthquakes it can
-  produce
+- the weight of the seismic sources is the number of earthquakes it can produce
 - it can be *very* different from the duration of the calculation
 
 +++
