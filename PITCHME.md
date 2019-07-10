@@ -70,8 +70,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **Task distribution**
 
-- we are using *multiprocessing* on a single machine
-- and *celery/rabbitmq* on a cluster
+- we are using *multiprocessing/zmq* on a single machine
+- and *celery/rabbitmq/zmq* on a cluster
 
 ![rabbitmq](rabbitmq.png)
 ![celery](celery.jpeg)
