@@ -103,7 +103,9 @@ def task_splitter(sources, arg1, arg2, ...):
          yield (task_func, block, arg1, arg2, ...)
     yield task_func(block[-1], arg1, arg2, ...)
 ```
-Heavy tasks can be split in many light tasks
+- heavy tasks can be split in many light tasks
+- BTW, the weight of the seismic sources is the number of earthquakes it can
+  produce
 +++
 
 **Calibrating the computation**
