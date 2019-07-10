@@ -115,7 +115,7 @@ def task_splitter(sources, arg1, arg2, ...):
 
 +++
 
-**Automatic splitting**
+**Automatic task splitting**
 
 - successively, we made the engine smart enough to determine a sensible default
   for the `task_duration`, depending on the number of ruptures, sites and levels
