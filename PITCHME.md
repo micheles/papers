@@ -125,7 +125,7 @@ Heavy tasks can be split in many light tasks
 
 ---
 
-**Data transfer**
+**Solving the data transfer issue**
 
 - we switched to using zmq to return the outputs @fa[thumbs-up]
 - we switched to NFS to read the inputs (and it is also useful for
@@ -166,7 +166,7 @@ def big_task(sources, arg1, arg2, ...):
           accum.clear()  # save memory
    yield accum
 ```       
-A nice parallelization framework really helps
+Lesson: nice parallelization framework really helps
 
 ---?image=collapse.jpg
 
