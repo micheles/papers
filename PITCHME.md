@@ -162,7 +162,7 @@ def task_splitter(sources, arg1, arg2, ...):
 def big_task(sources, arg1, arg2, ...):
    accum = []
    for src in sources:
-       accum.append(process(src, args, arg2, ...)
+       accum.append(process(src, arg1, arg2, ...)
        if len(accum) > max_size:
           yield accum
           accum.clear()  # save memory
