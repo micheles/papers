@@ -142,7 +142,7 @@ def task_splitter(sources, arg1, arg2, ...):
 - it is all about the tradeoff memory/speed
 - memory allocation can be the dominating factor for performance
 
----
++++
 
 **How to reduce the required memory**
 
@@ -150,6 +150,20 @@ def task_splitter(sources, arg1, arg2, ...):
 - use a point-by-point algorithm if you really must
 - remember that big tasks are still better, if you have enough memory
 - we measure the memory with `psutil.Process(pid).memory_info()`
+
++++
+
+**Yielding partial results**
+
+```python
+def big_task(sources, arg1, arg2, ...):
+   accum = []
+   for src in sources:
+       accum.append(process(src, args, arg2, ...)
+   if len(accum) > max_size:
+       yield accum
+       accum.clear()
+```       
 
 ---?image=collapse.jpg
 
