@@ -106,6 +106,8 @@ def task_splitter(sources, arg1, arg2, ...):
 - heavy tasks can be split in many light tasks
 - BTW, the weight of the seismic sources is the number of earthquakes it can
   produce
+- it can be *very* different from the duration of the calculation
+
 +++
 
 **Calibrating the computation**
