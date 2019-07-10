@@ -103,7 +103,7 @@ def task_splitter(sources, arg1, arg2, ...):
          yield (task_func, block, arg1, arg2, ...)
     yield task_func(block[-1], arg1, arg2, ...)
 ```
-
+Heavy tasks can be split in many light tasks
 +++
 
 **Calibrating the computation**
