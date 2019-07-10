@@ -94,8 +94,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**Task producing subtasks**
-
+- Task producing subtasks
 ```python
 def task_splitter(sources, arg1, arg2, ...):
     blocks = split_in_blocks(sources, maxweight)
