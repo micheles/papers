@@ -19,12 +19,10 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **Input/output formats**
 
-- I learned the hard way a very essential lesson:
-
-@color[red](*never, EVER change the input formats*)
-
+- I learned the hard way a very essential lesson: @color[red](*never,
+  EVER change the input formats*)
 - You cannot. Really, you can not.
-- Even it is impossible to get right
+- Even if it is impossible to get right
   the input format at the beginning @fa[frown]
 - There is more freedom with the output formats
 
