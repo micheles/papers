@@ -85,6 +85,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
+**Slow tasks**
+
 - slow tasks have been a PITA for years @fa[frown]
 - a few months ago we had a breakthrough: @color[green](subtasks)
 
@@ -103,6 +105,8 @@ def task_splitter(sources, arg1, arg2, ...):
 ```
 
 +++
+
+**Calibrating the computation**
 
 - we introduced a task splitter able to perform a subset of the
   calculation and to @color[green](estimate) the expected task duration
