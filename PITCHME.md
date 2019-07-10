@@ -77,7 +77,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 ![celery](celery.jpeg)
 ![zmq](zeromq-logo.jpg)
 
-- celery/rabbitmq is not ideal for our use case but it worked,
+- celery/rabbitmq is not ideal for our use case but it works enough,
   including the @color[green](REVOKE) functionality
   
 +++?image=slow-task.png
@@ -89,12 +89,12 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 - slow tasks have been a PITA for years @fa[frown]
 - a few months ago we had a breakthrough: @color[green](subtasks)
+- we made the output receiver able to recognize tuples of the form
+  `(callable, arg1, arg2, ...)`
 
 +++
 
-We made the output receiver able to recognize tuples of the form
-`(callable, arg1, arg2, ...)`;
-this made it possible to define task splitters
+**Task producing subtasks**
 
 ```python
 def task_splitter(sources, arg1, arg2, ...):
