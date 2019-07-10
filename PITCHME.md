@@ -86,7 +86,7 @@ There is more freedom with the output formats
 
 +++
 
-- slow tasks have been a PITA for years @fa[frown]
+- slow tasks have been a PITA for years @fa[thumbs-down]
 - a few months ago we had a breakthrough: @color[green](subtasks)
 
 +++
