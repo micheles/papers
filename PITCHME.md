@@ -90,7 +90,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - slow tasks have been a PITA for years @fa[frown]
 - a few months ago we had a breakthrough: @color[green](subtasks)
 - we made the output receiver able to recognize tuples of the form
-  `(callable, arg1, arg2, ...)`
+  `(callable, arg1, arg2, ...)` and to send them as subtasks
 
 +++
 
