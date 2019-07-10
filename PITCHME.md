@@ -165,6 +165,7 @@ def big_task(sources, arg1, arg2, ...):
           accum.clear()  # save memory
    yield accum
 ```       
+A nice parallelization framework really helps
 
 ---?image=collapse.jpg
 
