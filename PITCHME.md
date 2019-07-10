@@ -124,7 +124,7 @@ def task_splitter(sources, arg1, arg2, ...):
 - we switched to NFS to read the inputs (and it is also useful for
   @color[green](sharing) the code)
 - IMPORTANT: do not produce too many tasks, the data transfer will kill
-  you of the output queue will run out of memory
+  you, or the output queue will run out of memory, or both
 
 ---
 
