@@ -77,8 +77,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 ![celery](celery.jpeg)
 ![zmq](zeromq-logo.jpg)
 
-- celery/rabbitmq is not ideal for our use case but it worked
-  until now, including the @color[green](REVOKE) functionality
+- celery/rabbitmq is not ideal for our use case but it worked,
+  including the @color[green](REVOKE) functionality
   
 +++?image=slow-task.png
 **our biggest issue :-(**
