@@ -157,7 +157,7 @@ def task_splitter(sources, arg1, arg2, ...):
 
 +++
 
-**Yielding partial results**
+**Saving memory by yielding partial results**
 
 ```python
 def big_task(sources, arg1, arg2, ...):
