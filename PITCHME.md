@@ -91,7 +91,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - slow tasks have been a PITA for years @fa[frown]
 - a few months ago we had a breakthrough: @color[green](subtasks)
 - we made the output receiver able to recognize tuples of the form
-  `(callable, arg1, arg2, ...)` and to send them as subtasks
+  `(callable, arg1, arg2, ...)` and to send them as tasks
 
 +++
 
@@ -104,7 +104,7 @@ def task_splitter(sources, arg1, arg2, ...):
     yield task_func(block[-1], arg1, arg2, ...)
 ```
 - heavy tasks can be split in many light tasks
-- the weight of the seismic sources is the number of earthquakes it can produce
+- the weight of a seismic source is the number of earthquakes it can produce
 - it can be *very* different from the duration of the calculation
 
 +++
@@ -150,8 +150,8 @@ def task_splitter(sources, arg1, arg2, ...):
 
 **How to reduce the required memory**
 
-- use as much as possible numpy arrays instead of Python objects
-- use a point-by-point algorithm if you really must
+- use as much as possible @color[green](numpy arrays) instead of Python objects
+- use a @color[gray](site-by-site) algorithm if you really must
 - remember that big tasks are still better, if you have enough memory
 - we measure the memory with `psutil.Process(pid).memory_info()`
 
