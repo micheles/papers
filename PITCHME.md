@@ -25,7 +25,7 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 - Even if it is impossible to get right
   the input format at the beginning @fa[frown]
 - There is more freedom with the output formats
-- Where you can really work is on the @[color](internal formats)
+- Where you can really work is on the @color[green](internal formats)
 
 +++
 
