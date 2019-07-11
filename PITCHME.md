@@ -7,13 +7,13 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 +++
 
-**This talk is not about micro-optimizations**
+**This talk is about "Middle Performance Computing"**
 
 - profiling is invaluable for finding bottlenecks like slow operations
   in inner loops, @color[grey](but I do that 1-2 times per year)
 - what it is really essential is @color[green](instrumenting) your code
 - what makes the difference is using the @color[green](right library)
-  and the right @color[green](architecture / data structures)
+  and the right @color[green](architecture / data structure)
 
 ---
 
