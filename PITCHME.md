@@ -167,7 +167,8 @@ def big_task(sources, arg1, arg2, ...):
        if len(accum) > max_size:
           yield accum
           accum.clear()  # save memory
-   yield accum
+   if accum:
+      yield accum
 ```       
 Lesson: a nice parallelization framework really helps
 
