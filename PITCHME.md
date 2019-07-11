@@ -133,7 +133,7 @@ def task_splitter(sources, arg1, arg2, ...):
 - we switched to using zmq to return the outputs @fa[thumbs-up]
 - we switched to NFS to read the inputs (and it is also useful for
   @color[green](sharing) the code)
-- **Important**: do not produce too many tasks, the data transfer will kill
+- **important**: do not produce too many tasks, the data transfer will kill
   you, or the output queue will run out of memory, or both
 
 ---
@@ -144,7 +144,7 @@ def task_splitter(sources, arg1, arg2, ...):
   (even with 1280 GB split on 10 machines)
 - notice that running out of memory *early* @color[green](can be a good thing)
 - it is all about the tradeoff memory/speed
-- memory allocation can be the dominating factor for performance
+- NB: memory allocation can be the *dominating* factor for performance
 
 +++
 
