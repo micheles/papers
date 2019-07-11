@@ -41,8 +41,8 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **Output formats we are using**
 
-- XML / NRML: we are removing it
-- CSV with pre-header: we are using it more and more
+- @color[red](XML / NRML): we are removing it
+- @color[green](CSV) with pre-header: we are using it more and more
 - HDF5: used sometimes
 - NPZ: by necessity
 
