@@ -31,11 +31,11 @@ Michele Simionato@[GEM Foundation](https://www.globalquakemodel.org)
 
 **Inputs formats we are using**
 
-- INI (good, but TOML would have been better)
-- XML/NRML/XSD (could have been simpler)
-- CSV (should have been used more)
+- INI (good, but @color[green](TOML) would have been better)
+- @color[red](XML/NRML/XSD) (could have been simpler)
+- @color[green](CSV) (should have been used more)
 - HDF5 (in rare cases: UCERF3, GMPE tables)
-- ZIP (okay)
+- @color[green](ZIP) (okay)
 
 +++
 
